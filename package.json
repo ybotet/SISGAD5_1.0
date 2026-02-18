@@ -1,0 +1,31 @@
+{
+    "name": "sisgad5",
+    "version": "1.0.0",
+    "description": " Sistema de Información para la Gestión y Apoyo a la Dirección de Atención al Gobierno No. 5",
+    "scripts": {
+        "dev:backend": "cd backend && npm run dev",
+        "dev:frontend": "cd frontend && npm run dev",
+        "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+        "build:frontend": "cd frontend && npm run build",
+        "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+        "generate:models": "cd backend && node scripts/generate-models.js"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    },
+    "keywords": [
+        "react",
+        "express",
+        "postgresql",
+        "sisgad"
+    ],
+    "author": "Tu Nombre",
+    "license": "MIT",
+    "dependencies": {
+        "@fortawesome/fontawesome-free": "^7.1.0",
+        "bcryptjs": "^3.0.3",
+        "jsonwebtoken": "^9.0.2",
+        "morgan": "^1.10.1",
+        "react-router-dom": "^7.9.4"
+    }
+}

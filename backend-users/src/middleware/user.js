@@ -1,0 +1,1 @@
+// Middleware para user - vacío por ahora

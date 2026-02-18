@@ -1,0 +1,9 @@
+export { default as TelefonoHeader } from './TelefonoHeader';
+export { default as TelefonoError } from './TelefonoError';
+export { default as TelefonoStats } from './TelefonoStats';
+export { default as TelefonoFilters } from './TelefonoFilters';
+export { default as TelefonoTable } from './TelefonoTable';
+export { default as TelefonoPagination } from './TelefonoPagination';
+export { default as TelefonoModal } from './TelefonoModal';
+export { default as TelefonoConfirmModal } from './TelefonoConfirmModal';
+export { default as TelefonoDetallesModal } from './TelefonoDetallesModal';
