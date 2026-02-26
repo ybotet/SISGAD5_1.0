@@ -11,9 +11,19 @@ module.exports = (sequelize) => {
 
     nombre: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
       validate: {
-        len: [0, 14]
+        len: {
+          args: [0, 14],
+          msg: 'El nombre debe tener como máximo 14 caracteres'
+        },
+         is: { 
+          args: /^[a-zA-Z0-9\s]*$/i,
+          msg: 'El nombre solo puede contener letras, números y espacios'
+        },  
+        notNull: {
+          msg: 'El nombre es requerido'
+        }
       },
     },
 

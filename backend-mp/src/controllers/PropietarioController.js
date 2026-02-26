@@ -1,5 +1,5 @@
-const { Propietario } = require('../models');
-const { Op } = require('sequelize');
+const { Propietario } = require("../models");
+const { Op } = require("sequelize");
 
 const PropietarioController = {
   /**
@@ -12,9 +12,9 @@ const PropietarioController = {
       const {
         page = 1,
         limit = 10,
-        sortBy = 'createdAt',
-        sortOrder = 'DESC',
-        search = '',
+        sortBy = "createdAt",
+        sortOrder = "DESC",
+        search = "",
         ...filters
       } = req.query;
 
@@ -25,12 +25,12 @@ const PropietarioController = {
       if (search) {
         whereClause[Op.or] = [
           // Buscar en el campo nombre
-          { nombre: { [Op.iLike]: `%${search}%` } }
+          { nombre: { [Op.iLike]: `%${search}%` } },
         ].filter(Boolean);
       }
 
       // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
+      Object.keys(filters).forEach((key) => {
         if (filters[key]) {
           whereClause[key] = filters[key];
         }
@@ -40,7 +40,7 @@ const PropietarioController = {
         where: whereClause,
         limit: parseInt(limit),
         offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]]
+        order: [[sortBy, sortOrder.toUpperCase()]],
       });
 
       res.json({
@@ -50,15 +50,16 @@ const PropietarioController = {
           page: parseInt(page),
           limit: parseInt(limit),
           total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
+          pages: Math.ceil(data.count / limit),
+        },
       });
     } catch (error) {
-      console.error('Error en PropietarioController.getAll:', error);
+      console.error("Error en PropietarioController.getAll:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: "Error interno del servidor",
+        message:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -76,19 +77,19 @@ const PropietarioController = {
       if (!data) {
         return res.status(404).json({
           success: false,
-          error: 'Propietario no encontrado'
+          error: "Propietario no encontrado",
         });
       }
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
-      console.error('Error en PropietarioController.getById:', error);
+      console.error("Error en PropietarioController.getById:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor'
+        error: "Error interno del servidor",
       });
     }
   },
@@ -105,23 +106,32 @@ const PropietarioController = {
       res.status(201).json({
         success: true,
         data,
-        message: 'Propietario creado exitosamente'
+        message: "Propietario creado exitosamente",
       });
     } catch (error) {
-      console.error('Error en PropietarioController.create:', error);
+      console.error("Error en PropietarioController.create:", error);
 
-      if (error.name === 'SequelizeValidationError') {
+      if (error.name === "SequelizeValidationError") {
         return res.status(400).json({
           success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
+          error: "Error de validación",
+          details: error.errors.map((err) => err.message),
+        });
+      }
+
+      if (error.name === "SequelizeUniqueConstraintError") {
+        return res.status(400).json({
+          success: false,
+          error: "Error de validación",
+          details: ["El propietario ya existe"],
         });
       }
 
       res.status(400).json({
         success: false,
-        error: 'Error creando Propietario',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: "Error creando Propietario",
+        message:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -136,13 +146,13 @@ const PropietarioController = {
       const { id } = req.params;
 
       const [affectedRows] = await Propietario.update(req.body, {
-        where: { id_propietario: id }
+        where: { id_propietario: id },
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Propietario no encontrado'
+          error: "Propietario no encontrado",
         });
       }
 
@@ -151,22 +161,30 @@ const PropietarioController = {
       res.json({
         success: true,
         data: updatedData,
-        message: 'Propietario actualizado exitosamente'
+        message: "Propietario actualizado exitosamente",
       });
     } catch (error) {
-      console.error('Error en PropietarioController.update:', error);
+      console.error("Error en PropietarioController.update:", error);
 
-      if (error.name === 'SequelizeValidationError') {
+      if (error.name === "SequelizeValidationError") {
         return res.status(400).json({
           success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
+          error: "Error de validación",
+          details: error.errors.map((err) => err.message),
+        });
+      }
+
+      if (error.name === "SequelizeUniqueConstraintError") {
+        return res.status(400).json({
+          success: false,
+          error: "Error de validación",
+          details: ["El propietario ya existe"],
         });
       }
 
       res.status(400).json({
         success: false,
-        error: 'Error actualizando Propietario'
+        error: "Error actualizando Propietario",
       });
     }
   },
@@ -181,28 +199,28 @@ const PropietarioController = {
       const { id } = req.params;
 
       const affectedRows = await Propietario.destroy({
-        where: { id_propietario: id }
+        where: { id_propietario: id },
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Propietario no encontrado'
+          error: "Propietario no encontrado",
         });
       }
 
       res.json({
         success: true,
-        message: 'Propietario eliminado exitosamente'
+        message: "Propietario eliminado exitosamente",
       });
     } catch (error) {
-      console.error('Error en PropietarioController.delete:', error);
+      console.error("Error en PropietarioController.delete:", error);
       res.status(500).json({
         success: false,
-        error: 'Error eliminando Propietario'
+        error: "Error eliminando Propietario",
       });
     }
-  }
+  },
 };
 
 module.exports = PropietarioController;

@@ -10,7 +10,24 @@ module.exports = (sequelize) => {
     },
     nombre: {
       type: DataTypes.TEXT,
-      allowNull: true,
+      validate: {
+        notEmpty: {
+          msg: 'El nombre no puede estar vacío'
+        },
+        len: {
+          args: [1, 255],
+          msg: 'El nombre debe tener entre 1 y 255 caracteres'
+        },
+          is: { 
+          args: /^[a-zA-Z0-9\s]+$/i,
+          msg: 'El nombre solo puede contener letras, números y espacios'
+        },
+        notNull: {
+          msg: 'El nombre es requerido'
+        }
+      },
+      allowNull: false,
+      unique: true
     },
     createdAt: {
       type: DataTypes.DATE,

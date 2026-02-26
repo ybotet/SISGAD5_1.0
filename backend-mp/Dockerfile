@@ -1,5 +1,5 @@
-# Dockerfile para backend-services
-FROM node:18-alpine
+# Dockerfile para backend-mp
+FROM node:22-alpine
 
 WORKDIR /app
 

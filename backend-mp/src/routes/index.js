@@ -3,7 +3,7 @@ const router = express.Router();
 
 
 // Importar y usar todas las rutas automáticamente
-router.use('/auth', require('./auth'));
+// router.use('/auth', require('./auth'));
 router.use('/cable', require('./cable'));
 router.use('/clasificacion', require('./clasificacion'));
 router.use('/clasificadorclave', require('./clasificadorclave'));
@@ -17,7 +17,6 @@ router.use('/pizarra', require('./pizarra'));
 router.use('/planta', require('./planta'));
 router.use('/propietario', require('./propietario'));
 router.use('/prueba', require('./prueba'));
-router.use('/roles', require('./roles'));
 router.use('/queja', require('./queja'));
 router.use('/tipolinea', require('./tipolinea'));
 router.use('/recorrido', require('./recorrido'));
@@ -31,7 +30,6 @@ router.use('/tipoqueja', require('./tipoqueja'));
 router.use('/trabajador', require('./trabajador'));
 router.use('/trabajo', require('./trabajo'));
 router.use('/trabajotrabajadores', require('./trabajoTrabajadores'));
-router.use('/user', require('./user'));
 
 
 router.use('/tbMaterial', require('./tbMaterial'));

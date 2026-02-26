@@ -1,5 +1,5 @@
-const { Mando } = require('../models');
-const { Op } = require('sequelize');
+const { Mando } = require("../models");
+const { Op } = require("sequelize");
 
 const MandoController = {
   /**
@@ -12,9 +12,9 @@ const MandoController = {
       const {
         page = 1,
         limit = 10,
-        sortBy = 'createdAt',
-        sortOrder = 'DESC',
-        search = '',
+        sortBy = "createdAt",
+        sortOrder = "DESC",
+        search = "",
         ...filters
       } = req.query;
 
@@ -25,12 +25,12 @@ const MandoController = {
       if (search) {
         whereClause[Op.or] = [
           // Buscar en el campo mando
-          { mando: { [Op.iLike]: `%${search}%` } }
+          { mando: { [Op.iLike]: `%${search}%` } },
         ].filter(Boolean);
       }
 
       // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
+      Object.keys(filters).forEach((key) => {
         if (filters[key]) {
           whereClause[key] = filters[key];
         }
@@ -40,7 +40,7 @@ const MandoController = {
         where: whereClause,
         limit: parseInt(limit),
         offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]]
+        order: [[sortBy, sortOrder.toUpperCase()]],
       });
 
       res.json({
@@ -50,15 +50,16 @@ const MandoController = {
           page: parseInt(page),
           limit: parseInt(limit),
           total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
+          pages: Math.ceil(data.count / limit),
+        },
       });
     } catch (error) {
-      console.error('Error en MandoController.getAll:', error);
+      console.error("Error en MandoController.getAll:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: "Error interno del servidor",
+        message:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -76,19 +77,19 @@ const MandoController = {
       if (!data) {
         return res.status(404).json({
           success: false,
-          error: 'Mando no encontrado'
+          error: "Mando no encontrado",
         });
       }
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
-      console.error('Error en MandoController.getById:', error);
+      console.error("Error en MandoController.getById:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor'
+        error: "Error interno del servidor",
       });
     }
   },
@@ -105,23 +106,32 @@ const MandoController = {
       res.status(201).json({
         success: true,
         data,
-        message: 'Mando creado exitosamente'
+        message: "Mando creado exitosamente",
       });
     } catch (error) {
-      console.error('Error en MandoController.create:', error);
+      console.error("Error en MandoController.create:", error);
 
-      if (error.name === 'SequelizeValidationError') {
+      if (error.name === "SequelizeValidationError") {
         return res.status(400).json({
           success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
+          error: "Error de validación",
+          details: error.errors.map((err) => err.message),
+        });
+      }
+
+      if (error.name === "SequelizeUniqueConstraintError") {
+        return res.status(400).json({
+          success: false,
+          error: "Error de validación",
+          details: ["El mando ya existe"],
         });
       }
 
       res.status(400).json({
         success: false,
-        error: 'Error creando Mando',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: "Error creando Mando",
+        message:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -136,13 +146,13 @@ const MandoController = {
       const { id } = req.params;
 
       const [affectedRows] = await Mando.update(req.body, {
-        where: { id_mando: id }
+        where: { id_mando: id },
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Mando no encontrado'
+          error: "Mando no encontrado",
         });
       }
 
@@ -151,22 +161,30 @@ const MandoController = {
       res.json({
         success: true,
         data: updatedData,
-        message: 'Mando actualizado exitosamente'
+        message: "Mando actualizado exitosamente",
       });
     } catch (error) {
-      console.error('Error en MandoController.update:', error);
+      console.error("Error en MandoController.update:", error);
 
-      if (error.name === 'SequelizeValidationError') {
+      if (error.name === "SequelizeValidationError") {
         return res.status(400).json({
           success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
+          error: "Error de validación",
+          details: error.errors.map((err) => err.message),
+        });
+      }
+
+      if (error.name === "SequelizeUniqueConstraintError") {
+        return res.status(400).json({
+          success: false,
+          error: "Error de validación",
+          details: ["El mando ya existe"],
         });
       }
 
       res.status(400).json({
         success: false,
-        error: 'Error actualizando Mando'
+        error: "Error actualizando Mando",
       });
     }
   },
@@ -181,28 +199,28 @@ const MandoController = {
       const { id } = req.params;
 
       const affectedRows = await Mando.destroy({
-        where: { id_mando: id }
+        where: { id_mando: id },
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Mando no encontrado'
+          error: "Mando no encontrado",
         });
       }
 
       res.json({
         success: true,
-        message: 'Mando eliminado exitosamente'
+        message: "Mando eliminado exitosamente",
       });
     } catch (error) {
-      console.error('Error en MandoController.delete:', error);
+      console.error("Error en MandoController.delete:", error);
       res.status(500).json({
         success: false,
-        error: 'Error eliminando Mando'
+        error: "Error eliminando Mando",
       });
     }
-  }
+  },
 };
 
 module.exports = MandoController;

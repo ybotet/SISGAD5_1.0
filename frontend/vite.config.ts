@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
     base: isProduction ? '/sisgad5/' : '/',
     
     server: {
-      host: 'localhost',
+      host: '0.0.0.0',
       port: 5173,
       strictPort: false,
       proxy: !isProduction ? {

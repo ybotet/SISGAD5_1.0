@@ -1,40 +1,43 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const LineaController = require('../controllers/LineaController');
+const LineaController = require("../controllers/LineaController");
+const auth = require("../middleware/auth");
+// const { tienePermiso } = require('../middleware/permissions');
 
+router.use(auth);
 /**
  * @route   GET /api/tbLinea
  * @desc    Obtener todos los tbLinea
  * @access  Public
  */
-router.get('/', LineaController.getAll);
+router.get("/", LineaController.getAll);
 
 /**
  * @route   GET /api/tbLinea/:id
  * @desc    Obtener un Linea por ID
  * @access  Public
  */
-router.get('/:id', LineaController.getById);
+router.get("/:id", LineaController.getById);
 
 /**
  * @route   POST /api/tbLinea
  * @desc    Crear nuevo Linea
  * @access  Public
  */
-router.post('/', LineaController.create);
+router.post("/", LineaController.create);
 
 /**
  * @route   PUT /api/tbLinea/:id
  * @desc    Actualizar Linea
  * @access  Public
  */
-router.put('/:id', LineaController.update);
+router.put("/:id", LineaController.update);
 
 /**
  * @route   DELETE /api/tbLinea/:id
  * @desc    Eliminar Linea
  * @access  Public
  */
-router.delete('/:id', LineaController.delete);
+router.delete("/:id", LineaController.delete);
 
 module.exports = router;

@@ -1,5 +1,5 @@
-const { Clasificacion } = require('../models');
-const { Op } = require('sequelize');
+const { Clasificacion } = require("../models");
+const { Op } = require("sequelize");
 
 const ClasificacionController = {
   /**
@@ -12,9 +12,9 @@ const ClasificacionController = {
       const {
         page = 1,
         limit = 10,
-        sortBy = 'createdAt',
-        sortOrder = 'DESC',
-        search = '',
+        sortBy = "createdAt",
+        sortOrder = "DESC",
+        search = "",
         ...filters
       } = req.query;
 
@@ -23,13 +23,11 @@ const ClasificacionController = {
       // Construir where clause para búsqueda
       const whereClause = {};
       if (search) {
-        whereClause[Op.or] = [
-          { nombre: { [Op.iLike]: `%${search}%` } }
-        ];
+        whereClause[Op.or] = [{ nombre: { [Op.iLike]: `%${search}%` } }];
       }
 
       // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
+      Object.keys(filters).forEach((key) => {
         if (filters[key]) {
           whereClause[key] = filters[key];
         }
@@ -39,7 +37,7 @@ const ClasificacionController = {
         where: whereClause,
         limit: parseInt(limit),
         offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]]
+        order: [[sortBy, sortOrder.toUpperCase()]],
       });
 
       res.json({
@@ -49,15 +47,16 @@ const ClasificacionController = {
           page: parseInt(page),
           limit: parseInt(limit),
           total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
+          pages: Math.ceil(data.count / limit),
+        },
       });
     } catch (error) {
-      console.error('Error en ClasificacionController.getAll:', error);
+      console.error("Error en ClasificacionController.getAll:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: "Error interno del servidor",
+        message:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -75,19 +74,19 @@ const ClasificacionController = {
       if (!data) {
         return res.status(404).json({
           success: false,
-          error: 'Clasificacion no encontrado'
+          error: "Clasificacion no encontrado",
         });
       }
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
-      console.error('Error en ClasificacionController.getById:', error);
+      console.error("Error en ClasificacionController.getById:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor'
+        error: "Error interno del servidor",
       });
     }
   },
@@ -104,23 +103,32 @@ const ClasificacionController = {
       res.status(201).json({
         success: true,
         data,
-        message: 'Clasificacion creado exitosamente'
+        message: "Clasificacion creado exitosamente",
       });
     } catch (error) {
-      console.error('Error en ClasificacionController.create:', error);
+      console.error("Error en ClasificacionController.create:", error);
 
-      if (error.name === 'SequelizeValidationError') {
+      if (error.name === "SequelizeValidationError") {
         return res.status(400).json({
           success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
+          error: "Error de validación",
+          details: error.errors.map((err) => err.message),
+        });
+      }
+
+      if (error.name === "SequelizeUniqueConstraintError") {
+        return res.status(400).json({
+          success: false,
+          error: "Error de validación",
+          details: ["La clasificación ya existe"],
         });
       }
 
       res.status(400).json({
         success: false,
-        error: 'Error creando Clasificacion',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: "Error creando Clasificacion",
+        message:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -135,13 +143,13 @@ const ClasificacionController = {
       const { id } = req.params;
 
       const [affectedRows] = await Clasificacion.update(req.body, {
-        where: { id_clasificacion: id }
+        where: { id_clasificacion: id },
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Clasificacion no encontrado'
+          error: "Clasificacion no encontrada",
         });
       }
 
@@ -150,22 +158,30 @@ const ClasificacionController = {
       res.json({
         success: true,
         data: updatedData,
-        message: 'Clasificacion actualizado exitosamente'
+        message: "Clasificacion actualizado exitosamente",
       });
     } catch (error) {
-      console.error('Error en ClasificacionController.update:', error);
+      console.error("Error en ClasificacionController.update:", error);
 
-      if (error.name === 'SequelizeValidationError') {
+      if (error.name === "SequelizeValidationError") {
         return res.status(400).json({
           success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
+          error: "Error de validación",
+          details: error.errors.map((err) => err.message),
+        });
+      }
+
+      if (error.name === "SequelizeUniqueConstraintError") {
+        return res.status(400).json({
+          success: false,
+          error: "Error de validación",
+          details: ["La clasificación ya existe"],
         });
       }
 
       res.status(400).json({
         success: false,
-        error: 'Error actualizando Clasificacion'
+        error: "Error actualizando Clasificacion",
       });
     }
   },
@@ -180,28 +196,28 @@ const ClasificacionController = {
       const { id } = req.params;
 
       const affectedRows = await Clasificacion.destroy({
-        where: { id_clasificacion: id }
+        where: { id_clasificacion: id },
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Clasificacion no encontrado'
+          error: "Clasificacion no encontrado",
         });
       }
 
       res.json({
         success: true,
-        message: 'Clasificacion eliminado exitosamente'
+        message: "Clasificacion eliminado exitosamente",
       });
     } catch (error) {
-      console.error('Error en ClasificacionController.delete:', error);
+      console.error("Error en ClasificacionController.delete:", error);
       res.status(500).json({
         success: false,
-        error: 'Error eliminando Clasificacion'
+        error: "Error eliminando Clasificacion",
       });
     }
-  }
+  },
 };
 
 module.exports = ClasificacionController;

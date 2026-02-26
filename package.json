@@ -11,6 +11,7 @@
         "generate:models": "cd backend && node scripts/generate-models.js"
     },
     "devDependencies": {
+        "baseline-browser-mapping": "^2.9.19",
         "concurrently": "^8.2.2"
     },
     "keywords": [
@@ -19,7 +20,7 @@
         "postgresql",
         "sisgad"
     ],
-    "author": "Tu Nombre",
+    "author": "Yaisel Botet Cesar",
     "license": "MIT",
     "dependencies": {
         "@fortawesome/fontawesome-free": "^7.1.0",

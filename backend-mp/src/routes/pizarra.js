@@ -1,40 +1,44 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const PizarraController = require('../controllers/PizarraController');
+const PizarraController = require("../controllers/PizarraController");
+const auth = require("../middleware/auth");
+//const { tienePermiso } = require('../middleware/permissions');
+
+router.use(auth);
 
 /**
  * @route   GET /api/tbPizarra
  * @desc    Obtener todos los tbPizarra
  * @access  Public
  */
-router.get('/', PizarraController.getAll);
+router.get("/", PizarraController.getAll);
 
 /**
  * @route   GET /api/tbPizarra/:id
  * @desc    Obtener un Pizarra por ID
  * @access  Public
  */
-router.get('/:id', PizarraController.getById);
+router.get("/:id", PizarraController.getById);
 
 /**
  * @route   POST /api/tbPizarra
  * @desc    Crear nuevo Pizarra
  * @access  Public
  */
-router.post('/', PizarraController.create);
+router.post("/", PizarraController.create);
 
 /**
  * @route   PUT /api/tbPizarra/:id
  * @desc    Actualizar Pizarra
  * @access  Public
  */
-router.put('/:id', PizarraController.update);
+router.put("/:id", PizarraController.update);
 
 /**
  * @route   DELETE /api/tbPizarra/:id
  * @desc    Eliminar Pizarra
  * @access  Public
  */
-router.delete('/:id', PizarraController.delete);
+router.delete("/:id", PizarraController.delete);
 
 module.exports = router;

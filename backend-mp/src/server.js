@@ -29,7 +29,7 @@ app.use('/api', apiRoutes);
 // Ruta raíz
 app.get('/', (req, res) => {
     res.json({
-        message: '🚀 SISGAD5 Backend funcionando!',
+        message: '🚀 SISGAD5 Backend-MP funcionando!',
         version: '1.0.0',
         timestamp: new Date().toISOString(),
         endpoints: {
@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
     res.json({
         status: 'OK',
-        message: 'API funcionando correctamente',
+        message: 'API de backend-mp funcionando correctamente',
         timestamp: new Date().toISOString()
     });
 });
