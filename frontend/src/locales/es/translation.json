@@ -1,0 +1,46 @@
+{
+  "menu": {
+    "dashboard": "Dashboard",
+    "modulos_principales": "Módulos Principales",
+    "telefonos": "Teléfonos",
+    "lineas": "Líneas",
+    "pizarras": "Pizarras",
+    "quejas": "Quejas (Incidencias)",
+    "nomencladores": "Nomencladores",
+    "cable": "Cable",
+    "clasificacion": "Clasificación",
+    "clasificador_clave": "Clasificador de Clave",
+    "clasif_pizarra": "Clasificador de Pizarra",
+    "clave": "Clave",
+    "grupos_trabajo": "Grupos de Trabajo",
+    "mandos": "Mandos",
+    "planta": "Plantas",
+    "propietarios": "Propietarios",
+    "resultado_prueba": "Resultado de la Prueba",
+    "senalizaciones": "Señalizaciones",
+    "sistema": "Sistema",
+    "tipo_linea": "Tipo de Línea",
+    "tipo_movimiento": "Tipo de Movimiento",
+    "tipo_pizarra": "Tipo de Pizarra",
+    "tipo_queja": "Tipo de Queja",
+    "operarios": "Trabajadores",
+    "estadisticas": "Estadísticas",
+    "panel_admin": "Panel administrativo",
+    "gestion_usuarios": "Gestión de usuarios"
+  },
+  "actions": {
+    "close_session": "Cerrar sesión"
+  },
+  "trabajador": {
+    "errorLoad": "Error al cargar los trabajadores",
+    "errorDelete": "Error al eliminar el trabajador"
+  },
+  "dashboard": {
+    "welcome": "Bienvenido al Sistema SISGAD5 v1.0",
+    "recent_activity": "Actividad Reciente",
+    "no_activity": "No hay actividad reciente.",
+    "loading": "Cargando datos...",
+    "summary": "Resumen",
+    "description": "Gestión eficiente de los reportes y servicios de telecomunicaciones"
+  }
+}

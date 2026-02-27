@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type {
     TrabajadorItem,
     CreateTrabajadorRequest,
@@ -20,6 +21,7 @@ import {
 } from '../components/trabajador';
 
 export default function TrabajadorPage() {
+    const { t } = useTranslation();
     const [items, setItems] = useState<TrabajadorItem[]>([]);
     const [pagination, setPagination] = useState({
         page: 1,
@@ -70,7 +72,7 @@ export default function TrabajadorPage() {
             setPagination(response.pagination);
         } catch (err) {
             console.error('Error cargando trabajadores:', err);
-            setError('Error al cargar los trabajadores');
+                    setError(t('trabajador.errorLoad'));
         } finally {
             setLoading(false);
         }
@@ -112,7 +114,7 @@ export default function TrabajadorPage() {
             await loadTrabajadores(pagination.page, pagination.limit, searchTerm);
         } catch (err: any) {
             console.error('Error al eliminar trabajador:', err);
-            const errorMessage = err?.response?.data?.error || err?.message || 'Error al eliminar el trabajador';
+            const errorMessage = err?.response?.data?.error || err?.message || t('trabajador.errorDelete');
             setError(errorMessage);
         } finally {
             setDeleting(false);

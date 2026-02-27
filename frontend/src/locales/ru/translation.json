@@ -1,0 +1,46 @@
+{
+  "menu": {
+    "dashboard": "Панель",
+    "modulos_principales": "Основные модули",
+    "telefonos": "Телефоны",
+    "lineas": "Линии",
+    "pizarras": "Доски",
+    "quejas": "Жалобы (Инциденты)",
+    "nomencladores": "Номенклаторы",
+    "cable": "Кабель",
+    "clasificacion": "Классификация",
+    "clasificador_clave": "Классификатор ключей",
+    "clasif_pizarra": "Классификатор досок",
+    "clave": "Ключ",
+    "grupos_trabajo": "Рабочие группы",
+    "mandos": "Пульты",
+    "planta": "Заводы",
+    "propietarios": "Собственники",
+    "resultado_prueba": "Результат теста",
+    "senalizaciones": "Сигнализации",
+    "sistema": "Система",
+    "tipo_linea": "Тип линии",
+    "tipo_movimiento": "Тип движения",
+    "tipo_pizarra": "Тип доски",
+    "tipo_queja": "Тип жалобы",
+    "operarios": "Работники",
+    "estadisticas": "Статистика",
+    "panel_admin": "Админ-панель",
+    "gestion_usuarios": "Управление пользователями"
+  },
+  "actions": {
+    "close_session": "Выйти"
+  },
+  "trabajador": {
+    "errorLoad": "Ошибка при загрузке работников",
+    "errorDelete": "Ошибка при удалении работника"
+  },
+  "dashboard": {
+    "welcome": "Добро пожаловать в систему SISGAD5 v1.0",
+    "recent_activity": "Недавняя активность",
+    "no_activity": "Нет недавней активности.",
+    "loading": "Загрузка данных...",
+    "summary": "Резюме",
+    "description": "Эффективное управление отчетами и услугами телекоммуникаций"
+  }
+}

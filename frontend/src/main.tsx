@@ -1,4 +1,7 @@
+import React from 'react';
 import './index.css';
+import './i18n'; // initialize i18next before rendering the app
+
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
@@ -28,7 +31,10 @@ createRoot(document.getElementById('root')!).render(
   <ErrorProvider>
     <BrowserRouter basename={basename}>
       <AuthProvider>
-        <App />
+        {/* Suspense allows react-i18next to wait for translation files */}
+        <React.Suspense fallback={null}>
+          <App />
+        </React.Suspense>
       </AuthProvider>
     </BrowserRouter>
   </ErrorProvider>
