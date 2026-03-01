@@ -1,5 +1,5 @@
-const { Movimiento } = require('../models');
-const { Op } = require('sequelize');
+const { Movimiento } = require("../models");
+const { Op } = require("sequelize");
 
 const MovimientoController = {
   /**
@@ -12,9 +12,9 @@ const MovimientoController = {
       const {
         page = 1,
         limit = 10,
-        sortBy = 'createdAt',
-        sortOrder = 'DESC',
-        search = '',
+        sortBy = "createdAt",
+        sortOrder = "DESC",
+        search = "",
         ...filters
       } = req.query;
 
@@ -23,13 +23,11 @@ const MovimientoController = {
       // Construir where clause para búsqueda
       const whereClause = {};
       if (search) {
-        whereClause[Op.or] = [
-          { movimiento: { [Op.iLike]: `%${search}%` } }
-        ];
+        whereClause[Op.or] = [{ movimiento: { [Op.iLike]: `%${search}%` } }];
       }
 
       // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
+      Object.keys(filters).forEach((key) => {
         if (filters[key]) {
           whereClause[key] = filters[key];
         }
@@ -39,7 +37,7 @@ const MovimientoController = {
         where: whereClause,
         limit: parseInt(limit),
         offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]]
+        order: [[sortBy, sortOrder.toUpperCase()]],
       });
 
       res.json({
@@ -49,15 +47,16 @@ const MovimientoController = {
           page: parseInt(page),
           limit: parseInt(limit),
           total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
+          pages: Math.ceil(data.count / limit),
+        },
       });
     } catch (error) {
-      console.error('Error en MovimientoController.getAll:', error);
+      console.error("Error en MovimientoController.getAll:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: "Error interno del servidor",
+        message:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -75,19 +74,19 @@ const MovimientoController = {
       if (!data) {
         return res.status(404).json({
           success: false,
-          error: 'Movimiento no encontrado'
+          error: "Movimiento no encontrado",
         });
       }
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
-      console.error('Error en MovimientoController.getById:', error);
+      console.error("Error en MovimientoController.getById:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor'
+        error: "Error interno del servidor",
       });
     }
   },
@@ -104,23 +103,24 @@ const MovimientoController = {
       res.status(201).json({
         success: true,
         data,
-        message: 'Movimiento creado exitosamente'
+        message: "Movimiento creado exitosamente",
       });
     } catch (error) {
-      console.error('Error en MovimientoController.create:', error);
+      console.error("Error en MovimientoController.create:", error);
 
-      if (error.name === 'SequelizeValidationError') {
+      if (error.name === "SequelizeValidationError") {
         return res.status(400).json({
           success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
+          error: error.errors.map((err) => err.message).join(". "),
+          details: error.errors.map((err) => err.message),
         });
       }
 
       res.status(400).json({
         success: false,
-        error: 'Error creando Movimiento',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: "Error creando Movimiento",
+        message:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -135,13 +135,13 @@ const MovimientoController = {
       const { id } = req.params;
 
       const [affectedRows] = await Movimiento.update(req.body, {
-        where: { id_movimiento: id }
+        where: { id_movimiento: id },
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Movimiento no encontrado'
+          error: "Movimiento no encontrado",
         });
       }
 
@@ -150,22 +150,22 @@ const MovimientoController = {
       res.json({
         success: true,
         data: updatedData,
-        message: 'Movimiento actualizado exitosamente'
+        message: "Movimiento actualizado exitosamente",
       });
     } catch (error) {
-      console.error('Error en MovimientoController.update:', error);
+      console.error("Error en MovimientoController.update:", error);
 
-      if (error.name === 'SequelizeValidationError') {
+      if (error.name === "SequelizeValidationError") {
         return res.status(400).json({
           success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
+          error: "Error de validación",
+          details: error.errors.map((err) => err.message),
         });
       }
 
       res.status(400).json({
         success: false,
-        error: 'Error actualizando Movimiento'
+        error: "Error actualizando Movimiento",
       });
     }
   },
@@ -180,25 +180,25 @@ const MovimientoController = {
       const { id } = req.params;
 
       const affectedRows = await Movimiento.destroy({
-        where: { id_movimiento: id }
+        where: { id_movimiento: id },
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Movimiento no encontrado'
+          error: "Movimiento no encontrado",
         });
       }
 
       res.json({
         success: true,
-        message: 'Movimiento eliminado exitosamente'
+        message: "Movimiento eliminado exitosamente",
       });
     } catch (error) {
-      console.error('Error en MovimientoController.delete:', error);
+      console.error("Error en MovimientoController.delete:", error);
       res.status(500).json({
         success: false,
-        error: 'Error eliminando Movimiento'
+        error: "Error eliminando Movimiento",
       });
     }
   },
@@ -210,36 +210,38 @@ const MovimientoController = {
         where: { id_telefono: telefono },
         include: [
           {
-            association: 'tb_tipomovimiento',
-            attributes: ['id_tipomovimiento', 'movimiento']
-          }
+            association: "tb_tipomovimiento",
+            attributes: ["id_tipomovimiento", "movimiento"],
+          },
         ],
       });
 
       if (!data)
         return res.status(200).json({
           success: false,
-          error: 'Teléfono no encotrado'
+          error: "Teléfono no encotrado",
         });
 
       if (!data.length)
         return res.status(200).json({
           success: false,
-          error: 'El teléfono no tiene movimientos registrados'
+          error: "El teléfono no tiene movimientos registrados",
         });
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
-      console.error('Error en MovimientoController.getMovimientoByTelefono:', error);
+      console.error(
+        "Error en MovimientoController.getMovimientoByTelefono:",
+        error,
+      );
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor'
+        error: "Error interno del servidor",
       });
     }
-
   },
 
   async getMovimientoByLinea(req, res) {
@@ -249,37 +251,38 @@ const MovimientoController = {
         where: { id_linea: linea },
         include: [
           {
-            association: 'tb_tipomovimiento',
-            attributes: ['id_tipomovimiento', 'movimiento']
-          }
+            association: "tb_tipomovimiento",
+            attributes: ["id_tipomovimiento", "movimiento"],
+          },
         ],
       });
 
       if (!data)
         return res.status(200).json({
           success: false,
-          error: 'Línea no encontrada'
+          error: "Línea no encontrada",
         });
 
       if (!data.length)
         return res.status(200).json({
           success: false,
-          error: 'La línea no tiene movimientos registrados'
+          error: "La línea no tiene movimientos registrados",
         });
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
-      console.error('Error en MovimientoController.getMovimientoByLinea:', error);
+      console.error(
+        "Error en MovimientoController.getMovimientoByLinea:",
+        error,
+      );
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor'
+        error: "Error interno del servidor",
       });
     }
-
-  }
-
+  },
 };
 module.exports = MovimientoController;

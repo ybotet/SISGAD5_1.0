@@ -17,6 +17,8 @@ router.get("/", TelefonoController.getAll);
  * @desc    Obtener un Telefono por ID
  * @access  Public
  */
+router.get("/darbaja/:id", TelefonoController.darBaja);
+
 router.get("/:id", TelefonoController.getById);
 
 /**
@@ -31,6 +33,7 @@ router.post("/", TelefonoController.create);
  * @desc    Actualizar Telefono
  * @access  Public
  */
+
 router.put("/:id", TelefonoController.update);
 
 /**
