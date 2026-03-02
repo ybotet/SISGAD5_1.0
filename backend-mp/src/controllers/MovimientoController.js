@@ -38,6 +38,20 @@ const MovimientoController = {
         limit: parseInt(limit),
         offset: offset,
         order: [[sortBy, sortOrder.toUpperCase()]],
+        include: [
+          {
+            association: "tb_tipomovimiento",
+            attributes: ["id_tipomovimiento", "movimiento"],
+          },
+          {
+            association: "tb_telefono",
+            attributes: ["id_telefono", "telefono"],
+          },
+          {
+            association: "tb_linea",
+            attributes: ["id_linea", "clavelinea"],
+          },
+        ],
       });
 
       res.json({

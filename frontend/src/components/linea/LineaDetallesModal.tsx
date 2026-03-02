@@ -2,7 +2,12 @@ import type {
   LineaItem,
   RecorridoItem,
   QuejaItem,
+  Cable,
+  Planta,
+  Sistema,
+  Propietario,
 } from "../../services/lineaService";
+import { lineaService } from "../../services/lineaService";
 import type { MovimientoItem } from "../../services/movimientoService";
 import { movimientoService } from "../../services/movimientoService";
 import { useState, useEffect } from "react";
@@ -14,6 +19,7 @@ interface LineaDetallesModalProps {
   quejas: QuejaItem[];
   loading: boolean;
   onClose: () => void;
+  onDataUpdated?: () => void;
   movimientos?: MovimientoItem[];
 }
 
@@ -24,11 +30,92 @@ export default function LineaDetallesModal({
   quejas,
   loading,
   onClose,
+  onDataUpdated,
 }: LineaDetallesModalProps) {
+  // Estados para gestión de recorridos
+  const [showNuevoRecorrido, setShowNuevoRecorrido] = useState(false);
+  const [editandoRecorrido, setEditandoRecorrido] =
+    useState<RecorridoItem | null>(null);
+  const [eliminandoRecorrido, setEliminandoRecorrido] = useState<number | null>(
+    null,
+  );
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState("");
+
+  // Estado local para recorridos
   const [movimientosLocales, setMovimientosLocales] = useState<
     MovimientoItem[]
   >([]);
   const [loadingMovimientos, setLoadingMovimientos] = useState(false);
+  const [recorridosLocales, setRecorridosLocales] = useState<RecorridoItem[]>(
+    [],
+  );
+
+  // Estados para combos
+  const [cables, setCables] = useState<Cable[]>([]);
+  const [plantas, setPlantas] = useState<Planta[]>([]);
+  const [propietarios, setPropietarios] = useState<Propietario[]>([]);
+  const [sistemas, setSistemas] = useState<Sistema[]>([]);
+  const [loadingCombos, setLoadingCombos] = useState(false);
+
+  // Estado para formulario de recorrido
+  const [formRecorrido, setFormRecorrido] = useState({
+    numero: "",
+    par: "",
+    terminal: "",
+    de: "",
+    a: "",
+    dirter: "",
+    soporte: "",
+    canal: "",
+    id_cable: "",
+    id_planta: "",
+    id_sistema: "",
+    id_propietario: "",
+  });
+
+  // Inicializar recorridosLocales con los props cuando cambian
+  useEffect(() => {
+    if (recorridos) {
+      setRecorridosLocales(recorridos);
+    }
+  }, [recorridos]);
+
+  // Cargar combos y movimientos al abrir el modal o cambiar de línea
+  useEffect(() => {
+    if (show && linea) {
+      loadCombos();
+      cargarMovimientos();
+    }
+  }, [show, linea]);
+
+  // Resetear formulario cuando se cierra o cambia el estado
+  useEffect(() => {
+    if (!showNuevoRecorrido && !editandoRecorrido) {
+      resetFormRecorrido();
+    }
+  }, [showNuevoRecorrido, editandoRecorrido]);
+
+  const loadCombos = async () => {
+    try {
+      setLoadingCombos(true);
+      const [cablesData, plantasData, sistemasData, propietariosData] =
+        await Promise.all([
+          lineaService.getCables(),
+          lineaService.getPlantas(),
+          lineaService.getSistemas(),
+          lineaService.getPropietarios(),
+        ]);
+      setCables(cablesData);
+      setPlantas(plantasData);
+      setSistemas(sistemasData);
+      setPropietarios(propietariosData);
+    } catch (error) {
+      console.error("Error cargando combos:", error);
+    } finally {
+      setLoadingCombos(false);
+    }
+  };
 
   // Cargar movimientos cuando se abre el modal
   useEffect(() => {
@@ -46,17 +133,177 @@ export default function LineaDetallesModal({
         1,
         100,
       );
-      if (response.data && Array.isArray(response.data)) {
-        setMovimientosLocales(response.data);
-      } else if (response.data instanceof Array) {
-        setMovimientosLocales(response.data);
-      }
+      console.log("movimientos linea response", response);
+      const arr =
+        Array.isArray(response.data)
+          ? response.data
+          : Array.isArray(response.data?.data)
+          ? response.data.data
+          : [];
+      setMovimientosLocales(arr);
     } catch (err) {
       console.error("Error cargando movimientos:", err);
     } finally {
       setLoadingMovimientos(false);
     }
   };
+
+  // Función para recargar los recorridos desde el servidor
+  const recargarRecorridos = async () => {
+    if (!linea) return;
+
+    try {
+      const response = await lineaService.getRecorridosLinea(
+        linea.id_linea,
+        1,
+        100,
+      );
+
+      if (response.data && Array.isArray(response.data)) {
+        setRecorridosLocales(response.data);
+      }
+
+      // También notificar al componente padre
+      if (onDataUpdated) {
+        onDataUpdated();
+      }
+    } catch (err) {
+      console.error("Error recargando recorridos:", err);
+    }
+  };
+
+  const resetFormRecorrido = () => {
+    setFormRecorrido({
+      numero: "",
+      par: "",
+      terminal: "",
+      de: "",
+      a: "",
+      dirter: "",
+      soporte: "",
+      canal: "",
+      id_cable: "",
+      id_planta: "",
+      id_sistema: "",
+      id_propietario: "",
+    });
+    setEditandoRecorrido(null);
+  };
+
+  const handleGuardarRecorrido = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!linea) return;
+
+    try {
+      setGuardando(true);
+      setError("");
+
+      const recorridoData = {
+        numero: parseInt(formRecorrido.numero),
+        par: formRecorrido.par || null,
+        terminal: formRecorrido.terminal || null,
+        de: formRecorrido.de || null,
+        a: formRecorrido.a || null,
+        dirter: formRecorrido.dirter || null,
+        soporte: formRecorrido.soporte || null,
+        canal: formRecorrido.canal || null,
+        id_linea: linea.id_linea,
+        id_cable: formRecorrido.id_cable
+          ? parseInt(formRecorrido.id_cable)
+          : null,
+        id_planta: formRecorrido.id_planta
+          ? parseInt(formRecorrido.id_planta)
+          : null,
+        id_sistema: formRecorrido.id_sistema
+          ? parseInt(formRecorrido.id_sistema)
+          : null,
+        id_propietario: formRecorrido.id_propietario
+          ? parseInt(formRecorrido.id_propietario)
+          : null,
+      };
+
+      if (editandoRecorrido) {
+        await lineaService.updateRecorrido(
+          editandoRecorrido.id_recorrido,
+          recorridoData,
+        );
+      } else {
+        await lineaService.createRecorrido(recorridoData);
+      }
+
+      // ¡IMPORTANTE! Recargar los recorridos después de guardar
+      await recargarRecorridos();
+
+      // Cerrar formulario y resetear
+      setShowNuevoRecorrido(false);
+      resetFormRecorrido();
+    } catch (err: any) {
+      const errorMsg =
+        err?.response?.data?.error ||
+        err?.message ||
+        (editandoRecorrido
+          ? "Error al actualizar el recorrido"
+          : "Error al crear el recorrido");
+      setError(errorMsg);
+      console.error("Error guardando recorrido:", err);
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  // Manejar eliminación de recorrido
+  const handleEliminarRecorrido = async (id: number) => {
+    if (
+      !confirm(
+        "¿Está seguro de eliminar este recorrido? Esta acción no se puede deshacer.",
+      )
+    )
+      return;
+
+    try {
+      setEliminandoRecorrido(id);
+      setError("");
+
+      await lineaService.deleteRecorrido(id);
+
+      // ¡IMPORTANTE! Recargar los recorridos después de eliminar
+      await recargarRecorridos();
+    } catch (err: any) {
+      setError(err?.response?.data?.error || "Error al eliminar el recorrido");
+      console.error("Error eliminando recorrido:", err);
+    } finally {
+      setEliminandoRecorrido(null);
+    }
+  };
+
+  // Manejar cambios en formulario
+  const handleRecorridoChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormRecorrido((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Manejar edición de recorrido
+  const handleEditarRecorrido = (recorrido: RecorridoItem) => {
+    setEditandoRecorrido(recorrido);
+    setFormRecorrido({
+      numero: recorrido.numero.toString(),
+      par: recorrido.par || "",
+      terminal: recorrido.terminal || "",
+      de: recorrido.de || "",
+      a: recorrido.a || "",
+      dirter: recorrido.dirter || "",
+      soporte: recorrido.soporte || "",
+      canal: recorrido.canal || "",
+      id_cable: recorrido.id_cable?.toString() || "",
+      id_planta: recorrido.id_planta?.toString() || "",
+      id_sistema: recorrido.id_sistema?.toString() || "",
+      id_propietario: recorrido.id_propietario?.toString() || "",
+    });
+    setShowNuevoRecorrido(true);
+  };
+
 
   // Si no se debe mostrar, no renderizar nada
   if (!show) return null;
@@ -223,7 +470,7 @@ export default function LineaDetallesModal({
                           {index + 1}
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {movimiento.movimiento || "N/A"}
+                          {movimiento.tb_tipomovimiento?.movimiento || "desconocido"}
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                           {movimiento.fecha
@@ -243,9 +490,248 @@ export default function LineaDetallesModal({
 
           {/* Tabla de Recorridos */}
           <div className="mb-8">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">
-              Recorridos
-            </h4>
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-lg font-semibold text-gray-900">
+                Recorridos
+              </h4>
+              <button
+                onClick={() => {
+                  resetFormRecorrido();
+                  setShowNuevoRecorrido(!showNuevoRecorrido);
+                }}
+                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg flex items-center space-x-2"
+              >
+                <i
+                  className={
+                    showNuevoRecorrido ? "ri-close-line" : "ri-add-line"
+                  }
+                ></i>
+                <span>
+                  {showNuevoRecorrido ? "Cancelar" : "Nuevo Recorrido"}
+                </span>
+              </button>
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            {/* Formulario para nuevo/editar recorrido */}
+            {showNuevoRecorrido && (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h5 className="text-sm font-semibold text-blue-800 mb-3">
+                  <i className="ri-add-circle-line mr-1"></i>
+                  {editandoRecorrido ? "Editar Recorrido" : "Nuevo Recorrido"}
+                </h5>
+                <form onSubmit={handleGuardarRecorrido} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Número *
+                      </label>
+                      <input
+                        type="number"
+                        name="numero"
+                        value={formRecorrido.numero}
+                        onChange={handleRecorridoChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Par
+                      </label>
+                      <input
+                        type="text"
+                        name="par"
+                        value={formRecorrido.par}
+                        onChange={handleRecorridoChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Terminal
+                      </label>
+                      <input
+                        type="text"
+                        name="terminal"
+                        value={formRecorrido.terminal}
+                        onChange={handleRecorridoChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        De
+                      </label>
+                      <input
+                        type="text"
+                        name="de"
+                        value={formRecorrido.de}
+                        onChange={handleRecorridoChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        A
+                      </label>
+                      <input
+                        type="text"
+                        name="a"
+                        value={formRecorrido.a}
+                        onChange={handleRecorridoChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Dir. Terminal
+                      </label>
+                      <input
+                        type="text"
+                        name="dirter"
+                        value={formRecorrido.dirter}
+                        onChange={handleRecorridoChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Soporte
+                      </label>
+                      <input
+                        type="text"
+                        name="soporte"
+                        value={formRecorrido.soporte}
+                        onChange={handleRecorridoChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Canal
+                      </label>
+                      <input
+                        type="text"
+                        name="canal"
+                        value={formRecorrido.canal}
+                        onChange={handleRecorridoChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Cable
+                      </label>
+                      <select
+                        name="id_cable"
+                        value={formRecorrido.id_cable}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando || loadingCombos}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100"
+                      >
+                        <option value="">Seleccionar cable</option>
+                        {cables.map((c) => (
+                          <option key={c.id_cable} value={c.id_cable}>
+                            {c.numero}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Planta
+                      </label>
+                      <select
+                        name="id_planta"
+                        value={formRecorrido.id_planta}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando || loadingCombos}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100"
+                      >
+                        <option value="">Seleccionar planta</option>
+                        {plantas.map((p) => (
+                          <option key={p.id_planta} value={p.id_planta}>
+                            {p.planta}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Sistema
+                      </label>
+                      <select
+                        name="id_sistema"
+                        value={formRecorrido.id_sistema}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando || loadingCombos}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100"
+                      >
+                        <option value="">Seleccionar sistema</option>
+                        {sistemas.map((s) => (
+                          <option key={s.id_sistema} value={s.id_sistema}>
+                            {s.sistema}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Propietario
+                      </label>
+                      <select
+                        name="id_propietario"
+                        value={formRecorrido.id_propietario}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando || loadingCombos}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100"
+                      >
+                        <option value="">Seleccionar propietario</option>
+                        {propietarios.map((p) => (
+                          <option
+                            key={p.id_propietario}
+                            value={p.id_propietario}
+                          >
+                            {p.nombre}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNuevoRecorrido(false);
+                        resetFormRecorrido();
+                      }}
+                      className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={guardando}
+                      className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm disabled:bg-blue-400"
+                    >
+                      <i className="ri-check-line mr-1"></i>
+                      <span>
+                        {editandoRecorrido ? "Actualizar" : "Guardar"}{" "}
+                        Recorrido
+                      </span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Tabla de Recorridos - ¡AHORA USA recorridosLocales! */}
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -263,25 +749,25 @@ export default function LineaDetallesModal({
                       Par
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      De
+                      De/A
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      A
+                      Acciones
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {recorridos.length === 0 ? (
+                  {recorridosLocales.length === 0 ? (
                     <tr>
                       <td
                         colSpan={6}
                         className="px-4 py-4 text-center text-sm text-gray-500"
                       >
-                        No hay recorridos registrados para esta línea
+                        No hay recorridos registrados
                       </td>
                     </tr>
                   ) : (
-                    recorridos.map((recorrido, index) => (
+                    recorridosLocales.map((recorrido, index) => (
                       <tr key={recorrido.id_recorrido}>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                           {index + 1}
@@ -296,10 +782,28 @@ export default function LineaDetallesModal({
                           {recorrido.par || "N/A"}
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {recorrido.de || "N/A"}
+                          {recorrido.de || ""} / {recorrido.a || ""}
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {recorrido.a || "N/A"}
+                        <td className="px-4 py-4 whitespace-nowrap text-sm space-x-2">
+                          <button
+                            onClick={() => handleEditarRecorrido(recorrido)}
+                            disabled={guardando || eliminandoRecorrido !== null}
+                            className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-xs"
+                          >
+                            <i className="ri-edit-line"></i>
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleEliminarRecorrido(recorrido.id_recorrido)
+                            }
+                            disabled={
+                              guardando ||
+                              eliminandoRecorrido === recorrido.id_recorrido
+                            }
+                            className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs"
+                          >
+                            <i className="ri-delete-bin-line"></i>
+                          </button>
                         </td>
                       </tr>
                     ))

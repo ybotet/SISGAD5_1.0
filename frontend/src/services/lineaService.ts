@@ -10,6 +10,16 @@ export interface Cable {
   numero: number;
 }
 
+export interface Planta {
+  id_planta: number;
+  planta: string;
+}
+
+export interface Sistema {
+  id_sistema: number;
+  sistema: string;
+}
+
 export interface TipoLinea {
   id_tipolinea: number;
   tipo: string;
@@ -62,10 +72,13 @@ export interface RecorridoItem {
   id_linea: number | null;
   id_propietario: number | null;
   id_planta: number | null;
-  tb_cable?: Cable;
+  id_cable: number | null; // Cable asociado al recorrido
   id_sistema: number | null;
   createdAt: string;
   updatedAt: string;
+  tb_cable?: Cable;
+  tb_planta?: Planta;
+  tb_sistema?: Sistema;
 }
 
 export interface QuejaItem {
@@ -110,6 +123,25 @@ export interface CreateLineaRequest {
   id_propietario?: number | null;
   esbaja?: boolean;
 }
+
+export interface CreateRecorridoRequest {
+  numero: number;
+  par?: string | null;
+  terminal?: string | null;
+  de?: string | null;
+  a?: string | null;
+  dirter?: string | null;
+  soporte?: string | null;
+  canal?: string | null;
+  id_telefono?: number | null;
+  id_linea?: number | null;
+  id_propietario?: number | null;
+  id_planta?: number | null;
+  id_cable?: number | null;
+  id_sistema?: number | null;
+}
+
+export interface UpdateRecorridoRequest extends Partial<CreateRecorridoRequest> {}
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -226,5 +258,68 @@ export const lineaService = {
       console.error("Error en servicio delete:", error);
       throw error;
     }
+  },
+
+  // Obtener cables para combo
+  async getCables(): Promise<Cable[]> {
+    const response = await api.get<ApiResponse<Cable[]>>("/cable?limit=100");
+    return response.data.data;
+  },
+
+  // Obtener plantas para combo
+  async getPlantas(): Promise<Planta[]> {
+    const response = await api.get<ApiResponse<Planta[]>>("/planta?limit=100");
+    return response.data.data;
+  },
+
+  // Obtener sistemas para combo
+  async getSistemas(): Promise<Sistema[]> {
+    const response =
+      await api.get<ApiResponse<Sistema[]>>("/sistema?limit=100");
+    return response.data.data;
+  },
+
+  // Obtener recorridos de una línea
+  async getRecorridosLinea(
+    idLinea: number,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedResponse<RecorridoItem>> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      id_linea: idLinea.toString(),
+    });
+
+    const response = await api.get<PaginatedResponse<RecorridoItem>>(
+      `/recorrido?${params.toString()}`,
+    );
+    return response.data;
+  },
+
+  // Crear nuevo recorrido
+  async createRecorrido(data: CreateRecorridoRequest): Promise<RecorridoItem> {
+    const response = await api.post<ApiResponse<RecorridoItem>>(
+      "/recorrido",
+      data,
+    );
+    return response.data.data;
+  },
+
+  // Actualizar recorrido
+  async updateRecorrido(
+    id: number,
+    data: UpdateRecorridoRequest,
+  ): Promise<RecorridoItem> {
+    const response = await api.put<ApiResponse<RecorridoItem>>(
+      `/recorrido/${id}`,
+      data,
+    );
+    return response.data.data;
+  },
+
+  // Eliminar recorrido
+  async deleteRecorrido(id: number): Promise<void> {
+    await api.delete(`/recorrido/${id}`);
   },
 };

@@ -51,14 +51,18 @@ export default function Sidebar() {
         },
       ],
     },
-    // {
-    //   id: 'operaciones',
-    //   name: 'Operaciones',
-    //   icon: 'ri-briefcase-line',
-    //   children: [
-    //     { id: 'movimientos', name: 'Movimientos', icon: 'ri-arrow-left-right-line' },
-    //   ]
-    // },
+    {
+      id: "operaciones",
+      name: "Operaciones",
+      icon: "ri-briefcase-line",
+      children: [
+        {
+          id: "movimientos",
+          name: "Movimientos",
+          icon: "ri-arrow-left-right-line",
+        },
+      ],
+    },
     {
       id: "nomencladores",
       name: t("menu.nomencladores"),

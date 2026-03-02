@@ -120,16 +120,22 @@ export default function TelefonoDetallesModal({
     if (!telefono) return;
     try {
       setLoadingMovimientos(true);
+      // Use the telefono-specific endpoint which includes the tipo_movimiento association
       const response = await movimientoService.getMovimientosTelefono(
         telefono.id_telefono,
         1,
         100,
       );
-      if (response.data && Array.isArray(response.data)) {
-        setMovimientosLocales(response.data);
-      } else if (response.data instanceof Array) {
-        setMovimientosLocales(response.data);
-      }
+      console.log("movimientos response", response);
+      // the specialized endpoint returns { success: true, data: [...] }
+      // fall back to plain array if the service is still returning the old shape
+      const arr =
+        Array.isArray(response.data)
+          ? response.data
+          : Array.isArray(response.data?.data)
+          ? response.data.data
+          : [];
+      setMovimientosLocales(arr);
     } catch (err) {
       console.error("Error cargando movimientos:", err);
     } finally {
@@ -531,7 +537,7 @@ export default function TelefonoDetallesModal({
                             {index + 1}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {movimiento.movimiento || "N/A"}
+                            {movimiento.tb_tipomovimiento?.movimiento || "desconocido"}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                             {movimiento.fecha
