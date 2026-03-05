@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Base de datos PostgreSQL
@@ -34,8 +34,10 @@ services:
       - postgres
     networks:
       - sisgad5-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-  # Microservicio de Servicios
+  # Microservicio de mp
   backend-mp:
     build: ./backend-mp
     ports:
@@ -73,20 +75,30 @@ services:
       - backend-mp
     networks:
       - sisgad5-network
-  # Frontend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Frontend - 🔥 CORREGIDO: indentación correcta
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:5000/api # 🔥 CAMBIO IMPORTANTE: usa localhost, no api-gateway
+      - VITE_BASE_URL=/
+      - VITE_FRONT_URL=http://localhost:5173
+      - CHOKIDAR_USEPOLLING=true
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    environment:
-      - NODE_ENV=development
     depends_on:
-      - api-gateway 
+      - api-gateway
     networks:
       - sisgad5-network
+
 volumes:
   postgres_data:
 

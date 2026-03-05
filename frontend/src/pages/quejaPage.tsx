@@ -5,7 +5,7 @@ import type {
     TrabajoItem,
     CreateQuejaRequest,
     PaginatedResponse,
-    QuejaDetallesResponse
+    QuejaDetallesResponse, FlujoItem
 } from '../services/quejaService';
 import { quejaService } from '../services/quejaService';
 
@@ -48,6 +48,7 @@ export default function QuejaPage() {
     // Estados para detalles
     const [showDetallesModal, setShowDetallesModal] = useState(false);
     const [quejaDetalles, setQuejaDetalles] = useState<QuejaItem | null>(null);
+    const [flujoDetalles, setFlujoDetalles] = useState<FlujoItem[]>([]);
     const [pruebas, setPruebas] = useState<PruebaItem[]>([]);
     const [trabajos, setTrabajos] = useState<TrabajoItem[]>([]);
     const [loadingDetalles, setLoadingDetalles] = useState(false);
@@ -111,6 +112,7 @@ export default function QuejaPage() {
             });
 
             setQuejaDetalles(detalles.queja);
+            setFlujoDetalles(detalles.flujo || []);
             setPruebas(detalles.pruebas);
             setTrabajos(detalles.trabajos);
             setShowDetallesModal(true);
@@ -132,6 +134,7 @@ export default function QuejaPage() {
                 const detalles: QuejaDetallesResponse = await quejaService.getQuejaDetalles(quejaDetalles.id_queja);
 
                 setQuejaDetalles(detalles.queja);
+                setFlujoDetalles(detalles.flujo || []);
                 setPruebas(detalles.pruebas);
                 setTrabajos(detalles.trabajos);
 
@@ -396,6 +399,7 @@ export default function QuejaPage() {
             <QuejaDetallesModal
                 show={showDetallesModal}
                 queja={quejaDetalles}
+                flujo={flujoDetalles}
                 pruebas={pruebas}
                 trabajos={trabajos}
                 loading={loadingDetalles}

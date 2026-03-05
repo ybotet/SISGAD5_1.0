@@ -7,7 +7,7 @@
     "dev:users": "cd backend-users && npm run dev",
     "dev:mp": "cd backend-mp && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev": "concurrently \"npm run dev:users\" \"npm run dev:mp\" \"npm run dev:api-gateway\" \"npm run dev:frontend\"",
     "build:frontend": "cd frontend && npm run build",
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "generate:models": "cd backend && node scripts/generate-models.js"

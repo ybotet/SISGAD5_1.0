@@ -1,5 +1,6 @@
-const { Prueba } = require('../models');
-const { Op } = require('sequelize');
+const { Prueba } = require("../models");
+const { Op } = require("sequelize");
+const { addFlowEntry, removeFlowEntry } = require("../utils/quejaFlow");
 
 const PruebaController = {
   /**
@@ -12,9 +13,9 @@ const PruebaController = {
       const {
         page = 1,
         limit = 10,
-        sortBy = 'createdAt',
-        sortOrder = 'DESC',
-        search = '',
+        sortBy = "createdAt",
+        sortOrder = "ASC",
+        search = "",
         ...filters
       } = req.query;
 
@@ -32,13 +33,13 @@ const PruebaController = {
             { id_trabajador: searchNum },
             { id_cable: searchNum },
             { id_clave: searchNum },
-            { id_queja: searchNum }
+            { id_queja: searchNum },
           ];
         }
       }
 
       // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
+      Object.keys(filters).forEach((key) => {
         if (filters[key]) {
           whereClause[key] = filters[key];
         }
@@ -48,7 +49,7 @@ const PruebaController = {
         where: whereClause,
         limit: parseInt(limit),
         offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]]
+        order: [[sortBy, sortOrder.toUpperCase()]],
       });
 
       res.json({
@@ -58,15 +59,16 @@ const PruebaController = {
           page: parseInt(page),
           limit: parseInt(limit),
           total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
+          pages: Math.ceil(data.count / limit),
+        },
       });
     } catch (error) {
-      console.error('Error en PruebaController.getAll:', error);
+      console.error("Error en PruebaController.getAll:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: "Error interno del servidor",
+        message:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -84,19 +86,19 @@ const PruebaController = {
       if (!data) {
         return res.status(404).json({
           success: false,
-          error: 'Prueba no encontrado'
+          error: "Prueba no encontrado",
         });
       }
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
-      console.error('Error en PruebaController.getById:', error);
+      console.error("Error en PruebaController.getById:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor'
+        error: "Error interno del servidor",
       });
     }
   },
@@ -110,26 +112,32 @@ const PruebaController = {
     try {
       const data = await Prueba.create(req.body);
 
+      // actualizar flujo de la queja asociada
+      if (data.id_queja) {
+        await addFlowEntry(data.id_queja, data.id_clave, data.fecha);
+      }
+
       res.status(201).json({
         success: true,
         data,
-        message: 'Prueba creado exitosamente'
+        message: "Prueba creado exitosamente",
       });
     } catch (error) {
-      console.error('Error en PruebaController.create:', error);
+      console.error("Error en PruebaController.create:", error);
 
-      if (error.name === 'SequelizeValidationError') {
+      if (error.name === "SequelizeValidationError") {
         return res.status(400).json({
           success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
+          error: "Error de validación",
+          details: error.errors.map((err) => err.message),
         });
       }
 
       res.status(400).json({
         success: false,
-        error: 'Error creando Prueba',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: "Error creando Prueba",
+        message:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -143,38 +151,66 @@ const PruebaController = {
     try {
       const { id } = req.params;
 
+      // obtener valores antiguos para mantener el flujo
+      const existing = await Prueba.findByPk(id);
+      if (!existing) {
+        return res
+          .status(404)
+          .json({ success: false, error: "Prueba no encontrado" });
+      }
+      const oldQueja = existing.id_queja;
+      const oldClave = existing.id_clave;
+      const oldFecha = existing.fecha;
+
       const [affectedRows] = await Prueba.update(req.body, {
-        where: { id_prueba: id }
+        where: { id_prueba: id },
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Prueba no encontrado'
+          error: "Prueba no encontrado",
         });
       }
 
       const updatedData = await Prueba.findByPk(id);
 
+      // si cambió alguna de las propiedades que afectan al flujo, ajustar arrays
+      if (
+        oldQueja &&
+        (oldQueja !== updatedData.id_queja ||
+          oldClave !== updatedData.id_clave ||
+          oldFecha !== updatedData.fecha)
+      ) {
+        await removeFlowEntry(oldQueja, oldClave, oldFecha);
+      }
+      if (updatedData.id_queja) {
+        await addFlowEntry(
+          updatedData.id_queja,
+          updatedData.id_clave,
+          updatedData.fecha,
+        );
+      }
+
       res.json({
         success: true,
         data: updatedData,
-        message: 'Prueba actualizado exitosamente'
+        message: "Prueba actualizado exitosamente",
       });
     } catch (error) {
-      console.error('Error en PruebaController.update:', error);
+      console.error("Error en PruebaController.update:", error);
 
-      if (error.name === 'SequelizeValidationError') {
+      if (error.name === "SequelizeValidationError") {
         return res.status(400).json({
           success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
+          error: "Error de validación",
+          details: error.errors.map((err) => err.message),
         });
       }
 
       res.status(400).json({
         success: false,
-        error: 'Error actualizando Prueba'
+        error: "Error actualizando Prueba",
       });
     }
   },
@@ -188,29 +224,37 @@ const PruebaController = {
     try {
       const { id } = req.params;
 
-      const affectedRows = await Prueba.destroy({
-        where: { id_prueba: id }
-      });
-
-      if (affectedRows === 0) {
+      // obtener antes de borrar para limpiar flujo
+      const existing = await Prueba.findByPk(id);
+      if (!existing) {
         return res.status(404).json({
           success: false,
-          error: 'Prueba no encontrado'
+          error: "Prueba no encontrado",
         });
       }
 
+      await removeFlowEntry(
+        existing.id_queja,
+        existing.id_clave,
+        existing.fecha,
+      );
+
+      const affectedRows = await Prueba.destroy({
+        where: { id_prueba: id },
+      });
+
       res.json({
         success: true,
-        message: 'Prueba eliminado exitosamente'
+        message: "Prueba eliminado exitosamente",
       });
     } catch (error) {
-      console.error('Error en PruebaController.delete:', error);
+      console.error("Error en PruebaController.delete:", error);
       res.status(500).json({
         success: false,
-        error: 'Error eliminando Prueba'
+        error: "Error eliminando Prueba",
       });
     }
-  }
+  },
 };
 
 module.exports = PruebaController;

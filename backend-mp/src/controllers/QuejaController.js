@@ -1,6 +1,13 @@
-const { Queja, Prueba, Trabajo, Resultadoprueba, Trabajador, Cable, Clave } = require('../models');
-const { Op } = require('sequelize');
-
+const {
+  Queja,
+  Prueba,
+  Trabajo,
+  Resultadoprueba,
+  Trabajador,
+  Cable,
+  Clave,
+} = require("../models");
+const { Op } = require("sequelize");
 
 const QuejaController = {
   /**
@@ -13,51 +20,56 @@ const QuejaController = {
       const {
         page = 1,
         limit = 10,
-        sortBy = 'fecha',
-        sortOrder = 'DESC',
-        search = '',
+        sortBy = "fecha",
+        sortOrder = "DESC",
+        search = "",
         ...filters
       } = req.query;
 
       const offset = (page - 1) * limit;
 
       // Configuración de includes
-      const includeConfig = [{
-        association: 'tb_telefono',
-        attributes: ['id_telefono', 'telefono'],
-        required: false
-      }, {
-        association: 'tb_linea',
-        attributes: ['id_linea', 'clavelinea'],
-        required: false
-      }, {
-        association: 'tb_tipoqueja',
-        attributes: ['id_tipoqueja', 'tipoqueja'],
-        required: false
-      }, {
-        association: 'tb_pizarra',
-        attributes: ['id_pizarra', 'nombre'],
-        required: false
-      }, {
-        association: 'tb_clave',
-        attributes: ['id_clave', 'clave'],
-        required: false
-      }, {
-        association: 'tb_trabajador',
-        attributes: ['id_trabajador', 'clave_trabajador'],
-        required: false
-      }];
+      const includeConfig = [
+        {
+          association: "tb_telefono",
+          attributes: ["id_telefono", "telefono"],
+          required: false,
+        },
+        {
+          association: "tb_linea",
+          attributes: ["id_linea", "clavelinea"],
+          required: false,
+        },
+        {
+          association: "tb_tipoqueja",
+          attributes: ["id_tipoqueja", "tipoqueja"],
+          required: false,
+        },
+        {
+          association: "tb_pizarra",
+          attributes: ["id_pizarra", "nombre"],
+          required: false,
+        },
+        {
+          association: "tb_clave",
+          attributes: ["id_clave", "clave"],
+          required: false,
+        },
+        {
+          association: "tb_trabajador",
+          attributes: ["id_trabajador", "clave_trabajador"],
+          required: false,
+        },
+      ];
 
       // Construir where clause para búsqueda
       const whereClause = {};
       if (search) {
-        whereClause[Op.or] = [
-          { num_reporte: { [Op.iLike]: `%${search}%` } }
-        ];
+        whereClause[Op.or] = [{ num_reporte: { [Op.iLike]: `%${search}%` } }];
       }
 
       // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
+      Object.keys(filters).forEach((key) => {
         if (filters[key]) {
           whereClause[key] = filters[key];
         }
@@ -69,7 +81,7 @@ const QuejaController = {
         limit: parseInt(limit),
         offset: offset,
         order: [[sortBy, sortOrder.toUpperCase()]],
-        distinct: true
+        distinct: true,
       });
 
       res.json({
@@ -79,16 +91,16 @@ const QuejaController = {
           page: parseInt(page),
           limit: parseInt(limit),
           total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
+          pages: Math.ceil(data.count / limit),
+        },
       });
     } catch (error) {
-      console.error('Error en QuejaController.getAll:', error);
+      console.error("Error en QuejaController.getAll:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor',
+        error: "Error interno del servidor",
         message: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
       });
     }
   },
@@ -102,72 +114,101 @@ const QuejaController = {
     try {
       const { id } = req.params;
       const queja = await Queja.findByPk(id, {
-        include: [{
-          association: 'tb_telefono',
-          attributes: ['id_telefono', 'telefono']
-        }, {
-          association: 'tb_linea',
-          attributes: ['id_linea', 'clavelinea']
-        }, {
-          association: 'tb_tipoqueja',
-          attributes: ['id_tipoqueja', 'tipoqueja']
-        }, {
-          association: 'tb_pizarra',
-          attributes: ['id_pizarra', 'nombre']
-        }, {
-          association: 'tb_clave',
-          attributes: ['id_clave', 'clave']
-        }, {
-          association: 'tb_trabajador',
-          attributes: ['id_trabajador', 'clave_trabajador']
-        }]
+        include: [
+          {
+            association: "tb_telefono",
+            attributes: ["id_telefono", "telefono"],
+          },
+          {
+            association: "tb_linea",
+            attributes: ["id_linea", "clavelinea"],
+          },
+          {
+            association: "tb_tipoqueja",
+            attributes: ["id_tipoqueja", "tipoqueja"],
+          },
+          {
+            association: "tb_pizarra",
+            attributes: ["id_pizarra", "nombre"],
+          },
+          {
+            association: "tb_clave",
+            attributes: ["id_clave", "clave"],
+          },
+          {
+            association: "tb_trabajador",
+            attributes: ["id_trabajador", "clave_trabajador"],
+          },
+        ],
       });
 
       if (!queja) {
         return res.status(404).json({
           success: false,
-          error: 'Queja no encontrado'
+          error: "Queja no encontrado",
         });
       }
 
       const pruebas = await Prueba.findAll({
         where: { id_queja: id },
-        include: [{
-          association: 'tb_resultadoprueba',
-          attributes: ['id_resultadoprueba', 'resultado']
-        }, {
-          association: 'tb_cable',
-          attributes: ['id_cable', 'numero']
-        }, {
-          association: 'tb_clave',
-          attributes: ['id_clave', 'clave']
-        }, {
-          association: 'tb_trabajador',
-          attributes: ['id_trabajador', 'clave_trabajador']
-        }]
+        include: [
+          {
+            association: "tb_resultadoprueba",
+            attributes: ["id_resultadoprueba", "resultado"],
+          },
+          {
+            association: "tb_cable",
+            attributes: ["id_cable", "numero"],
+          },
+          {
+            association: "tb_clave",
+            attributes: ["id_clave", "clave"],
+          },
+          {
+            association: "tb_trabajador",
+            attributes: ["id_trabajador", "clave_trabajador"],
+          },
+        ],
       });
 
       const trabajos = await Trabajo.findAll({
         where: { id_queja: id },
-        include: [{
-          association: 'tb_clave',
-          attributes: ['id_clave', 'clave']
-        }, {
-          association: 'tb_trabajador',
-          attributes: ['id_trabajador', 'clave_trabajador']
-        }]
+        include: [
+          {
+            association: "tb_clave",
+            attributes: ["id_clave", "clave"],
+          },
+          {
+            association: "tb_trabajador",
+            attributes: ["id_trabajador", "clave_trabajador"],
+          },
+        ],
       });
 
+      // construir historial de flujo a partir de los arreglos paralelos
+      const flujo = [];
+      const clavesArr = Array.isArray(queja.claves_flujo)
+        ? queja.claves_flujo
+        : [];
+      const fechasArr = Array.isArray(queja.fechas_flujo)
+        ? queja.fechas_flujo
+        : [];
+      for (let i = 0; i < Math.max(clavesArr.length, fechasArr.length); i++) {
+        flujo.push({
+          id_clave: clavesArr[i] ?? null,
+          fecha: fechasArr[i] ?? null,
+        });
+      }
 
       res.json({
         success: true,
-        data: { queja, pruebas, trabajos }
+        data: { queja, pruebas, trabajos, flujo },
       });
     } catch (error) {
-      console.error('Error en QuejaController.getById:', error);
+      console.error("Error en QuejaController.getById:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor'
+        error: "Error interno del servidor",
       });
     }
   },
@@ -179,31 +220,41 @@ const QuejaController = {
    */
   async create(req, res) {
     try {
-      const data = await Queja.create(req.body);
+      // Preparar datos iniciales del flujo
+      const bodyData = { ...req.body };
+
+      // Si viene id_clave y fecha, insertarlos como entrada inicial del flujo
+      if (bodyData.id_clave && bodyData.fecha) {
+        bodyData.claves_flujo = [bodyData.id_clave];
+        bodyData.fechas_flujo = [bodyData.fecha];
+      }
+
+      const data = await Queja.create(bodyData);
 
       res.status(201).json({
         success: true,
         data,
-        message: 'Queja creado exitosamente'
+        message: "Queja creado exitosamente",
       });
     } catch (error) {
-      console.error('Error en QuejaController.create:', error);
+      console.error("Error en QuejaController.create:", error);
 
-      if (error.name === 'SequelizeValidationError') {
-        const mensajes = error.errors.map(err => err.message).join('. ');
+      if (error.name === "SequelizeValidationError") {
+        const mensajes = error.errors.map((err) => err.message).join(". ");
         return res.status(400).json({
           success: false,
           message: mensajes,
           error: mensajes,
-          details: error.errors.map(err => err.message)
+          details: error.errors.map((err) => err.message),
         });
       }
 
       res.status(400).json({
         success: false,
-        message: 'Error creando queja',
-        error: 'Error creando Queja',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        message: "Error creando queja",
+        error: "Error creando Queja",
+        details:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -218,13 +269,13 @@ const QuejaController = {
       const { id } = req.params;
 
       const [affectedRows] = await Queja.update(req.body, {
-        where: { id_queja: id }
+        where: { id_queja: id },
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Queja no encontrado'
+          error: "Queja no encontrado",
         });
       }
 
@@ -233,25 +284,25 @@ const QuejaController = {
       res.json({
         success: true,
         data: updatedData,
-        message: 'Queja actualizado exitosamente'
+        message: "Queja actualizado exitosamente",
       });
     } catch (error) {
-      console.error('Error en QuejaController.update:', error);
+      console.error("Error en QuejaController.update:", error);
 
-      if (error.name === 'SequelizeValidationError') {
-        const mensajes = error.errors.map(err => err.message).join('. ');
+      if (error.name === "SequelizeValidationError") {
+        const mensajes = error.errors.map((err) => err.message).join(". ");
         return res.status(400).json({
           success: false,
           message: mensajes,
           error: mensajes,
-          details: error.errors.map(err => err.message)
+          details: error.errors.map((err) => err.message),
         });
       }
 
       res.status(400).json({
         success: false,
-        message: 'Error actualizando queja',
-        error: 'Error actualizando Queja'
+        message: "Error actualizando queja",
+        error: "Error actualizando Queja",
       });
     }
   },
@@ -266,28 +317,28 @@ const QuejaController = {
       const { id } = req.params;
 
       const affectedRows = await Queja.destroy({
-        where: { id_queja: id }
+        where: { id_queja: id },
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Queja no encontrado'
+          error: "Queja no encontrado",
         });
       }
 
       res.json({
         success: true,
-        message: 'Queja eliminado exitosamente'
+        message: "Queja eliminado exitosamente",
       });
     } catch (error) {
-      console.error('Error en QuejaController.delete:', error);
+      console.error("Error en QuejaController.delete:", error);
       res.status(500).json({
         success: false,
-        error: 'Error eliminando Queja'
+        error: "Error eliminando Queja",
       });
     }
-  }
+  },
 };
 
 module.exports = QuejaController;
