@@ -28,7 +28,7 @@ services:
       - DB_NAME=bd_sisgad5_users
       - DB_USER=postgres
       - DB_PASSWORD=password
-      - JWT_SECRET=tu_jwt_secret_aqui
+      - JWT_SECRET=el_token_mas_seguro_del_mundo_2025
       - FRONTEND_URL=http://localhost:5173
     depends_on:
       - postgres
@@ -50,10 +50,9 @@ services:
       - DB_NAME=bd_sisgad5_mp
       - DB_USER=postgres
       - DB_PASSWORD=password
-      - JWT_SECRET=tu_jwt_secret_aqui
+      - JWT_SECRET=el_token_mas_seguro_del_mundo_2025
       - USERS_SERVICE_URL=http://backend-users:5001
       - FRONTEND_URL=http://localhost:5173
-      - JWT_SECRET=tu_jwt_secret_aqui
     depends_on:
       - postgres
     networks:

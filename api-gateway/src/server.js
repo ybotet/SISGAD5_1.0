@@ -4,7 +4,10 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-require("dotenv").config();
+const path = require("path");
+const dotenv = require("dotenv");
+// require("dotenv").config();
+dotenv.config({ path: path.join(__dirname, "../../.env.local") });
 
 const app = express();
 

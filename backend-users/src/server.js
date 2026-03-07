@@ -2,7 +2,10 @@ const express = require("express");
 // const cors = require("cors"); // ❌ ELIMINAR CORS
 const helmet = require("helmet");
 const morgan = require("morgan");
-require("dotenv").config();
+const path = require("path");
+const dotenv = require("dotenv");
+// require("dotenv").config();
+dotenv.config({ path: path.join(__dirname, "../../.env.local") });
 
 const { testConnection } = require("./config/database");
 
