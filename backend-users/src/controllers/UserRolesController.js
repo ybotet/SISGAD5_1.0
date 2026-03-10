@@ -1,5 +1,5 @@
-const { User_Roles } = require('../models');
-const { Op } = require('sequelize');
+const User_Roles = require("../models/User_Roles");
+const { Op } = require("sequelize");
 
 const UserRolesController = {
   /**
@@ -12,9 +12,9 @@ const UserRolesController = {
       const {
         page = 1,
         limit = 10,
-        sortBy = 'createdAt',
-        sortOrder = 'DESC',
-        search = '',
+        sortBy = "createdAt",
+        sortOrder = "DESC",
+        search = "",
         ...filters
       } = req.query;
 
@@ -28,13 +28,13 @@ const UserRolesController = {
           const searchNum = parseInt(search);
           whereClause[Op.or] = [
             { id_usuario: searchNum },
-            { id_rol: searchNum }
+            { id_rol: searchNum },
           ];
         }
       }
 
       // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
+      Object.keys(filters).forEach((key) => {
         if (filters[key]) {
           whereClause[key] = filters[key];
         }
@@ -44,7 +44,7 @@ const UserRolesController = {
         where: whereClause,
         limit: parseInt(limit),
         offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]]
+        order: [[sortBy, sortOrder.toUpperCase()]],
       });
 
       res.json({
@@ -54,15 +54,16 @@ const UserRolesController = {
           page: parseInt(page),
           limit: parseInt(limit),
           total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
+          pages: Math.ceil(data.count / limit),
+        },
       });
     } catch (error) {
-      console.error('Error en UserRolesController.getAll:', error);
+      console.error("Error en UserRolesController.getAll:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: "Error interno del servidor",
+        message:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -80,19 +81,19 @@ const UserRolesController = {
       if (!data) {
         return res.status(404).json({
           success: false,
-          error: 'UserRoles no encontrado'
+          error: "UserRoles no encontrado",
         });
       }
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
-      console.error('Error en UserRolesController.getById:', error);
+      console.error("Error en UserRolesController.getById:", error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor'
+        error: "Error interno del servidor",
       });
     }
   },
@@ -109,23 +110,24 @@ const UserRolesController = {
       res.status(201).json({
         success: true,
         data,
-        message: 'UserRoles creado exitosamente'
+        message: "UserRoles creado exitosamente",
       });
     } catch (error) {
-      console.error('Error en UserRolesController.create:', error);
+      console.error("Error en UserRolesController.create:", error);
 
-      if (error.name === 'SequelizeValidationError') {
+      if (error.name === "SequelizeValidationError") {
         return res.status(400).json({
           success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
+          error: "Error de validación",
+          details: error.errors.map((err) => err.message),
         });
       }
 
       res.status(400).json({
         success: false,
-        error: 'Error creando UserRoles',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: "Error creando UserRoles",
+        message:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -140,13 +142,13 @@ const UserRolesController = {
       const { id } = req.params;
 
       const [affectedRows] = await User_Roles.update(req.body, {
-        where: { id_usuario: id, id_rol: req.body.id_rol } // Asumiendo composite key
+        where: { id_usuario: id, id_rol: req.body.id_rol }, // Asumiendo composite key
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'UserRoles no encontrado'
+          error: "UserRoles no encontrado",
         });
       }
 
@@ -155,22 +157,22 @@ const UserRolesController = {
       res.json({
         success: true,
         data: updatedData,
-        message: 'UserRoles actualizado exitosamente'
+        message: "UserRoles actualizado exitosamente",
       });
     } catch (error) {
-      console.error('Error en UserRolesController.update:', error);
+      console.error("Error en UserRolesController.update:", error);
 
-      if (error.name === 'SequelizeValidationError') {
+      if (error.name === "SequelizeValidationError") {
         return res.status(400).json({
           success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
+          error: "Error de validación",
+          details: error.errors.map((err) => err.message),
         });
       }
 
       res.status(400).json({
         success: false,
-        error: 'Error actualizando UserRoles'
+        error: "Error actualizando UserRoles",
       });
     }
   },
@@ -185,28 +187,28 @@ const UserRolesController = {
       const { id } = req.params;
 
       const affectedRows = await User_Roles.destroy({
-        where: { id_usuario: id, id_rol: req.body.id_rol } // Asumiendo composite key
+        where: { id_usuario: id, id_rol: req.body.id_rol }, // Asumiendo composite key
       });
 
       if (affectedRows === 0) {
         return res.status(404).json({
           success: false,
-          error: 'UserRoles no encontrado'
+          error: "UserRoles no encontrado",
         });
       }
 
       res.json({
         success: true,
-        message: 'UserRoles eliminado exitosamente'
+        message: "UserRoles eliminado exitosamente",
       });
     } catch (error) {
-      console.error('Error en UserRolesController.delete:', error);
+      console.error("Error en UserRolesController.delete:", error);
       res.status(500).json({
         success: false,
-        error: 'Error eliminando UserRoles'
+        error: "Error eliminando UserRoles",
       });
     }
-  }
+  },
 };
 
 module.exports = UserRolesController;

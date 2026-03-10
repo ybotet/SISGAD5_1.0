@@ -44,6 +44,7 @@ module.exports = (sequelize) => {
         }
     }, {
         tableName: 'tb_user',
+        schema: 'public',
         timestamps: true,
         underscored: true,
         hooks: {

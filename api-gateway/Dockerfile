@@ -16,4 +16,4 @@ COPY src/ ./src/
 EXPOSE 5000
 
 # Comando para ejecutar
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npm run dev"]
