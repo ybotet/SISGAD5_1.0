@@ -19,6 +19,8 @@ coverage/
 # Archivos de entorno
 .env
 .env.local
+.env.*
+
 
 # Archivos del sistema
 .DS_Store
