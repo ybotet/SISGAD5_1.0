@@ -329,7 +329,7 @@ export default function QuejaDetallesModal({
                 )}
 
                 {/* Información principal de la queja */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                   <div className="space-y-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">
@@ -350,39 +350,20 @@ export default function QuejaDetallesModal({
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">
-                        Teléfono
+                        Servicio
                       </h4>
                       <p className="text-sm text-gray-900">
                         {queja.tb_telefono ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Teléfono:
                             <i className="ri-phone-line mr-1"></i>
                             {queja.tb_telefono.telefono}
                           </span>
                         ) : (
-                          "N/A"
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500">
-                        Línea
-                      </h4>
-                      <p className="text-sm text-gray-900">
-                        {queja.tb_linea ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            {queja.tb_linea.clavelinea}
+                            Línea: {queja.tb_linea?.clavelinea}
                           </span>
-                        ) : (
-                          "N/A"
                         )}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500">
-                        Reportado por
-                      </h4>
-                      <p className="text-sm text-gray-900">
-                        {queja.reportado_por || "N/A"}
                       </p>
                     </div>
                   </div>
@@ -403,7 +384,7 @@ export default function QuejaDetallesModal({
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">
-                        Clave
+                        Clave inicial
                       </h4>
                       <p className="text-sm text-gray-900">
                         {queja.tb_clave ? (
@@ -419,21 +400,45 @@ export default function QuejaDetallesModal({
                       <h4 className="text-sm font-medium text-gray-500">
                         Estado
                       </h4>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          queja.red === true
-                            ? "bg-red-100 text-red-800"
-                            : queja.red === false
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {queja.red === true
-                          ? "En Red"
-                          : queja.red === false
-                            ? "Resuelta"
-                            : "Sin estado"}
-                      </span>
+
+                      {queja.estado === "Abierta" ? (
+                        <div className="flex items-center mb-2">
+                          <div className="bg-red-100 rounded-full p-1 mr-2">
+                            <i className="ri-alarm-warning-line text-red-600 text-xs"></i>
+                          </div>
+                          <span className="text-sm font-medium text-red-700">
+                            Abierta
+                          </span>
+                        </div>
+                      ) : queja.estado === "En Proceso" ? (
+                        <div className="flex items-center mb-2">
+                          <div className="bg-green-100 rounded-full p-1 mr-2">
+                            <i className="ri-checkbox-circle-line text-green-600 text-xs"></i>
+                          </div>
+                          <span className="text-sm font-medium text-green-700">
+                            En Proceso
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center mb-2">
+                          <div className="bg-gray-100 rounded-full p-1 mr-2">
+                            <i className="ri-question-line text-gray-600 text-xs"></i>
+                          </div>
+                          <span className="text-sm font-medium text-gray-700">
+                            Sin estado
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500">
+                        Reportado por
+                      </h4>
+                      <p className="text-sm text-gray-900">
+                        {queja.reportado_por || "N/A"}
+                      </p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">
@@ -448,7 +453,7 @@ export default function QuejaDetallesModal({
                         Probador
                       </h4>
                       <p className="text-sm text-gray-900">
-                        {queja.probador || "N/A"}
+                        {queja.tb_trabajador.clave_trabajador || "N/A"}
                       </p>
                     </div>
                   </div>
@@ -462,7 +467,7 @@ export default function QuejaDetallesModal({
                     </h4>
                     <p className="text-sm text-gray-900">
                       {queja.fecha_pdte
-                        ? new Date(queja.fecha_pdte).toLocaleDateString()
+                        ? new Date(queja.fecha_pdte).toLocaleString()
                         : "N/A"}
                     </p>
                   </div>
@@ -472,7 +477,7 @@ export default function QuejaDetallesModal({
                     </h4>
                     <p className="text-sm text-gray-900">
                       {queja.fechaok
-                        ? new Date(queja.fechaok).toLocaleDateString()
+                        ? new Date(queja.fechaok).toLocaleString()
                         : "N/A"}
                     </p>
                   </div>
@@ -648,7 +653,7 @@ export default function QuejaDetallesModal({
                               </td>
                               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {prueba.fecha
-                                  ? new Date(prueba.fecha).toLocaleDateString()
+                                  ? new Date(prueba.fecha).toLocaleString()
                                   : "N/A"}
                               </td>
                               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -846,7 +851,9 @@ export default function QuejaDetallesModal({
                                 {trabajo.id_trabajo}
                               </td>
                               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {new Date(trabajo.fecha).toLocaleDateString()}
+                                {trabajo.fecha
+                                  ? new Date(trabajo.fecha).toLocaleString()
+                                  : "N/A"}
                               </td>
                               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {trabajo.tb_trabajador?.clave_trabajador}

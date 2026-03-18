@@ -6,6 +6,7 @@
     "dev:api-gateway": "cd api-gateway && npm run dev",
     "dev:users": "cd backend-users && npm run dev",
     "dev:mp": "cd backend-mp && npm run dev",
+    "dev:materiales": "cd backend-materiales-go && go run cmd/api/main.go",
     "dev:frontend": "cd frontend && npm run dev",
     "dev": "concurrently \"npm run dev:users\" \"npm run dev:mp\" \"npm run dev:api-gateway\" \"npm run dev:frontend\"",
     "build:frontend": "cd frontend && npm run build",

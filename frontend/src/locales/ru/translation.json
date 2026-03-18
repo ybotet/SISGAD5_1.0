@@ -1,6 +1,6 @@
 {
   "menu": {
-    "dashboard": "Панель",
+    "inicio": "Главная",
     "modulos_principales": "Основные модули",
     "telefonos": "Телефоны",
     "lineas": "Линии",
@@ -26,7 +26,8 @@
     "operarios": "Работники",
     "estadisticas": "Статистика",
     "panel_admin": "Админ-панель",
-    "gestion_usuarios": "Управление пользователями"
+    "gestion_usuarios": "Управление пользователями",
+    "materiales": "Материалы"
   },
   "actions": {
     "close_session": "Выйти"

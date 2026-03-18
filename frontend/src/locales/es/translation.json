@@ -1,6 +1,6 @@
 {
   "menu": {
-    "dashboard": "Dashboard",
+    "inicio": "Inicio",
     "modulos_principales": "Módulos Principales",
     "telefonos": "Teléfonos",
     "lineas": "Líneas",
@@ -26,7 +26,8 @@
     "operarios": "Trabajadores",
     "estadisticas": "Estadísticas",
     "panel_admin": "Panel administrativo",
-    "gestion_usuarios": "Gestión de usuarios"
+    "gestion_usuarios": "Gestión de usuarios",
+    "materiales": "Materiales"
   },
   "actions": {
     "close_session": "Cerrar sesión"

@@ -95,7 +95,7 @@ export interface QuejaItem {
   tb_tipoqueja?: TipoQueja | null;
   tb_clave?: Clave | null;
   tb_pizarra?: Pizarra | null;
-  tb_trabajador?: Trabajador | null;
+  tb_trabajador?: any | null;
 }
 
 export interface CreateQuejaRequest {

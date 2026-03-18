@@ -19,7 +19,7 @@ export default function Sidebar() {
   const { t } = useTranslation();
 
   const menuItems: MenuItem[] = [
-    { id: "", name: t("menu.dashboard"), icon: "ri-dashboard-line" }, // solo autenticado
+    { id: "", name: t("menu.inicio"), icon: "ri-dashboard-line" }, // solo autenticado
     {
       id: "main",
       name: t("menu.modulos_principales"),
@@ -60,6 +60,19 @@ export default function Sidebar() {
           id: "movimientos",
           name: "Movimientos",
           icon: "ri-arrow-left-right-line",
+        },
+      ],
+    },
+    {
+      id: "materiales",
+      name: t("menu.materiales"),
+      icon: "ri-folder-line",
+      children: [
+        {
+          id: "materiales",
+          name: t("menu.materiales"),
+          icon: "ri-tools-line",
+          permission: "materiales.gestionar",
         },
       ],
     },

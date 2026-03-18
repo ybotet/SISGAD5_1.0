@@ -5,7 +5,7 @@ services:
     image: postgres:17-alpine
     container_name: sisgad5-postgres
     environment:
-      POSTGRES_DB: sisgad5
+      POSTGRES_DB: sisgad5-users
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:

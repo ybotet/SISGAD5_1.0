@@ -1,4 +1,4 @@
-const { Prueba } = require("../models");
+const { Prueba, Queja } = require("../models");
 const { Op } = require("sequelize");
 const { addFlowEntry, removeFlowEntry } = require("../utils/quejaFlow");
 
@@ -116,6 +116,16 @@ const PruebaController = {
       if (data.id_queja) {
         await addFlowEntry(data.id_queja, data.id_clave, data.fecha);
       }
+
+      // Actualizando el estado de la queja
+      await Queja.update(
+        { estado: "En Proceso" },
+        {
+          where: { id_queja: data.id_queja },
+          validate: false, // Esto omite las validaciones del modelo
+          individualHooks: false,
+        },
+      );
 
       res.status(201).json({
         success: true,

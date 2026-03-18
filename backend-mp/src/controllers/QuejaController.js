@@ -228,7 +228,7 @@ const QuejaController = {
         bodyData.claves_flujo = [bodyData.id_clave];
         bodyData.fechas_flujo = [bodyData.fecha];
       }
-
+      bodyData.estado = "Abierta";
       const data = await Queja.create(bodyData);
 
       res.status(201).json({

@@ -113,8 +113,16 @@ export default function QuejaPage() {
 
             setQuejaDetalles(detalles.queja);
             setFlujoDetalles(detalles.flujo || []);
-            setPruebas(detalles.pruebas);
-            setTrabajos(detalles.trabajos);
+            setPruebas([...detalles.pruebas].sort((a, b) => {
+                const dateA = a.fecha ? new Date(a.fecha).getTime() : 0;
+                const dateB = b.fecha ? new Date(b.fecha).getTime() : 0;
+                return dateA - dateB;
+            }));
+            setTrabajos([...detalles.trabajos].sort((a, b) => {
+                const dateA = a.fecha ? new Date(a.fecha).getTime() : 0;
+                const dateB = b.fecha ? new Date(b.fecha).getTime() : 0;
+                return dateA - dateB;
+            }));
             setShowDetallesModal(true);
         } catch (err) {
             const errorMsg = 'Error al cargar los detalles de la queja';
@@ -135,8 +143,16 @@ export default function QuejaPage() {
 
                 setQuejaDetalles(detalles.queja);
                 setFlujoDetalles(detalles.flujo || []);
-                setPruebas(detalles.pruebas);
-                setTrabajos(detalles.trabajos);
+                setPruebas([...detalles.pruebas].sort((a, b) => {
+                    const dateA = a.fecha ? new Date(a.fecha).getTime() : 0;
+                    const dateB = b.fecha ? new Date(b.fecha).getTime() : 0;
+                    return dateA - dateB;
+                }));
+                setTrabajos([...detalles.trabajos].sort((a, b) => {
+                    const dateA = a.fecha ? new Date(a.fecha).getTime() : 0;
+                    const dateB = b.fecha ? new Date(b.fecha).getTime() : 0;
+                    return dateA - dateB;
+                }));
 
                 console.log('✅ Detalles refrescados');
             } catch (err) {

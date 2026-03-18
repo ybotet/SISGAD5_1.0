@@ -17,6 +17,7 @@ import ClasificadorClavePage from "./pages/nomencladores/ClasificadorClavePage";
 import ClasifpizarraPage from "./pages/nomencladores/ClasifpizarraPage";
 import TipoQuejaPage from "./pages/nomencladores/TipoquejaPage";
 import CablePage from "./pages/nomencladores/CablePage";
+import MaterialesPage from "./pages/materiales/MaterialesPage";
 import PlantaPage from "./pages/nomencladores/PlantaPage";
 import TipoPizarraPage from "./pages/nomencladores/TipopizarraPage";
 import MovimientoPage from "./pages/MovimientoPage";
@@ -241,6 +242,14 @@ export default function App() {
           element={
             <ProtectedRoute permission="nomencladores.gestionar">
               <SistemaPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="materiales/materiales"
+          element={
+            <ProtectedRoute permission="materiales.gestionar">
+              <MaterialesPage />
             </ProtectedRoute>
           }
         />
