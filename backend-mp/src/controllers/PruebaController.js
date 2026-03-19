@@ -1,6 +1,7 @@
 const { Prueba, Queja } = require("../models");
 const { Op } = require("sequelize");
 const { addFlowEntry, removeFlowEntry } = require("../utils/quejaFlow");
+const apiErrors = require("../utils/apiErrors");
 
 const PruebaController = {
   /**
@@ -8,7 +9,7 @@ const PruebaController = {
    * @route   GET /api/tbPrueba
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -63,13 +64,7 @@ const PruebaController = {
         },
       });
     } catch (error) {
-      console.error("Error en PruebaController.getAll:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -78,16 +73,13 @@ const PruebaController = {
    * @route   GET /api/tbPrueba/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Prueba.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: "Prueba no encontrado",
-        });
+        return next(apiErrors.notFound("Prueba"));
       }
 
       res.json({
@@ -95,11 +87,7 @@ const PruebaController = {
         data,
       });
     } catch (error) {
-      console.error("Error en PruebaController.getById:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-      });
+      return next(error);
     }
   },
 
@@ -108,7 +96,7 @@ const PruebaController = {
    * @route   POST /api/tbPrueba
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Prueba.create(req.body);
 
@@ -133,22 +121,13 @@ const PruebaController = {
         message: "Prueba creado exitosamente",
       });
     } catch (error) {
-      console.error("Error en PruebaController.create:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensaje =
+          error.errors?.map((err) => err.message).join(". ") || error.message;
+        return next(apiErrors.badRequest(mensaje));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error creando Prueba",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -157,16 +136,14 @@ const PruebaController = {
    * @route   PUT /api/tbPrueba/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
       // obtener valores antiguos para mantener el flujo
       const existing = await Prueba.findByPk(id);
       if (!existing) {
-        return res
-          .status(404)
-          .json({ success: false, error: "Prueba no encontrado" });
+        return next(apiErrors.notFound("Prueba"));
       }
       const oldQueja = existing.id_queja;
       const oldClave = existing.id_clave;
@@ -177,10 +154,7 @@ const PruebaController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Prueba no encontrado",
-        });
+        return next(apiErrors.notFound("Prueba"));
       }
 
       const updatedData = await Prueba.findByPk(id);
@@ -208,20 +182,13 @@ const PruebaController = {
         message: "Prueba actualizado exitosamente",
       });
     } catch (error) {
-      console.error("Error en PruebaController.update:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensaje =
+          error.errors?.map((err) => err.message).join(". ") || error.message;
+        return next(apiErrors.badRequest(mensaje));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error actualizando Prueba",
-      });
+      return next(error);
     }
   },
 
@@ -230,17 +197,14 @@ const PruebaController = {
    * @route   DELETE /api/tbPrueba/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
       // obtener antes de borrar para limpiar flujo
       const existing = await Prueba.findByPk(id);
       if (!existing) {
-        return res.status(404).json({
-          success: false,
-          error: "Prueba no encontrado",
-        });
+        return next(apiErrors.notFound("Prueba"));
       }
 
       await removeFlowEntry(
@@ -258,11 +222,7 @@ const PruebaController = {
         message: "Prueba eliminado exitosamente",
       });
     } catch (error) {
-      console.error("Error en PruebaController.delete:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error eliminando Prueba",
-      });
+      return next(error);
     }
   },
 };

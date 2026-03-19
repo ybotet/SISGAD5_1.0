@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 
+// ✅ Exporta una FUNCIÓN que recibe sequelize y retorna el modelo
 module.exports = (sequelize) => {
   const TbQueja = sequelize.define(
     "TbQueja",
@@ -9,46 +10,26 @@ module.exports = (sequelize) => {
         allowNull: true,
         unique: true,
         defaultValue: 0,
-        validate: {
-          len: {
-            args: [4, 6],
-            msg: "El teléfono debe tener entre 4 y 6 caracteres",
-          },
-          unique: {
-            msg: "El número de reporte debe ser único",
-          },
-        },
+        validate: { isInt: { msg: "num_reporte must be integer" } },
       },
       fecha: {
         type: DataTypes.DATE,
         allowNull: true,
-        validate: {
-          isDate: {
-            msg: "La fecha debe ser una fecha válida",
-          },
-          isBefore: {
-            args: new Date().toISOString().split("T")[0],
-            msg: "La fecha no puede ser en el futuro",
-          },
-        },
+        validate: { isDate: { msg: "fecha must be valid date" } },
       },
       prioridad: {
         type: DataTypes.INTEGER,
         allowNull: true,
         defaultValue: 0,
+        validate: { min: 0, max: 5 },
       },
-      probador: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-      },
+      probador: { type: DataTypes.INTEGER, allowNull: true },
       claves_flujo: {
-        // IDs de clave de cada etapa del flujo (paralelos con fechas_flujo)
         type: DataTypes.ARRAY(DataTypes.INTEGER),
         allowNull: true,
         defaultValue: [],
       },
       fechas_flujo: {
-        // Fechas de cada etapa del flujo, extraídas de pruebas o trabajos
         type: DataTypes.ARRAY(DataTypes.DATE),
         allowNull: true,
         defaultValue: [],
@@ -56,11 +37,7 @@ module.exports = (sequelize) => {
       red: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
-        validate: {
-          isBoolean: {
-            msg: "La red debe ser verdadero o falso",
-          },
-        },
+        validate: { isBoolean: { msg: "red must be boolean" } },
       },
       id_queja: {
         type: DataTypes.INTEGER,
@@ -71,134 +48,153 @@ module.exports = (sequelize) => {
       id_telefono: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        references: { model: "tb_telefono", key: "id_telefono" },
       },
       id_linea: {
         type: DataTypes.INTEGER,
         allowNull: true,
-      },
-      id_tipoqueja: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-      },
-      id_clave: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
+        references: { model: "tb_linea", key: "id_linea" },
       },
       id_pizarra: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        references: { model: "tb_pizarra", key: "id_pizarra" },
       },
-      reportado_por: {
-        type: DataTypes.STRING,
+      id_tipoqueja: {
+        type: DataTypes.INTEGER,
         allowNull: true,
+        references: { model: "tb_tipoqueja", key: "id_tipoqueja" },
       },
+      id_clave: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: { model: "tb_clave", key: "id_clave" },
+      },
+      reportado_por: { type: DataTypes.STRING, allowNull: true },
       estado: {
         type: DataTypes.STRING,
         allowNull: true,
-        enum: ["Abierta", "En Proceso", "Pendiente", "Resuelto", "Cerrada"],
         defaultValue: "Abierta",
         validate: {
           isIn: {
             args: [
               ["Abierta", "En Proceso", "Pendiente", "Resuelto", "Cerrada"],
             ],
-            msg: "El estado debe ser: Abierta, En Proceso, Pendiente, Resuelto o Cerrada",
+            msg: "estado must be valid value",
           },
         },
       },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
+      // created_by: { type: DataTypes.INTEGER, allowNull: true },
+      // updated_by: { type: DataTypes.INTEGER, allowNull: true },
     },
     {
       tableName: "tb_queja",
       timestamps: true,
       underscored: true,
+      createdAt: "createdAt",
+      updatedAt: "updatedAt",
+
       hooks: {
-        // Antes de crear, asignar num_reporte usando una secuencia PostgreSQL
         beforeCreate: async (instance, options) => {
           try {
-            // Si ya viene con num_reporte válido, no sobrescribir
             if (instance.num_reporte && parseInt(instance.num_reporte, 10) > 0)
               return;
-
             const t = options.transaction || null;
-
-            // Asegurar que la secuencia exista
             await sequelize.query(
               "CREATE SEQUENCE IF NOT EXISTS num_reporte_seq START WITH 100000;",
               { transaction: t },
             );
-
-            // Obtener el máximo actual en la tabla
-            // Convertimos el resultado a texto en SQL (COALESCE sobre text) para evitar errores
-            // si la columna tiene tipos mixtos en la base de datos. Luego parseamos en JS.
             const [[maxRow]] = await sequelize.query(
               "SELECT COALESCE(MAX(num_reporte)::text, '0') AS maxnum FROM tb_queja;",
               { transaction: t },
             );
             const maxNum = parseInt(maxRow.maxnum || "0", 10) || 0;
             const startValue = Math.max(100000, maxNum + 1);
-
-            // Intentar obtener el último valor de la secuencia (puede fallar en algunos estados)
             let seqLast = null;
             try {
               const [[seqRow]] = await sequelize.query(
                 "SELECT last_value::bigint AS last_value FROM num_reporte_seq;",
                 { transaction: t },
               );
-              seqLast =
-                seqRow && seqRow.last_value
-                  ? parseInt(seqRow.last_value, 10)
-                  : null;
+              seqLast = seqRow?.last_value
+                ? parseInt(seqRow.last_value, 10)
+                : null;
             } catch (e) {
-              // No crítico: proceder a ajustar la secuencia
               seqLast = null;
             }
-
-            // Si la secuencia está por detrás del startValue, moverla (setval to startValue-1 so nextval yields startValue)
             if (seqLast === null || seqLast < startValue - 1) {
               await sequelize.query(
                 `SELECT setval('num_reporte_seq', ${startValue - 1}, false);`,
                 { transaction: t },
               );
             }
-
-            // Obtener el siguiente valor de la secuencia
             const [[nextRow]] = await sequelize.query(
               "SELECT nextval('num_reporte_seq') AS nextval;",
               { transaction: t },
             );
             instance.num_reporte = parseInt(nextRow.nextval, 10);
           } catch (err) {
-            console.error(
-              "Error generando num_reporte en hook beforeCreate:",
-              err,
-            );
+            console.error("Error generando num_reporte:", err);
             throw new Error(
               "Error generando num_reporte: " + (err.message || err),
             );
           }
         },
       },
+
       validate: {
-        alMenosUnId() {
+        alMenosUnIdentificador() {
           if (!this.id_telefono && !this.id_linea && !this.id_pizarra) {
-            throw new Error(
-              "Debe seleccionar al menos un elemento (teléfono, línea o pizarra)",
-            );
+            throw new Error("tb_queja: al menos un identificador requerido");
           }
         },
       },
     },
   );
+
+  // ✅ Definir asociaciones (asegúrate que los nombres coincidan con tu index.js)
+  TbQueja.associate = (models) => {
+    if (models.TbTelefono)
+      TbQueja.belongsTo(models.TbTelefono, {
+        foreignKey: "id_telefono",
+        as: "tb_telefono",
+      });
+    if (models.TbLinea)
+      TbQueja.belongsTo(models.TbLinea, {
+        foreignKey: "id_linea",
+        as: "tb_linea",
+      });
+    if (models.TbPizarra)
+      TbQueja.belongsTo(models.TbPizarra, {
+        foreignKey: "id_pizarra",
+        as: "tb_pizarra",
+      });
+    if (models.Tipoqueja)
+      TbQueja.belongsTo(models.Tipoqueja, {
+        foreignKey: "id_tipoqueja",
+        as: "tb_tipoqueja",
+      });
+    if (models.Clave)
+      TbQueja.belongsTo(models.Clave, {
+        foreignKey: "id_clave",
+        as: "tb_clave",
+      });
+    if (models.Trabajador)
+      TbQueja.belongsTo(models.Trabajador, {
+        foreignKey: "probador",
+        as: "tb_trabajador",
+      });
+    if (models.Prueba)
+      TbQueja.hasMany(models.Prueba, {
+        foreignKey: "id_queja",
+        as: "tb_pruebas",
+      });
+    if (models.Trabajo)
+      TbQueja.hasMany(models.Trabajo, {
+        foreignKey: "id_queja",
+        as: "tb_trabajos",
+      });
+  };
 
   return TbQueja;
 };

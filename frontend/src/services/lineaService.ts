@@ -1,4 +1,4 @@
-import api from "./api";
+import api from "./apiMp";
 
 export interface Senalizacion {
   id_senalizacion: number;

@@ -1,5 +1,6 @@
 const { Pizarra } = require('../models');
 const { Op } = require('sequelize');
+const apiErrors = require('../utils/apiErrors');
 
 const PizarraController = {
   /**
@@ -7,7 +8,7 @@ const PizarraController = {
    * @route   GET /api/tbPizarra
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -57,12 +58,7 @@ const PizarraController = {
         }
       });
     } catch (error) {
-      console.error('Error en PizarraController.getAll:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -71,16 +67,13 @@ const PizarraController = {
    * @route   GET /api/tbPizarra/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Pizarra.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: 'Pizarra no encontrado'
-        });
+        return next(apiErrors.notFound('Pizarra'));
       }
 
       res.json({
@@ -88,11 +81,7 @@ const PizarraController = {
         data
       });
     } catch (error) {
-      console.error('Error en PizarraController.getById:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor'
-      });
+      return next(error);
     }
   },
 
@@ -101,7 +90,7 @@ const PizarraController = {
    * @route   POST /api/tbPizarra
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Pizarra.create(req.body);
 
@@ -111,24 +100,12 @@ const PizarraController = {
         message: 'Pizarra creado exitosamente'
       });
     } catch (error) {
-      console.error('Error en PizarraController.create:', error);
-
       if (error.name === 'SequelizeValidationError') {
         const mensajes = error.errors.map(err => err.message).join('. ');
-        return res.status(400).json({
-          success: false,
-          message: mensajes,
-          error: mensajes,
-          details: error.errors.map(err => err.message)
-        });
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        message: 'Error creando pizarra',
-        error: 'Error creando Pizarra',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -137,7 +114,7 @@ const PizarraController = {
    * @route   PUT /api/tbPizarra/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -146,10 +123,7 @@ const PizarraController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Pizarra no encontrado'
-        });
+        return next(apiErrors.notFound('Pizarra'));
       }
 
       const updatedData = await Pizarra.findByPk(id);
@@ -160,23 +134,12 @@ const PizarraController = {
         message: 'Pizarra actualizado exitosamente'
       });
     } catch (error) {
-      console.error('Error en PizarraController.update:', error);
-
       if (error.name === 'SequelizeValidationError') {
         const mensajes = error.errors.map(err => err.message).join('. ');
-        return res.status(400).json({
-          success: false,
-          message: mensajes,
-          error: mensajes,
-          details: error.errors.map(err => err.message)
-        });
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        message: 'Error actualizando pizarra',
-        error: 'Error actualizando Pizarra'
-      });
+      return next(error);
     }
   },
 
@@ -185,7 +148,7 @@ const PizarraController = {
    * @route   DELETE /api/tbPizarra/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -194,10 +157,7 @@ const PizarraController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Pizarra no encontrado'
-        });
+        return next(apiErrors.notFound('Pizarra'));
       }
 
       res.json({
@@ -205,11 +165,7 @@ const PizarraController = {
         message: 'Pizarra eliminado exitosamente'
       });
     } catch (error) {
-      console.error('Error en PizarraController.delete:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error eliminando Pizarra'
-      });
+      return next(error);
     }
   }
 };

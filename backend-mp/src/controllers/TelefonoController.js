@@ -1,6 +1,7 @@
 const { Telefono } = require("../models");
 const { Op } = require("sequelize");
 const { Recorrido, Queja, Cable, Planta } = require("../models");
+const apiErrors = require("../utils/apiErrors");
 
 const TelefonoController = {
   /**
@@ -8,7 +9,7 @@ const TelefonoController = {
    * @route   GET /api/tbTelefono
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -62,13 +63,7 @@ const TelefonoController = {
         },
       });
     } catch (error) {
-      console.error("Error en TelefonoController.getAll:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -77,7 +72,7 @@ const TelefonoController = {
    * @route   GET /api/tbTelefono/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const telefono = await Telefono.findByPk(id, {
@@ -94,10 +89,7 @@ const TelefonoController = {
       });
 
       if (!telefono) {
-        return res.status(404).json({
-          success: false,
-          error: "Telefono no encontrado",
-        });
+        return next(apiErrors.notFound("Telefono"));
       }
 
       const recorridos = await Recorrido.findAll({
@@ -144,11 +136,7 @@ const TelefonoController = {
         },
       });
     } catch (error) {
-      console.error("Error en TelefonoController.getById:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-      });
+      return next(error);
     }
   },
 
@@ -157,7 +145,7 @@ const TelefonoController = {
    * @route   POST /api/tbTelefono
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Telefono.create(req.body);
 
@@ -167,33 +155,16 @@ const TelefonoController = {
         message: "Telefono creado exitosamente",
       });
     } catch (error) {
-      console.error("Error en TelefonoController.create:", error);
-
       if (error.name === "SequelizeValidationError") {
         const mensajes = error.errors.map((err) => err.message).join(". ");
-        return res.status(400).json({
-          success: false,
-          message: mensajes,
-          error: mensajes,
-          details: error.errors.map((err) => err.message),
-        });
+        return next(apiErrors.badRequest(mensajes));
       }
 
       if (error.name === "SequelizeUniqueConstraintError") {
-        return res.status(400).json({
-          success: false,
-          error: "El teléfono ya existe",
-          details: ["El teléfono ya existe"],
-        });
+        return next(apiErrors.conflict("El teléfono ya existe"));
       }
 
-      res.status(400).json({
-        success: false,
-        message: "Error creando teléfono",
-        error: "Error creando Telefono",
-        details:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -202,7 +173,7 @@ const TelefonoController = {
    * @route   PUT /api/tbTelefono/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -211,10 +182,7 @@ const TelefonoController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Telefono no encontrado",
-        });
+        return next(apiErrors.notFound("Telefono"));
       }
 
       const updatedData = await Telefono.findByPk(id, {
@@ -236,23 +204,12 @@ const TelefonoController = {
         message: "Telefono actualizado exitosamente",
       });
     } catch (error) {
-      console.error("Error en TelefonoController.update:", error);
-
       if (error.name === "SequelizeValidationError") {
         const mensajes = error.errors.map((err) => err.message).join(". ");
-        return res.status(400).json({
-          success: false,
-          message: mensajes,
-          error: mensajes,
-          details: error.errors.map((err) => err.message),
-        });
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        message: "Error actualizando teléfono",
-        error: "Error actualizando Telefono",
-      });
+      return next(error);
     }
   },
 
@@ -261,7 +218,7 @@ const TelefonoController = {
    * @route   DELETE /api/tbTelefono/:id
    * @access  Public
    */
-  async darBaja(req, res) {
+  async darBaja(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -273,10 +230,7 @@ const TelefonoController = {
       );
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Telefono no encontrado",
-        });
+        return next(apiErrors.notFound("Telefono"));
       }
 
       const updatedData = await Telefono.findByPk(id, {
@@ -298,27 +252,16 @@ const TelefonoController = {
         message: "Telefono dado de baja exitosamente",
       });
     } catch (error) {
-      console.error("Error en TelefonoController.darBaja:", error);
-
       if (error.name === "SequelizeValidationError") {
         const mensajes = error.errors.map((err) => err.message).join(". ");
-        return res.status(400).json({
-          success: false,
-          message: mensajes,
-          error: mensajes,
-          details: error.errors.map((err) => err.message),
-        });
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        message: "Error dando de baja teléfono",
-        error: "Error dando de baja Telefono",
-      });
+      return next(error);
     }
   },
 
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -327,10 +270,7 @@ const TelefonoController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Telefono no encontrado",
-        });
+        return next(apiErrors.notFound("Telefono"));
       }
 
       res.json({
@@ -338,13 +278,7 @@ const TelefonoController = {
         message: "Telefono eliminado exitosamente",
       });
     } catch (error) {
-      console.error("Error en TelefonoController.delete:", error);
-      res.status(500).json({
-        success: false,
-        error:
-          "Error eliminando Telefono" +
-          (process.env.NODE_ENV === "development" ? `: ${error.message}` : ""),
-      });
+      return next(error);
     }
   },
 };

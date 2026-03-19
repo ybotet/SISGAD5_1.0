@@ -1,5 +1,6 @@
 const { Senalizacion } = require('../models');
 const { Op } = require('sequelize');
+const apiErrors = require('../utils/apiErrors');
 
 const SenalizacionController = {
   /**
@@ -7,7 +8,7 @@ const SenalizacionController = {
    * @route   GET /api/tbSenalizacion
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -54,12 +55,7 @@ const SenalizacionController = {
         }
       });
     } catch (error) {
-      console.error('Error en SenalizacionController.getAll:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -68,16 +64,13 @@ const SenalizacionController = {
    * @route   GET /api/tbSenalizacion/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Senalizacion.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: 'Senalizacion no encontrado'
-        });
+        return next(apiErrors.notFound('Senalizacion'));
       }
 
       res.json({
@@ -85,11 +78,7 @@ const SenalizacionController = {
         data
       });
     } catch (error) {
-      console.error('Error en SenalizacionController.getById:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor'
-      });
+      return next(error);
     }
   },
 
@@ -98,7 +87,7 @@ const SenalizacionController = {
    * @route   POST /api/tbSenalizacion
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Senalizacion.create(req.body);
 
@@ -108,21 +97,13 @@ const SenalizacionController = {
         message: 'Senalizacion creado exitosamente'
       });
     } catch (error) {
-      console.error('Error en SenalizacionController.create:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error creando Senalizacion',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -131,7 +112,7 @@ const SenalizacionController = {
    * @route   PUT /api/tbSenalizacion/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -140,10 +121,7 @@ const SenalizacionController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Senalizacion no encontrado'
-        });
+        return next(apiErrors.notFound('Senalizacion'));
       }
 
       const updatedData = await Senalizacion.findByPk(id);
@@ -154,20 +132,13 @@ const SenalizacionController = {
         message: 'Senalizacion actualizado exitosamente'
       });
     } catch (error) {
-      console.error('Error en SenalizacionController.update:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error actualizando Senalizacion'
-      });
+      return next(error);
     }
   },
 
@@ -176,7 +147,7 @@ const SenalizacionController = {
    * @route   DELETE /api/tbSenalizacion/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -185,10 +156,7 @@ const SenalizacionController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Senalizacion no encontrado'
-        });
+        return next(apiErrors.notFound('Senalizacion'));
       }
 
       res.json({
@@ -196,11 +164,7 @@ const SenalizacionController = {
         message: 'Senalizacion eliminado exitosamente'
       });
     } catch (error) {
-      console.error('Error en SenalizacionController.delete:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error eliminando Senalizacion'
-      });
+      return next(error);
     }
   }
 };

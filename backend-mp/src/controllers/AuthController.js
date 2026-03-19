@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { User, Rol, Permiso } = require('../models/index');
+const apiErrors = require('../utils/apiErrors');
 
 // Validación de correo: vacío, formato (@ y dominio), longitud, caracteres permitidos
 function validarEmail(email) {
@@ -52,23 +53,17 @@ function validarPassword(password) {
 }
 
 const authController = {
-    login: async (req, res) => {
+    login: async (req, res, next) => {
         try {
             const { email, password } = req.body;
 
             const errorEmail = validarEmail(email);
             if (errorEmail) {
-                return res.status(400).json({
-                    success: false,
-                    message: errorEmail
-                });
+                return next(apiErrors.badRequest(errorEmail));
             }
             const errorPassword = validarPassword(password);
             if (errorPassword) {
-                return res.status(400).json({
-                    success: false,
-                    message: errorPassword
-                });
+                return next(apiErrors.badRequest(errorPassword));
             }
 
             // Buscar usuario
@@ -88,27 +83,18 @@ const authController = {
 
             if (!usuario) {
                 console.log('❌ Usuario no encontrado:', email);
-                return res.status(401).json({
-                    success: false,
-                    message: 'Credenciales inválidas'
-                });
+                return next(apiErrors.unauthorized('Credenciales inválidas'));
             }
 
             if (!usuario.activo) {
                 console.log('❌ Usuario inactivo:', email);
-                return res.status(401).json({
-                    success: false,
-                    message: 'Usuario inactivo'
-                });
+                return next(apiErrors.unauthorized('Usuario inactivo'));
             }
 
             // Verificar contraseña
             const esPasswordValido = await usuario.verificarPassword(password);
             if (!esPasswordValido) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Credenciales inválidas'
-                });
+                return next(apiErrors.unauthorized('Credenciales inválidas'));
             }
 
             // Generar token
@@ -135,15 +121,11 @@ const authController = {
 
         } catch (error) {
             console.error('Error en login:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Error interno del servidor',
-                details: process.env.NODE_ENV === 'development' ? (error.message || String(error)) : undefined
-            });
+            return next(apiErrors.internal());
         }
     },
 
-    perfil: async (req, res) => {
+    perfil: async (req, res, next) => {
         try {
             const usuario = req.usuario;
             const { password_hash, ...usuarioSinPassword } = usuario.toJSON();
@@ -153,10 +135,7 @@ const authController = {
                 data: usuarioSinPassword
             });
         } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error al obtener perfil'
-            });
+            return next(apiErrors.internal('Error al obtener perfil'));
         }
     }
 };

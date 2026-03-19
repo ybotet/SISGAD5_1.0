@@ -90,10 +90,14 @@ export function useAuth() {
       }),
     })
 
-    const data = await response.json()
+    const data = await response.json().catch(() => null)
     
     if (!response.ok) {
-      throw new Error(data.message || 'Error en registro')
+      const detailsText =
+        Array.isArray(data?.details) ? data.details.join('. ') : undefined
+      throw new Error(
+        data?.message || data?.error || detailsText || 'Error en registro',
+      )
     }
 
     // Guardar token
@@ -115,10 +119,14 @@ export function useAuth() {
       body: JSON.stringify({ email, password }),
     })
 
-    const data = await response.json()
+    const data = await response.json().catch(() => null)
     
     if (!response.ok) {
-      throw new Error(data.message || 'Error en login')
+      const detailsText =
+        Array.isArray(data?.details) ? data.details.join('. ') : undefined
+      throw new Error(
+        data?.message || data?.error || detailsText || 'Error en login',
+      )
     }
 
     // Guardar token

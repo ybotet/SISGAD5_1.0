@@ -1,5 +1,6 @@
 const { Propietario } = require("../models");
 const { Op } = require("sequelize");
+const apiErrors = require("../utils/apiErrors");
 
 const PropietarioController = {
   /**
@@ -7,7 +8,7 @@ const PropietarioController = {
    * @route   GET /api/tbPropietario
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -54,13 +55,7 @@ const PropietarioController = {
         },
       });
     } catch (error) {
-      console.error("Error en PropietarioController.getAll:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -69,16 +64,13 @@ const PropietarioController = {
    * @route   GET /api/tbPropietario/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Propietario.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: "Propietario no encontrado",
-        });
+        return next(apiErrors.notFound("Propietario"));
       }
 
       res.json({
@@ -86,11 +78,7 @@ const PropietarioController = {
         data,
       });
     } catch (error) {
-      console.error("Error en PropietarioController.getById:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-      });
+      return next(error);
     }
   },
 
@@ -99,7 +87,7 @@ const PropietarioController = {
    * @route   POST /api/tbPropietario
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Propietario.create(req.body);
 
@@ -109,30 +97,18 @@ const PropietarioController = {
         message: "Propietario creado exitosamente",
       });
     } catch (error) {
-      console.error("Error en PropietarioController.create:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensaje =
+          error.errors?.map((err) => err.message).join(". ") ||
+          "Error de validación";
+        return next(apiErrors.badRequest(mensaje));
       }
 
       if (error.name === "SequelizeUniqueConstraintError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: ["El propietario ya existe"],
-        });
+        return next(apiErrors.conflict("El propietario ya existe"));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error creando Propietario",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -141,7 +117,7 @@ const PropietarioController = {
    * @route   PUT /api/tbPropietario/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -150,10 +126,7 @@ const PropietarioController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Propietario no encontrado",
-        });
+        return next(apiErrors.notFound("Propietario"));
       }
 
       const updatedData = await Propietario.findByPk(id);
@@ -164,28 +137,18 @@ const PropietarioController = {
         message: "Propietario actualizado exitosamente",
       });
     } catch (error) {
-      console.error("Error en PropietarioController.update:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensaje =
+          error.errors?.map((err) => err.message).join(". ") ||
+          "Error de validación";
+        return next(apiErrors.badRequest(mensaje));
       }
 
       if (error.name === "SequelizeUniqueConstraintError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: ["El propietario ya existe"],
-        });
+        return next(apiErrors.conflict("El propietario ya existe"));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error actualizando Propietario",
-      });
+      return next(error);
     }
   },
 
@@ -194,7 +157,7 @@ const PropietarioController = {
    * @route   DELETE /api/tbPropietario/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -203,10 +166,7 @@ const PropietarioController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Propietario no encontrado",
-        });
+        return next(apiErrors.notFound("Propietario"));
       }
 
       res.json({
@@ -214,11 +174,7 @@ const PropietarioController = {
         message: "Propietario eliminado exitosamente",
       });
     } catch (error) {
-      console.error("Error en PropietarioController.delete:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error eliminando Propietario",
-      });
+      return next(error);
     }
   },
 };

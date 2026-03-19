@@ -1,5 +1,6 @@
 const { Grupow } = require("../models");
 const { Op } = require("sequelize");
+const apiErrors = require("../utils/apiErrors");
 
 const GrupowController = {
   /**
@@ -7,7 +8,7 @@ const GrupowController = {
    * @route   GET /api/grupow
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -54,13 +55,7 @@ const GrupowController = {
         },
       });
     } catch (error) {
-      console.error("Error en GrupowController.getAll:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -69,16 +64,13 @@ const GrupowController = {
    * @route   GET /api/grupow/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Grupow.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: "Grupo de trabajo no encontrado",
-        });
+        return next(apiErrors.notFound("Grupo de trabajo"));
       }
 
       res.json({
@@ -86,11 +78,7 @@ const GrupowController = {
         data,
       });
     } catch (error) {
-      console.error("Error en GrupowController.getById:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-      });
+      return next(error);
     }
   },
 
@@ -99,7 +87,7 @@ const GrupowController = {
    * @route   POST /api/grupow
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Grupow.create(req.body);
 
@@ -109,31 +97,19 @@ const GrupowController = {
         message: "Grupo de trabajo creado exitosamente",
       });
     } catch (error) {
-      console.error("Error en GrupowController.create:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensaje =
+          error.errors?.map((err) => err.message).join(". ") ||
+          "Error de validación";
+        return next(apiErrors.badRequest(mensaje));
       }
 
       // Manejar error de unicidad (violación de constraint unique)
       if (error.name === "SequelizeUniqueConstraintError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: ["El grupo ya existe"],
-        });
+        return next(apiErrors.conflict("El grupo ya existe"));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error creando el grupo de trabajo",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -142,7 +118,7 @@ const GrupowController = {
    * @route   PUT /api/grupow/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -151,10 +127,7 @@ const GrupowController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Grupo de trabajo no encontrado",
-        });
+        return next(apiErrors.notFound("Grupo de trabajo"));
       }
 
       const updatedData = await Grupow.findByPk(id);
@@ -165,28 +138,18 @@ const GrupowController = {
         message: "Grupo de trabajo actualizado exitosamente",
       });
     } catch (error) {
-      console.error("Error en GrupowController.update:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensaje =
+          error.errors?.map((err) => err.message).join(". ") ||
+          "Error de validación";
+        return next(apiErrors.badRequest(mensaje));
       }
 
       if (error.name === "SequelizeUniqueConstraintError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: ["El grupo ya existe"],
-        });
+        return next(apiErrors.conflict("El grupo ya existe"));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error actualizando Grupow",
-      });
+      return next(error);
     }
   },
 
@@ -195,7 +158,7 @@ const GrupowController = {
    * @route   DELETE /api/grupow/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -204,10 +167,7 @@ const GrupowController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Grupo de trabajo no encontrado",
-        });
+        return next(apiErrors.notFound("Grupo de trabajo"));
       }
 
       res.json({
@@ -215,11 +175,7 @@ const GrupowController = {
         message: "Grupo de trabajo eliminado exitosamente",
       });
     } catch (error) {
-      console.error("Error en GrupowController.delete:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error eliminando Grupo de trabajo",
-      });
+      return next(error);
     }
   },
 };

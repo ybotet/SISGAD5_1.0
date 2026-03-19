@@ -1,4 +1,4 @@
-import api from './api';
+import api from './apiMp';
 
 export interface ClaveItem {
     id_clave: number;

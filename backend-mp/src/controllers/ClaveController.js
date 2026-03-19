@@ -1,5 +1,6 @@
 const { Clave } = require('../models');
 const { Op } = require('sequelize');
+const apiErrors = require('../utils/apiErrors');
 
 const ClaveController = {
   /**
@@ -7,7 +8,7 @@ const ClaveController = {
    * @route   GET /api/tbClave
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -53,12 +54,7 @@ const ClaveController = {
         }
       });
     } catch (error) {
-      console.error('Error en ClaveController.getAll:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -67,16 +63,13 @@ const ClaveController = {
    * @route   GET /api/tbClave/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Clave.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: 'Clave no encontrado'
-        });
+        return next(apiErrors.notFound('Clave'));
       }
 
       res.json({
@@ -84,11 +77,7 @@ const ClaveController = {
         data
       });
     } catch (error) {
-      console.error('Error en ClaveController.getById:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor'
-      });
+      return next(error);
     }
   },
 
@@ -97,7 +86,7 @@ const ClaveController = {
    * @route   POST /api/tbClave
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Clave.create(req.body);
 
@@ -107,21 +96,13 @@ const ClaveController = {
         message: 'Clave creado exitosamente'
       });
     } catch (error) {
-      console.error('Error en ClaveController.create:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error creando Clave',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -130,7 +111,7 @@ const ClaveController = {
    * @route   PUT /api/tbClave/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -139,10 +120,7 @@ const ClaveController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Clave no encontrado'
-        });
+        return next(apiErrors.notFound('Clave'));
       }
 
       const updatedData = await Clave.findByPk(id);
@@ -153,20 +131,13 @@ const ClaveController = {
         message: 'Clave actualizado exitosamente'
       });
     } catch (error) {
-      console.error('Error en ClaveController.update:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error actualizando Clave'
-      });
+      return next(error);
     }
   },
 
@@ -175,7 +146,7 @@ const ClaveController = {
    * @route   DELETE /api/tbClave/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -184,10 +155,7 @@ const ClaveController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Clave no encontrado'
-        });
+        return next(apiErrors.notFound('Clave'));
       }
 
       res.json({
@@ -195,11 +163,7 @@ const ClaveController = {
         message: 'Clave eliminado exitosamente'
       });
     } catch (error) {
-      console.error('Error en ClaveController.delete:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error eliminando Clave'
-      });
+      return next(error);
     }
   }
 };

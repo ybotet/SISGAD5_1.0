@@ -20,6 +20,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    # Recursos optimizados
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
 
   backend-users:
     build: ./backend-users
@@ -44,6 +51,13 @@ services:
         condition: service_healthy
     networks:
       - sisgad5-network
+    # Recursos optimizados
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
 
   backend-mp:
     build: ./backend-mp
@@ -69,6 +83,13 @@ services:
         condition: service_healthy
     networks:
       - sisgad5-network
+    # Recursos optimizados
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
 
   api-gateway:
     build: ./api-gateway
@@ -89,6 +110,13 @@ services:
       - backend-mp
     networks:
       - sisgad5-network
+    # Recursos optimizados
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
 
   frontend:
     build: ./frontend
@@ -106,6 +134,13 @@ services:
       - api-gateway
     networks:
       - sisgad5-network
+    # Recursos optimizados
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
 
 volumes:
   postgres_data:

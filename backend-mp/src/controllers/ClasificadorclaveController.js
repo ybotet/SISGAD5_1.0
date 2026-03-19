@@ -1,5 +1,6 @@
 const { Clasificadorclave } = require('../models');
 const { Op } = require('sequelize');
+const apiErrors = require('../utils/apiErrors');
 
 const ClasificadorclaveController = {
   /**
@@ -7,7 +8,7 @@ const ClasificadorclaveController = {
    * @route   GET /api/tbClasificadorclave
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -54,12 +55,7 @@ const ClasificadorclaveController = {
         }
       });
     } catch (error) {
-      console.error('Error en ClasificadorclaveController.getAll:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -68,16 +64,13 @@ const ClasificadorclaveController = {
    * @route   GET /api/tbClasificadorclave/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Clasificadorclave.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: 'Clasificadorclave no encontrado'
-        });
+        return next(apiErrors.notFound('Clasificadorclave'));
       }
 
       res.json({
@@ -85,11 +78,7 @@ const ClasificadorclaveController = {
         data
       });
     } catch (error) {
-      console.error('Error en ClasificadorclaveController.getById:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor'
-      });
+      return next(error);
     }
   },
 
@@ -98,7 +87,7 @@ const ClasificadorclaveController = {
    * @route   POST /api/tbClasificadorclave
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Clasificadorclave.create(req.body);
 
@@ -108,21 +97,13 @@ const ClasificadorclaveController = {
         message: 'Clasificadorclave creado exitosamente'
       });
     } catch (error) {
-      console.error('Error en ClasificadorclaveController.create:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error creando Clasificadorclave',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -131,7 +112,7 @@ const ClasificadorclaveController = {
    * @route   PUT /api/tbClasificadorclave/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -140,10 +121,7 @@ const ClasificadorclaveController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Clasificadorclave no encontrado'
-        });
+        return next(apiErrors.notFound('Clasificadorclave'));
       }
 
       const updatedData = await Clasificadorclave.findByPk(id);
@@ -154,20 +132,13 @@ const ClasificadorclaveController = {
         message: 'Clasificadorclave actualizado exitosamente'
       });
     } catch (error) {
-      console.error('Error en ClasificadorclaveController.update:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error actualizando Clasificadorclave'
-      });
+      return next(error);
     }
   },
 
@@ -176,7 +147,7 @@ const ClasificadorclaveController = {
    * @route   DELETE /api/tbClasificadorclave/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -185,10 +156,7 @@ const ClasificadorclaveController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Clasificadorclave no encontrado'
-        });
+        return next(apiErrors.notFound('Clasificadorclave'));
       }
 
       res.json({
@@ -196,11 +164,7 @@ const ClasificadorclaveController = {
         message: 'Clasificadorclave eliminado exitosamente'
       });
     } catch (error) {
-      console.error('Error en ClasificadorclaveController.delete:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error eliminando Clasificadorclave'
-      });
+      return next(error);
     }
   }
 };

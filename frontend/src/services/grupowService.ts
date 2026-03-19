@@ -1,4 +1,4 @@
-import api from './api';
+import api from './apiMp';
 
 export interface GrupoTrabajoItem {
     id_grupow: number;

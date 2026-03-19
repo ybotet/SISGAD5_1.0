@@ -1,5 +1,6 @@
 const { Recorrido } = require('../models');
 const { Op } = require('sequelize');
+const apiErrors = require('../utils/apiErrors');
 
 const RecorridoController = {
   /**
@@ -7,7 +8,7 @@ const RecorridoController = {
    * @route   GET /api/tbRecorrido
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -53,12 +54,7 @@ const RecorridoController = {
         }
       });
     } catch (error) {
-      console.error('Error en RecorridoController.getAll:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -67,16 +63,13 @@ const RecorridoController = {
    * @route   GET /api/tbRecorrido/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Recorrido.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: 'Recorrido no encontrado'
-        });
+        return next(apiErrors.notFound('Recorrido'));
       }
 
       res.json({
@@ -84,11 +77,7 @@ const RecorridoController = {
         data
       });
     } catch (error) {
-      console.error('Error en RecorridoController.getById:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor'
-      });
+      return next(error);
     }
   },
 
@@ -97,7 +86,7 @@ const RecorridoController = {
    * @route   POST /api/tbRecorrido
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Recorrido.create(req.body);
 
@@ -107,21 +96,13 @@ const RecorridoController = {
         message: 'Recorrido creado exitosamente'
       });
     } catch (error) {
-      console.error('Error en RecorridoController.create:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error creando Recorrido',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -130,7 +111,7 @@ const RecorridoController = {
    * @route   PUT /api/tbRecorrido/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -139,10 +120,7 @@ const RecorridoController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Recorrido no encontrado'
-        });
+        return next(apiErrors.notFound('Recorrido'));
       }
 
       const updatedData = await Recorrido.findByPk(id);
@@ -153,20 +131,13 @@ const RecorridoController = {
         message: 'Recorrido actualizado exitosamente'
       });
     } catch (error) {
-      console.error('Error en RecorridoController.update:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error actualizando Recorrido'
-      });
+      return next(error);
     }
   },
 
@@ -175,7 +146,7 @@ const RecorridoController = {
    * @route   DELETE /api/tbRecorrido/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -184,10 +155,7 @@ const RecorridoController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Recorrido no encontrado'
-        });
+        return next(apiErrors.notFound('Recorrido'));
       }
 
       res.json({
@@ -195,11 +163,7 @@ const RecorridoController = {
         message: 'Recorrido eliminado exitosamente'
       });
     } catch (error) {
-      console.error('Error en RecorridoController.delete:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error eliminando Recorrido'
-      });
+      return next(error);
     }
   }
 };

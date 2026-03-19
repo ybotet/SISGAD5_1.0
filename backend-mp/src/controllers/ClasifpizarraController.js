@@ -1,5 +1,6 @@
 const { Clasifpizarra } = require('../models');
 const { Op } = require('sequelize');
+const apiErrors = require('../utils/apiErrors');
 
 const ClasifpizarraController = {
   /**
@@ -7,7 +8,7 @@ const ClasifpizarraController = {
    * @route   GET /api/tbClasifpizarra
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -54,12 +55,7 @@ const ClasifpizarraController = {
         }
       });
     } catch (error) {
-      console.error('Error en ClasifpizarraController.getAll:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -68,16 +64,13 @@ const ClasifpizarraController = {
    * @route   GET /api/tbClasifpizarra/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Clasifpizarra.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: 'Clasifpizarra no encontrado'
-        });
+        return next(apiErrors.notFound('Clasifpizarra'));
       }
 
       res.json({
@@ -85,11 +78,7 @@ const ClasifpizarraController = {
         data
       });
     } catch (error) {
-      console.error('Error en ClasifpizarraController.getById:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor'
-      });
+      return next(error);
     }
   },
 
@@ -98,7 +87,7 @@ const ClasifpizarraController = {
    * @route   POST /api/tbClasifpizarra
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Clasifpizarra.create(req.body);
 
@@ -108,21 +97,13 @@ const ClasifpizarraController = {
         message: 'Clasifpizarra creado exitosamente'
       });
     } catch (error) {
-      console.error('Error en ClasifpizarraController.create:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error creando Clasifpizarra',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -131,7 +112,7 @@ const ClasifpizarraController = {
    * @route   PUT /api/tbClasifpizarra/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -140,10 +121,7 @@ const ClasifpizarraController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Clasifpizarra no encontrado'
-        });
+        return next(apiErrors.notFound('Clasifpizarra'));
       }
 
       const updatedData = await Clasifpizarra.findByPk(id);
@@ -154,20 +132,13 @@ const ClasifpizarraController = {
         message: 'Clasifpizarra actualizado exitosamente'
       });
     } catch (error) {
-      console.error('Error en ClasifpizarraController.update:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error actualizando Clasifpizarra'
-      });
+      return next(error);
     }
   },
 
@@ -176,7 +147,7 @@ const ClasifpizarraController = {
    * @route   DELETE /api/tbClasifpizarra/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -185,10 +156,7 @@ const ClasifpizarraController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Clasifpizarra no encontrado'
-        });
+        return next(apiErrors.notFound('Clasifpizarra'));
       }
 
       res.json({
@@ -196,11 +164,7 @@ const ClasifpizarraController = {
         message: 'Clasifpizarra eliminado exitosamente'
       });
     } catch (error) {
-      console.error('Error en ClasifpizarraController.delete:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error eliminando Clasifpizarra'
-      });
+      return next(error);
     }
   }
 };

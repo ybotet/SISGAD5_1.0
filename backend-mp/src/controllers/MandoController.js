@@ -1,5 +1,6 @@
 const { Mando } = require("../models");
 const { Op } = require("sequelize");
+const apiErrors = require("../utils/apiErrors");
 
 const MandoController = {
   /**
@@ -7,7 +8,7 @@ const MandoController = {
    * @route   GET /api/tbMando
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -54,13 +55,7 @@ const MandoController = {
         },
       });
     } catch (error) {
-      console.error("Error en MandoController.getAll:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -69,16 +64,13 @@ const MandoController = {
    * @route   GET /api/tbMando/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Mando.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: "Mando no encontrado",
-        });
+        return next(apiErrors.notFound("Mando"));
       }
 
       res.json({
@@ -86,11 +78,7 @@ const MandoController = {
         data,
       });
     } catch (error) {
-      console.error("Error en MandoController.getById:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-      });
+      return next(error);
     }
   },
 
@@ -99,7 +87,7 @@ const MandoController = {
    * @route   POST /api/tbMando
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Mando.create(req.body);
 
@@ -109,30 +97,17 @@ const MandoController = {
         message: "Mando creado exitosamente",
       });
     } catch (error) {
-      console.error("Error en MandoController.create:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensajes =
+          error.errors?.map((err) => err.message).join(". ") || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
       if (error.name === "SequelizeUniqueConstraintError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: ["El mando ya existe"],
-        });
+        return next(apiErrors.conflict("El mando ya existe"));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error creando Mando",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -141,7 +116,7 @@ const MandoController = {
    * @route   PUT /api/tbMando/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -150,10 +125,7 @@ const MandoController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Mando no encontrado",
-        });
+        return next(apiErrors.notFound("Mando"));
       }
 
       const updatedData = await Mando.findByPk(id);
@@ -164,28 +136,17 @@ const MandoController = {
         message: "Mando actualizado exitosamente",
       });
     } catch (error) {
-      console.error("Error en MandoController.update:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensajes =
+          error.errors?.map((err) => err.message).join(". ") || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
       if (error.name === "SequelizeUniqueConstraintError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: ["El mando ya existe"],
-        });
+        return next(apiErrors.conflict("El mando ya existe"));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error actualizando Mando",
-      });
+      return next(error);
     }
   },
 
@@ -194,7 +155,7 @@ const MandoController = {
    * @route   DELETE /api/tbMando/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -203,10 +164,7 @@ const MandoController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Mando no encontrado",
-        });
+        return next(apiErrors.notFound("Mando"));
       }
 
       res.json({
@@ -214,11 +172,7 @@ const MandoController = {
         message: "Mando eliminado exitosamente",
       });
     } catch (error) {
-      console.error("Error en MandoController.delete:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error eliminando Mando",
-      });
+      return next(error);
     }
   },
 };

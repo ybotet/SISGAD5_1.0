@@ -1,4 +1,4 @@
-import api from './api';
+import api from './apiUsers';
 
 export interface Rol {
     id_rol: number;

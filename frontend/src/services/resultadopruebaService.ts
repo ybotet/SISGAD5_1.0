@@ -1,4 +1,4 @@
-import api from './api';
+import api from './apiMp';
 
 // Interfaces según el modelo de ResultadoPrueba
 export interface ResultadoPruebaItem {

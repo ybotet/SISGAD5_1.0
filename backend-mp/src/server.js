@@ -1,35 +1,47 @@
 const express = require("express");
-// const cors = require("cors"); // ❌ ELIMINAR CORS
 const helmet = require("helmet");
-const morgan = require("morgan");
 const path = require("path");
 const dotenv = require("dotenv");
-// require("dotenv").config();
-dotenv.config({ path: path.join(__dirname, "../../.env.local") });
 
+// Middlewares personalizados
+const requestLogger = require("./middleware/requestLogger");
+const securityMiddleware = require("./config/security");
+const mpLimiter = require("./config/rateLimit");
+const authMiddleware = require("./middleware/auth"); // ⚠️ Asegúrate de importar tu auth
+
+dotenv.config({ path: path.join(__dirname, "../../.env.local") });
 const { testConnection } = require("./config/database");
 
 const app = express();
 
-// ❌ NO USAR CORS AQUÍ - El API Gateway maneja CORS
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-  }),
-);
-
+// 1️⃣ Body parsers (SIEMPRE primero)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan("combined"));
 
-// Test database connection
+// 2️⃣ Seguridad base (Helmet)
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+
+// 3️⃣ Rate limiting (ANTES de las rutas)
+app.use("/api", mpLimiter);
+
+// 4️⃣ Autenticación GLOBAL (para que req.user esté disponible)
+// ⚠️ Si tu auth está solo en rutas específicas, muévelo aquí como middleware global
+app.use("/api", authMiddleware);
+
+// 5️⃣ Logger personalizado (DESPUÉS de auth, para capturar req.user)
+app.use(requestLogger);
+
+// 6️⃣ Security middleware adicional (si aplica)
+app.use(securityMiddleware);
+
+// 7️⃣ Test DB
 testConnection();
 
-// Cargar todas las rutas automáticamente
+// 8️⃣ Rutas (AHORA SÍ, después de todos los middlewares)
 const apiRoutes = require("./routes");
 app.use("/api", apiRoutes);
 
-// Ruta raíz
+// 9️⃣ Rutas públicas (health, root)
 app.get("/", (req, res) => {
   res.json({
     message: "🚀 SISGAD5 Backend-MP funcionando!",
@@ -38,7 +50,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// Health check route
 app.get("/health", (req, res) => {
   res.json({
     status: "OK",
@@ -47,7 +58,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Manejo de errores 404
+// 🔟 Manejo de errores 404
 app.use((req, res) => {
   res.status(404).json({
     error: "Ruta no encontrada",
@@ -56,21 +67,11 @@ app.use((req, res) => {
   });
 });
 
-// Manejo de errores global
-app.use((error, req, res, next) => {
-  console.error("Error:", error);
-  res.status(500).json({
-    error: "Error interno del servidor",
-    message:
-      process.env.NODE_ENV === "development"
-        ? error.message
-        : "Contacte al administrador",
-  });
-});
+// 1️⃣1️⃣ Manejo de errores global (SIEMPRE al final)
+const errorHandler = require("./middleware/errorHandler");
+app.use(errorHandler);
 
-const PORT = process.env.PORT || 5002; // Cambiar a 5002 para evitar conflicto
-
+const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => {
   console.log(`🚀 Backend MP ejecutándose en puerto ${PORT}`);
-  console.log(`📊 Entorno: ${process.env.NODE_ENV || "development"}`);
 });

@@ -1,4 +1,4 @@
-import api from './api';
+import api from './apiMp';
 
 // Interfaces actualizadas según tu API
 export interface ClasificacionItem {

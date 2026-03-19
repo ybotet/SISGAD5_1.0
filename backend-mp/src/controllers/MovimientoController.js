@@ -1,5 +1,6 @@
 const { Movimiento } = require("../models");
 const { Op } = require("sequelize");
+const apiErrors = require("../utils/apiErrors");
 
 const MovimientoController = {
   /**
@@ -7,7 +8,7 @@ const MovimientoController = {
    * @route   GET /api/tbMovimiento
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -65,13 +66,7 @@ const MovimientoController = {
         },
       });
     } catch (error) {
-      console.error("Error en MovimientoController.getAll:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -80,16 +75,13 @@ const MovimientoController = {
    * @route   GET /api/tbMovimiento/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Movimiento.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: "Movimiento no encontrado",
-        });
+        return next(apiErrors.notFound("Movimiento"));
       }
 
       res.json({
@@ -97,11 +89,7 @@ const MovimientoController = {
         data,
       });
     } catch (error) {
-      console.error("Error en MovimientoController.getById:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-      });
+      return next(error);
     }
   },
 
@@ -110,7 +98,7 @@ const MovimientoController = {
    * @route   POST /api/tbMovimiento
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Movimiento.create(req.body);
 
@@ -120,22 +108,13 @@ const MovimientoController = {
         message: "Movimiento creado exitosamente",
       });
     } catch (error) {
-      console.error("Error en MovimientoController.create:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: error.errors.map((err) => err.message).join(". "),
-          details: error.errors.map((err) => err.message),
-        });
+        const mensaje =
+          error.errors?.map((err) => err.message).join(". ") || error.message;
+        return next(apiErrors.badRequest(mensaje));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error creando Movimiento",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -144,7 +123,7 @@ const MovimientoController = {
    * @route   PUT /api/tbMovimiento/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -153,10 +132,7 @@ const MovimientoController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Movimiento no encontrado",
-        });
+        return next(apiErrors.notFound("Movimiento"));
       }
 
       const updatedData = await Movimiento.findByPk(id);
@@ -167,20 +143,13 @@ const MovimientoController = {
         message: "Movimiento actualizado exitosamente",
       });
     } catch (error) {
-      console.error("Error en MovimientoController.update:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensaje =
+          error.errors?.map((err) => err.message).join(". ") || error.message;
+        return next(apiErrors.badRequest(mensaje));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error actualizando Movimiento",
-      });
+      return next(error);
     }
   },
 
@@ -189,7 +158,7 @@ const MovimientoController = {
    * @route   DELETE /api/tbMovimiento/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -198,10 +167,7 @@ const MovimientoController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Movimiento no encontrado",
-        });
+        return next(apiErrors.notFound("Movimiento"));
       }
 
       res.json({
@@ -209,15 +175,11 @@ const MovimientoController = {
         message: "Movimiento eliminado exitosamente",
       });
     } catch (error) {
-      console.error("Error en MovimientoController.delete:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error eliminando Movimiento",
-      });
+      return next(error);
     }
   },
 
-  async getMovimientoByTelefono(req, res) {
+  async getMovimientoByTelefono(req, res, next) {
     try {
       const { telefono } = req.params;
       const data = await Movimiento.findAll({
@@ -230,35 +192,19 @@ const MovimientoController = {
         ],
       });
 
-      if (!data)
-        return res.status(200).json({
-          success: false,
-          error: "Teléfono no encotrado",
-        });
-
-      if (!data.length)
-        return res.status(200).json({
-          success: false,
-          error: "El teléfono no tiene movimientos registrados",
-        });
+      if (!data) return next(apiErrors.notFound("Teléfono"));
+      if (!data.length) return next(apiErrors.notFound("Movimientos de Teléfono"));
 
       res.json({
         success: true,
         data,
       });
     } catch (error) {
-      console.error(
-        "Error en MovimientoController.getMovimientoByTelefono:",
-        error,
-      );
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-      });
+      return next(error);
     }
   },
 
-  async getMovimientoByLinea(req, res) {
+  async getMovimientoByLinea(req, res, next) {
     try {
       const { linea } = req.params;
       const data = await Movimiento.findAll({
@@ -271,31 +217,15 @@ const MovimientoController = {
         ],
       });
 
-      if (!data)
-        return res.status(200).json({
-          success: false,
-          error: "Línea no encontrada",
-        });
-
-      if (!data.length)
-        return res.status(200).json({
-          success: false,
-          error: "La línea no tiene movimientos registrados",
-        });
+      if (!data) return next(apiErrors.notFound("Línea"));
+      if (!data.length) return next(apiErrors.notFound("Movimientos de Línea"));
 
       res.json({
         success: true,
         data,
       });
     } catch (error) {
-      console.error(
-        "Error en MovimientoController.getMovimientoByLinea:",
-        error,
-      );
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-      });
+      return next(error);
     }
   },
 };

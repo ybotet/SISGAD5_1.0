@@ -1,6 +1,7 @@
 const { Trabajo } = require("../models");
 const { addFlowEntry, removeFlowEntry } = require("../utils/quejaFlow");
 const { Op } = require("sequelize");
+const apiErrors = require("../utils/apiErrors");
 
 const TrabajoController = {
   /**
@@ -8,7 +9,7 @@ const TrabajoController = {
    * @route   GET /api/tbTrabajo
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -61,13 +62,7 @@ const TrabajoController = {
         },
       });
     } catch (error) {
-      console.error("Error en TrabajoController.getAll:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -76,16 +71,13 @@ const TrabajoController = {
    * @route   GET /api/tbTrabajo/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Trabajo.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: "Trabajo no encontrado",
-        });
+        return next(apiErrors.notFound("Trabajo"));
       }
 
       res.json({
@@ -93,11 +85,7 @@ const TrabajoController = {
         data,
       });
     } catch (error) {
-      console.error("Error en TrabajoController.getById:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-      });
+      return next(error);
     }
   },
 
@@ -106,7 +94,7 @@ const TrabajoController = {
    * @route   POST /api/tbTrabajo
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Trabajo.create(req.body);
 
@@ -121,22 +109,13 @@ const TrabajoController = {
         message: "Trabajo creado exitosamente",
       });
     } catch (error) {
-      console.error("Error en TrabajoController.create:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensaje =
+          error.errors?.map((err) => err.message).join(". ") || error.message;
+        return next(apiErrors.badRequest(mensaje));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error creando Trabajo",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -145,15 +124,13 @@ const TrabajoController = {
    * @route   PUT /api/tbTrabajo/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
       const existing = await Trabajo.findByPk(id);
       if (!existing) {
-        return res
-          .status(404)
-          .json({ success: false, error: "Trabajo no encontrado" });
+        return next(apiErrors.notFound("Trabajo"));
       }
 
       // valores antiguos para mantener sincronía del flujo
@@ -166,10 +143,7 @@ const TrabajoController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Trabajo no encontrado",
-        });
+        return next(apiErrors.notFound("Trabajo"));
       }
 
       const updatedData = await Trabajo.findByPk(id);
@@ -197,20 +171,13 @@ const TrabajoController = {
         message: "Trabajo actualizado exitosamente",
       });
     } catch (error) {
-      console.error("Error en TrabajoController.update:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensaje =
+          error.errors?.map((err) => err.message).join(". ") || error.message;
+        return next(apiErrors.badRequest(mensaje));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error actualizando Trabajo",
-      });
+      return next(error);
     }
   },
 
@@ -219,16 +186,13 @@ const TrabajoController = {
    * @route   DELETE /api/tbTrabajo/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
       const existing = await Trabajo.findByPk(id);
       if (!existing) {
-        return res.status(404).json({
-          success: false,
-          error: "Trabajo no encontrado",
-        });
+        return next(apiErrors.notFound("Trabajo"));
       }
 
       // limpiar flujo asociado antes de eliminar
@@ -243,11 +207,7 @@ const TrabajoController = {
         message: "Trabajo eliminado exitosamente",
       });
     } catch (error) {
-      console.error("Error en TrabajoController.delete:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error eliminando Trabajo",
-      });
+      return next(error);
     }
   },
 };

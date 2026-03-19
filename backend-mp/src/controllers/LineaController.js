@@ -1,6 +1,7 @@
 const { Linea } = require('../models');
 const { Op } = require('sequelize');
 const { Recorrido, Queja } = require('../models');
+const apiErrors = require('../utils/apiErrors');
 
 const LineaController = {
   /**
@@ -8,7 +9,7 @@ const LineaController = {
    * @route   GET /api/tbLinea
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -69,12 +70,7 @@ const LineaController = {
         }
       });
     } catch (error) {
-      console.error('Error en LineaController.getAll:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -83,7 +79,7 @@ const LineaController = {
    * @route   GET /api/tbLinea/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const linea = await Linea.findByPk(id, {
@@ -96,10 +92,7 @@ const LineaController = {
       });
 
       if (!linea) {
-        return res.status(404).json({
-          success: false,
-          error: 'Linea no encontrado'
-        });
+        return next(apiErrors.notFound('Linea'));
       }
 
       const recorridos = await Recorrido.findAll({
@@ -138,11 +131,7 @@ const LineaController = {
         }
       });
     } catch (error) {
-      console.error('Error en LineaController.getById:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor'
-      });
+      return next(error);
     }
   },
 
@@ -151,7 +140,7 @@ const LineaController = {
    * @route   POST /api/tbLinea
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Linea.create(req.body);
 
@@ -161,24 +150,12 @@ const LineaController = {
         message: 'Linea creado exitosamente'
       });
     } catch (error) {
-      console.error('Error en LineaController.create:', error);
-
       if (error.name === 'SequelizeValidationError') {
         const mensajes = error.errors.map(err => err.message).join('. ');
-        return res.status(400).json({
-          success: false,
-          message: mensajes,
-          error: mensajes,
-          details: error.errors.map(err => err.message)
-        });
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        message: 'Error creando línea',
-        error: 'Error creando Linea',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -187,7 +164,7 @@ const LineaController = {
    * @route   PUT /api/tbLinea/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -196,10 +173,7 @@ const LineaController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Linea no encontrado'
-        });
+        return next(apiErrors.notFound('Linea'));
       }
 
       const updatedData = await Linea.findByPk(id);
@@ -210,23 +184,12 @@ const LineaController = {
         message: 'Linea actualizado exitosamente'
       });
     } catch (error) {
-      console.error('Error en LineaController.update:', error);
-
       if (error.name === 'SequelizeValidationError') {
         const mensajes = error.errors.map(err => err.message).join('. ');
-        return res.status(400).json({
-          success: false,
-          message: mensajes,
-          error: mensajes,
-          details: error.errors.map(err => err.message)
-        });
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        message: 'Error actualizando línea',
-        error: 'Error actualizando Linea'
-      });
+      return next(error);
     }
   },
 
@@ -235,7 +198,7 @@ const LineaController = {
    * @route   DELETE /api/tbLinea/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -244,10 +207,7 @@ const LineaController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Linea no encontrado'
-        });
+        return next(apiErrors.notFound('Linea'));
       }
 
       res.json({
@@ -255,11 +215,7 @@ const LineaController = {
         message: 'Linea eliminado exitosamente'
       });
     } catch (error) {
-      console.error('Error en LineaController.delete:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error eliminando Linea'
-      });
+      return next(error);
     }
   }
 };

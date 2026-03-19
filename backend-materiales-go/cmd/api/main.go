@@ -171,9 +171,9 @@ func main() {
     server := &http.Server{
         Addr:         ":" + port,
         Handler:      handler,
-        ReadTimeout:  15 * time.Second,
-        WriteTimeout: 15 * time.Second,
-        IdleTimeout:  60 * time.Second,
+        ReadTimeout:  10 * time.Second,    // Tiempo reducido para lectura
+        WriteTimeout: 10 * time.Second,    // Tiempo reducido para escritura
+        IdleTimeout:  30 * time.Second,    // Tiempo reducido para inactividad
     }
 
     // ========================================

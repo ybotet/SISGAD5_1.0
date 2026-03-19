@@ -78,7 +78,7 @@ function startNextService() {
   setTimeout(() => {
     currentIndex++;
     startNextService();
-  }, 2000);
+  }, 1000); // Reducido de 2000ms a 1000ms
 }
 
 // Iniciar el primer servicio

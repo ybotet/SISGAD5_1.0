@@ -1,4 +1,4 @@
-import api from "./api";
+import api from "./apiMaterials";
 
 export interface MaterialItem {
   id: number;
@@ -44,21 +44,21 @@ export const materialService = {
     }
 
     const response = await api.get<MaterialesPageResponse>(
-      `/materiales/materiales?${params.toString()}`,
+      `/materiales?${params.toString()}`,
     );
     return response.data;
   },
 
   async getMaterial(id: number): Promise<MaterialItem> {
     const response = await api.get<MaterialItem>(
-      `/materiales/materiales/${id}`,
+      `/materiales/${id}`,
     );
     return response.data;
   },
 
   async createMaterial(data: CreateMaterialRequest): Promise<MaterialItem> {
     const response = await api.post<MaterialItem>(
-      "/materiales/materiales",
+      "/materiales",
       data,
     );
     return response.data;
@@ -69,13 +69,13 @@ export const materialService = {
     data: Partial<CreateMaterialRequest>,
   ): Promise<MaterialItem> {
     const response = await api.put<MaterialItem>(
-      `/materiales/materiales/${id}`,
+      `/materiales/${id}`,
       data,
     );
     return response.data;
   },
 
   async deleteMaterial(id: number): Promise<void> {
-    await api.delete(`/materiales/materiales/${id}`);
+    await api.delete(`/materiales/${id}`);
   },
 };

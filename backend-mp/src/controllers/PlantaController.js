@@ -1,5 +1,6 @@
 const { Planta } = require('../models');
 const { Op } = require('sequelize');
+const apiErrors = require('../utils/apiErrors');
 
 const PlantaController = {
   /**
@@ -7,7 +8,7 @@ const PlantaController = {
    * @route   GET /api/tbPlanta
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -53,12 +54,7 @@ const PlantaController = {
         }
       });
     } catch (error) {
-      console.error('Error en PlantaController.getAll:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -67,16 +63,13 @@ const PlantaController = {
    * @route   GET /api/tbPlanta/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Planta.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: 'Planta no encontrado'
-        });
+        return next(apiErrors.notFound('Planta'));
       }
 
       res.json({
@@ -84,11 +77,7 @@ const PlantaController = {
         data
       });
     } catch (error) {
-      console.error('Error en PlantaController.getById:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor'
-      });
+      return next(error);
     }
   },
 
@@ -97,7 +86,7 @@ const PlantaController = {
    * @route   POST /api/tbPlanta
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Planta.create(req.body);
 
@@ -107,21 +96,13 @@ const PlantaController = {
         message: 'Planta creado exitosamente'
       });
     } catch (error) {
-      console.error('Error en PlantaController.create:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error creando Planta',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -130,7 +111,7 @@ const PlantaController = {
    * @route   PUT /api/tbPlanta/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -139,10 +120,7 @@ const PlantaController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Planta no encontrado'
-        });
+        return next(apiErrors.notFound('Planta'));
       }
 
       const updatedData = await Planta.findByPk(id);
@@ -153,20 +131,13 @@ const PlantaController = {
         message: 'Planta actualizado exitosamente'
       });
     } catch (error) {
-      console.error('Error en PlantaController.update:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error actualizando Planta'
-      });
+      return next(error);
     }
   },
 
@@ -175,7 +146,7 @@ const PlantaController = {
    * @route   DELETE /api/tbPlanta/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -184,10 +155,7 @@ const PlantaController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Planta no encontrado'
-        });
+        return next(apiErrors.notFound('Planta'));
       }
 
       res.json({
@@ -195,11 +163,7 @@ const PlantaController = {
         message: 'Planta eliminado exitosamente'
       });
     } catch (error) {
-      console.error('Error en PlantaController.delete:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error eliminando Planta'
-      });
+      return next(error);
     }
   }
 };

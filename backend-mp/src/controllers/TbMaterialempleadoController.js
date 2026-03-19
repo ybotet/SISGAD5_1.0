@@ -1,5 +1,6 @@
 const { TbMaterialempleado } = require('../models');
 const { Op } = require('sequelize');
+const apiErrors = require('../utils/apiErrors');
 
 const TbMaterialempleadoController = {
   /**
@@ -7,7 +8,7 @@ const TbMaterialempleadoController = {
    * @route   GET /api/tbMaterialempleado
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -58,12 +59,7 @@ const TbMaterialempleadoController = {
         }
       });
     } catch (error) {
-      console.error('Error en TbMaterialempleadoController.getAll:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -72,16 +68,13 @@ const TbMaterialempleadoController = {
    * @route   GET /api/tbMaterialempleado/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await TbMaterialempleado.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: 'TbMaterialempleado no encontrado'
-        });
+        return next(apiErrors.notFound('TbMaterialempleado'));
       }
 
       res.json({
@@ -89,11 +82,7 @@ const TbMaterialempleadoController = {
         data
       });
     } catch (error) {
-      console.error('Error en TbMaterialempleadoController.getById:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor'
-      });
+      return next(error);
     }
   },
 
@@ -102,7 +91,7 @@ const TbMaterialempleadoController = {
    * @route   POST /api/tbMaterialempleado
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await TbMaterialempleado.create(req.body);
 
@@ -112,21 +101,13 @@ const TbMaterialempleadoController = {
         message: 'TbMaterialempleado creado exitosamente'
       });
     } catch (error) {
-      console.error('Error en TbMaterialempleadoController.create:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error creando TbMaterialempleado',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -135,7 +116,7 @@ const TbMaterialempleadoController = {
    * @route   PUT /api/tbMaterialempleado/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -144,10 +125,7 @@ const TbMaterialempleadoController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'TbMaterialempleado no encontrado'
-        });
+        return next(apiErrors.notFound('TbMaterialempleado'));
       }
 
       const updatedData = await TbMaterialempleado.findByPk(id);
@@ -158,20 +136,13 @@ const TbMaterialempleadoController = {
         message: 'TbMaterialempleado actualizado exitosamente'
       });
     } catch (error) {
-      console.error('Error en TbMaterialempleadoController.update:', error);
-
       if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+        const mensajes =
+          error.errors?.map(err => err.message).join('. ') || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error actualizando TbMaterialempleado'
-      });
+      return next(error);
     }
   },
 
@@ -180,7 +151,7 @@ const TbMaterialempleadoController = {
    * @route   DELETE /api/tbMaterialempleado/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -189,10 +160,7 @@ const TbMaterialempleadoController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'TbMaterialempleado no encontrado'
-        });
+        return next(apiErrors.notFound('TbMaterialempleado'));
       }
 
       res.json({
@@ -200,11 +168,7 @@ const TbMaterialempleadoController = {
         message: 'TbMaterialempleado eliminado exitosamente'
       });
     } catch (error) {
-      console.error('Error en TbMaterialempleadoController.delete:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error eliminando TbMaterialempleado'
-      });
+      return next(error);
     }
   }
 };

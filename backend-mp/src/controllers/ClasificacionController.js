@@ -1,5 +1,6 @@
 const { Clasificacion } = require("../models");
 const { Op } = require("sequelize");
+const apiErrors = require("../utils/apiErrors");
 
 const ClasificacionController = {
   /**
@@ -7,7 +8,7 @@ const ClasificacionController = {
    * @route   GET /api/tbClasificacion
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
@@ -51,13 +52,7 @@ const ClasificacionController = {
         },
       });
     } catch (error) {
-      console.error("Error en ClasificacionController.getAll:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -66,16 +61,13 @@ const ClasificacionController = {
    * @route   GET /api/tbClasificacion/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
       const data = await Clasificacion.findByPk(id);
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: "Clasificacion no encontrado",
-        });
+        return next(apiErrors.notFound("Clasificacion"));
       }
 
       res.json({
@@ -83,11 +75,7 @@ const ClasificacionController = {
         data,
       });
     } catch (error) {
-      console.error("Error en ClasificacionController.getById:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error interno del servidor",
-      });
+      return next(error);
     }
   },
 
@@ -96,7 +84,7 @@ const ClasificacionController = {
    * @route   POST /api/tbClasificacion
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Clasificacion.create(req.body);
 
@@ -106,30 +94,17 @@ const ClasificacionController = {
         message: "Clasificacion creado exitosamente",
       });
     } catch (error) {
-      console.error("Error en ClasificacionController.create:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensajes =
+          error.errors?.map((err) => err.message).join(". ") || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
       if (error.name === "SequelizeUniqueConstraintError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: ["La clasificación ya existe"],
-        });
+        return next(apiErrors.conflict("La clasificación ya existe"));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error creando Clasificacion",
-        message:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      return next(error);
     }
   },
 
@@ -138,7 +113,7 @@ const ClasificacionController = {
    * @route   PUT /api/tbClasificacion/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -147,10 +122,7 @@ const ClasificacionController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Clasificacion no encontrada",
-        });
+        return next(apiErrors.notFound("Clasificacion"));
       }
 
       const updatedData = await Clasificacion.findByPk(id);
@@ -161,28 +133,17 @@ const ClasificacionController = {
         message: "Clasificacion actualizado exitosamente",
       });
     } catch (error) {
-      console.error("Error en ClasificacionController.update:", error);
-
       if (error.name === "SequelizeValidationError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: error.errors.map((err) => err.message),
-        });
+        const mensajes =
+          error.errors?.map((err) => err.message).join(". ") || error.message;
+        return next(apiErrors.badRequest(mensajes));
       }
 
       if (error.name === "SequelizeUniqueConstraintError") {
-        return res.status(400).json({
-          success: false,
-          error: "Error de validación",
-          details: ["La clasificación ya existe"],
-        });
+        return next(apiErrors.conflict("La clasificación ya existe"));
       }
 
-      res.status(400).json({
-        success: false,
-        error: "Error actualizando Clasificacion",
-      });
+      return next(error);
     }
   },
 
@@ -191,7 +152,7 @@ const ClasificacionController = {
    * @route   DELETE /api/tbClasificacion/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
@@ -200,10 +161,7 @@ const ClasificacionController = {
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: "Clasificacion no encontrado",
-        });
+        return next(apiErrors.notFound("Clasificacion"));
       }
 
       res.json({
@@ -211,11 +169,7 @@ const ClasificacionController = {
         message: "Clasificacion eliminado exitosamente",
       });
     } catch (error) {
-      console.error("Error en ClasificacionController.delete:", error);
-      res.status(500).json({
-        success: false,
-        error: "Error eliminando Clasificacion",
-      });
+      return next(error);
     }
   },
 };

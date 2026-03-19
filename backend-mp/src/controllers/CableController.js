@@ -1,5 +1,6 @@
-const { Cable } = require('../models');
-const { Op } = require('sequelize');
+const apiErrors = require("../utils/apiErrors");
+const { Cable } = require("../models");
+const { Op } = require("sequelize");
 
 const CableController = {
   /**
@@ -7,14 +8,14 @@ const CableController = {
    * @route   GET /api/tbCable
    * @access  Public
    */
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const {
         page = 1,
         limit = 10,
-        sortBy = 'createdAt',
-        sortOrder = 'DESC',
-        search = '',
+        sortBy = "createdAt",
+        sortOrder = "DESC",
+        search = "",
         ...filters
       } = req.query;
 
@@ -23,13 +24,11 @@ const CableController = {
       // Construir where clause para búsqueda
       const whereClause = {};
       if (search) {
-        whereClause[Op.or] = [
-          { numero: { [Op.iLike]: `%${search}%` } }
-        ];
+        whereClause[Op.or] = [{ numero: { [Op.iLike]: `%${search}%` } }];
       }
 
       // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
+      Object.keys(filters).forEach((key) => {
         if (filters[key]) {
           whereClause[key] = filters[key];
         }
@@ -37,13 +36,15 @@ const CableController = {
 
       const data = await Cable.findAndCountAll({
         where: whereClause,
-        include: [{
-          association: 'tb_propietario',
-          attributes: ['id_propietario', 'nombre']
-        }],
+        include: [
+          {
+            association: "tb_propietario",
+            attributes: ["id_propietario", "nombre"],
+          },
+        ],
         limit: parseInt(limit),
         offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]]
+        order: [[sortBy, sortOrder.toUpperCase()]],
       });
 
       res.json({
@@ -53,16 +54,11 @@ const CableController = {
           page: parseInt(page),
           limit: parseInt(limit),
           total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
+          pages: Math.ceil(data.count / limit),
+        },
       });
     } catch (error) {
-      console.error('Error en CableController.getAll:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      return next(error);
     }
   },
 
@@ -71,33 +67,28 @@ const CableController = {
    * @route   GET /api/tbCable/:id
    * @access  Public
    */
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
-      const data = await Sistema.findByPk(id, {
-        include: [{
-          association: 'tb_propietario',
-          attributes: ['id_propietario', 'nombre']
-        }]
+      const data = await Cable.findByPk(id, {
+        include: [
+          {
+            association: "tb_propietario",
+            attributes: ["id_propietario", "nombre"],
+          },
+        ],
       });
 
       if (!data) {
-        return res.status(404).json({
-          success: false,
-          error: 'Cable no encontrado'
-        });
+        return next(apiErrors.notFound("Cable"));
       }
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
-      console.error('Error en CableController.getById:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor'
-      });
+      next(error);
     }
   },
 
@@ -106,31 +97,24 @@ const CableController = {
    * @route   POST /api/tbCable
    * @access  Public
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const data = await Cable.create(req.body);
 
       res.status(201).json({
         success: true,
         data,
-        message: 'Cable creado exitosamente'
+        message: "Cable creado exitosamente",
       });
     } catch (error) {
-      console.error('Error en CableController.create:', error);
-
-      if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+      if (error.name === "SequelizeValidationError") {
+        return next(apiErrors.badRequest(error.errors[0].message));
+      }
+      if (error.name === "SequelizeUniqueConstraintError") {
+        return next(apiErrors.conflict("Registro duplicado"));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error creando Cable',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      next(error);
     }
   },
 
@@ -139,48 +123,41 @@ const CableController = {
    * @route   PUT /api/tbCable/:id
    * @access  Public
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
 
       const [affectedRows] = await Cable.update(req.body, {
-        where: { id_cable: id }
+        where: { id_cable: id },
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Cable no encontrado'
-        });
+        return next(apiErrors.notFound("Cable"));
       }
 
       const updatedData = await Cable.findByPk(id, {
-        include: [{
-          association: 'tb_propietario',
-          attributes: ['id_propietario', 'nombre']
-        }]
+        include: [
+          {
+            association: "tb_propietario",
+            attributes: ["id_propietario", "nombre"],
+          },
+        ],
       });
 
       res.json({
         success: true,
         data: updatedData,
-        message: 'Cable actualizado exitosamente'
+        message: "Cable actualizado exitosamente",
       });
     } catch (error) {
-      console.error('Error en CableController.update:', error);
-
-      if (error.name === 'SequelizeValidationError') {
-        return res.status(400).json({
-          success: false,
-          error: 'Error de validación',
-          details: error.errors.map(err => err.message)
-        });
+      if (error.name === "SequelizeValidationError") {
+        return next(apiErrors.badRequest(error.errors[0].message));
+      }
+      if (error.name === "SequelizeUniqueConstraintError") {
+        return next(apiErrors.conflict("Registro duplicado"));
       }
 
-      res.status(400).json({
-        success: false,
-        error: 'Error actualizando Cable'
-      });
+      next(error);
     }
   },
 
@@ -189,33 +166,26 @@ const CableController = {
    * @route   DELETE /api/tbCable/:id
    * @access  Public
    */
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
 
       const affectedRows = await Cable.destroy({
-        where: { id_cable: id }
+        where: { id_cable: id },
       });
 
       if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Cable no encontrado'
-        });
+        return next(apiErrors.notFound("Cable"));
       }
 
       res.json({
         success: true,
-        message: 'Cable eliminado exitosamente'
+        message: "Cable eliminado exitosamente",
       });
     } catch (error) {
-      console.error('Error en CableController.delete:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Error eliminando Cable'
-      });
+      next(error);
     }
-  }
+  },
 };
 
 module.exports = CableController;
