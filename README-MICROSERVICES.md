@@ -73,9 +73,9 @@ Para desarrollo local sin Docker:
 
 ## API Endpoints
 
-### Autenticación (Microservicio Usuarios)
+### Microservicio Usuarios
 
-### Módulo Autenticación (Users Service)
+#### Módulo Autenticación (Users Service)
 
 | Método | Ruta                 | Descripción                       | Auth             |
 | ------ | -------------------- | --------------------------------- | ---------------- |
@@ -83,8 +83,6 @@ Para desarrollo local sin Docker:
 | `POST` | `/api/auth/register` | Registrar nuevo usuario           | ❌ Público       |
 | `GET`  | `/api/auth/perfil`   | Obtener perfil del usuario actual | ✅ JWT           |
 | `POST` | `/api/auth/refresh`  | Renovar token JWT expirado        | ✅ Refresh Token |
-
-### Usuarios (Microservicio Usuarios)
 
 - `GET /api/user` - Listar usuarios
 - `POST /api/user` - Crear usuario
@@ -107,9 +105,18 @@ Para desarrollo local sin Docker:
 - `GET /api/linea` - Operaciones con líneas
 - etc.
 
+### Modulos Materiales
+
+#### Módulo Materiales (Materials Service - Go)
+
+| Método | Ruta                         | Descripción                   | Auth   |
+| ------ | ---------------------------- | ----------------------------- | ------ |
+| `GET`  | `/api/materiales/inventario` | Listar materiales en stock    | ✅ JWT |
+| `POST` | `/api/materiales/entrega`    | Registrar entrega de material | ✅ JWT |
+
 ## Notas Importantes
 
-- La base de datos es compartida entre los microservicios.
+- Cada microservicio tiene su propia base de datos
 - El JWT se verifica en cada microservicio.
 - El API Gateway maneja el enrutamiento basado en la URL.
 - Para producción, considera usar un registro de servicios como Consul o Eureka.
