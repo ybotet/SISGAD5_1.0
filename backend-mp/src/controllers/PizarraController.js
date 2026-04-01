@@ -1,66 +1,75 @@
-const { Pizarra } = require('../models');
-const { Op } = require('sequelize');
-const apiErrors = require('../utils/apiErrors');
+const { Pizarra } = require("../models");
+const { Op } = require("sequelize");
+const apiErrors = require("../utils/apiErrors");
+const { parseListParams } = require("../utils/parseListParams");
+const {
+  createPizarraSchema,
+  updatePizarraSchema,
+  listPizarraSchema,
+} = require("../validations/pizarra.schemas");
+const validate = require("../middleware/validate");
 
 const PizarraController = {
   /**
-   * @desc    Obtener todos los registros
+   * @desc    Obtener todos los registros (CON validación Zod en query)
    * @route   GET /api/tbPizarra
    * @access  Public
    */
-  async getAll(req, res, next) {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        sortBy = 'updatedAt',
-        sortOrder = 'DESC',
-        search = '',
-        ...filters
-      } = req.query;
+  getAll: [
+    validate(listPizarraSchema, "query"),
+    async (req, res, next) => {
+      try {
+        const {
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+          offset,
+          search,
+          id_tipopizarra,
+        } = parseListParams(req.query, {
+          allowedSortFields: ["nombre", "createdAt", "updatedAt"],
+          defaultSort: "createdAt",
+          defaultOrder: "DESC",
+          maxLimit: 100,
+        });
 
-      const offset = (page - 1) * limit;
-
-      // Construir where clause para búsqueda
-      const whereClause = {};
-      if (search) {
-        whereClause[Op.or] = [
-          { nombre: { [Op.iLike]: `%${search}%` } }
-        ];
-      }
-
-      // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
-        if (filters[key]) {
-          whereClause[key] = filters[key];
+        // Construir where clause para búsqueda
+        const whereClause = {};
+        if (search) {
+          whereClause[Op.or] = [{ nombre: { [Op.iLike]: `%${search}%` } }];
         }
-      });
+        if (id_tipopizarra) whereClause.id_tipopizarra = id_tipopizarra;
 
-      const data = await Pizarra.findAndCountAll({
-        where: whereClause,
-        include: [{
-          association: 'tb_tipopizarra',
-          attributes: ['id_tipopizarra', 'tipo']
-        }],
-        limit: parseInt(limit),
-        offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]]
-      });
-
-      res.json({
-        success: true,
-        data: data.rows,
-        pagination: {
-          page: parseInt(page),
+        const data = await Pizarra.findAndCountAll({
+          where: whereClause,
+          include: [
+            {
+              association: "tb_tipopizarra",
+              attributes: ["id_tipopizarra", "tipo"],
+            },
+          ],
           limit: parseInt(limit),
-          total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
-      });
-    } catch (error) {
-      return next(error);
-    }
-  },
+          offset: parseInt(offset),
+          order: [[sortBy, sortOrder]],
+          distinct: true,
+        });
+
+        res.json({
+          success: true,
+          data: data.rows,
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: data.count,
+            pages: Math.ceil(data.count / limit),
+          },
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+  ],
 
   /**
    * @desc    Obtener un registro por ID
@@ -73,12 +82,12 @@ const PizarraController = {
       const data = await Pizarra.findByPk(id);
 
       if (!data) {
-        return next(apiErrors.notFound('Pizarra'));
+        return next(apiErrors.notFound("Pizarra"));
       }
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
       return next(error);
@@ -86,62 +95,68 @@ const PizarraController = {
   },
 
   /**
-   * @desc    Crear nuevo registro
+   * @desc    Crear nuevo registro (CON validación Zod en body)
    * @route   POST /api/tbPizarra
    * @access  Public
    */
-  async create(req, res, next) {
-    try {
-      const data = await Pizarra.create(req.body);
+  create: [
+    validate(createPizarraSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const data = await Pizarra.create(req.body);
 
-      res.status(201).json({
-        success: true,
-        data,
-        message: 'Pizarra creado exitosamente'
-      });
-    } catch (error) {
-      if (error.name === 'SequelizeValidationError') {
-        const mensajes = error.errors.map(err => err.message).join('. ');
-        return next(apiErrors.badRequest(mensajes));
+        res.status(201).json({
+          success: true,
+          data,
+          message: "Pizarra creado exitosamente",
+        });
+      } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+          const mensajes = error.errors.map((err) => err.message).join(". ");
+          return next(apiErrors.badRequest(mensajes));
+        }
+
+        return next(error);
       }
-
-      return next(error);
-    }
-  },
+    },
+  ],
 
   /**
-   * @desc    Actualizar registro
+   * @desc    Actualizar registro (CON validación Zod parcial)
    * @route   PUT /api/tbPizarra/:id
    * @access  Public
    */
-  async update(req, res, next) {
-    try {
-      const { id } = req.params;
+  update: [
+    validate(updatePizarraSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const { id } = req.params;
 
-      const [affectedRows] = await Pizarra.update(req.body, {
-        where: { id_pizarra: id }
-      });
+        const [affectedRows] = await Pizarra.update(req.body, {
+          where: { id_pizarra: id },
+        });
 
-      if (affectedRows === 0) {
-        return next(apiErrors.notFound('Pizarra'));
+        if (affectedRows === 0) {
+          return next(apiErrors.notFound("Pizarra"));
+        }
+
+        const updatedData = await Pizarra.findByPk(id);
+
+        res.json({
+          success: true,
+          data: updatedData,
+          message: "Pizarra actualizado exitosamente",
+        });
+      } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+          const mensajes = error.errors.map((err) => err.message).join(". ");
+          return next(apiErrors.badRequest(mensajes));
+        }
+
+        return next(error);
       }
-
-      const updatedData = await Pizarra.findByPk(id);
-
-      res.json({
-        success: true,
-        data: updatedData,
-        message: 'Pizarra actualizado exitosamente'
-      });
-    } catch (error) {
-      if (error.name === 'SequelizeValidationError') {
-        const mensajes = error.errors.map(err => err.message).join('. ');
-        return next(apiErrors.badRequest(mensajes));
-      }
-
-      return next(error);
-    }
-  },
+    },
+  ],
 
   /**
    * @desc    Eliminar registro
@@ -153,21 +168,21 @@ const PizarraController = {
       const { id } = req.params;
 
       const affectedRows = await Pizarra.destroy({
-        where: { id_pizarra: id }
+        where: { id_pizarra: id },
       });
 
       if (affectedRows === 0) {
-        return next(apiErrors.notFound('Pizarra'));
+        return next(apiErrors.notFound("Pizarra"));
       }
 
       res.json({
         success: true,
-        message: 'Pizarra eliminado exitosamente'
+        message: "Pizarra eliminado exitosamente",
       });
     } catch (error) {
       return next(error);
     }
-  }
+  },
 };
 
 module.exports = PizarraController;

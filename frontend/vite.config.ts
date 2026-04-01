@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
 
     server: {
       host: true, // Esto está bien
-      port: 5173,
+      port: 5004,
       strictPort: true, // Cambia a true para forzar el puerto exacto
       watch: {
         usePolling: true, // Necesario para hot reload en Docker

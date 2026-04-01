@@ -1,66 +1,75 @@
 const apiErrors = require("../utils/apiErrors");
 const { Cable } = require("../models");
 const { Op } = require("sequelize");
+const { parseListParams } = require("../utils/parseListParams");
+const {
+  createCableSchema,
+  updateCableSchema,
+  listCableSchema,
+} = require("../validations/cable.schemas");
+const validate = require("../middleware/validate");
 
 const CableController = {
   /**
-   * @desc    Obtener todos los registros
+   * @desc    Obtener todos los registros (CON validación Zod en query)
    * @route   GET /api/tbCable
    * @access  Public
    */
-  async getAll(req, res, next) {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        sortBy = "createdAt",
-        sortOrder = "DESC",
-        search = "",
-        ...filters
-      } = req.query;
+  getAll: [
+    validate(listCableSchema, "query"),
+    async (req, res, next) => {
+      try {
+        const {
+          page,
+          limit,
+          offset,
+          sortBy,
+          sortOrder,
+          search,
+          id_propietario,
+        } = parseListParams(req.query, {
+          allowedSortFields: ["mando", "createdAt", "updatedAt"],
+          defaultSort: "createdAt",
+          defaultOrder: "DESC",
+          maxLimit: 100, // Ajustar según necesites
+        });
 
-      const offset = (page - 1) * limit;
-
-      // Construir where clause para búsqueda
-      const whereClause = {};
-      if (search) {
-        whereClause[Op.or] = [{ numero: { [Op.iLike]: `%${search}%` } }];
-      }
-
-      // Agregar otros filtros
-      Object.keys(filters).forEach((key) => {
-        if (filters[key]) {
-          whereClause[key] = filters[key];
+        // Construir where clause para búsqueda
+        const whereClause = {};
+        if (search) {
+          whereClause[Op.or] = [{ numero: { [Op.iLike]: `%${search}%` } }];
         }
-      });
+        if (id_propietario) whereClause.id_propietario = id_propietario;
 
-      const data = await Cable.findAndCountAll({
-        where: whereClause,
-        include: [
-          {
-            association: "tb_propietario",
-            attributes: ["id_propietario", "nombre"],
+        const data = await Cable.findAndCountAll({
+          where: whereClause,
+          include: [
+            {
+              association: "tb_propietario",
+              attributes: ["id_propietario", "nombre"],
+            },
+          ],
+          limit: limit,
+          offset: offset,
+          order: [[sortBy, sortOrder]],
+          distinct: true,
+        });
+
+        res.json({
+          success: true,
+          data: data.rows,
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: data.count,
+            pages: Math.ceil(data.count / limit),
           },
-        ],
-        limit: parseInt(limit),
-        offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]],
-      });
-
-      res.json({
-        success: true,
-        data: data.rows,
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: data.count,
-          pages: Math.ceil(data.count / limit),
-        },
-      });
-    } catch (error) {
-      return next(error);
-    }
-  },
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+  ],
 
   /**
    * @desc    Obtener un registro por ID
@@ -93,73 +102,79 @@ const CableController = {
   },
 
   /**
-   * @desc    Crear nuevo registro
+   * @desc    Crear nuevo registro (CON validación Zod en body)
    * @route   POST /api/tbCable
    * @access  Public
    */
-  async create(req, res, next) {
-    try {
-      const data = await Cable.create(req.body);
+  create: [
+    validate(createCableSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const data = await Cable.create(req.body);
 
-      res.status(201).json({
-        success: true,
-        data,
-        message: "Cable creado exitosamente",
-      });
-    } catch (error) {
-      if (error.name === "SequelizeValidationError") {
-        return next(apiErrors.badRequest(error.errors[0].message));
-      }
-      if (error.name === "SequelizeUniqueConstraintError") {
-        return next(apiErrors.conflict("Registro duplicado"));
-      }
+        res.status(201).json({
+          success: true,
+          data,
+          message: "Cable creado exitosamente",
+        });
+      } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+          return next(apiErrors.badRequest(error.errors[0].message));
+        }
+        if (error.name === "SequelizeUniqueConstraintError") {
+          return next(apiErrors.conflict("Registro duplicado"));
+        }
 
-      next(error);
-    }
-  },
+        next(error);
+      }
+    },
+  ],
 
   /**
-   * @desc    Actualizar registro
+   * @desc    Actualizar registro (CON validación Zod parcial)
    * @route   PUT /api/tbCable/:id
    * @access  Public
    */
-  async update(req, res, next) {
-    try {
-      const { id } = req.params;
+  update: [
+    validate(updateCableSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const { id } = req.params;
 
-      const [affectedRows] = await Cable.update(req.body, {
-        where: { id_cable: id },
-      });
+        const [affectedRows] = await Cable.update(req.body, {
+          where: { id_cable: id },
+        });
 
-      if (affectedRows === 0) {
-        return next(apiErrors.notFound("Cable"));
+        if (affectedRows === 0) {
+          return next(apiErrors.notFound("Cable"));
+        }
+
+        const updatedData = await Cable.findByPk(id, {
+          include: [
+            {
+              association: "tb_propietario",
+              attributes: ["id_propietario", "nombre"],
+            },
+          ],
+        });
+
+        res.json({
+          success: true,
+          data: updatedData,
+          message: "Cable actualizado exitosamente",
+        });
+      } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+          return next(apiErrors.badRequest(error.errors[0].message));
+        }
+        if (error.name === "SequelizeUniqueConstraintError") {
+          return next(apiErrors.conflict("Registro duplicado"));
+        }
+
+        next(error);
       }
-
-      const updatedData = await Cable.findByPk(id, {
-        include: [
-          {
-            association: "tb_propietario",
-            attributes: ["id_propietario", "nombre"],
-          },
-        ],
-      });
-
-      res.json({
-        success: true,
-        data: updatedData,
-        message: "Cable actualizado exitosamente",
-      });
-    } catch (error) {
-      if (error.name === "SequelizeValidationError") {
-        return next(apiErrors.badRequest(error.errors[0].message));
-      }
-      if (error.name === "SequelizeUniqueConstraintError") {
-        return next(apiErrors.conflict("Registro duplicado"));
-      }
-
-      next(error);
-    }
-  },
+    },
+  ],
 
   /**
    * @desc    Eliminar registro

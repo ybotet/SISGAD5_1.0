@@ -1,66 +1,69 @@
-const { Tipopizarra } = require('../models');
-const { Op } = require('sequelize');
-const apiErrors = require('../utils/apiErrors');
+const { Tipopizarra } = require("../models");
+const { Op } = require("sequelize");
+const apiErrors = require("../utils/apiErrors");
+const {
+  createTipopizarraSchema,
+  updateTipopizarraSchema,
+  listTipopizarraSchema,
+} = require("../validations/tipopizarra.schemas");
+const validate = require("../middleware/validate");
+const { parseListParams } = require("../utils/parseListParams");
 
 const TipopizarraController = {
   /**
-   * @desc    Obtener todos los registros
+   * @desc    Obtener todos los registros (CON validación Zod en query)
    * @route   GET /api/tbTipopizarra
    * @access  Public
    */
-  async getAll(req, res, next) {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        sortBy = 'createdAt',
-        sortOrder = 'DESC',
-        search = '',
-        ...filters
-      } = req.query;
+  getAll: [
+    validate(listTipopizarraSchema, "query"),
+    async (req, res, next) => {
+      try {
+        // 🔹 Parsear parámetros con maxLimit personalizado
+        const { page, limit, offset, sortBy, sortOrder, search } =
+          parseListParams(req.query, {
+            allowedSortFields: ["tipo", "createdAt", "updatedAt"],
+            defaultSort: "tipo",
+            defaultOrder: "ASC",
+            maxLimit: 500, // ← Permitir hasta 500 para este endpoint
+          });
 
-      const offset = (page - 1) * limit;
+        // 🔹 Where clause
+        const whereClause = {};
+        if (search) {
+          whereClause[Op.or] = [{ tipo: { [Op.iLike]: `%${search}%` } }];
+        }
 
-      // Construir where clause para búsqueda
-      const whereClause = {};
-      if (search) {
-        whereClause[Op.or] = [
-          { tipo: { [Op.iLike]: `%${search}%` } }
-        ];
+        // 🔹 Consulta (valores ya validados)
+        const data = await Tipopizarra.findAndCountAll({
+          where: whereClause,
+          include: [
+            {
+              association: "tb_clasifpizarra",
+              attributes: ["id_clasifpizarra", "clasificacion"],
+            },
+          ],
+          limit: limit, // ← Ya es número válido
+          offset: offset, // ← Ya es número válido
+          order: [[sortBy, sortOrder]],
+          distinct: true,
+        });
+
+        res.json({
+          success: true,
+          data: data.rows,
+          pagination: {
+            page,
+            limit,
+            total: data.count,
+            pages: Math.ceil(data.count / limit),
+          },
+        });
+      } catch (error) {
+        return next(error);
       }
-
-      // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
-        if (filters[key]) {
-          whereClause[key] = filters[key];
-        }
-      });
-
-      const data = await Tipopizarra.findAndCountAll({
-        where: whereClause,
-        include: [{
-          association: 'tb_clasifpizarra',
-          attributes: ['id_clasifpizarra', 'clasificacion']
-        }],
-        limit: parseInt(limit),
-        offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]]
-      });
-
-      res.json({
-        success: true,
-        data: data.rows,
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
-      });
-    } catch (error) {
-      return next(error);
-    }
-  },
+    },
+  ],
 
   /**
    * @desc    Obtener un registro por ID
@@ -71,19 +74,21 @@ const TipopizarraController = {
     try {
       const { id } = req.params;
       const data = await Tipopizarra.findByPk(id, {
-        include: [{
-          association: 'tb_clasifpizarra',
-          attributes: ['id_clasifpizarra', 'clasificacion']
-        }]
+        include: [
+          {
+            association: "tb_clasifpizarra",
+            attributes: ["id_clasifpizarra", "clasificacion"],
+          },
+        ],
       });
 
       if (!data) {
-        return next(apiErrors.notFound('Tipopizarra'));
+        return next(apiErrors.notFound("Tipopizarra"));
       }
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
       return next(error);
@@ -91,69 +96,77 @@ const TipopizarraController = {
   },
 
   /**
-   * @desc    Crear nuevo registro
+   * @desc    Crear nuevo registro (CON validación Zod en body)
    * @route   POST /api/tbTipopizarra
    * @access  Public
    */
-  async create(req, res, next) {
-    try {
-      const data = await Tipopizarra.create(req.body);
+  create: [
+    validate(createTipopizarraSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const data = await Tipopizarra.create(req.body);
 
-      res.status(201).json({
-        success: true,
-        data,
-        message: 'Tipopizarra creado exitosamente'
-      });
-    } catch (error) {
-      if (error.name === 'SequelizeValidationError') {
-        const mensajes =
-          error.errors?.map(err => err.message).join('. ') || error.message;
-        return next(apiErrors.badRequest(mensajes));
+        res.status(201).json({
+          success: true,
+          data,
+          message: "Tipopizarra creado exitosamente",
+        });
+      } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+          const mensajes =
+            error.errors?.map((err) => err.message).join(". ") || error.message;
+          return next(apiErrors.badRequest(mensajes));
+        }
+
+        return next(error);
       }
-
-      return next(error);
-    }
-  },
+    },
+  ],
 
   /**
-   * @desc    Actualizar registro
+   * @desc    Actualizar registro (CON validación Zod parcial)
    * @route   PUT /api/tbTipopizarra/:id
    * @access  Public
    */
-  async update(req, res, next) {
-    try {
-      const { id } = req.params;
+  update: [
+    validate(updateTipopizarraSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const { id } = req.params;
 
-      const [affectedRows] = await Tipopizarra.update(req.body, {
-        where: { id_tipopizarra: id }
-      });
+        const [affectedRows] = await Tipopizarra.update(req.body, {
+          where: { id_tipopizarra: id },
+        });
 
-      if (affectedRows === 0) {
-        return next(apiErrors.notFound('Tipopizarra'));
+        if (affectedRows === 0) {
+          return next(apiErrors.notFound("Tipopizarra"));
+        }
+
+        const updatedData = await Tipopizarra.findByPk(id, {
+          include: [
+            {
+              association: "tb_clasifpizarra",
+              attributes: ["id_clasifpizarra", "clasificacion"],
+            },
+          ],
+        });
+
+        res.json({
+          success: true,
+          data: updatedData,
+          message: "Tipopizarra actualizado exitosamente",
+        });
+      } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+          const mensajes =
+            error.errors?.map((err) => err.message).join(". ") || error.message;
+          return next(apiErrors.badRequest(mensajes));
+        }
+
+        return next(error);
       }
-
-      const updatedData = await Tipopizarra.findByPk(id, {
-        include: [{
-          association: 'tb_clasifpizarra',
-          attributes: ['id_clasifpizarra', 'clasificacion']
-        }]
-      });
-
-      res.json({
-        success: true,
-        data: updatedData,
-        message: 'Tipopizarra actualizado exitosamente'
-      });
-    } catch (error) {
-      if (error.name === 'SequelizeValidationError') {
-        const mensajes =
-          error.errors?.map(err => err.message).join('. ') || error.message;
-        return next(apiErrors.badRequest(mensajes));
-      }
-
-      return next(error);
-    }
-  },
+    },
+  ],
 
   /**
    * @desc    Eliminar registro
@@ -165,21 +178,21 @@ const TipopizarraController = {
       const { id } = req.params;
 
       const affectedRows = await Tipopizarra.destroy({
-        where: { id_tipopizarra: id }
+        where: { id_tipopizarra: id },
       });
 
       if (affectedRows === 0) {
-        return next(apiErrors.notFound('Tipopizarra'));
+        return next(apiErrors.notFound("Tipopizarra"));
       }
 
       res.json({
         success: true,
-        message: 'Tipopizarra eliminado exitosamente'
+        message: "Tipopizarra eliminado exitosamente",
       });
     } catch (error) {
       return next(error);
     }
-  }
+  },
 };
 
 module.exports = TipopizarraController;

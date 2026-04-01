@@ -18,9 +18,68 @@ const apiErrors = require("../utils/apiErrors");
 
 const QuejaController = {
   /**
-   * @desc    Obtener todos los registros (CON validación Zod en query)
-   * @route   GET /api/mp/queja
-   * @access  Private (auth required)
+   * @swagger
+   * tags:
+   *   name: Quejas
+   *   description: Gestión de quejas de telecomunicaciones
+   */
+
+  /**
+   * @swagger
+   * /queja:
+   *   get:
+   *     summary: Listar quejas con paginación
+   *     tags: [Quejas]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema: { type: integer, default: 1, minimum: 1 }
+   *         description: Número de página
+   *       - in: query
+   *         name: limit
+   *         schema: { type: integer, default: 10, minimum: 1, maximum: 100 }
+   *         description: Registros por página
+   *       - in: query
+   *         name: sortBy
+   *         schema: { type: string, enum: [fecha, num_reporte, prioridad, estado], default: fecha }
+   *       - in: query
+   *         name: sortOrder
+   *         schema: { type: string, enum: [ASC, DESC], default: DESC }
+   *       - in: query
+   *         name: search
+   *         schema: { type: string }
+   *         description: Buscar por num_reporte
+   *       - in: query
+   *         name: estado
+   *         schema: { type: string, enum: [Abierta, En Proceso, Pendiente, Resuelto, Cerrada] }
+   *     responses:
+   *       200:
+   *         description: Lista de quejas
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 data: { type: array, items: { $ref: '#/components/schemas/Queja' } }
+   *                 pagination:
+   *                   type: object
+   *                   properties:
+   *                     page: { type: integer }
+   *                     limit: { type: integer }
+   *                     total: { type: integer }
+   *                     pages: { type: integer }
+   *       401:
+   *         description: No autorizado
+   *         content:
+   *           application/json:
+   *             schema: { $ref: '#/components/schemas/Error' }
+   *       500:
+   *         description: Error interno
+   *         content:
+   *           application/json:
+   *             schema: { $ref: '#/components/schemas/Error' }
    */
   getAll: [
     validate(listQuejaSchema, "query"),
@@ -144,10 +203,39 @@ const QuejaController = {
   ],
 
   /**
-   * @desc    Obtener un registro por ID
-   * @route   GET /api/mp/queja/:id
-   * @access  Private
+   * @swagger
+   * /queja/{id}:
+   *   get:
+   *     summary: Obtener detalles de una queja por ID
+   *     tags: [Quejas]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema: { type: integer, example: 20234 }
+   *         description: ID único de la queja
+   *     responses:
+   *       200:
+   *         description: Detalles de la queja con historial
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     queja: { $ref: '#/components/schemas/Queja' }
+   *                     pruebas: { type: array, items: { type: object } }
+   *                     trabajos: { type: array, items: { type: object } }
+   *                     flujo: { type: array, items: { type: object } }
+   *       401: { description: 'No autorizado', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+   *       404: { description: 'Queja no encontrada', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+   *       500: { description: 'Error interno', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
    */
+
   async getById(req, res, next) {
     try {
       const { id } = req.params;
@@ -227,10 +315,42 @@ const QuejaController = {
     }
   },
 
+  // POST /queja - Agregar antes de la función create[]
   /**
-   * @desc    Crear nuevo registro (CON validación Zod en body)
-   * @route   POST /api/mp/queja
-   * @access  Private
+   * @swagger
+   * /queja:
+   *   post:
+   *     summary: Crear nueva queja de telecomunicaciones
+   *     tags: [Quejas]
+   *     security: [{ bearerAuth: [] }]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [id_tipoqueja]
+   *             properties:
+   *               id_telefono: { type: integer, nullable: true, example: 239 }
+   *               id_linea: { type: integer, nullable: true, example: 66 }
+   *               id_pizarra: { type: integer, nullable: true, example: 12 }
+   *               id_tipoqueja: { type: integer, example: 63 }
+   *               reportado_por: { type: string, example: "Yaisel Botet" }
+   *               prioridad: { type: integer, minimum: 0, maximum: 5, default: 0 }
+   *     responses:
+   *       201:
+   *         description: Queja creada exitosamente
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean, example: true }
+   *                 message: { type: string, example: "ERROR.QUEJA.CREATED" }
+   *                 data: { $ref: '#/components/schemas/Queja' }
+   *       400: { description: 'Datos inválidos', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+   *       401: { description: 'No autorizado', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+   *       409: { description: 'Reporte duplicado', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
    */
   create: [
     validate(createQuejaSchema, "body"),
@@ -272,10 +392,88 @@ const QuejaController = {
   ],
 
   /**
-   * @desc    Actualizar registro (CON validación Zod parcial)
-   * @route   PUT /api/mp/queja/:id
-   * @access  Private
+   * @swagger
+   * /queja/{id}:
+   *   put:
+   *     summary: Actualizar estado o datos de una queja
+   *     tags: [Quejas]
+   *     security: [{ bearerAuth: [] }]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *           example: 20234
+   *         description: ID único de la queja a actualizar
+   *     requestBody:
+   *       required: false
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               estado:
+   *                 type: string
+   *                 enum: [Abierta, En Proceso, Pendiente, Resuelto, Cerrada]
+   *                 example: "En Proceso"
+   *                 description: Nuevo estado de la queja
+   *               prioridad:
+   *                 type: integer
+   *                 minimum: 0
+   *                 maximum: 5
+   *                 example: 3
+   *                 description: Nivel de prioridad actualizado
+   *               id_tipoqueja:
+   *                 type: integer
+   *                 example: 63
+   *                 description: ID del tipo de queja actualizado
+   *               reportado_por:
+   *                 type: string
+   *                 example: "Yaisel Botet"
+   *                 description: Nombre actualizado de quien reporta
+   *               id_clave:
+   *                 type: integer
+   *                 nullable: true
+   *                 description: Clave actual del flujo de trabajo
+   *     responses:
+   *       200:
+   *         description: Queja actualizada exitosamente
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 message:
+   *                   type: string
+   *                   example: "ERROR.QUEJA.UPDATED"
+   *                 data:
+   *                   $ref: '#/components/schemas/Queja'
+   *       400:
+   *         description: Datos inválidos o transición de estado no permitida
+   *         content:
+   *           application/json:
+   *             schema: { $ref: '#/components/schemas/Error' }
+   *       401:
+   *         description: No autorizado
+   *         content:
+   *           application/json:
+   *             schema: { $ref: '#/components/schemas/Error' }
+   *       404:
+   *         description: Queja no encontrada con el ID proporcionado
+   *         content:
+   *           application/json:
+   *             schema: { $ref: '#/components/schemas/Error' }
+   *       500:
+   *         description: Error interno del servidor
+   *         content:
+   *           application/json:
+   *             schema: { $ref: '#/components/schemas/Error' }
    */
+
   update: [
     validate(updateQuejaSchema, "body"),
     async (req, res, next) => {

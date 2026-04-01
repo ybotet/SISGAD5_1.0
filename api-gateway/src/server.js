@@ -59,7 +59,10 @@ const createServiceProxy = (target, serviceName, proxyOptions = {}) => {
     timeout: 15000, // 15 segundos timeout de conexión (optimizado)
     proxyTimeout: 15000, // 15 segundos timeout de respuesta (optimizado)
     onError: (err, req, res) => {
-      console.error(`❌ [${serviceName}] Proxy error en ${req.url}:`, err.message);
+      console.error(
+        `❌ [${serviceName}] Proxy error en ${req.url}:`,
+        err.message,
+      );
       if (!res.headersSent) {
         res.status(502).json({
           error: `Servicio ${serviceName} no disponible`,
@@ -102,7 +105,8 @@ app.use(
     {
       pathRewrite: (path) => {
         // Robustez ante cómo Express/ProxyMiddleware maneja el mount path
-        if (path.startsWith("/api/users")) return path.replace("/api/users", "/api");
+        if (path.startsWith("/api/users"))
+          return path.replace("/api/users", "/api");
         if (path.startsWith("/api/")) return path;
         return `/api${path}`;
       },
@@ -141,9 +145,9 @@ app.use(
     {
       // backend-mp espera rutas bajo /api/*
       pathRewrite: (path) => {
-        if (path.startsWith("/api/mp")) return path.replace("/api/mp", "/api");
-        if (path.startsWith("/api/")) return path;
-        return `/api${path}`;
+        // if (path.startsWith("/api/mp")) return path.replace("/api/mp", "/api");
+        if (path.startsWith("/api/mp")) return path;
+        return `/api/mp${path}`;
       },
     },
   ),

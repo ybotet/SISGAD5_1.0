@@ -1,78 +1,94 @@
-const { Linea } = require('../models');
-const { Op } = require('sequelize');
-const { Recorrido, Queja } = require('../models');
-const apiErrors = require('../utils/apiErrors');
+const { Linea } = require("../models");
+const { Op } = require("sequelize");
+const { Recorrido, Queja } = require("../models");
+const apiErrors = require("../utils/apiErrors");
+const { parseListParams } = require("../utils/parseListParams");
+const {
+  createLineaSchema,
+  updateLineaSchema,
+  listLineaSchema,
+} = require("../validations/linea.schemas");
+const validate = require("../middleware/validate");
 
 const LineaController = {
   /**
-   * @desc    Obtener todos los registros
+   * @desc    Obtener todos los registros (CON validación Zod en query)
    * @route   GET /api/tbLinea
    * @access  Public
    */
-  async getAll(req, res, next) {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        sortBy = 'createdAt',
-        sortOrder = 'DESC',
-        search = '',
-        ...filters
-      } = req.query;
+  getAll: [
+    validate(listLineaSchema, "query"),
+    async (req, res, next) => {
+      try {
+        const {
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+          search,
+          offset,
+          id_senalizacion,
+          id_tipolinea,
+          id_propietario,
+        } = parseListParams(req.query, {
+          allowedSortFields: [
+            "clavelinea",
+            "clave_n",
+            "codificacion",
+            "createdAt",
+            "updatedAt",
+          ],
+          defaultSort: "createdAt",
+          defaultOrder: "DESC",
+          maxLimit: 100,
+        });
 
-      const offset = (page - 1) * limit;
-
-      // Construir where clause para búsqueda
-      const whereClause = {};
-      if (search) {
-        whereClause[Op.or] = [
-          { clavelinea: { [Op.iLike]: `%${search}%` } }
-        ];
-      }
-
-      // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
-        if (filters[key]) {
-          whereClause[key] = filters[key];
+        // Construir where clause para búsqueda
+        const whereClause = {};
+        if (search) {
+          whereClause[Op.or] = [{ clavelinea: { [Op.iLike]: `%${search}%` } }];
         }
-      });
+        if (id_senalizacion) whereClause.id_senalizacion = id_senalizacion;
+        if (id_tipolinea) whereClause.id_tipolinea = id_tipolinea;
+        if (id_propietario) whereClause.id_propietario = id_propietario;
 
-      const data = await Linea.findAndCountAll({
-        where: whereClause,
-        include: [{
-          association: 'tb_tipolinea',
-          attributes: ['id_tipolinea', 'tipo']
-        },
-        {
-          association: 'tb_propietario',
-          attributes: ['id_propietario', 'nombre']
-        },
-        {
-          association: 'tb_senalizacion',
-          attributes: ['id_senalizacion', 'senalizacion']
-        },
-
-        ],
-
-        limit: parseInt(limit),
-        offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]]
-      });
-
-      res.json({
-        success: true,
-        data: data.rows,
-        pagination: {
-          page: parseInt(page),
+        const data = await Linea.findAndCountAll({
+          where: whereClause,
+          include: [
+            {
+              association: "tb_tipolinea",
+              attributes: ["id_tipolinea", "tipo"],
+            },
+            {
+              association: "tb_propietario",
+              attributes: ["id_propietario", "nombre"],
+            },
+            {
+              association: "tb_senalizacion",
+              attributes: ["id_senalizacion", "senalizacion"],
+            },
+          ],
           limit: parseInt(limit),
-          total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
-      });
-    } catch (error) {
-      return next(error);
-    }
-  },
+          offset: parseInt(offset),
+          order: [[sortBy, sortOrder]],
+          distinct: true,
+        });
+
+        res.json({
+          success: true,
+          data: data.rows,
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: data.count,
+            pages: Math.ceil(data.count / limit),
+          },
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+  ],
 
   /**
    * @desc    Obtener un registro por ID
@@ -85,32 +101,37 @@ const LineaController = {
       const linea = await Linea.findByPk(id, {
         include: [
           {
-            association: 'tb_tipolinea',
-            attributes: ['id_tipolinea', 'tipo']
-          }
-        ]
+            association: "tb_tipolinea",
+            attributes: ["id_tipolinea", "tipo"],
+          },
+        ],
       });
 
       if (!linea) {
-        return next(apiErrors.notFound('Linea'));
+        return next(apiErrors.notFound("Linea"));
       }
 
       const recorridos = await Recorrido.findAll({
         where: { id_telefono: id },
-        include: [{
-          association: 'tb_cable',
-          attributes: ['id_cable', 'numero']
-        }, {
-          association: 'tb_planta',
-          attributes: ['id_planta', 'planta']
-        }, {
-          association: 'tb_sistema',
-          attributes: ['id_sistema', 'sistema']
-        }, {
-          association: 'tb_propietario',
-          attributes: ['id_propietario', 'nombre']
-        }],
-        limit: 100 // o paginación
+        include: [
+          {
+            association: "tb_cable",
+            attributes: ["id_cable", "numero"],
+          },
+          {
+            association: "tb_planta",
+            attributes: ["id_planta", "planta"],
+          },
+          {
+            association: "tb_sistema",
+            attributes: ["id_sistema", "sistema"],
+          },
+          {
+            association: "tb_propietario",
+            attributes: ["id_propietario", "nombre"],
+          },
+        ],
+        limit: 100, // o paginación
       });
 
       const quejas = await Queja.findAll({
@@ -119,7 +140,7 @@ const LineaController = {
         //   { model: Cable, attributes: ['id_cable', 'numero'] },
         //   { model: Planta, attributes: ['id_planta', 'planta'] }
         // ],
-        limit: 100 // o paginación
+        limit: 100, // o paginación
       });
 
       res.json({
@@ -127,8 +148,8 @@ const LineaController = {
         data: {
           linea,
           recorridos,
-          quejas
-        }
+          quejas,
+        },
       });
     } catch (error) {
       return next(error);
@@ -136,62 +157,68 @@ const LineaController = {
   },
 
   /**
-   * @desc    Crear nuevo registro
+   * @desc    Crear nuevo registro (CON validación Zod en body)
    * @route   POST /api/tbLinea
    * @access  Public
    */
-  async create(req, res, next) {
-    try {
-      const data = await Linea.create(req.body);
+  create: [
+    validate(createLineaSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const data = await Linea.create(req.body);
 
-      res.status(201).json({
-        success: true,
-        data,
-        message: 'Linea creado exitosamente'
-      });
-    } catch (error) {
-      if (error.name === 'SequelizeValidationError') {
-        const mensajes = error.errors.map(err => err.message).join('. ');
-        return next(apiErrors.badRequest(mensajes));
+        res.status(201).json({
+          success: true,
+          data,
+          message: "Linea creado exitosamente",
+        });
+      } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+          const mensajes = error.errors.map((err) => err.message).join(". ");
+          return next(apiErrors.badRequest(mensajes));
+        }
+
+        return next(error);
       }
-
-      return next(error);
-    }
-  },
+    },
+  ],
 
   /**
-   * @desc    Actualizar registro
+   * @desc    Actualizar registro (CON validación Zod parcial)
    * @route   PUT /api/tbLinea/:id
    * @access  Public
    */
-  async update(req, res, next) {
-    try {
-      const { id } = req.params;
+  update: [
+    validate(updateLineaSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const { id } = req.params;
 
-      const [affectedRows] = await Linea.update(req.body, {
-        where: { id_linea: id }
-      });
+        const [affectedRows] = await Linea.update(req.body, {
+          where: { id_linea: id },
+        });
 
-      if (affectedRows === 0) {
-        return next(apiErrors.notFound('Linea'));
+        if (affectedRows === 0) {
+          return next(apiErrors.notFound("Linea"));
+        }
+
+        const updatedData = await Linea.findByPk(id);
+
+        res.json({
+          success: true,
+          data: updatedData,
+          message: "Linea actualizado exitosamente",
+        });
+      } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+          const mensajes = error.errors.map((err) => err.message).join(". ");
+          return next(apiErrors.badRequest(mensajes));
+        }
+
+        return next(error);
       }
-
-      const updatedData = await Linea.findByPk(id);
-
-      res.json({
-        success: true,
-        data: updatedData,
-        message: 'Linea actualizado exitosamente'
-      });
-    } catch (error) {
-      if (error.name === 'SequelizeValidationError') {
-        const mensajes = error.errors.map(err => err.message).join('. ');
-        return next(apiErrors.badRequest(mensajes));
-      }
-
-      return next(error);
-    }
-  },
+    },
+  ],
 
   /**
    * @desc    Eliminar registro
@@ -203,21 +230,21 @@ const LineaController = {
       const { id } = req.params;
 
       const affectedRows = await Linea.destroy({
-        where: { id_linea: id }
+        where: { id_linea: id },
       });
 
       if (affectedRows === 0) {
-        return next(apiErrors.notFound('Linea'));
+        return next(apiErrors.notFound("Linea"));
       }
 
       res.json({
         success: true,
-        message: 'Linea eliminado exitosamente'
+        message: "Linea eliminado exitosamente",
       });
     } catch (error) {
       return next(error);
     }
-  }
+  },
 };
 
 module.exports = LineaController;

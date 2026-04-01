@@ -2,70 +2,85 @@ const { Telefono } = require("../models");
 const { Op } = require("sequelize");
 const { Recorrido, Queja, Cable, Planta } = require("../models");
 const apiErrors = require("../utils/apiErrors");
+const { parseListParams } = require("../utils/parseListParams");
+const {
+  createTelefonoSchema,
+  updateTelefonoSchema,
+  listTelefonoSchema,
+} = require("../validations/telefono.schemas");
+const validate = require("../middleware/validate");
 
 const TelefonoController = {
   /**
-   * @desc    Obtener todos los registros
+   * @desc    Obtener todos los registros (CON validación Zod en query)
    * @route   GET /api/tbTelefono
    * @access  Public
    */
-  async getAll(req, res, next) {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        sortBy = "updatedAt",
-        sortOrder = "DESC",
-        search = "",
-        ...filters
-      } = req.query;
+  getAll: [
+    validate(listTelefonoSchema, "query"),
+    async (req, res, next) => {
+      try {
+        const { page, limit, sortBy, sortOrder, search, offset } =
+          parseListParams(req.query, {
+            allowedSortFields: [
+              "telefono",
+              "nombre",
+              "direccion",
+              "lic",
+              "zona",
+              "esbaja",
+              "extensiones",
+              "facturado",
+              "sector",
+              "id_mando",
+              "id_clasificacion",
+              "createdAt",
+              "updatedAt",
+            ],
+            defaultSort: "createdAt",
+            defaultOrder: "DESC",
+            maxLimit: 100,
+          });
 
-      const offset = (page - 1) * limit;
-
-      // Construir where clause para búsqueda
-      const whereClause = {};
-      if (search) {
-        whereClause[Op.or] = [{ telefono: { [Op.iLike]: `%${search}%` } }];
-      }
-
-      // Agregar otros filtros
-      Object.keys(filters).forEach((key) => {
-        if (filters[key]) {
-          whereClause[key] = filters[key];
+        // Construir where clause para búsqueda
+        const whereClause = {};
+        if (search) {
+          whereClause[Op.or] = [{ telefono: { [Op.iLike]: `%${search}%` } }];
         }
-      });
 
-      const data = await Telefono.findAndCountAll({
-        where: whereClause,
-        include: [
-          {
-            association: "tb_clasificacion",
-            attributes: ["id_clasificacion", "nombre"],
-          },
-          {
-            association: "tb_mando",
-            attributes: ["id_mando", "mando"],
-          },
-        ],
-        limit: parseInt(limit),
-        offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]],
-      });
-
-      res.json({
-        success: true,
-        data: data.rows,
-        pagination: {
-          page: parseInt(page),
+        const data = await Telefono.findAndCountAll({
+          where: whereClause,
+          include: [
+            {
+              association: "tb_clasificacion",
+              attributes: ["id_clasificacion", "nombre"],
+            },
+            {
+              association: "tb_mando",
+              attributes: ["id_mando", "mando"],
+            },
+          ],
           limit: parseInt(limit),
-          total: data.count,
-          pages: Math.ceil(data.count / limit),
-        },
-      });
-    } catch (error) {
-      return next(error);
-    }
-  },
+          offset: parseInt(offset),
+          order: [[sortBy, sortOrder]],
+          distinct: true,
+        });
+
+        res.json({
+          success: true,
+          data: data.rows,
+          pagination: {
+            page: page,
+            limit: limit,
+            total: data.count,
+            pages: Math.ceil(data.count / limit),
+          },
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+  ],
 
   /**
    * @desc    Obtener un registro por ID
@@ -141,77 +156,83 @@ const TelefonoController = {
   },
 
   /**
-   * @desc    Crear nuevo registro
+   * @desc    Crear nuevo registro (CON validación Zod en body)
    * @route   POST /api/tbTelefono
    * @access  Public
    */
-  async create(req, res, next) {
-    try {
-      const data = await Telefono.create(req.body);
+  create: [
+    validate(createTelefonoSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const data = await Telefono.create(req.body);
 
-      res.status(201).json({
-        success: true,
-        data,
-        message: "Telefono creado exitosamente",
-      });
-    } catch (error) {
-      if (error.name === "SequelizeValidationError") {
-        const mensajes = error.errors.map((err) => err.message).join(". ");
-        return next(apiErrors.badRequest(mensajes));
+        res.status(201).json({
+          success: true,
+          data,
+          message: "Telefono creado exitosamente",
+        });
+      } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+          const mensajes = error.errors.map((err) => err.message).join(". ");
+          return next(apiErrors.badRequest(mensajes));
+        }
+
+        if (error.name === "SequelizeUniqueConstraintError") {
+          return next(apiErrors.conflict("El teléfono ya existe"));
+        }
+
+        return next(error);
       }
-
-      if (error.name === "SequelizeUniqueConstraintError") {
-        return next(apiErrors.conflict("El teléfono ya existe"));
-      }
-
-      return next(error);
-    }
-  },
+    },
+  ],
 
   /**
-   * @desc    Actualizar registro
+   * @desc    Actualizar registro (CON validación Zod parcial)
    * @route   PUT /api/tbTelefono/:id
    * @access  Public
    */
-  async update(req, res, next) {
-    try {
-      const { id } = req.params;
+  update: [
+    validate(updateTelefonoSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const { id } = req.params;
 
-      const [affectedRows] = await Telefono.update(req.body, {
-        where: { id_telefono: id },
-      });
+        const [affectedRows] = await Telefono.update(req.body, {
+          where: { id_telefono: id },
+        });
 
-      if (affectedRows === 0) {
-        return next(apiErrors.notFound("Telefono"));
+        if (affectedRows === 0) {
+          return next(apiErrors.notFound("Telefono"));
+        }
+
+        const updatedData = await Telefono.findByPk(id, {
+          include: [
+            {
+              association: "tb_clasificacion",
+              attributes: ["id_clasificacion", "nombre"],
+            },
+            {
+              association: "tb_mando",
+              attributes: ["id_mando", "mando"],
+            },
+          ],
+        });
+
+        res.json({
+          success: true,
+          data: updatedData,
+          message: "Telefono actualizado exitosamente",
+        });
+      } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+          const mensajes = error.errors.map((err) => err.message).join(". ");
+          return next(apiErrors.badRequest(mensajes));
+        }
+
+        return next(error);
       }
-
-      const updatedData = await Telefono.findByPk(id, {
-        include: [
-          {
-            association: "tb_clasificacion",
-            attributes: ["id_clasificacion", "nombre"],
-          },
-          {
-            association: "tb_mando",
-            attributes: ["id_mando", "mando"],
-          },
-        ],
-      });
-
-      res.json({
-        success: true,
-        data: updatedData,
-        message: "Telefono actualizado exitosamente",
-      });
-    } catch (error) {
-      if (error.name === "SequelizeValidationError") {
-        const mensajes = error.errors.map((err) => err.message).join(". ");
-        return next(apiErrors.badRequest(mensajes));
-      }
-
-      return next(error);
-    }
-  },
+    },
+  ],
 
   /**
    * @desc    Eliminar registro

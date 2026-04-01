@@ -2,6 +2,9 @@ const express = require("express");
 const helmet = require("helmet");
 const path = require("path");
 const dotenv = require("dotenv");
+const config = require("./config/env");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./config/swagger");
 
 // Middlewares personalizados
 const requestLogger = require("./middleware/requestLogger");
@@ -22,11 +25,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 // 3️⃣ Rate limiting (ANTES de las rutas)
-app.use("/api", mpLimiter);
+app.use("/api/mp", mpLimiter);
+
+app.use(
+  "/api/mp/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "SISGAD5 API Docs",
+  }),
+);
 
 // 4️⃣ Autenticación GLOBAL (para que req.user esté disponible)
 // ⚠️ Si tu auth está solo en rutas específicas, muévelo aquí como middleware global
-app.use("/api", authMiddleware);
+app.use("/api/mp", authMiddleware);
 
 // 5️⃣ Logger personalizado (DESPUÉS de auth, para capturar req.user)
 app.use(requestLogger);
@@ -39,7 +52,7 @@ testConnection();
 
 // 8️⃣ Rutas (AHORA SÍ, después de todos los middlewares)
 const apiRoutes = require("./routes");
-app.use("/api", apiRoutes);
+app.use("/api/mp", apiRoutes);
 
 // 9️⃣ Rutas públicas (health, root)
 app.get("/", (req, res) => {
@@ -71,7 +84,7 @@ app.use((req, res) => {
 const errorHandler = require("./middleware/errorHandler");
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5002;
+const PORT = config.MP_PORT || 5002;
 app.listen(PORT, () => {
   console.log(`🚀 Backend MP ejecutándose en puerto ${PORT}`);
 });

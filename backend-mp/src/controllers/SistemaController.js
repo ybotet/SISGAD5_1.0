@@ -1,68 +1,76 @@
-const { Sistema } = require('../models');
-const { Op } = require('sequelize');
-const apiErrors = require('../utils/apiErrors');
+const { Sistema } = require("../models");
+const { Op } = require("sequelize");
+const apiErrors = require("../utils/apiErrors");
+const { parseListParams } = require("../utils/parseListParams");
+const {
+  createSistemaSchema,
+  updateSistemaSchema,
+  listSistemaSchema,
+} = require("../validations/sistema.schemas");
+const validate = require("../middleware/validate");
 
 const SistemaController = {
   /**
-   * @desc    Obtener todos los registros
+   * @desc    Obtener todos los registros (CON validación Zod en query)
    * @route   GET /api/tbSistema
    * @access  Public
    */
-  async getAll(req, res, next) {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        sortBy = 'createdAt',
-        sortOrder = 'DESC',
-        search = '',
-        ...filters
-      } = req.query;
+  getAll: [
+    validate(listSistemaSchema, "query"),
+    async (req, res, next) => {
+      try {
+        const { page, limit, sortBy, sortOrder, search, offset } =
+          parseListParams(req.query, {
+            allowedSortFields: [
+              "sistema",
+              "direccion",
+              "createdAt",
+              "updatedAt",
+            ],
+            defaultSort: "createdAt",
+            defaultOrder: "DESC",
+            maxLimit: 100,
+          });
 
-      const offset = (page - 1) * limit;
+        // Construir where clause para búsqueda
+        const whereClause = {};
+        if (search) {
+          whereClause[Op.or] = [
+            // Buscar en campos de texto del modelo Sistema
+            { sistema: { [Op.iLike]: `%${search}%` } },
+            { direccion: { [Op.iLike]: `%${search}%` } },
+          ].filter(Boolean);
+        }
 
-      // Construir where clause para búsqueda
-      const whereClause = {};
-      if (search) {
-        whereClause[Op.or] = [
-          // Buscar en campos de texto del modelo Sistema
-          { sistema: { [Op.iLike]: `%${search}%` } },
-          { direccion: { [Op.iLike]: `%${search}%` } }
-        ].filter(Boolean);
+        const data = await Sistema.findAndCountAll({
+          where: whereClause,
+          include: [
+            {
+              association: "tb_propietario",
+              attributes: ["id_propietario", "nombre"],
+            },
+          ],
+          limit: limit,
+          offset: offset,
+          order: [[sortBy, sortOrder]],
+          distinct: true,
+        });
+
+        res.json({
+          success: true,
+          data: data.rows,
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: data.count,
+            pages: Math.ceil(data.count / limit),
+          },
+        });
+      } catch (error) {
+        return next(error);
       }
-
-      // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
-        if (filters[key]) {
-          whereClause[key] = filters[key];
-        }
-      });
-
-      const data = await Sistema.findAndCountAll({
-        where: whereClause,
-        include: [{
-          association: 'tb_propietario',
-          attributes: ['id_propietario', 'nombre']
-        }],
-        limit: parseInt(limit),
-        offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]]
-      });
-
-      res.json({
-        success: true,
-        data: data.rows,
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
-      });
-    } catch (error) {
-      return next(error);
-    }
-  },
+    },
+  ],
 
   /**
    * @desc    Obtener un registro por ID
@@ -73,19 +81,21 @@ const SistemaController = {
     try {
       const { id } = req.params;
       const data = await Sistema.findByPk(id, {
-        include: [{
-          association: 'tb_propietario',
-          attributes: ['id_propietario', 'nombre']
-        }]
+        include: [
+          {
+            association: "tb_propietario",
+            attributes: ["id_propietario", "nombre"],
+          },
+        ],
       });
 
       if (!data) {
-        return next(apiErrors.notFound('Sistema'));
+        return next(apiErrors.notFound("Sistema"));
       }
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
       return next(error);
@@ -93,69 +103,77 @@ const SistemaController = {
   },
 
   /**
-   * @desc    Crear nuevo registro
+   * @desc    Crear nuevo registro (CON validación Zod en body)
    * @route   POST /api/tbSistema
    * @access  Public
    */
-  async create(req, res, next) {
-    try {
-      const data = await Sistema.create(req.body);
+  create: [
+    validate(createSistemaSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const data = await Sistema.create(req.body);
 
-      res.status(201).json({
-        success: true,
-        data,
-        message: 'Sistema creado exitosamente'
-      });
-    } catch (error) {
-      if (error.name === 'SequelizeValidationError') {
-        const mensajes =
-          error.errors?.map(err => err.message).join('. ') || error.message;
-        return next(apiErrors.badRequest(mensajes));
+        res.status(201).json({
+          success: true,
+          data,
+          message: "Sistema creado exitosamente",
+        });
+      } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+          const mensajes =
+            error.errors?.map((err) => err.message).join(". ") || error.message;
+          return next(apiErrors.badRequest(mensajes));
+        }
+
+        return next(error);
       }
-
-      return next(error);
-    }
-  },
+    },
+  ],
 
   /**
-   * @desc    Actualizar registro
+   * @desc    Actualizar registro (CON validación Zod parcial)
    * @route   PUT /api/tbSistema/:id
    * @access  Public
    */
-  async update(req, res, next) {
-    try {
-      const { id } = req.params;
+  update: [
+    validate(updateSistemaSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const { id } = req.params;
 
-      const [affectedRows] = await Sistema.update(req.body, {
-        where: { id_sistema: id }
-      });
+        const [affectedRows] = await Sistema.update(req.body, {
+          where: { id_sistema: id },
+        });
 
-      if (affectedRows === 0) {
-        return next(apiErrors.notFound('Sistema'));
+        if (affectedRows === 0) {
+          return next(apiErrors.notFound("Sistema"));
+        }
+
+        const updatedData = await Sistema.findByPk(id, {
+          include: [
+            {
+              association: "tb_propietario",
+              attributes: ["id_propietario", "nombre"],
+            },
+          ],
+        });
+
+        res.json({
+          success: true,
+          data: updatedData,
+          message: "Sistema actualizado exitosamente",
+        });
+      } catch (error) {
+        if (error.name === "SequelizeValidationError") {
+          const mensajes =
+            error.errors?.map((err) => err.message).join(". ") || error.message;
+          return next(apiErrors.badRequest(mensajes));
+        }
+
+        return next(error);
       }
-
-      const updatedData = await Sistema.findByPk(id, {
-        include: [{
-          association: 'tb_propietario',
-          attributes: ['id_propietario', 'nombre']
-        }]
-      });
-
-      res.json({
-        success: true,
-        data: updatedData,
-        message: 'Sistema actualizado exitosamente'
-      });
-    } catch (error) {
-      if (error.name === 'SequelizeValidationError') {
-        const mensajes =
-          error.errors?.map(err => err.message).join('. ') || error.message;
-        return next(apiErrors.badRequest(mensajes));
-      }
-
-      return next(error);
-    }
-  },
+    },
+  ],
 
   /**
    * @desc    Eliminar registro
@@ -167,21 +185,21 @@ const SistemaController = {
       const { id } = req.params;
 
       const affectedRows = await Sistema.destroy({
-        where: { id_sistema: id }
+        where: { id_sistema: id },
       });
 
       if (affectedRows === 0) {
-        return next(apiErrors.notFound('Sistema'));
+        return next(apiErrors.notFound("Sistema"));
       }
 
       res.json({
         success: true,
-        message: 'Sistema eliminado exitosamente'
+        message: "Sistema eliminado exitosamente",
       });
     } catch (error) {
       return next(error);
     }
-  }
+  },
 };
 
 module.exports = SistemaController;

@@ -122,11 +122,11 @@ services:
     build: ./frontend
     container_name: sisgad5-frontend
     ports:
-      - "5173:5173"
+      - "5004:5004"
     environment:
       - NODE_ENV=development
       - VITE_API_URL=http://localhost:5000/api
-      - VITE_FRONT_URL=http://localhost:5173
+      - VITE_FRONT_URL=http://localhost:5004
     volumes:
       - ./frontend:/app
       - /app/node_modules

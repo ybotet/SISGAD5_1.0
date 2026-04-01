@@ -42,7 +42,7 @@ sisgad5/
 
 4. **Acceder a la aplicación:**
    - API Gateway: http://localhost:5000
-   - Frontend: http://localhost:5173 (configurar para apuntar al gateway)
+   - Frontend: http://localhost:5004 (configurar para apuntar al gateway)
 
 ## Desarrollo Local
 
@@ -75,8 +75,14 @@ Para desarrollo local sin Docker:
 
 ### Autenticación (Microservicio Usuarios)
 
-- `POST /api/auth/login` - Login
-- `GET /api/auth/perfil` - Perfil del usuario
+### Módulo Autenticación (Users Service)
+
+| Método | Ruta                 | Descripción                       | Auth             |
+| ------ | -------------------- | --------------------------------- | ---------------- |
+| `POST` | `/api/auth/login`    | Iniciar sesión y obtener JWT      | ❌ Público       |
+| `POST` | `/api/auth/register` | Registrar nuevo usuario           | ❌ Público       |
+| `GET`  | `/api/auth/perfil`   | Obtener perfil del usuario actual | ✅ JWT           |
+| `POST` | `/api/auth/refresh`  | Renovar token JWT expirado        | ✅ Refresh Token |
 
 ### Usuarios (Microservicio Usuarios)
 
@@ -85,7 +91,17 @@ Para desarrollo local sin Docker:
 - `PUT /api/user/:id` - Actualizar usuario
 - `DELETE /api/user/:id` - Eliminar usuario
 
-### Servicios (Microservicio Servicios)
+### MP (Microservicio MP)
+
+#### Módulo Quejas
+
+| Método   | Ruta                | Descripción                             | Auth   |
+| -------- | ------------------- | --------------------------------------- | ------ |
+| `GET`    | `/api/mp/queja`     | Listar quejas con paginación y filtros  | ✅ JWT |
+| `GET`    | `/api/mp/queja/:id` | Obtener detalles de queja + historial   | ✅ JWT |
+| `POST`   | `/api/mp/queja`     | Crear nueva queja de telecomunicaciones | ✅ JWT |
+| `PUT`    | `/api/mp/queja/:id` | Actualizar estado o datos de queja      | ✅ JWT |
+| `DELETE` | `/api/mp/queja/:id` | Eliminar queja (soft delete)            | ✅ JWT |
 
 - `GET /api/cable` - Operaciones con cables
 - `GET /api/linea` - Operaciones con líneas

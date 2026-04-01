@@ -29,7 +29,7 @@ const services = [
   },
   {
     name: "frontend",
-    port: 5173,
+    port: 5004,
     dir: "frontend",
     color: "\x1b[33m", // Amarillo
   },
@@ -41,7 +41,7 @@ let currentIndex = 0;
 function startNextService() {
   if (currentIndex >= services.length) {
     console.log("\n\x1b[36m%s\x1b[0m", "✅ TODOS LOS SERVICIOS INICIADOS!");
-    console.log("\x1b[36m%s\x1b[0m", "📊 Frontend: http://localhost:5173");
+    console.log("\x1b[36m%s\x1b[0m", "📊 Frontend: http://localhost:5004");
     console.log("\x1b[36m%s\x1b[0m", "🔌 API Gateway: http://localhost:5000");
     console.log(
       "\x1b[36m%s\x1b[0m",

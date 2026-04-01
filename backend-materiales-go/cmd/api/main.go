@@ -150,7 +150,7 @@ func main() {
     // ========================================
     logger.Println("🌐 Configurando CORS...")
     c := cors.New(cors.Options{
-        AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:5000"},
+        AllowedOrigins:   []string{"http://localhost:5004", "http://localhost:5000"},
         AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowedHeaders:   []string{"Content-Type", "Authorization"},
         AllowCredentials: true,

@@ -70,7 +70,7 @@ const updateQuejaSchema = quejaBaseSchema.partial();
 // 🔹 4. Schema para QUERY
 const listQuejaSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
+  limit: z.coerce.number().int().min(1).max(1000000).default(10),
   sortBy: z
     .enum(["fecha", "num_reporte", "prioridad", "estado"])
     .default("fecha"),

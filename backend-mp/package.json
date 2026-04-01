@@ -10,7 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "generate:models": "node scripts/generate-models.js",
     "generate:cruds": "node scripts/generate-cruds.js",
-    "db:sync": "node -e \"require('./src/models').syncModels()\""
+    "db:sync": "node -e \"require('./src/models').syncModels()\"",
+    "swagger:export": "node -e \"const swagger=require('./src/config/swagger');const fs=require('fs');fs.mkdirSync('docs',{recursive:true});fs.writeFileSync('docs/swagger.json',JSON.stringify(swagger,null,2));console.log('✅ Swagger exportado a docs/swagger.json')\""
   },
   "keywords": [
     "express",
@@ -31,6 +32,8 @@
     "pg": "^8.20.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "zod": "^4.3.6"
   }
 }
