@@ -118,7 +118,7 @@ const PruebaController = {
 
         // Actualizando el estado de la queja
         await Queja.update(
-          { estado: "En Proceso" },
+          { estado: "Probada" },
           {
             where: { id_queja: data.id_queja },
             validate: false, // Esto omite las validaciones del modelo

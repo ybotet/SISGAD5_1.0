@@ -15,7 +15,7 @@ interface QuejaModalProps {
   editingItem: QuejaItem | null;
   saving: boolean;
   onClose: () => void;
-  onSave: (formData: FormData) => void;
+  onSave: (formData: any) => void; // Cambiado de FormData a any para enviar objeto JSON
 }
 
 type TipoServicio = "telefono" | "linea" | "pizarra" | "ninguno";
@@ -83,11 +83,20 @@ export default function QuejaModal({
   // Actualizar formData cuando cambia editingItem
   useEffect(() => {
     if (editingItem) {
-      const fecha = editingItem.fecha
-        ? editingItem.fecha.includes("T")
-          ? editingItem.fecha.substring(0, 16) // Formato YYYY-MM-DDTHH:mm
-          : editingItem.fecha + "T00:00"
-        : "";
+      // Convertir fecha ISO a datetime-local para mostrar en el input
+      let fechaValue = "";
+      if (editingItem.fecha) {
+        const date = new Date(editingItem.fecha);
+        if (!isNaN(date.getTime())) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          const hours = String(date.getHours()).padStart(2, "0");
+          const minutes = String(date.getMinutes()).padStart(2, "0");
+          fechaValue = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+      }
+
       const fechaPdte = editingItem.fecha_pdte
         ? editingItem.fecha_pdte.split("T")[0]
         : "";
@@ -97,7 +106,7 @@ export default function QuejaModal({
 
       setFormData({
         num_reporte: editingItem.num_reporte?.toString() || "",
-        fecha: fecha,
+        fecha: fechaValue,
         prioridad: editingItem.prioridad?.toString() || "",
         probador: editingItem.probador?.toString() || "",
         fecha_pdte: fechaPdte,
@@ -170,8 +179,51 @@ export default function QuejaModal({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors([]);
+
+    // Construir objeto con los datos del formulario
+    const formValues: any = {
+      num_reporte: formData.num_reporte || undefined,
+      prioridad: formData.prioridad ? parseInt(formData.prioridad) : undefined,
+      probador: formData.probador ? parseInt(formData.probador) : undefined,
+      fecha_pdte: formData.fecha_pdte || undefined,
+      clave_pdte: formData.clave_pdte || undefined,
+      claveok: formData.claveok || undefined,
+      fechaok: formData.fechaok || undefined,
+      red: formData.red === "true",
+      id_telefono: formData.id_telefono
+        ? parseInt(formData.id_telefono)
+        : undefined,
+      id_linea: formData.id_linea ? parseInt(formData.id_linea) : undefined,
+      id_tipoqueja: formData.id_tipoqueja
+        ? parseInt(formData.id_tipoqueja)
+        : undefined,
+      id_clave: formData.id_clave ? parseInt(formData.id_clave) : undefined,
+      id_pizarra: formData.id_pizarra
+        ? parseInt(formData.id_pizarra)
+        : undefined,
+      reportado_por: formData.reportado_por || undefined,
+    };
+
+    // ✅ Convertir la fecha de datetime-local a ISO string con Z (formato que espera Zod)
+    if (formData.fecha) {
+      const date = new Date(formData.fecha);
+      if (!isNaN(date.getTime())) {
+        formValues.fecha = date.toISOString();
+      }
+    }
+
+    // Remover campos undefined para evitar enviarlos
+    Object.keys(formValues).forEach((key) => {
+      if (formValues[key] === undefined) {
+        delete formValues[key];
+      }
+    });
+
+    console.log("Enviando datos al backend:", formValues);
+
     try {
-      await onSave(new FormData(e.currentTarget));
+      // Enviar el objeto JSON directamente (no FormData)
+      await onSave(formValues);
     } catch (err: any) {
       const resp = err?.response?.data;
       if (resp) {
@@ -519,80 +571,6 @@ export default function QuejaModal({
               </div>
             </div>
           </div>
-
-          {/* Fechas importantes */}
-          {/* <div className="mt-6">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">Fechas importantes</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Fecha Pendiente
-                                </label>
-                                <input
-                                    type="datetime-local"
-                                    name="fecha_pdte"
-                                    value={formData.fecha_pdte}
-                                    onChange={handleInputChange}
-                                    disabled={saving}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Fecha OK
-                                </label>
-                                <input
-                                    type="datetime-local"
-                                    name="fechaok"
-                                    value={formData.fechaok}
-                                    onChange={handleInputChange}
-                                    disabled={saving}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                />
-                            </div>
-                        </div>
-                    </div> */}
-
-          {/* Claves */}
-          {/* <div className="mt-6">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">Claves</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Clave Pendiente
-                                </label>
-                                <input
-                                    type="text"
-                                    name="clave_pdte"
-                                    value={formData.clave_pdte}
-                                    onChange={handleInputChange}
-                                    maxLength={50}
-                                    disabled={saving}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                    placeholder="Ej: pdte Pba"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Clave OK
-                                </label>
-                                <input
-                                    type="text"
-                                    name="claveok"
-                                    value={formData.claveok}
-                                    onChange={handleInputChange}
-                                    maxLength={50}
-                                    disabled={saving}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                    placeholder="Ej: 34"
-                                />
-                            </div>
-                        </div>
-                    </div> */}
 
           <div className="flex justify-end space-x-3 mt-6">
             <button

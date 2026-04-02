@@ -52,7 +52,7 @@ const QuejaController = {
    *         description: Buscar por num_reporte
    *       - in: query
    *         name: estado
-   *         schema: { type: string, enum: [Abierta, En Proceso, Pendiente, Resuelto, Cerrada] }
+   *         schema: { type: string, enum: [Abierta, Probada, Pendiente, Asignada, Cerrada] }
    *     responses:
    *       200:
    *         description: Lista de quejas
@@ -357,6 +357,7 @@ const QuejaController = {
     async (req, res, next) => {
       try {
         const bodyData = { ...req.body };
+        console.log("🔍 CREATE DEBUG - Body recibido:", bodyData);
 
         // 🔹 Lógica de flujo inicial (id_clave + fecha)
         if (bodyData.id_clave && bodyData.fecha) {
@@ -415,8 +416,8 @@ const QuejaController = {
    *             properties:
    *               estado:
    *                 type: string
-   *                 enum: [Abierta, En Proceso, Pendiente, Resuelto, Cerrada]
-   *                 example: "En Proceso"
+   *                 enum: [Abierta, Probada, Pendiente, Asignada, Cerrada]
+   *                 example: "Probada"
    *                 description: Nuevo estado de la queja
    *               prioridad:
    *                 type: integer
@@ -484,10 +485,10 @@ const QuejaController = {
         // 🔹 Si se actualiza estado, validar transición (opcional: lógica de negocio)
         if (updateData.estado) {
           const validTransitions = {
-            Abierta: ["En Proceso", "Cerrada"],
-            "En Proceso": ["Resuelto", "Pendiente", "Cerrada"],
-            Pendiente: ["En Proceso", "Cerrada"],
-            Resuelto: ["Cerrada"],
+            Abierta: ["Probada"],
+            Probada: ["Asignada", "Pendiente", "Cerrada"],
+            Pendiente: ["Cerrada", "Probada", "Asignada"],
+            Asignada: ["Cerrada", "Pendiente"],
             Cerrada: [], // Terminal
           };
 
@@ -537,18 +538,13 @@ const QuejaController = {
     try {
       const { id } = req.params;
 
-      // 🔹 Recomendación: usar soft delete en vez de eliminación física
-      // const affectedRows = await Queja.destroy({ where: { id_queja: id } });
-
-      // Alternativa con soft delete (requiere campo deleted_at en el modelo):
-      const affectedRows = await Queja.update(
-        { estado: "Eliminada", deleted_at: new Date() },
-        { where: { id_queja: parseInt(id) } },
-      );
-
-      if (affectedRows[0] === 0) {
+      const queja = await Queja.findByPk(id);
+      if (!queja) {
         return next(apiErrors.notFound("Queja"));
       }
+
+      //eliminar queja (soft delete recomendado, aquí se muestra hard delete por simplicidad)
+      await queja.destroy();
 
       res.json({
         success: true,

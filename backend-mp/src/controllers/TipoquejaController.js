@@ -7,6 +7,7 @@ const {
   listTipoquejaSchema,
 } = require("../validations/tipoqueja.schemas");
 const validate = require("../middleware/validate");
+const { parseListParams } = require("../utils/parseListParams");
 
 const TipoquejaController = {
   /**
@@ -18,9 +19,13 @@ const TipoquejaController = {
     validate(listTipoquejaSchema, "query"),
     async (req, res, next) => {
       try {
-        const { page, limit, sortBy, sortOrder, search } = req.query;
-
-        const offset = (page - 1) * limit;
+        const { page, limit, offset, sortBy, sortOrder, search } =
+          parseListParams(req.query, {
+            allowedSortFields: ["tipoqueja", "createdAt", "updatedAt"],
+            defaultSort: "tipo",
+            defaultOrder: "ASC",
+            maxLimit: 500, // ← Permitir hasta 500 para este endpoint
+          });
 
         // Construir where clause para búsqueda
         const whereClause = {};

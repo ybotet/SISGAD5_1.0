@@ -20,8 +20,12 @@ module.exports = (sequelize) => {
       prioridad: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        defaultValue: 0,
-        validate: { min: 0, max: 5 },
+        defaultValue: 3,
+        validate: {
+          min: 1,
+          max: 3,
+          isInt: { msg: "prioridad must be integer between 1 and 3" },
+        },
       },
       probador: { type: DataTypes.INTEGER, allowNull: true },
       claves_flujo: {
@@ -77,9 +81,7 @@ module.exports = (sequelize) => {
         defaultValue: "Abierta",
         validate: {
           isIn: {
-            args: [
-              ["Abierta", "En Proceso", "Pendiente", "Resuelto", "Cerrada"],
-            ],
+            args: [["Abierta", "Probada", "Pendiente", "Asignada", "Cerrada"]],
             msg: "estado must be valid value",
           },
         },

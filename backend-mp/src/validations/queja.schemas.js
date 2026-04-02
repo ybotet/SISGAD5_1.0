@@ -33,15 +33,15 @@ const quejaBaseSchema = z.object({
     .nullable(),
 
   // Fecha: si se envía (y no es null), debe ser datetime válido y no futura
-  // fecha: z
-  //   .string()
-  //   .datetime("ERROR.FECHA.FORMAT")
-  //   .refine(
-  //     (val) => val == null || new Date(val) <= new Date(),
-  //     "ERROR.FECHA.FUTURE",
-  //   )
-  //   .optional()
-  //   .nullable(),
+  fecha: z
+    .string()
+    .datetime("ERROR.FECHA.FORMAT")
+    .refine(
+      (val) => val == null || new Date(val) <= new Date(),
+      "ERROR.FECHA.FUTURE",
+    )
+    .optional()
+    .nullable(),
 
   // Campos adicionales
   estado: z
@@ -53,16 +53,24 @@ const quejaBaseSchema = z.object({
 });
 
 // 🔹 2. Schema para CREAR: base + refinements de negocio
-// ✅ Usar 'const' para que exista como variable local
 const createQuejaSchema = quejaBaseSchema
   .refine(alMenosUnIdentificador, {
     message: "ERROR.QUEJA.IDENTIFICADOR.REQUIRED",
     path: ["id_telefono"],
   })
-  .refine((data) => data.id_clave == null || data.fecha != null, {
-    message: "ERROR.FECHA.REQUIRED_WITH_CLAVE",
-    path: ["fecha"],
-  });
+  .refine(
+    (data) => {
+      // Si hay id_clave, entonces fecha es requerida
+      if (data.id_clave && !data.fecha) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "ERROR.FECHA.REQUIRED_WITH_CLAVE",
+      path: ["fecha"],
+    },
+  );
 
 // 🔹 3. Schema para ACTUALIZAR: base parcial
 const updateQuejaSchema = quejaBaseSchema.partial();
@@ -77,7 +85,7 @@ const listQuejaSchema = z.object({
   sortOrder: z.enum(["ASC", "DESC"]).default("DESC"),
   search: z.string().optional(),
   estado: z
-    .enum(["Abierta", "En Proceso", "Pendiente", "Resuelto", "Cerrada"])
+    .enum(["Abierta", "Probada", "Pendiente", "Asignada", "Cerrada"])
     .optional(),
   id_tipoqueja: z.coerce.number().int().optional().nullable(),
   fecha_desde: z.string().datetime().optional().nullable(),

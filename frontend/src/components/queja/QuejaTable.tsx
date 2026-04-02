@@ -187,22 +187,49 @@ export default function QuejaTable({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex flex-col">
-                      {item.estado === "Abierta" ? (
+                      {item.estado === "Asignada" ? (
                         <div className="flex items-center mb-2">
-                          <div className="bg-red-100 rounded-full p-1 mr-2">
-                            <i className="ri-alarm-warning-line text-red-600 text-xs"></i>
+                          <div className="bg-yellow-100 rounded-full p-1 mr-2">
+                            <i className="ri-alarm-warning-line text-yellow-600 text-xs"></i>
                           </div>
-                          <span className="text-sm font-medium text-red-700">
-                            Abierta
+                          <span className="text-sm font-medium text-yellow-700">
+                            Asignada
                           </span>
                         </div>
-                      ) : item.estado === "En Proceso" ? (
+                      ) : item.estado === "Cerrada" ? (
                         <div className="flex items-center mb-2">
                           <div className="bg-green-100 rounded-full p-1 mr-2">
                             <i className="ri-checkbox-circle-line text-green-600 text-xs"></i>
                           </div>
                           <span className="text-sm font-medium text-green-700">
-                            En Proceso
+                            Cerrada
+                          </span>
+                        </div>
+                      ) : item.estado === "Abierta" ? (
+                        <div className="flex items-center mb-2">
+                          <div className="bg-blue-100 rounded-full p-1 mr-2">
+                            <i className="ri-user-line text-blue-600 text-xs"></i>
+                          </div>
+                          <span className="text-sm font-medium text-blue-700">
+                            Abierta
+                          </span>
+                        </div>
+                      ) : item.estado === "Probada" ? (
+                        <div className="flex items-center mb-2">
+                          <div className="bg-gray-100 rounded-full p-1 mr-2">
+                            <i className="ri-close-circle-line text-gray-600 text-xs"></i>
+                          </div>
+                          <span className="text-sm font-medium text-gray-700">
+                            Probada
+                          </span>
+                        </div>
+                      ) : item.estado === "Pendiente" ? (
+                        <div className="flex items-center mb-2">
+                          <div className="bg-red-100 rounded-full p-1 mr-2">
+                            <i className="ri-time-line text-red-600 text-xs"></i>
+                          </div>
+                          <span className="text-sm font-medium text-red-700">
+                            Pendiente
                           </span>
                         </div>
                       ) : (
