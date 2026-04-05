@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 // Importar y usar todas las rutas automáticamente
-// router.use('/auth', require('./auth'));
+router.use("/asignacion", require("./asignacion"));
 router.use("/cable", require("./cable"));
 router.use("/clasificacion", require("./clasificacion"));
 router.use("/clasificadorclave", require("./clasificadorclave"));

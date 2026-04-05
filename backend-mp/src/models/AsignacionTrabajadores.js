@@ -1,21 +1,21 @@
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-  const TbAsignacion = sequelize.define(
-    "TbAsignacion",
+  const TbAsignacionTrabajadores = sequelize.define(
+    "TbAsignacionTrabajadores",
     {
-      id_asignacion: {
+      id_asignacion_trabajadores: {
         type: DataTypes.INTEGER,
         allowNull: false,
         primaryKey: true,
         autoIncrement: true,
       },
-      id_queja: {
+      id_asignacion: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
       },
-      fechaAsignacion: {
-        type: DataTypes.DATE,
+      id_trabajador: {
+        type: DataTypes.INTEGER,
         allowNull: true,
       },
       createdAt: {
@@ -30,10 +30,10 @@ module.exports = (sequelize) => {
       },
     },
     {
-      tableName: "tb_asignacion",
+      tableName: "tb_asignacion_trabajadores",
       timestamps: true,
       underscored: true,
     },
   );
-  return TbAsignacion;
+  return TbAsignacionTrabajadores;
 };
