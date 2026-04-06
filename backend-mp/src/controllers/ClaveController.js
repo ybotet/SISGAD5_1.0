@@ -20,18 +20,12 @@ const ClaveController = {
     async (req, res, next) => {
       try {
         // 🔹 1. Parsear parámetros CON parseListParams (REEMPLAZA desestructuración manual)
-        const { page, limit, offset, sortBy, sortOrder, search } =
-          parseListParams(req.query, {
-            allowedSortFields: [
-              "clave",
-              "descripcion",
-              "createdAt",
-              "updatedAt",
-            ],
-            defaultSort: "clave", // ← Ajustar al campo principal de Clave
-            defaultOrder: "ASC",
-            maxLimit: 100,
-          });
+        const { page, limit, offset, sortBy, sortOrder, search } = parseListParams(req.query, {
+          allowedSortFields: ["clave", "descripcion", "createdAt", "updatedAt"],
+          defaultSort: "clave", // ← Ajustar al campo principal de Clave
+          defaultOrder: "ASC",
+          maxLimit: 1000,
+        });
 
         // 🔹 2. BLINDAJE EXTRA: Fallback explícito por seguridad
         const ALLOWED_SORT = ["clave", "descripcion", "createdAt", "updatedAt"];
@@ -119,8 +113,7 @@ const ClaveController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
 
@@ -157,8 +150,7 @@ const ClaveController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
 

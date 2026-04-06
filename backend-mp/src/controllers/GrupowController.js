@@ -7,6 +7,7 @@ const {
   listGrupowSchema,
 } = require("../validations/grupow.schemas");
 const validate = require("../middleware/validate");
+const { parseListParams } = require("../utils/parseListParams");
 
 const GrupowController = {
   /**
@@ -18,38 +19,24 @@ const GrupowController = {
     validate(listGrupowSchema, "query"),
     async (req, res, next) => {
       try {
-        const { page, limit, sortBy, sortOrder, search } = req.query;
-
-        const offset = (page - 1) * limit;
+        const { page, limit, offset, sortBy, sortOrder, search } = parseListParams(req.query, {
+          allowedSortFields: ["grupo", "createdAt", "updatedAt"],
+          defaultSort: "grupo",
+          defaultOrder: "ASC",
+          maxLimit: 30, // Ajustar según necesites
+        });
 
         // Construir where clause para búsqueda
         const whereClause = {};
         if (search) {
-          whereClause[Op.or] = [
-            // Buscar en el campo grupo
-            { grupo: { [Op.iLike]: `%${search}%` } },
-          ].filter(Boolean);
+          whereClause[Op.or] = [{ grupo: { [Op.iLike]: `%${search}%` } }].filter(Boolean);
         }
-
-        // Forzar valores seguros (nunca undefined/NaN)
-        const sortByRaw = req.query.sortBy;
-        const sortByValue =
-          typeof sortByRaw === "string" && ALLOWED_SORT.includes(sortByRaw)
-            ? sortByRaw
-            : "createdAt";
-
-        const sortOrderRaw = req.query.sortOrder;
-        const sortOrderValue =
-          typeof sortOrderRaw === "string" &&
-          ["ASC", "DESC"].includes(sortOrderRaw.toUpperCase())
-            ? sortOrderRaw.toUpperCase()
-            : "DESC";
 
         const data = await Grupow.findAndCountAll({
           where: whereClause,
           limit: parseInt(limit),
           offset: parseInt(offset),
-          order: [[sortByValue, sortOrderValue]],
+          order: [[sortBy, sortOrder]],
         });
 
         res.json({
@@ -110,8 +97,7 @@ const GrupowController = {
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
           const mensaje =
-            error.errors?.map((err) => err.message).join(". ") ||
-            "Error de validación";
+            error.errors?.map((err) => err.message).join(". ") || "Error de validación";
           return next(apiErrors.badRequest(mensaje));
         }
 
@@ -154,8 +140,7 @@ const GrupowController = {
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
           const mensaje =
-            error.errors?.map((err) => err.message).join(". ") ||
-            "Error de validación";
+            error.errors?.map((err) => err.message).join(". ") || "Error de validación";
           return next(apiErrors.badRequest(mensaje));
         }
 

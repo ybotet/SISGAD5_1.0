@@ -49,6 +49,7 @@ export interface Clave {
   id_clave: number;
   clave: string;
   descripcion?: string;
+  es_pendiente?: boolean;
 }
 
 export interface ResultadoPrueba {
@@ -85,12 +86,11 @@ export interface QuejaItem {
   id_linea: number | null;
   id_tipoqueja: number | null;
   id_clave: number | null;
+  id_clavecierre: number | null;
   id_pizarra: number | null;
   reportado_por: string | null;
   createdAt: string;
   updatedAt: string;
-  claves_flujo?: number[];
-  fechas_flujo?: string[];
 
   // Relaciones
   tb_telefono?: Telefono | null;
@@ -120,11 +120,9 @@ export interface CreateQuejaRequest {
   reportado_por?: string | null;
 }
 
-export interface UpdateQuejaRequest extends Partial<CreateQuejaRequest> {}
-
-export interface FlujoItem {
-  id_clave: number | null;
-  fecha: string | null;
+export interface UpdateQuejaRequest extends Partial<CreateQuejaRequest> {
+  id_clavecierre?: number | null;
+  fechaok?: string | null;
 }
 
 export interface QuejaDetallesResponse {
@@ -134,7 +132,6 @@ export interface QuejaDetallesResponse {
     pruebas: PruebaItem[];
     trabajos: TrabajoItem[];
     asignacion: AsignacionItem[];
-    flujo: FlujoItem[];
   };
 }
 //#endregion DOMINIO: QUEJA
@@ -181,7 +178,7 @@ export interface TrabajoItem {
   id_queja: number;
   createdAt: string;
   updatedAt: string;
-
+  trabajadores: Trabajador[]; // Para mostrar los trabajadores asignados al trabajo
   // Relaciones
   tb_trabajador: Trabajador | null;
   tb_clave?: Clave | null; // Para el estado como clave
@@ -193,6 +190,7 @@ export interface CreateTrabajoRequest {
   estado?: number | null;
   observaciones?: string | null;
   id_queja: number;
+  trabajadores: { id_trabajador: number }[];
 }
 //#endregion DOMINIO: TRABAJO
 
@@ -224,7 +222,7 @@ export interface CreateAsignacionRequest {
 // ============================================
 export interface HistorialEvento {
   id: number;
-  tipo: "clave_inicial" | "prueba" | "trabajo" | "asignacion";
+  tipo: "clave_inicial" | "prueba" | "trabajo" | "asignacion" | "cierre";
   fecha: string;
   titulo: string;
   descripcion: string;
@@ -310,6 +308,17 @@ export const quejaService = {
     await api.delete(`/queja/${id}`);
   },
 
+  /**
+   * Cierra una queja
+   */
+  async cerrarQueja(
+    id: number,
+    data: { id_clavecierre: number; fechaok: string },
+  ): Promise<QuejaItem> {
+    const response = await api.patch<ApiResponse<QuejaItem>>(`/queja/${id}/cerrar`, data);
+    return response.data.data;
+  },
+
   // ==================== PRUEBAS ====================
 
   /**
@@ -383,7 +392,7 @@ export const quejaService = {
    * Obtiene claves para combo
    */
   async getClaves(): Promise<Clave[]> {
-    const response = await api.get<ApiResponse<Clave[]>>("/clave?limit=100");
+    const response = await api.get<ApiResponse<Clave[]>>("/clave?limit=1000");
     return response.data.data;
   },
 

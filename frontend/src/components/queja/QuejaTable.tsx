@@ -1,6 +1,5 @@
 import type { QuejaItem } from "../../services/quejaService";
-import { quejaService } from "../../services/quejaService";
-import { useState, useEffect } from "react";
+import QuejaEstadoBadge from "./QuejaEstadoBadge";
 
 interface QuejaTableProps {
   items: QuejaItem[];
@@ -8,6 +7,9 @@ interface QuejaTableProps {
   onDelete: (id: number) => void;
   onView: (item: QuejaItem) => void;
   loading?: boolean;
+  // ✅ Props recibidas desde el padre
+  claves?: Map<number, string>;
+  clavesLoaded?: boolean;
 }
 
 export default function QuejaTable({
@@ -16,30 +18,18 @@ export default function QuejaTable({
   onDelete,
   onView,
   loading = false,
+  claves = new Map(),
+  clavesLoaded = false,
 }: QuejaTableProps) {
-  const [claves, setClaves] = useState<Map<number, string>>(new Map());
-
-  useEffect(() => {
-    loadClaves();
-  }, []);
-
-  const loadClaves = async () => {
-    try {
-      const clavesData = await quejaService.getClaves();
-      const clavesMap = new Map(clavesData.map((c) => [c.id_clave, c.clave]));
-      setClaves(clavesMap);
-    } catch (err) {
-      console.error("Error loading claves:", err);
-    }
-  };
-
+  // ✅ Función para obtener descripción de clave usando los datos del padre
   const getClaveDescription = (id_clave: number | null | undefined): string => {
     if (!id_clave) return "Sin clave";
+    if (!clavesLoaded) return "Cargando...";
     return claves.get(id_clave) || `Clave #${id_clave}`;
   };
+
   // Función para renderizar el servicio (teléfono, línea o pizarra)
   const renderServicio = (item: QuejaItem) => {
-    // Primero verificar si hay teléfono
     if (item.tb_telefono) {
       return (
         <div className="flex flex-col">
@@ -47,14 +37,11 @@ export default function QuejaTable({
             <i className="ri-phone-line mr-1"></i>
             Teléfono
           </span>
-          <span className="text-xs text-gray-600 font-medium">
-            {item.tb_telefono.telefono}
-          </span>
+          <span className="text-xs text-gray-600 font-medium">{item.tb_telefono.telefono}</span>
         </div>
       );
     }
 
-    // Luego verificar si hay línea
     if (item.tb_linea) {
       return (
         <div className="flex flex-col">
@@ -62,14 +49,11 @@ export default function QuejaTable({
             <i className="ri-wire-line mr-1"></i>
             Línea
           </span>
-          <span className="text-xs text-gray-600 font-medium">
-            {item.tb_linea.clavelinea}
-          </span>
+          <span className="text-xs text-gray-600 font-medium">{item.tb_linea.clavelinea}</span>
         </div>
       );
     }
 
-    // Luego verificar si hay pizarra
     if (item.tb_pizarra) {
       return (
         <div className="flex flex-col">
@@ -84,7 +68,6 @@ export default function QuejaTable({
       );
     }
 
-    // Si no hay ningún servicio
     return (
       <div className="flex flex-col">
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mb-1">
@@ -144,19 +127,15 @@ export default function QuejaTable({
               </tr>
             ) : (
               items.map((item) => (
-                <tr key={item.id_queja} className="hover:bg-gray-50">
+                <tr key={item.id_queja} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="bg-red-50 rounded-lg p-2 mr-3">
                         <i className="ri-alarm-warning-line text-red-500"></i>
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          #{item.num_reporte}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          ID: {item.id_queja}
-                        </div>
+                        <div className="text-sm font-medium text-gray-900">#{item.num_reporte}</div>
+                        <div className="text-xs text-gray-500">ID: {item.id_queja}</div>
                       </div>
                     </div>
                   </td>
@@ -186,89 +165,23 @@ export default function QuejaTable({
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex flex-col">
-                      {item.estado === "Asignada" ? (
-                        <div className="flex items-center mb-2">
-                          <div className="bg-yellow-100 rounded-full p-1 mr-2">
-                            <i className="ri-alarm-warning-line text-yellow-600 text-xs"></i>
-                          </div>
-                          <span className="text-sm font-medium text-yellow-700">
-                            Asignada
-                          </span>
-                        </div>
-                      ) : item.estado === "Cerrada" ? (
-                        <div className="flex items-center mb-2">
-                          <div className="bg-green-100 rounded-full p-1 mr-2">
-                            <i className="ri-checkbox-circle-line text-green-600 text-xs"></i>
-                          </div>
-                          <span className="text-sm font-medium text-green-700">
-                            Cerrada
-                          </span>
-                        </div>
-                      ) : item.estado === "Abierta" ? (
-                        <div className="flex items-center mb-2">
-                          <div className="bg-blue-100 rounded-full p-1 mr-2">
-                            <i className="ri-user-line text-blue-600 text-xs"></i>
-                          </div>
-                          <span className="text-sm font-medium text-blue-700">
-                            Abierta
-                          </span>
-                        </div>
-                      ) : item.estado === "Probada" ? (
-                        <div className="flex items-center mb-2">
-                          <div className="bg-gray-100 rounded-full p-1 mr-2">
-                            <i className="ri-close-circle-line text-gray-600 text-xs"></i>
-                          </div>
-                          <span className="text-sm font-medium text-gray-700">
-                            Probada
-                          </span>
-                        </div>
-                      ) : item.estado === "Pendiente" ? (
-                        <div className="flex items-center mb-2">
-                          <div className="bg-red-100 rounded-full p-1 mr-2">
-                            <i className="ri-time-line text-red-600 text-xs"></i>
-                          </div>
-                          <span className="text-sm font-medium text-red-700">
-                            Pendiente
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center mb-2">
-                          <div className="bg-gray-100 rounded-full p-1 mr-2">
-                            <i className="ri-question-line text-gray-600 text-xs"></i>
-                          </div>
-                          <span className="text-sm font-medium text-gray-700">
-                            Sin estado
-                          </span>
-                        </div>
-                      )}
-                      {item.fechas_flujo &&
-                        Array.isArray(item.fechas_flujo) &&
-                        item.fechas_flujo.length > 0 && (
-                          <div className="text-xs text-gray-500 pl-6">
-                            Último:{" "}
-                            <span className="text-blue-600 font-medium">
-                              {item.claves_flujo && item.claves_flujo.length > 0
-                                ? getClaveDescription(
-                                    item.claves_flujo[
-                                      item.claves_flujo.length - 1
-                                    ],
-                                  )
-                                : "Sin claves"}
-                            </span>
-                          </div>
-                        )}
+                    <div className="flex flex-col gap-1">
+                      <QuejaEstadoBadge estado={item.estado} size="md" />
+                      <div className="flex items-center gap-1 ml-7 mt-1">
+                        <i className="ri-key-line text-gray-400 text-xs"></i>
+                        <span className="text-xs text-gray-500">Clave actual:</span>
+                        <span className="text-xs text-blue-600 font-medium">
+                          {item.id_clave ? getClaveDescription(item.id_clave) : "Sin clave"}
+                        </span>
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
                       Persona que reporta: {item.reportado_por || "Sin datos"}
                     </div>
-
                     <div className="text-xs text-gray-500">
-                      Probador:{" "}
-                      {item.tb_trabajador?.clave_trabajador ||
-                        "Sin datos del probador"}
+                      Probador: {item.tb_trabajador?.clave_trabajador || "Sin datos del probador"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

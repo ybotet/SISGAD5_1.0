@@ -6,8 +6,6 @@ import type {
   AsignacionItem,
   CreateQuejaRequest,
   PaginatedResponse,
-  QuejaDetallesResponse,
-  FlujoItem,
 } from "../services/quejaService";
 import { quejaService } from "../services/quejaService";
 
@@ -50,15 +48,19 @@ export default function QuejaPage() {
   // Estados para detalles
   const [showDetallesModal, setShowDetallesModal] = useState(false);
   const [quejaDetalles, setQuejaDetalles] = useState<QuejaItem | null>(null);
-  const [flujoDetalles, setFlujoDetalles] = useState<FlujoItem[]>([]);
   const [pruebas, setPruebas] = useState<PruebaItem[]>([]);
   const [trabajos, setTrabajos] = useState<TrabajoItem[]>([]);
   const [asignacion, setAsignacion] = useState<AsignacionItem[]>([]);
   const [loadingDetalles, setLoadingDetalles] = useState(false);
 
+  // ✅ Estados para claves (cargadas una sola vez)
+  const [claves, setClaves] = useState<Map<number, string>>(new Map());
+  const [clavesLoaded, setClavesLoaded] = useState(false);
+
   // Cargar datos iniciales
   useEffect(() => {
     loadQuejas();
+    loadClaves(); // ✅ Cargar claves al inicio
   }, []);
 
   // Cargar quejas cuando cambia el término de búsqueda o filtro de estado
@@ -70,6 +72,19 @@ export default function QuejaPage() {
     return () => clearTimeout(timeoutId);
   }, [searchTerm, estadoFilter]);
 
+  // ✅ Función para cargar claves
+  const loadClaves = async () => {
+    try {
+      const clavesData = await quejaService.getClaves();
+      const clavesMap = new Map(clavesData.map((c) => [c.id_clave, c.clave]));
+      setClaves(clavesMap);
+      setClavesLoaded(true);
+    } catch (err) {
+      console.error("Error loading claves:", err);
+      setClavesLoaded(true);
+    }
+  };
+
   const loadQuejas = async (
     page: number = 1,
     limit: number = 10,
@@ -80,7 +95,7 @@ export default function QuejaPage() {
       setLoading(true);
       setError("");
 
-      console.log(" Cargando quejas con parámetros:", {
+      console.log("📡 Cargando quejas con parámetros:", {
         page,
         limit,
         search,
@@ -94,7 +109,7 @@ export default function QuejaPage() {
         estado,
       );
 
-      console.log(" Quejas cargadas:", {
+      console.log("✅ Quejas cargadas:", {
         cantidad: response.data.length,
         pagination: response.pagination,
       });
@@ -104,7 +119,7 @@ export default function QuejaPage() {
     } catch (err) {
       const errorMsg = "Error al cargar las quejas. Por favor, intente nuevamente.";
       setError(errorMsg);
-      console.error(" Error loading quejas:", err);
+      console.error("❌ Error loading quejas:", err);
     } finally {
       setLoading(false);
     }
@@ -114,11 +129,11 @@ export default function QuejaPage() {
   const loadQuejaDetalles = async (id: number) => {
     try {
       setLoadingDetalles(true);
-      console.log(" Cargando detalles para queja ID:", id);
+      console.log("📡 Cargando detalles para queja ID:", id);
 
       const detalles = await quejaService.getQuejaDetalles(id);
 
-      console.log(" Detalles cargados:", {
+      console.log("✅ Detalles cargados:", {
         queja: detalles.queja?.num_reporte,
         pruebas: detalles.pruebas?.length,
         trabajos: detalles.trabajos?.length,
@@ -126,7 +141,6 @@ export default function QuejaPage() {
       });
 
       setQuejaDetalles(detalles.queja);
-      setFlujoDetalles(detalles.flujo || []);
       setPruebas(
         [...detalles.pruebas].sort((a, b) => {
           const dateA = a.fecha ? new Date(a.fecha).getTime() : 0;
@@ -146,23 +160,24 @@ export default function QuejaPage() {
     } catch (err) {
       const errorMsg = "Error al cargar los detalles de la queja";
       setError(errorMsg);
-      console.error(" Error loading queja detalles:", err);
+      console.error("❌ Error loading queja detalles:", err);
     } finally {
       setLoadingDetalles(false);
     }
   };
 
   // Función para refrescar detalles de la queja
-  // Función para refrescar detalles de la queja
   const handleRefreshDetalles = async () => {
     if (quejaDetalles) {
       try {
-        console.log(" Refrescando detalles para queja ID:", quejaDetalles.id_queja);
+        console.log("🔄 Refrescando detalles para queja ID:", quejaDetalles.id_queja);
 
-        //  Igual que en loadQuejaDetalles
         const detalles = await quejaService.getQuejaDetalles(quejaDetalles.id_queja);
 
-        console.log(" Detalles refrescados:", {
+        console.log("🔍 Detalles completos después de refresh:", detalles);
+        console.log("🔍 Trabajos con trabajadores:", detalles.trabajos);
+
+        console.log("✅ Detalles refrescados:", {
           queja: detalles.queja?.num_reporte,
           pruebas: detalles.pruebas?.length,
           trabajos: detalles.trabajos?.length,
@@ -170,7 +185,6 @@ export default function QuejaPage() {
         });
 
         setQuejaDetalles(detalles.queja);
-        setFlujoDetalles(detalles.flujo || []);
         setPruebas(
           [...(detalles.pruebas || [])].sort((a, b) => {
             const dateA = a.fecha ? new Date(a.fecha).getTime() : 0;
@@ -187,7 +201,7 @@ export default function QuejaPage() {
         );
         setAsignacion(detalles.asignacion || []);
       } catch (err) {
-        console.error(" Error refrescando detalles:", err);
+        console.error("❌ Error refrescando detalles:", err);
         setError("Error al actualizar los detalles de la queja");
       }
     }
@@ -195,14 +209,14 @@ export default function QuejaPage() {
 
   // Función para manejar cambio de filtro de estado
   const handleEstadoFilterChange = (estado: string) => {
-    console.log(" Cambiando filtro de estado a:", estado);
+    console.log("🎯 Cambiando filtro de estado a:", estado);
     setEstadoFilter(estado);
   };
 
   // Funciones de paginación
   const goToPage = (page: number) => {
     if (page >= 1 && page <= pagination.pages) {
-      console.log(" Cambiando a página:", page);
+      console.log("📄 Cambiando a página:", page);
       loadQuejas(page, pagination.limit, searchTerm, estadoFilter);
     }
   };
@@ -220,13 +234,13 @@ export default function QuejaPage() {
   };
 
   const handleLimitChange = (newLimit: number) => {
-    console.log(" Cambiando límite por página a:", newLimit);
+    console.log("📊 Cambiando límite por página a:", newLimit);
     loadQuejas(1, newLimit, searchTerm, estadoFilter);
   };
 
   // Funciones para eliminar con confirmación modal
   const handleDelete = (id: number) => {
-    console.log(" Solicitando eliminación para ID:", id);
+    console.log("🗑️ Solicitando eliminación para ID:", id);
     setItemToDelete(id);
     setShowConfirmModal(true);
   };
@@ -234,19 +248,18 @@ export default function QuejaPage() {
   const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
 
-    console.log(" Confirmando eliminación para ID:", itemToDelete);
+    console.log("✅ Confirmando eliminación para ID:", itemToDelete);
 
     try {
       setDeleting(true);
       setError("");
 
       await quejaService.deleteQueja(itemToDelete);
-      console.log(" Eliminación exitosa");
+      console.log("🗑️ Eliminación exitosa");
 
-      // Recargar los datos
       await loadQuejas(pagination.page, pagination.limit, searchTerm, estadoFilter);
     } catch (err: unknown) {
-      console.error(" Error en eliminación:", err);
+      console.error("❌ Error en eliminación:", err);
       setError(getBackendErrorMessage(err, "Error al eliminar la queja"));
     } finally {
       setDeleting(false);
@@ -256,32 +269,30 @@ export default function QuejaPage() {
   };
 
   const handleCancelDelete = () => {
-    console.log(" Eliminación cancelada por el usuario");
+    console.log("❌ Eliminación cancelada por el usuario");
     setShowConfirmModal(false);
     setItemToDelete(null);
   };
 
   // Funciones para editar y guardar
   const handleEdit = (item: QuejaItem) => {
-    console.log(" Editando queja:", item.num_reporte);
+    console.log("✏️ Editando queja:", item.num_reporte);
     setEditingItem(item);
     setShowModal(true);
   };
 
   const handleView = (item: QuejaItem) => {
-    console.log(" Viendo detalles de queja:", item.num_reporte);
+    console.log("👁️ Viendo detalles de queja:", item.num_reporte);
     loadQuejaDetalles(item.id_queja);
   };
 
-  //  ACTUALIZADO: handleSave ahora recibe un objeto directamente, no FormData
   const handleSave = async (formData: any) => {
     try {
       setSaving(true);
       setError("");
 
-      console.log(" Guardando datos:", formData);
+      console.log("💾 Guardando datos:", formData);
 
-      // Construir el objeto CreateQuejaRequest
       const itemData: CreateQuejaRequest = {
         num_reporte: formData.num_reporte || undefined,
         fecha: formData.fecha,
@@ -300,42 +311,42 @@ export default function QuejaPage() {
         reportado_por: formData.reportado_por || null,
       };
 
-      console.log(" Datos a guardar (formateados):", itemData);
+      console.log("📤 Datos a guardar (formateados):", itemData);
 
       if (editingItem) {
-        console.log(" Actualizando queja existente:", editingItem.id_queja);
+        console.log("🔄 Actualizando queja existente:", editingItem.id_queja);
         await quejaService.updateQueja(editingItem.id_queja, itemData);
       } else {
-        console.log(" Creando nueva queja");
+        console.log("🆕 Creando nueva queja");
         await quejaService.createQueja(itemData);
       }
 
-      console.log(" Operación exitosa, recargando lista...");
+      console.log("✅ Operación exitosa, recargando lista...");
       await loadQuejas(pagination.page, pagination.limit, searchTerm, estadoFilter);
 
       setShowModal(false);
       setEditingItem(null);
     } catch (err: unknown) {
-      console.error(" Error saving queja:", err);
+      console.error("❌ Error saving queja:", err);
       const errorMsg = getBackendErrorMessage(
         err,
         editingItem ? "Error al actualizar la queja" : "Error al crear la queja",
       );
       setError(errorMsg);
-      throw err; // Re-lanzar para que el modal pueda mostrar los errores específicos
+      throw err;
     } finally {
       setSaving(false);
     }
   };
 
   const handleCloseModal = () => {
-    console.log(" Cerrando modal de queja");
+    console.log("🔒 Cerrando modal de queja");
     setShowModal(false);
     setEditingItem(null);
   };
 
   const handleCloseDetallesModal = () => {
-    console.log(" Cerrando modal de detalles");
+    console.log("🔒 Cerrando modal de detalles");
     setShowDetallesModal(false);
     setQuejaDetalles(null);
     setPruebas([]);
@@ -343,13 +354,11 @@ export default function QuejaPage() {
     setAsignacion([]);
   };
 
-  // Manejar refresco desde filtros
   const handleRefresh = () => {
-    console.log(" Refrescando lista de quejas");
+    console.log("🔄 Refrescando lista de quejas");
     loadQuejas(pagination.page, pagination.limit, searchTerm, estadoFilter);
   };
 
-  // Loading state inicial
   if (loading && items.length === 0) {
     return (
       <div className="p-6 flex justify-center items-center min-h-screen">
@@ -364,26 +373,23 @@ export default function QuejaPage() {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
       <QuejaHeader
         title="Gestión de Quejas"
         description="Administra y consulta todas las quejas registradas en el sistema"
         onAdd={() => {
-          console.log(" Abriendo modal para nueva queja");
+          console.log("➕ Abriendo modal para nueva queja");
           setShowModal(true);
         }}
       />
 
-      {/* Error */}
       <QuejaError
         error={error}
         onClose={() => {
-          console.log(" Cerrando mensaje de error");
+          console.log("❌ Cerrando mensaje de error");
           setError("");
         }}
       />
 
-      {/* Stats */}
       <QuejaStats
         total={pagination.total}
         showing={items.length}
@@ -392,11 +398,10 @@ export default function QuejaPage() {
         limit={pagination.limit}
       />
 
-      {/* Filters */}
       <QuejaFilters
         searchTerm={searchTerm}
         onSearchChange={(term) => {
-          console.log(" Buscando:", term);
+          console.log("🔍 Buscando:", term);
           setSearchTerm(term);
         }}
         estadoFilter={estadoFilter}
@@ -404,16 +409,17 @@ export default function QuejaPage() {
         onRefresh={handleRefresh}
       />
 
-      {/* Table */}
+      {/* ✅ Tabla con claves desde el padre */}
       <QuejaTable
         items={items}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onView={handleView}
         loading={loading && items.length > 0}
+        claves={claves}
+        clavesLoaded={clavesLoaded}
       />
 
-      {/* Pagination */}
       {pagination.pages > 1 && (
         <QuejaPagination
           pagination={pagination}
@@ -424,7 +430,6 @@ export default function QuejaPage() {
         />
       )}
 
-      {/* Modal de Crear/Editar */}
       <QuejaModal
         show={showModal}
         editingItem={editingItem}
@@ -433,7 +438,6 @@ export default function QuejaPage() {
         onSave={handleSave}
       />
 
-      {/* Modal de Confirmación de Eliminación */}
       <QuejaConfirmModal
         show={showConfirmModal}
         title="Confirmar Eliminación"
@@ -445,11 +449,10 @@ export default function QuejaPage() {
         loading={deleting}
       />
 
-      {/* Modal de Detalles */}
+      {/* ✅ Modal de Detalles sin flujo */}
       <QuejaDetallesModal
         show={showDetallesModal}
         queja={quejaDetalles}
-        flujo={flujoDetalles}
         pruebas={pruebas}
         trabajos={trabajos}
         asignacion={asignacion}
@@ -458,7 +461,6 @@ export default function QuejaPage() {
         onDataUpdated={handleRefreshDetalles}
       />
 
-      {/* Estado vacío */}
       {!loading && items.length === 0 && (
         <div className="text-center py-12 bg-white rounded-lg shadow mt-4">
           <i className="ri-inbox-line text-4xl text-gray-400 mb-3"></i>

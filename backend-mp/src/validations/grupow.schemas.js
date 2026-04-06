@@ -24,13 +24,15 @@ const createGrupowSchema = grupowBaseSchema.refine(
 const updateGrupowSchema = grupowBaseSchema.partial();
 
 // Schema para QUERY
-const listGrupowSchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
-  sortBy: z.enum(["grupo", "createdAt", "updatedAt"]).default("grupo"),
-  sortOrder: z.enum(["ASC", "DESC"]).default("ASC"),
-  search: z.string().optional(),
-});
+const listGrupowSchema = z
+  .object({
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(10),
+    sortBy: z.enum(["grupo", "createdAt", "updatedAt"]).default("grupo"),
+    sortOrder: z.enum(["ASC", "DESC"]).default("ASC"),
+    search: z.string().optional(),
+  })
+  .strict();
 
 module.exports = {
   createGrupowSchema,

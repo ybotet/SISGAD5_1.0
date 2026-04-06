@@ -2,11 +2,18 @@ const { z } = require("zod");
 
 // Schema base para validaciones de Trabajo
 const trabajoBaseSchema = z.object({
-  fecha: z.date().optional().nullable(),
-  probador: z.number().int().positive().optional().nullable(),
-  estado: z.number().int().positive().optional().nullable(),
+  fecha: z.coerce.date().optional().nullable(),
+  probador: z.coerce.number().int().positive().optional().nullable(),
+  estado: z.coerce.number().int().positive().optional().nullable(),
   observaciones: z.string().optional().nullable(),
-  id_queja: z.number().int().positive().optional().nullable(),
+  id_queja: z.coerce.number().int().positive().optional().nullable(),
+  trabajadores: z
+    .array(
+      z.object({
+        id_trabajador: z.number().int().positive(),
+      }),
+    )
+    .optional(),
 });
 
 // Schema para CREAR: base con validaciones requeridas

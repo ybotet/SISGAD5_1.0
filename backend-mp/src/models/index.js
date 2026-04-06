@@ -174,6 +174,10 @@ Queja.belongsTo(Pizarra, { foreignKey: "id_pizarra", as: "tb_pizarra" });
 Clave.hasMany(Queja, { foreignKey: "id_clave", as: "tb_quejas" });
 Queja.belongsTo(Clave, { foreignKey: "id_clave", as: "tb_clave" });
 
+//Clave de cierre - Queja 1:N
+Clave.hasMany(Queja, { foreignKey: "id_clavecierre", as: "tb_quejas_cierre" });
+Queja.belongsTo(Clave, { foreignKey: "id_clavecierre", as: "tb_clave_cierre" });
+
 //Tipoqueja - Queja 1:N
 Tipoqueja.hasMany(Queja, { foreignKey: "id_tipoqueja", as: "tb_quejas" });
 Queja.belongsTo(Tipoqueja, { foreignKey: "id_tipoqueja", as: "tb_tipoqueja" });
@@ -228,7 +232,7 @@ Trabajo.belongsTo(Clave, { foreignKey: "estado", as: "tb_clave" });
 //#region Relaciones de Trabajo_trabajadores
 Trabajo.hasMany(TrabajoTrabajadores, {
   foreignKey: "id_trabajo",
-  as: "tb_trabajadores",
+  as: "tb_trabajo_trabajadores",
 });
 TrabajoTrabajadores.belongsTo(Trabajo, {
   foreignKey: "id_trabajo",
@@ -237,7 +241,7 @@ TrabajoTrabajadores.belongsTo(Trabajo, {
 
 Trabajador.hasMany(TrabajoTrabajadores, {
   foreignKey: "id_trabajador",
-  as: "tb_trabajos",
+  as: "tb_trabajo_trabajadores",
 });
 TrabajoTrabajadores.belongsTo(Trabajador, {
   foreignKey: "id_trabajador",

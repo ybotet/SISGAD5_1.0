@@ -28,16 +28,6 @@ module.exports = (sequelize) => {
         },
       },
       probador: { type: DataTypes.INTEGER, allowNull: true },
-      claves_flujo: {
-        type: DataTypes.ARRAY(DataTypes.INTEGER),
-        allowNull: true,
-        defaultValue: [],
-      },
-      fechas_flujo: {
-        type: DataTypes.ARRAY(DataTypes.DATE),
-        allowNull: true,
-        defaultValue: [],
-      },
       red: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
@@ -74,6 +64,14 @@ module.exports = (sequelize) => {
         allowNull: true,
         references: { model: "tb_clave", key: "id_clave" },
       },
+      id_clavecierre: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      fechaok: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
       reportado_por: { type: DataTypes.STRING, allowNull: true },
       estado: {
         type: DataTypes.STRING,
@@ -81,7 +79,7 @@ module.exports = (sequelize) => {
         defaultValue: "Abierta",
         validate: {
           isIn: {
-            args: [["Abierta", "Probada", "Pendiente", "Asignada", "Cerrada"]],
+            args: [["Abierta", "Probada", "Pendiente", "Asignada", "Resuelta", "Cerrada"]],
             msg: "estado must be valid value",
           },
         },
@@ -99,8 +97,7 @@ module.exports = (sequelize) => {
       hooks: {
         beforeCreate: async (instance, options) => {
           try {
-            if (instance.num_reporte && parseInt(instance.num_reporte, 10) > 0)
-              return;
+            if (instance.num_reporte && parseInt(instance.num_reporte, 10) > 0) return;
             const t = options.transaction || null;
             await sequelize.query(
               "CREATE SEQUENCE IF NOT EXISTS num_reporte_seq START WITH 100000;",
@@ -118,17 +115,14 @@ module.exports = (sequelize) => {
                 "SELECT last_value::bigint AS last_value FROM num_reporte_seq;",
                 { transaction: t },
               );
-              seqLast = seqRow?.last_value
-                ? parseInt(seqRow.last_value, 10)
-                : null;
+              seqLast = seqRow?.last_value ? parseInt(seqRow.last_value, 10) : null;
             } catch (e) {
               seqLast = null;
             }
             if (seqLast === null || seqLast < startValue - 1) {
-              await sequelize.query(
-                `SELECT setval('num_reporte_seq', ${startValue - 1}, false);`,
-                { transaction: t },
-              );
+              await sequelize.query(`SELECT setval('num_reporte_seq', ${startValue - 1}, false);`, {
+                transaction: t,
+              });
             }
             const [[nextRow]] = await sequelize.query(
               "SELECT nextval('num_reporte_seq') AS nextval;",
@@ -137,9 +131,7 @@ module.exports = (sequelize) => {
             instance.num_reporte = parseInt(nextRow.nextval, 10);
           } catch (err) {
             console.error("Error generando num_reporte:", err);
-            throw new Error(
-              "Error generando num_reporte: " + (err.message || err),
-            );
+            throw new Error("Error generando num_reporte: " + (err.message || err));
           }
         },
       },

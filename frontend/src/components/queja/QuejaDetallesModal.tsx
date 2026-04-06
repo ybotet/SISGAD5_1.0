@@ -7,7 +7,7 @@ import type {
   Trabajador,
   ResultadoPrueba,
   HistorialEvento,
-  CreateAsignacionRequest,
+  CreateTrabajoRequest,
 } from "../../services/quejaService";
 import { quejaService } from "../../services/quejaService";
 import { useState, useEffect } from "react";
@@ -17,7 +17,6 @@ import { formatDateTimeLocal } from "../../utils/dateFormats";
 interface QuejaDetallesModalProps {
   show: boolean;
   queja: QuejaItem | null;
-  flujo?: any[];
   pruebas: PruebaItem[];
   trabajos: TrabajoItem[];
   asignacion: AsignacionItem[];
@@ -30,7 +29,6 @@ interface QuejaDetallesModalProps {
 export default function QuejaDetallesModal({
   show,
   queja,
-  flujo = [],
   pruebas,
   trabajos,
   asignacion = [],
@@ -42,12 +40,13 @@ export default function QuejaDetallesModal({
   const [showNuevaPrueba, setShowNuevaPrueba] = useState(false);
   const [showNuevoTrabajo, setShowNuevoTrabajo] = useState(false);
   const [showNuevaAsignacion, setShowNuevaAsignacion] = useState(false);
+  const [showCerrarQueja, setShowCerrarQueja] = useState(false);
   //#endregion
 
-  //#region Estados para eliminación (loading por cada tipo)
-  const [eliminandoPrueba, setEliminandoPrueba] = useState<number | null>(null);
-  const [eliminandoTrabajo, setEliminandoTrabajo] = useState<number | null>(null);
-  const [eliminandoAsignacion, setEliminandoAsignacion] = useState<number | null>(null);
+  //#region Estados para eliminación
+  const [_eliminandoPrueba, _setEliminandoPrueba] = useState<number | null>(null);
+  const [_eliminandoTrabajo, _setEliminandoTrabajo] = useState<number | null>(null);
+  const [_eliminandoAsignacion, _setEliminandoAsignacion] = useState<number | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   //#endregion
@@ -57,7 +56,7 @@ export default function QuejaDetallesModal({
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
   //#endregion
 
-  //#region Estados para combos (datos de catálogos)
+  //#region Estados para combos
   const [claves, setClaves] = useState<Clave[]>([]);
   const [probadores, setProbadores] = useState<Trabajador[]>([]);
   const [resultados, setResultados] = useState<ResultadoPrueba[]>([]);
@@ -73,12 +72,20 @@ export default function QuejaDetallesModal({
   });
   //#endregion
 
+  //#region Estado para cerrar queja
+  const [cerrarQueja, setCerrarQueja] = useState({
+    fecha: "",
+    id_clavecierre: "",
+  });
+  //#endregion
+
   //#region Estados para formulario de nuevo trabajo
   const [nuevoTrabajo, setNuevoTrabajo] = useState({
     fecha: "",
     probador: "",
     estado: "",
     observaciones: "",
+    trabajadores: [] as number[],
   });
   //#endregion
 
@@ -87,11 +94,9 @@ export default function QuejaDetallesModal({
     fecha: "",
     trabajadores: [] as number[],
   });
-  const [busquedaTrabajadores, setBusquedaTrabajadores] = useState("");
   //#endregion
 
-  //#region Efectos (carga inicial y reactividad)
-  // Cargar combos y historial al abrir el modal
+  //#region Efectos
   useEffect(() => {
     if (show && queja) {
       loadCombos();
@@ -99,14 +104,12 @@ export default function QuejaDetallesModal({
     }
   }, [show, queja]);
 
-  // Recargar historial cuando cambian los datos
   useEffect(() => {
     if (show && queja) {
       cargarHistorial();
     }
-  }, [pruebas, trabajos, asignacion, flujo, show, queja]);
+  }, [pruebas, trabajos, asignacion, show, queja]);
 
-  // Prellenar fecha actual al abrir formulario de nueva prueba
   useEffect(() => {
     if (showNuevaPrueba) {
       setNuevaPrueba((prev) => ({
@@ -116,17 +119,16 @@ export default function QuejaDetallesModal({
     }
   }, [showNuevaPrueba]);
 
-  // Prellenar fecha actual al abrir formulario de nuevo trabajo
   useEffect(() => {
     if (showNuevoTrabajo) {
       setNuevoTrabajo((prev) => ({
         ...prev,
         fecha: formatDateTimeLocal(),
+        trabajadores: [],
       }));
     }
   }, [showNuevoTrabajo]);
 
-  // Prellenar fecha actual al abrir formulario de nueva asignación
   useEffect(() => {
     if (showNuevaAsignacion) {
       setNuevaAsignacion((prev) => ({
@@ -135,8 +137,18 @@ export default function QuejaDetallesModal({
       }));
     }
   }, [showNuevaAsignacion]);
+
+  useEffect(() => {
+    if (showCerrarQueja) {
+      setCerrarQueja((prev) => ({
+        ...prev,
+        fecha: formatDateTimeLocal(),
+      }));
+    }
+  }, [showCerrarQueja]);
   //#endregion
-  //#region Funciones de carga de datos (combos y catálogos)
+
+  //#region Funciones de carga
   const loadCombos = async () => {
     try {
       setLoadingCombos(true);
@@ -155,8 +167,10 @@ export default function QuejaDetallesModal({
       setLoadingCombos(false);
     }
   };
+  // const clavesCierre = claves.filter((clave) => clave.es_pendiente === false);
   //#endregion
-  //#region Función principal: construcción del historial unificado
+
+  //#region Función para cargar historial
   const cargarHistorial = async () => {
     if (!queja) return;
 
@@ -164,7 +178,7 @@ export default function QuejaDetallesModal({
       setCargandoHistorial(true);
       const eventos: HistorialEvento[] = [];
 
-      // 1. Agregar clave inicial
+      // 1. Clave inicial
       if (queja.tb_clave) {
         eventos.push({
           id: queja.id_queja,
@@ -180,7 +194,7 @@ export default function QuejaDetallesModal({
         });
       }
 
-      // 2. Agregar pruebas realizadas
+      // 2. Pruebas
       pruebas.forEach((prueba) => {
         eventos.push({
           id: prueba.id_prueba,
@@ -200,31 +214,34 @@ export default function QuejaDetallesModal({
         });
       });
 
-      // 3. Agregar trabajos realizados
+      // 3. Trabajos
       trabajos.forEach((trabajo) => {
+        const trabajadoresNombres = trabajo.trabajadores
+          .map((t) => `${t.clave_trabajador || t.id_trabajador}`)
+          .join(", ");
+
         eventos.push({
           id: trabajo.id_trabajo,
           tipo: "trabajo",
           fecha: trabajo.fecha || new Date().toISOString(),
           titulo: "Trabajo Realizado",
-          descripcion: `Trabajo de: ${trabajo.tb_trabajador?.clave_trabajador || "N/A"} - Estado: ${trabajo.estado || "N/A"}`,
-          realizadoPor: trabajo.tb_trabajador?.clave_trabajador || undefined,
+          descripcion: `Trabajo realizado por: ${trabajadoresNombres} - Estado: ${trabajo.estado || "N/A"} - Probador: ${trabajo.tb_trabajador?.clave_trabajador || "N/A"}`,
+          realizadoPor: trabajadoresNombres || undefined,
           detalles: {
             id_trabajador: trabajo.tb_trabajador?.id_trabajador,
             trabajador: trabajo.tb_trabajador?.clave_trabajador,
-            estado: trabajo.estado,
+            estado: trabajo.tb_clave?.clave,
             observaciones: trabajo.observaciones,
+            trabajadores: trabajo.trabajadores,
           },
         });
       });
 
-      // 4. Agregar asignaciones
+      // 4. Asignaciones
       if (asignacion && asignacion.length > 0) {
         asignacion.forEach((asig) => {
           const trabajadoresNombres = asig.trabajadores
-            .map(
-              (t) => `${t.clave_trabajador || t.id_trabajador}${t.nombre ? ` (${t.nombre})` : ""}`,
-            )
+            .map((t) => `${t.clave_trabajador || t.id_trabajador}`)
             .join(", ");
 
           eventos.push({
@@ -242,9 +259,25 @@ export default function QuejaDetallesModal({
         });
       }
 
-      // Ordenar por fecha (más antiguo primero)
-      eventos.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+      // 5. Evento de cierre (si la queja está cerrada y tiene clave de cierre)
+      if (queja.estado === "Cerrada" && queja.id_clavecierre && claves.length > 0) {
+        const claveCierre = claves.find((c) => c.id_clave === queja.id_clavecierre);
+        eventos.push({
+          id: queja.id_queja,
+          tipo: "cierre",
+          fecha: queja.fechaok || queja.updatedAt,
+          titulo: "Queja Cerrada",
+          descripcion: `Queja cerrada con clave: ${claveCierre?.clave || queja.id_clavecierre}`,
+          realizadoPor: undefined,
+          detalles: {
+            id_clavecierre: queja.id_clavecierre,
+            clave: claveCierre?.clave,
+            fechaok: queja.fechaok,
+          },
+        });
+      }
 
+      eventos.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
       setHistorial(eventos);
     } catch (err) {
       console.error("Error cargando historial:", err);
@@ -254,9 +287,7 @@ export default function QuejaDetallesModal({
   };
   //#endregion
 
-  //#region Funciones de creación (Prueba, Trabajo, Asignación)
-
-  // Crear nueva prueba
+  //#region Handlers de creación
   const handleCrearPrueba = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!queja) return;
@@ -273,7 +304,6 @@ export default function QuejaDetallesModal({
         id_queja: queja.id_queja,
       });
 
-      // Limpiar formulario
       setNuevaPrueba({
         fecha: "",
         id_clave: "",
@@ -292,28 +322,37 @@ export default function QuejaDetallesModal({
     }
   };
 
-  // Crear nuevo trabajo
   const handleCrearTrabajo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!queja) return;
+
+    if (!nuevoTrabajo.probador) {
+      setError("Debe seleccionar un probador");
+      return;
+    }
 
     try {
       setGuardando(true);
       setError("");
 
-      await quejaService.createTrabajo({
-        fecha: nuevoTrabajo.fecha,
+      const requestData: CreateTrabajoRequest = {
+        fecha: nuevoTrabajo.fecha || new Date().toISOString(),
         probador: parseInt(nuevoTrabajo.probador),
         estado: nuevoTrabajo.estado ? parseInt(nuevoTrabajo.estado) : null,
         observaciones: nuevoTrabajo.observaciones || null,
         id_queja: queja.id_queja,
-      });
+        trabajadores: nuevoTrabajo.trabajadores.map((id) => ({ id_trabajador: id })),
+      };
+
+      console.log("📝 Creando trabajo:", requestData);
+      await quejaService.createTrabajo(requestData);
 
       setNuevoTrabajo({
         fecha: "",
         probador: "",
         estado: "",
         observaciones: "",
+        trabajadores: [],
       });
       setShowNuevoTrabajo(false);
 
@@ -327,12 +366,10 @@ export default function QuejaDetallesModal({
     }
   };
 
-  // Crear nueva asignación
   const handleCrearAsignacion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!queja) return;
 
-    // Validar que al menos un trabajador esté seleccionado
     if (nuevaAsignacion.trabajadores.length === 0) {
       setError("Debe seleccionar al menos un trabajador");
       return;
@@ -342,15 +379,12 @@ export default function QuejaDetallesModal({
       setGuardando(true);
       setError("");
 
-      const requestData: CreateAsignacionRequest = {
+      await quejaService.createAsignacion({
         id_queja: queja.id_queja,
         fechaAsignacion: nuevaAsignacion.fecha || new Date().toISOString(),
         trabajadores: nuevaAsignacion.trabajadores.map((id) => ({ id_trabajador: id })),
-      };
+      });
 
-      await quejaService.createAsignacion(requestData);
-
-      // Limpiar formulario
       setNuevaAsignacion({
         fecha: "",
         trabajadores: [],
@@ -366,67 +400,93 @@ export default function QuejaDetallesModal({
       setGuardando(false);
     }
   };
+
+  const handleCerrarQueja = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!queja) return;
+
+    if (!cerrarQueja.id_clavecierre) {
+      setError("Debe seleccionar una clave de cierre");
+      return;
+    }
+
+    try {
+      setGuardando(true);
+      setError("");
+
+      await quejaService.cerrarQueja(queja.id_queja, {
+        id_clavecierre: parseInt(cerrarQueja.id_clavecierre),
+        fechaok: cerrarQueja.fecha || new Date().toISOString(),
+      });
+
+      setCerrarQueja({
+        fecha: "",
+        id_clavecierre: "",
+      });
+      setShowCerrarQueja(false);
+
+      await cargarHistorial();
+      if (onDataUpdated) onDataUpdated();
+    } catch (err: any) {
+      setError(err?.response?.data?.error || "Error al cerrar la queja");
+      console.error("Error cerrando queja:", err);
+    } finally {
+      setGuardando(false);
+    }
+  };
   //#endregion
 
-  //#region Funciones de eliminación (Prueba, Trabajo, Asignación)
+  //#region Handlers de eliminación
+  // const handleEliminarPrueba = async (id: number) => {
+  //   if (!confirm("¿Está seguro de eliminar esta prueba?")) return;
 
-  const handleEliminarPrueba = async (id: number) => {
-    if (!confirm("¿Está seguro de eliminar esta prueba?")) return;
+  //   try {
+  //     setEliminandoPrueba(id);
+  //     setError("");
+  //     await quejaService.deletePrueba(id);
+  //     await cargarHistorial();
+  //     if (onDataUpdated) onDataUpdated();
+  //   } catch (err: any) {
+  //     setError(err?.response?.data?.error || "Error al eliminar la prueba");
+  //   } finally {
+  //     setEliminandoPrueba(null);
+  //   }
+  // };
 
-    try {
-      setEliminandoPrueba(id);
-      setError("");
+  // const handleEliminarTrabajo = async (id: number) => {
+  //   if (!confirm("¿Está seguro de eliminar este trabajo?")) return;
 
-      await quejaService.deletePrueba(id);
-      await cargarHistorial();
-      if (onDataUpdated) onDataUpdated();
-    } catch (err: any) {
-      setError(err?.response?.data?.error || "Error al eliminar la prueba");
-      console.error("Error eliminando prueba:", err);
-    } finally {
-      setEliminandoPrueba(null);
-    }
-  };
+  //   try {
+  //     setEliminandoTrabajo(id);
+  //     setError("");
+  //     await quejaService.deleteTrabajo(id);
+  //     await cargarHistorial();
+  //     if (onDataUpdated) onDataUpdated();
+  //   } catch (err: any) {
+  //     setError(err?.response?.data?.error || "Error al eliminar el trabajo");
+  //   } finally {
+  //     setEliminandoTrabajo(null);
+  //   }
+  // };
 
-  const handleEliminarTrabajo = async (id: number) => {
-    if (!confirm("¿Está seguro de eliminar este trabajo?")) return;
+  // const handleEliminarAsignacion = async (id: number) => {
+  //   if (!confirm("¿Está seguro de eliminar esta asignación?")) return;
 
-    try {
-      setEliminandoTrabajo(id);
-      setError("");
-
-      await quejaService.deleteTrabajo(id);
-      await cargarHistorial();
-      if (onDataUpdated) onDataUpdated();
-    } catch (err: any) {
-      setError(err?.response?.data?.error || "Error al eliminar el trabajo");
-      console.error("Error eliminando trabajo:", err);
-    } finally {
-      setEliminandoTrabajo(null);
-    }
-  };
-
-  const handleEliminarAsignacion = async (id: number) => {
-    if (!confirm("¿Está seguro de eliminar esta asignación?")) return;
-
-    try {
-      setEliminandoAsignacion(id);
-      setError("");
-
-      await quejaService.deleteAsignacion(id);
-      await cargarHistorial();
-      if (onDataUpdated) onDataUpdated();
-    } catch (err: any) {
-      setError(err?.response?.data?.error || "Error al eliminar la asignación");
-      console.error("Error eliminando asignación:", err);
-    } finally {
-      setEliminandoAsignacion(null);
-    }
-  };
+  //   try {
+  //     setEliminandoAsignacion(id);
+  //     setError("");
+  //     await quejaService.deleteAsignacion(id);
+  //     await cargarHistorial();
+  //     if (onDataUpdated) onDataUpdated();
+  //   } catch (err: any) {
+  //     setError(err?.response?.data?.error || "Error al eliminar la asignación");
+  //   } finally {
+  //     setEliminandoAsignacion(null);
+  //   }
+  // };
   //#endregion
 
   //#region Handlers de cambios en formularios
-
   const handlePruebaChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setNuevaPrueba((prev) => ({ ...prev, [name]: value }));
@@ -439,8 +499,24 @@ export default function QuejaDetallesModal({
     setNuevoTrabajo((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Manejar selección/deselección de trabajadores en el formulario de asignación
-  const handleTrabajadorToggle = (idTrabajador: number) => {
+  const handleTrabajadorTrabajoToggle = (idTrabajador: number) => {
+    setNuevoTrabajo((prev) => {
+      const yaSeleccionado = prev.trabajadores.includes(idTrabajador);
+      if (yaSeleccionado) {
+        return {
+          ...prev,
+          trabajadores: prev.trabajadores.filter((id) => id !== idTrabajador),
+        };
+      } else {
+        return {
+          ...prev,
+          trabajadores: [...prev.trabajadores, idTrabajador],
+        };
+      }
+    });
+  };
+
+  const handleTrabajadorAsignacionToggle = (idTrabajador: number) => {
     setNuevaAsignacion((prev) => {
       const yaSeleccionado = prev.trabajadores.includes(idTrabajador);
       if (yaSeleccionado) {
@@ -458,27 +534,7 @@ export default function QuejaDetallesModal({
   };
   //#endregion
 
-  //#region Variables computadas (filtros)
-  const probadoresFiltrados = probadores.filter((probador) => {
-    if (!busquedaTrabajadores) return true;
-
-    const busqueda = busquedaTrabajadores.toLowerCase().trim();
-    const clave = (probador.clave_trabajador || "").toLowerCase();
-    const nombre = (probador.nombre || "").toLowerCase();
-    const apellidos = (probador.apellidos || "").toLowerCase();
-    const id = probador.id_trabajador.toString();
-
-    return (
-      clave.includes(busqueda) ||
-      nombre.includes(busqueda) ||
-      apellidos.includes(busqueda) ||
-      id.includes(busqueda)
-    );
-  });
-  //#endregion
-
-  //#region Funciones auxiliares de UI (íconos, colores, cierre)
-
+  //#region Funciones auxiliares UI
   const getEventoIcono = (tipo: HistorialEvento["tipo"]) => {
     switch (tipo) {
       case "clave_inicial":
@@ -489,6 +545,8 @@ export default function QuejaDetallesModal({
         return <i className="ri-tools-line text-green-500"></i>;
       case "asignacion":
         return <i className="ri-user-add-line text-orange-500"></i>;
+      case "cierre":
+        return <i className="ri-lock-line text-red-500"></i>;
       default:
         return <i className="ri-information-line text-gray-500"></i>;
     }
@@ -504,6 +562,8 @@ export default function QuejaDetallesModal({
         return "border-l-green-500";
       case "asignacion":
         return "border-l-orange-500";
+      case "cierre":
+        return "border-l-red-500";
       default:
         return "border-l-gray-500";
     }
@@ -520,22 +580,14 @@ export default function QuejaDetallesModal({
   };
   //#endregion
 
-  //#region Renderizado condicional inicial
-  if (!show) {
-    return null;
-  }
-  //#endregion
+  if (!show) return null;
 
-  //#region Renderizado principal
   return (
     <div className="fixed inset-0 z-[9999]">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black bg-opacity-50" onClick={handleBackdropClick} />
-
-      {/* Contenido del modal */}
       <div className="relative flex items-center justify-center min-h-screen p-4">
         <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-          {/* Header fijo */}
+          {/* Header */}
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 sticky top-0 z-10">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold text-gray-900">
@@ -543,11 +595,7 @@ export default function QuejaDetallesModal({
                   ? "Cargando detalles..."
                   : `Detalles de Queja #${queja?.num_reporte || "N/A"}`}
               </h3>
-              <button
-                onClick={handleCloseClick}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-                type="button"
-              >
+              <button onClick={handleCloseClick} className="text-gray-400 hover:text-gray-600">
                 <i className="ri-close-line text-xl"></i>
               </button>
             </div>
@@ -570,20 +618,16 @@ export default function QuejaDetallesModal({
                 {/* Error message */}
                 {error && (
                   <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="flex items-center">
-                      <i className="ri-error-warning-line text-red-500 mr-2"></i>
+                    <div className="flex items-center justify-between">
                       <span className="text-red-700 text-sm">{error}</span>
-                      <button
-                        onClick={() => setError("")}
-                        className="ml-auto text-red-500 hover:text-red-700"
-                      >
+                      <button onClick={() => setError("")} className="text-red-500">
                         <i className="ri-close-line"></i>
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* Información principal de la queja (omitida por brevedad, es igual a tu código original) */}
+                {/* Información principal de la queja */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                   <div className="space-y-4">
                     <div>
@@ -602,9 +646,7 @@ export default function QuejaDetallesModal({
                       <p className="text-sm text-gray-900">
                         {queja.tb_telefono ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Teléfono:
-                            <i className="ri-phone-line mr-1"></i>
-                            {queja.tb_telefono.telefono}
+                            Teléfono: {queja.tb_telefono.telefono}
                           </span>
                         ) : (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -641,7 +683,6 @@ export default function QuejaDetallesModal({
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Estado</h4>
-
                       {queja.estado === "Asignada" ? (
                         <div className="flex items-center mb-2">
                           <div className="bg-yellow-100 rounded-full p-1 mr-2">
@@ -705,24 +746,19 @@ export default function QuejaDetallesModal({
                   </div>
                 </div>
 
-                {/* Fechas importantes */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                  {/* ... fechas ... */}
-                </div>
-
                 {/* BOTONES DE ACCIÓN */}
                 <div className="flex flex-wrap gap-4 mb-8">
                   <button
                     onClick={() => setShowNuevaPrueba(!showNuevaPrueba)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center space-x-2 transition-colors"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2"
                   >
                     <i className={showNuevaPrueba ? "ri-close-line" : "ri-add-line"}></i>
-                    <span>{showNuevaPrueba ? "Cancelar Prueba" : "Nueva Prueba"}</span>
+                    <span>{showNuevaPrueba ? "Cancelar Prueba" : "Insertar Datos Prueba"}</span>
                   </button>
 
                   <button
                     onClick={() => setShowNuevaAsignacion(!showNuevaAsignacion)}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center space-x-2 transition-colors"
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-2"
                   >
                     <i className={showNuevaAsignacion ? "ri-close-line" : "ri-user-add-line"}></i>
                     <span>
@@ -732,87 +768,83 @@ export default function QuejaDetallesModal({
 
                   <button
                     onClick={() => setShowNuevoTrabajo(!showNuevoTrabajo)}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center space-x-2 transition-colors"
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2"
                   >
                     <i className={showNuevoTrabajo ? "ri-close-line" : "ri-add-line"}></i>
-                    <span>{showNuevoTrabajo ? "Cancelar Trabajo" : "Nuevo Trabajo"}</span>
+                    <span>{showNuevoTrabajo ? "Cancelar Trabajo" : "Insertar Datos Trabajo"}</span>
                   </button>
+
+                  {queja?.estado !== "Cerrada" && (
+                    <button
+                      onClick={() => setShowCerrarQueja(!showCerrarQueja)}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center gap-2"
+                    >
+                      <i className={showCerrarQueja ? "ri-close-line" : "ri-lock-line"}></i>
+                      <span>{showCerrarQueja ? "Cancelar Cierre" : "Cerrar Queja"}</span>
+                    </button>
+                  )}
                 </div>
 
-                {/* FORMULARIO: Nueva Prueba */}
+                {/* FORMULARIO: Insertar Datos Prueba */}
                 {showNuevaPrueba && (
                   <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h5 className="text-sm font-semibold text-blue-800 mb-3">
-                      <i className="ri-add-circle-line mr-1"></i>
-                      Nueva Prueba
-                    </h5>
+                    <h5 className="font-semibold text-blue-800 mb-3">Insertar Datos Prueba</h5>
                     <form onSubmit={handleCrearPrueba} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Fecha
-                          </label>
+                          <label className="block text-sm font-medium mb-1">Fecha</label>
                           <input
                             type="datetime-local"
                             name="fecha"
                             value={nuevaPrueba.fecha}
                             onChange={handlePruebaChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border rounded-lg"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Probador
-                          </label>
+                          <label className="block text-sm font-medium mb-1">Probador</label>
                           <select
                             name="id_trabajador"
                             value={nuevaPrueba.id_trabajador}
                             onChange={handlePruebaChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border rounded-lg"
                           >
-                            <option value="">Seleccionar probador</option>
-                            {probadores.map((probador) => (
-                              <option key={probador.id_trabajador} value={probador.id_trabajador}>
-                                {probador.clave_trabajador || `ID: ${probador.id_trabajador}`}
+                            <option value="">Seleccionar</option>
+                            {probadores.map((p) => (
+                              <option key={p.id_trabajador} value={p.id_trabajador}>
+                                {p.clave_trabajador}
                               </option>
                             ))}
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Clave
-                          </label>
+                          <label className="block text-sm font-medium mb-1">Clave</label>
                           <select
                             name="id_clave"
                             value={nuevaPrueba.id_clave}
                             onChange={handlePruebaChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border rounded-lg"
                           >
-                            <option value="">Seleccionar clave</option>
-                            {claves.map((clave) => (
-                              <option key={clave.id_clave} value={clave.id_clave}>
-                                {clave.clave}
+                            <option value="">Seleccionar</option>
+                            {claves.map((c) => (
+                              <option key={c.id_clave} value={c.id_clave}>
+                                {c.clave}
                               </option>
                             ))}
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Resultado
-                          </label>
+                          <label className="block text-sm font-medium mb-1">Resultado</label>
                           <select
                             name="id_resultado"
                             value={nuevaPrueba.id_resultado}
                             onChange={handlePruebaChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border rounded-lg"
                           >
-                            <option value="">Seleccionar resultado</option>
-                            {resultados.map((resultado) => (
-                              <option
-                                key={resultado.id_resultadoprueba}
-                                value={resultado.id_resultadoprueba}
-                              >
-                                {resultado.resultado}
+                            <option value="">Seleccionar</option>
+                            {resultados.map((r) => (
+                              <option key={r.id_resultadoprueba} value={r.id_resultadoprueba}>
+                                {r.resultado}
                               </option>
                             ))}
                           </select>
@@ -822,10 +854,9 @@ export default function QuejaDetallesModal({
                         <button
                           type="submit"
                           disabled={guardando}
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg flex items-center space-x-2 disabled:opacity-50"
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg"
                         >
-                          {guardando && <i className="ri-loader-4-line animate-spin"></i>}
-                          <span>Guardar Prueba</span>
+                          {guardando ? "Guardando..." : "Guardar Prueba"}
                         </button>
                       </div>
                     </form>
@@ -835,361 +866,334 @@ export default function QuejaDetallesModal({
                 {/* FORMULARIO: Nueva Asignación */}
                 {showNuevaAsignacion && (
                   <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                    <h5 className="text-sm font-semibold text-purple-800 mb-3">
-                      <i className="ri-user-add-line mr-1"></i>
-                      Asignar Operario(s)
-                    </h5>
+                    <h5 className="font-semibold text-purple-800 mb-3">Asignar Operario(s)</h5>
                     <form onSubmit={handleCrearAsignacion} className="space-y-4">
-                      {/* Campo de fecha */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium mb-1">
                           Fecha de Asignación
                         </label>
                         <input
                           type="datetime-local"
-                          name="fecha"
                           value={nuevaAsignacion.fecha}
                           onChange={(e) =>
                             setNuevaAsignacion((prev) => ({ ...prev, fecha: e.target.value }))
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          className="w-full px-3 py-2 border rounded-lg"
                         />
                       </div>
-
-                      {/* 🔍 BUSCADOR DE TRABAJADORES */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Buscar Trabajador
-                        </label>
-                        <div className="relative">
-                          <i className="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                          <input
-                            type="text"
-                            placeholder="Buscar por clave, nombre o ID..."
-                            value={busquedaTrabajadores}
-                            onChange={(e) => setBusquedaTrabajadores(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-purple-500 focus:border-purple-500"
-                          />
-                          {busquedaTrabajadores && (
-                            <button
-                              type="button"
-                              onClick={() => setBusquedaTrabajadores("")}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                            >
-                              <i className="ri-close-circle-line"></i>
-                            </button>
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          <i className="ri-information-line mr-1"></i>
-                          Escribe para filtrar trabajadores por clave, nombre o ID
-                        </p>
-                      </div>
-
-                      {/* Lista de trabajadores filtrada */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium mb-2">
                           Seleccionar Trabajadores
-                          {busquedaTrabajadores && (
-                            <span className="ml-2 text-xs text-purple-600">
-                              ({probadoresFiltrados.length} resultados)
-                            </span>
-                          )}
                         </label>
-
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 border border-gray-200 rounded-lg bg-white">
-                          {probadoresFiltrados.length === 0 ? (
-                            <div className="col-span-full text-center py-4 text-gray-500 text-sm">
-                              <i className="ri-user-search-line text-2xl mb-1 block"></i>
-                              No se encontraron trabajadores
-                              {busquedaTrabajadores && (
-                                <button
-                                  type="button"
-                                  onClick={() => setBusquedaTrabajadores("")}
-                                  className="ml-2 text-purple-600 hover:underline"
-                                >
-                                  Limpiar búsqueda
-                                </button>
-                              )}
-                            </div>
-                          ) : (
-                            probadoresFiltrados.map((probador) => (
-                              <label
-                                key={probador.id_trabajador}
-                                className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors ${
-                                  nuevaAsignacion.trabajadores.includes(probador.id_trabajador)
-                                    ? "bg-purple-100 border border-purple-300"
-                                    : "hover:bg-gray-50 border border-transparent"
-                                }`}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={nuevaAsignacion.trabajadores.includes(
-                                    probador.id_trabajador,
-                                  )}
-                                  onChange={() => handleTrabajadorToggle(probador.id_trabajador)}
-                                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                                />
-                                <div className="flex-1">
-                                  <span className="text-sm font-medium text-gray-800">
-                                    {probador.clave_trabajador || `ID: ${probador.id_trabajador}`}
-                                  </span>
-                                  {probador.nombre && (
-                                    <span className="text-xs text-gray-500 ml-2">
-                                      ({probador.nombre} {probador.apellidos || ""})
-                                    </span>
-                                  )}
-                                </div>
-                              </label>
-                            ))
-                          )}
-                        </div>
-
-                        {/* Contador de seleccionados */}
-                        {nuevaAsignacion.trabajadores.length > 0 && (
-                          <div className="mt-2 text-xs text-purple-600 flex items-center justify-between">
-                            <span>
-                              <i className="ri-checkbox-circle-line mr-1"></i>
-                              {nuevaAsignacion.trabajadores.length} trabajador(es) seleccionado(s)
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setNuevaAsignacion((prev) => ({ ...prev, trabajadores: [] }))
-                              }
-                              className="text-red-500 hover:text-red-700 text-xs"
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border border-gray-200 rounded-lg bg-white">
+                          {probadores.map((probador) => (
+                            <label
+                              key={probador.id_trabajador}
+                              className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
                             >
-                              Limpiar todos
-                            </button>
-                          </div>
-                        )}
-
-                        {nuevaAsignacion.trabajadores.length === 0 && (
-                          <p className="text-xs text-red-500 mt-1">
-                            <i className="ri-error-warning-line mr-1"></i>
-                            Seleccione al menos un trabajador
-                          </p>
-                        )}
+                              <input
+                                type="checkbox"
+                                checked={nuevaAsignacion.trabajadores.includes(
+                                  probador.id_trabajador,
+                                )}
+                                onChange={() =>
+                                  handleTrabajadorAsignacionToggle(probador.id_trabajador)
+                                }
+                                className="rounded border-gray-300 text-purple-600"
+                              />
+                              <span className="text-sm">
+                                {probador.clave_trabajador}
+                                {probador.nombre && (
+                                  <span className="text-gray-500 ml-1">({probador.nombre})</span>
+                                )}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
                       </div>
-
-                      {/* Botones de acción */}
-                      <div className="flex justify-end space-x-2">
+                      <div className="flex justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => {
-                            setShowNuevaAsignacion(false);
-                            setBusquedaTrabajadores(""); // Limpiar búsqueda al cerrar
-                            setNuevaAsignacion({ fecha: "", trabajadores: [] }); // Resetear formulario
-                          }}
-                          className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm rounded-lg transition-colors"
+                          onClick={() => setShowNuevaAsignacion(false)}
+                          className="px-4 py-2 bg-gray-300 rounded-lg"
                         >
                           Cancelar
                         </button>
                         <button
                           type="submit"
                           disabled={guardando || nuevaAsignacion.trabajadores.length === 0}
-                          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg flex items-center space-x-2 disabled:opacity-50 transition-colors"
+                          className="px-4 py-2 bg-purple-600 text-white rounded-lg disabled:opacity-50"
                         >
-                          {guardando && <i className="ri-loader-4-line animate-spin"></i>}
-                          <i className="ri-user-add-line"></i>
-                          <span>
-                            Asignar{" "}
-                            {nuevaAsignacion.trabajadores.length > 0 &&
-                              `(${nuevaAsignacion.trabajadores.length})`}
-                          </span>
+                          {guardando ? "Guardando..." : "Asignar"}
                         </button>
                       </div>
                     </form>
                   </div>
                 )}
 
-                {/* FORMULARIO: Nuevo Trabajo */}
+                {/* FORMULARIO: Insertar Datos Trabajo */}
                 {showNuevoTrabajo && (
                   <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <h5 className="text-sm font-semibold text-green-800 mb-3">
-                      <i className="ri-add-circle-line mr-1"></i>
-                      Nuevo Trabajo
-                    </h5>
+                    <h5 className="font-semibold text-green-800 mb-3">Insertar Datos Trabajo</h5>
                     <form onSubmit={handleCrearTrabajo} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Fecha *
-                          </label>
+                          <label className="block text-sm font-medium mb-1">Fecha *</label>
                           <input
                             type="datetime-local"
                             name="fecha"
                             value={nuevoTrabajo.fecha}
                             onChange={handleTrabajoChange}
                             required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border rounded-lg"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Probador *
-                          </label>
+                          <label className="block text-sm font-medium mb-1">Probador *</label>
                           <select
                             name="probador"
                             value={nuevoTrabajo.probador}
                             onChange={handleTrabajoChange}
                             required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border rounded-lg"
                           >
                             <option value="">Seleccionar probador</option>
-                            {probadores.map((probador) => (
-                              <option key={probador.id_trabajador} value={probador.id_trabajador}>
-                                {probador.clave_trabajador || `ID: ${probador.id_trabajador}`}
+                            {probadores.map((p) => (
+                              <option key={p.id_trabajador} value={p.id_trabajador}>
+                                {p.clave_trabajador} {p.nombre ? `- ${p.nombre}` : ""}
                               </option>
                             ))}
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Estado
-                          </label>
+                          <label className="block text-sm font-medium mb-1">Estado (Clave)</label>
                           <select
                             name="estado"
                             value={nuevoTrabajo.estado}
                             onChange={handleTrabajoChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border rounded-lg"
                           >
                             <option value="">Seleccionar estado</option>
-                            {claves.map((clave) => (
-                              <option key={clave.id_clave} value={clave.id_clave}>
-                                {clave.clave}
+                            {claves.map((c) => (
+                              <option key={c.id_clave} value={c.id_clave}>
+                                {c.clave}
                               </option>
                             ))}
                           </select>
                         </div>
                       </div>
+
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Observaciones
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Operarios que realizan el trabajo
                         </label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border border-gray-200 rounded-lg bg-white">
+                          {probadores.map((probador) => (
+                            <label
+                              key={probador.id_trabajador}
+                              className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={nuevoTrabajo.trabajadores.includes(probador.id_trabajador)}
+                                onChange={() =>
+                                  handleTrabajadorTrabajoToggle(probador.id_trabajador)
+                                }
+                                className="rounded border-gray-300 text-green-600"
+                              />
+                              <span className="text-sm">
+                                {probador.clave_trabajador}
+                                {probador.nombre && (
+                                  <span className="text-gray-500 ml-1">({probador.nombre})</span>
+                                )}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                        {nuevoTrabajo.trabajadores.length === 0 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Seleccione los operarios que realizan el trabajo
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Observaciones</label>
                         <textarea
                           name="observaciones"
                           value={nuevoTrabajo.observaciones}
                           onChange={handleTrabajoChange}
-                          rows={2}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                          rows={3}
+                          className="w-full px-3 py-2 border rounded-lg"
                           placeholder="Descripción del trabajo realizado..."
                         />
                       </div>
-                      <div className="flex justify-end">
+
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowNuevoTrabajo(false)}
+                          className="px-4 py-2 bg-gray-300 rounded-lg"
+                        >
+                          Cancelar
+                        </button>
                         <button
                           type="submit"
-                          disabled={guardando}
-                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg flex items-center space-x-2 disabled:opacity-50"
+                          disabled={guardando || !nuevoTrabajo.probador}
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50"
                         >
-                          {guardando && <i className="ri-loader-4-line animate-spin"></i>}
-                          <span>Guardar Trabajo</span>
+                          {guardando ? "Guardando..." : "Guardar Trabajo"}
                         </button>
                       </div>
                     </form>
                   </div>
                 )}
 
-                {/* HISTORIAL DE FLUJO */}
+                {/* FORMULARIO: Cerrar Queja */}
+                {showCerrarQueja && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h5 className="font-semibold text-red-800 mb-3 flex items-center gap-2">
+                      <i className="ri-lock-line"></i>
+                      Cerrar Queja
+                    </h5>
+                    <form onSubmit={handleCerrarQueja} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Fecha de Cierre *
+                          </label>
+                          <input
+                            type="datetime-local"
+                            value={cerrarQueja.fecha}
+                            onChange={(e) =>
+                              setCerrarQueja((prev) => ({ ...prev, fecha: e.target.value }))
+                            }
+                            required
+                            className="w-full px-3 py-2 border rounded-lg"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Clave de Cierre *
+                          </label>
+                          <select
+                            value={cerrarQueja.id_clavecierre}
+                            onChange={(e) =>
+                              setCerrarQueja((prev) => ({
+                                ...prev,
+                                id_clavecierre: e.target.value,
+                              }))
+                            }
+                            required
+                            className="w-full px-3 py-2 border rounded-lg"
+                          >
+                            <option value="">Seleccionar clave de cierre</option>
+                            {claves
+                              .filter((clave) => clave.es_pendiente === false)
+                              .map((clave) => (
+                                <option key={clave.id_clave} value={clave.id_clave}>
+                                  {clave.clave} {clave.descripcion ? `- ${clave.descripcion}` : ""}
+                                </option>
+                              ))}
+                          </select>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Solo se muestran claves que no son pendientes
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                        <p className="text-sm text-yellow-800 flex items-center gap-2">
+                          <i className="ri-alert-line"></i>
+                          <strong>Advertencia:</strong> Al cerrar esta queja, no podrá realizar más
+                          cambios.
+                        </p>
+                      </div>
+
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowCerrarQueja(false)}
+                          className="px-4 py-2 bg-gray-300 rounded-lg"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={guardando}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg disabled:opacity-50 flex items-center gap-2"
+                        >
+                          {guardando ? (
+                            <>
+                              <i className="ri-loader-4-line animate-spin"></i>
+                              Procesando...
+                            </>
+                          ) : (
+                            <>
+                              <i className="ri-check-line"></i>
+                              Confirmar Cierre
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* HISTORIAL */}
                 <div className="mt-8">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <i className="ri-history-line mr-2 text-blue-500"></i>
+                  <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <i className="ri-history-line text-blue-500"></i>
                     Historial de Flujo
                   </h4>
-
                   {cargandoHistorial ? (
-                    <div className="text-center py-8">
-                      <i className="ri-loader-4-line animate-spin text-2xl text-blue-600"></i>
-                      <p className="text-gray-500 mt-2">Cargando historial...</p>
-                    </div>
+                    <div className="text-center py-8">Cargando historial...</div>
                   ) : historial.length === 0 ? (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg">
-                      <i className="ri-inbox-line text-4xl text-gray-400"></i>
-                      <p className="text-gray-500 mt-2">No hay eventos en el historial</p>
-                    </div>
+                    <div className="text-center py-8 text-gray-500">No hay eventos</div>
                   ) : (
-                    <div className="relative">
+                    <div className="relative pl-6">
                       <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
                       <div className="space-y-4">
-                        {historial.map((evento, index) => (
-                          <div
-                            key={`${evento.tipo}-${evento.id}-${index}`}
-                            className="relative pl-12"
-                          >
+                        {historial.map((evento, idx) => (
+                          <div key={idx} className="relative pl-8">
                             <div
-                              className={`absolute left-4 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-2 ${getEventoColor(evento.tipo)} flex items-center justify-center`}
-                            >
-                              <div className="w-2 h-2 rounded-full bg-current"></div>
-                            </div>
+                              className={`absolute left-0 w-4 h-4 rounded-full border-2 bg-white ${getEventoColor(evento.tipo)}`}
+                            ></div>
                             <div
-                              className={`bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow border-l-4 ${getEventoColor(evento.tipo)}`}
+                              className={`bg-white border rounded-lg p-4 border-l-4 ${getEventoColor(evento.tipo)}`}
                             >
-                              <div className="flex items-start justify-between mb-2">
-                                <div className="flex items-center space-x-2">
-                                  {getEventoIcono(evento.tipo)}
-                                  <h5 className="font-semibold text-gray-900">{evento.titulo}</h5>
-                                </div>
+                              <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs text-gray-500">
-                                    {new Date(evento.fecha).toLocaleString()}
-                                  </span>
-                                  {(evento.tipo === "prueba" ||
-                                    evento.tipo === "trabajo" ||
-                                    evento.tipo === "asignacion") && (
-                                    <button
-                                      onClick={() => {
-                                        if (evento.tipo === "prueba")
-                                          handleEliminarPrueba(evento.id);
-                                        else if (evento.tipo === "trabajo")
-                                          handleEliminarTrabajo(evento.id);
-                                        else if (evento.tipo === "asignacion")
-                                          handleEliminarAsignacion(evento.id);
-                                      }}
-                                      disabled={
-                                        (evento.tipo === "prueba" &&
-                                          eliminandoPrueba === evento.id) ||
-                                        (evento.tipo === "trabajo" &&
-                                          eliminandoTrabajo === evento.id) ||
-                                        (evento.tipo === "asignacion" &&
-                                          eliminandoAsignacion === evento.id)
-                                      }
-                                      className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors disabled:opacity-50"
-                                    >
-                                      {(evento.tipo === "prueba" &&
-                                        eliminandoPrueba === evento.id) ||
-                                      (evento.tipo === "trabajo" &&
-                                        eliminandoTrabajo === evento.id) ||
-                                      (evento.tipo === "asignacion" &&
-                                        eliminandoAsignacion === evento.id) ? (
-                                        <i className="ri-loader-4-line animate-spin"></i>
-                                      ) : (
-                                        <i className="ri-delete-bin-line"></i>
-                                      )}
-                                    </button>
-                                  )}
+                                  {getEventoIcono(evento.tipo)}
+                                  <h5 className="font-semibold">{evento.titulo}</h5>
                                 </div>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(evento.fecha).toLocaleString()}
+                                </span>
                               </div>
-                              <p className="text-sm text-gray-700 mb-2">{evento.descripcion}</p>
+                              <p className="text-sm text-gray-600 mt-1">{evento.descripcion}</p>
                               {evento.realizadoPor && (
-                                <div className="text-xs text-gray-500 flex items-center mt-2">
-                                  <i className="ri-user-line mr-1"></i>
+                                <div className="text-xs text-gray-400 mt-2">
                                   Realizado por: {evento.realizadoPor}
                                 </div>
                               )}
                               {evento.tipo === "trabajo" && evento.detalles.observaciones && (
-                                <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600">
+                                <div className="mt-2 text-xs text-gray-500 bg-gray-50 p-2 rounded">
                                   <strong>Observaciones:</strong> {evento.detalles.observaciones}
+                                  <div className="mt-1 flex gap-2">
+                                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">
+                                      Clave: {evento.detalles.estado}
+                                    </span>
+                                  </div>
                                 </div>
                               )}
-                              {evento.tipo === "prueba" && (
+                              {evento.tipo === "prueba" && evento.detalles.clave && (
                                 <div className="mt-2 flex gap-2 text-xs">
-                                  {evento.detalles.clave && (
-                                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">
-                                      Clave: {evento.detalles.clave}
-                                    </span>
-                                  )}
+                                  <span className="px-2 py-1 bg-purple-100 rounded">
+                                    Clave: {evento.detalles.clave}
+                                  </span>
                                   {evento.detalles.resultado && (
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                                    <span className="px-2 py-1 bg-blue-100 rounded">
                                       Resultado: {evento.detalles.resultado}
                                     </span>
                                   )}
@@ -1209,5 +1213,4 @@ export default function QuejaDetallesModal({
       </div>
     </div>
   );
-  //#endregion
 }

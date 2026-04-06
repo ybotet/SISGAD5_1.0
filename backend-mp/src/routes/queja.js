@@ -40,4 +40,6 @@ router.put("/:id", QuejaController.update);
  */
 router.delete("/:id", QuejaController.delete);
 
+router.patch("/:id/cerrar", QuejaController.cerrar);
+
 module.exports = router;

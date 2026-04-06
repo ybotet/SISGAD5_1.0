@@ -14,6 +14,7 @@ const {
   createQuejaSchema,
   updateQuejaSchema,
   listQuejaSchema,
+  cerrarQuejaSchema,
 } = require("../validations/queja.schemas");
 const validate = require("../middleware/validate");
 const apiErrors = require("../utils/apiErrors");
@@ -54,7 +55,7 @@ const QuejaController = {
    *         description: Buscar por num_reporte
    *       - in: query
    *         name: estado
-   *         schema: { type: string, enum: [Abierta, Probada, Pendiente, Asignada, Cerrada] }
+   *         schema: { type: string, enum: ["Abierta", "Probada", "Pendiente", "Asignada", "Resuelta", "Cerrada"] }
    *     responses:
    *       200:
    *         description: Lista de quejas
@@ -160,14 +161,11 @@ const QuejaController = {
         // Forzar valores seguros (nunca undefined/NaN)
         const sortByRaw = req.query.sortBy;
         const sortByValue =
-          typeof sortByRaw === "string" && ALLOWED_SORT.includes(sortByRaw)
-            ? sortByRaw
-            : "fecha";
+          typeof sortByRaw === "string" && ALLOWED_SORT.includes(sortByRaw) ? sortByRaw : "fecha";
 
         const sortOrderRaw = req.query.sortOrder;
         const sortOrderValue =
-          typeof sortOrderRaw === "string" &&
-          ["ASC", "DESC"].includes(sortOrderRaw.toUpperCase())
+          typeof sortOrderRaw === "string" && ["ASC", "DESC"].includes(sortOrderRaw.toUpperCase())
             ? sortOrderRaw.toUpperCase()
             : "DESC";
 
@@ -178,7 +176,6 @@ const QuejaController = {
           raw: req.query.sortBy,
         });
 
-        // ✅ Consulta con valores blindados
         const data = await Queja.findAndCountAll({
           where: whereClause,
           include: includeConfig,
@@ -232,11 +229,12 @@ const QuejaController = {
    *                     queja: { $ref: '#/components/schemas/Queja' }
    *                     pruebas: { type: array, items: { type: object } }
    *                     trabajos: { type: array, items: { type: object } }
-   *                     flujo: { type: array, items: { type: object } }
    *       401: { description: 'No autorizado', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
    *       404: { description: 'Queja no encontrada', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
    *       500: { description: 'Error interno', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
    */
+
+  // En QuejaController.js - getById
 
   async getById(req, res, next) {
     try {
@@ -265,91 +263,102 @@ const QuejaController = {
         return next(apiErrors.notFound("Queja"));
       }
 
-      const [pruebas, trabajos, asignaciones] = await Promise.all([
-        Prueba.findAll({
-          where: { id_queja: id },
-          include: [
-            {
-              association: "tb_resultadoprueba",
-              attributes: ["id_resultadoprueba", "resultado"],
-            },
-            { association: "tb_cable", attributes: ["id_cable", "numero"] },
-            { association: "tb_clave", attributes: ["id_clave", "clave"] },
-            {
-              association: "tb_trabajador",
-              attributes: ["id_trabajador", "clave_trabajador"],
-            },
-          ],
-        }),
-        Trabajo.findAll({
-          where: { id_queja: id },
-          include: [
-            { association: "tb_clave", attributes: ["id_clave", "clave"] },
-            {
-              association: "tb_trabajador",
-              attributes: ["id_trabajador", "clave_trabajador"],
-            },
-          ],
-        }),
-        // MODIFICADO: Incluir los trabajadores asociados a cada asignación
-        Asignacion.findAll({
-          where: { id_queja: id },
-          include: [
-            {
-              association: "tb_asignacion_trabajadores", // Nombre de la asociación
-              include: [
-                {
-                  association: "tb_trabajador", // Incluir los datos del trabajador
-                  attributes: ["id_trabajador", "clave_trabajador", "nombre"],
-                },
-              ],
-            },
-          ],
-          order: [["fechaAsignacion", "DESC"]], // Ordenar por fecha descendente
-        }),
-      ]);
+      // Consultar pruebas
+      const pruebas = await Prueba.findAll({
+        where: { id_queja: id },
+        include: [
+          {
+            association: "tb_resultadoprueba",
+            attributes: ["id_resultadoprueba", "resultado"],
+          },
+          { association: "tb_cable", attributes: ["id_cable", "numero"] },
+          { association: "tb_clave", attributes: ["id_clave", "clave"] },
+          {
+            association: "tb_trabajador",
+            attributes: ["id_trabajador", "clave_trabajador"],
+          },
+        ],
+      });
 
-      // Procesar asignaciones para formatear la respuesta
-      const asignacionesFormateadas = asignaciones.map((asignacion) => {
-        const asignacionObj = asignacion.toJSON();
-        // Extraer los trabajadores asociados
+      // ✅ CONSULTAR TRABAJOS CON SUS TRABAJADORES ASOCIADOS
+      const trabajosRaw = await Trabajo.findAll({
+        where: { id_queja: id },
+        include: [
+          {
+            association: "tb_clave",
+            attributes: ["id_clave", "clave"],
+          },
+          {
+            association: "tb_trabajador",
+            attributes: ["id_trabajador", "clave_trabajador", "nombre"],
+          },
+          {
+            // ✅ Esta es la asociación clave
+            association: "tb_trabajo_trabajadores",
+            required: false,
+            include: [
+              {
+                association: "tb_trabajador",
+                attributes: ["id_trabajador", "clave_trabajador", "nombre"],
+              },
+            ],
+          },
+        ],
+      });
+
+      // ✅ Formatear trabajos para incluir el array de trabajadores
+      const trabajos = trabajosRaw.map((trabajo) => {
+        const trabajoPlain = trabajo.toJSON();
         const trabajadoresAsignados =
-          asignacionObj.tb_asignacion_trabajadores?.map(
-            (at) => at.tb_trabajador,
-          ) || [];
+          trabajoPlain.tb_trabajo_trabajadores?.map((tt) => tt.tb_trabajador) || [];
 
         return {
-          ...asignacionObj,
-          trabajadores: trabajadoresAsignados, // Agregar array de trabajadores
+          ...trabajoPlain,
+          trabajadores: trabajadoresAsignados,
         };
       });
 
-      // Construir historial de flujo
-      const flujo = [];
-      const clavesArr = Array.isArray(queja.claves_flujo)
-        ? queja.claves_flujo
-        : [];
-      const fechasArr = Array.isArray(queja.fechas_flujo)
-        ? queja.fechas_flujo
-        : [];
-      for (let i = 0; i < Math.max(clavesArr.length, fechasArr.length); i++) {
-        flujo.push({
-          id_clave: clavesArr[i] ?? null,
-          fecha: fechasArr[i] ?? null,
-        });
-      }
+      // Consultar asignaciones
+      const asignacionesRaw = await Asignacion.findAll({
+        where: { id_queja: id },
+        include: [
+          {
+            association: "tb_asignacion_trabajadores",
+            required: false,
+            include: [
+              {
+                association: "tb_trabajador",
+                attributes: ["id_trabajador", "clave_trabajador", "nombre"],
+              },
+            ],
+          },
+        ],
+        order: [["fechaAsignacion", "DESC"]],
+      });
+
+      // Formatear asignaciones
+      const asignacion = asignacionesRaw.map((asignacion) => {
+        const asignacionPlain = asignacion.toJSON();
+        const trabajadoresAsignados =
+          asignacionPlain.tb_asignacion_trabajadores?.map((at) => at.tb_trabajador) || [];
+
+        return {
+          ...asignacionPlain,
+          trabajadores: trabajadoresAsignados,
+        };
+      });
 
       res.json({
         success: true,
         data: {
           queja,
           pruebas,
-          trabajos,
-          asignacion: asignacionesFormateadas, // Enviar asignaciones formateadas
-          flujo,
+          trabajos, // ✅ Ahora incluye la propiedad 'trabajadores'
+          asignacion,
         },
       });
     } catch (error) {
+      console.error("❌ Error en getById:", error);
       next(error);
     }
   },
@@ -397,12 +406,6 @@ const QuejaController = {
       try {
         const bodyData = { ...req.body };
         console.log("🔍 CREATE DEBUG - Body recibido:", bodyData);
-
-        // 🔹 Lógica de flujo inicial (id_clave + fecha)
-        if (bodyData.id_clave && bodyData.fecha) {
-          bodyData.claves_flujo = [bodyData.id_clave];
-          bodyData.fechas_flujo = [new Date(bodyData.fecha)];
-        }
 
         bodyData.estado = "Abierta";
         bodyData.created_by = req.userId; // ← Del middleware auth
@@ -455,7 +458,7 @@ const QuejaController = {
    *             properties:
    *               estado:
    *                 type: string
-   *                 enum: [Abierta, Probada, Pendiente, Asignada, Cerrada]
+   *                 enum: ["Abierta", "Probada", "Pendiente", "Asignada", "Resuelta", "Cerrada"]
    *                 example: "Probada"
    *                 description: Nuevo estado de la queja
    *               prioridad:
@@ -521,24 +524,41 @@ const QuejaController = {
         const { id } = req.params;
         const updateData = { ...req.body, updated_by: req.userId };
 
-        // 🔹 Si se actualiza estado, validar transición (opcional: lógica de negocio)
+        // 🔹 Si se actualiza estado, validar transición
         if (updateData.estado) {
           const validTransitions = {
             Abierta: ["Probada"],
-            Probada: ["Asignada", "Pendiente", "Cerrada"],
-            Pendiente: ["Cerrada", "Probada", "Asignada"],
-            Asignada: ["Cerrada", "Pendiente"],
-            Cerrada: [], // Terminal
+            Probada: ["Asignada", "Pendiente", "Resuelta"],
+            Pendiente: ["Resuelta", "Probada", "Asignada"],
+            Asignada: ["Resuelta", "Pendiente"],
+            Resuelta: ["Cerrada"],
+            Cerrada: [], // Terminal - una vez cerrada no puede cambiar
           };
 
           const current = await Queja.findByPk(id, { attributes: ["estado"] });
-          if (
-            current &&
-            !validTransitions[current.estado]?.includes(updateData.estado)
-          ) {
-            return next(
-              apiErrors.badRequest("ERROR.ESTADO.TRANSICION.INVALIDA"),
-            );
+          if (current && !validTransitions[current.estado]?.includes(updateData.estado)) {
+            return next(apiErrors.badRequest("ERROR.ESTADO.TRANSICION.INVALIDA"));
+          }
+
+          // ✅ Si se está cerrando la queja, validar que tenga clave de cierre
+          if (updateData.estado === "Cerrada") {
+            if (!updateData.id_clavecierre && !req.body.id_clavecierre) {
+              return next(apiErrors.badRequest("Debe seleccionar una clave de cierre"));
+            }
+            if (!updateData.fechaok && !req.body.fechaok) {
+              return next(apiErrors.badRequest("Debe seleccionar una fecha de cierre"));
+            }
+          }
+        }
+
+        // ✅ Si se envía id_clavecierre, validar que la clave exista y no sea pendiente
+        if (updateData.id_clavecierre) {
+          const claveCierre = await Clave.findByPk(updateData.id_clavecierre);
+          if (!claveCierre) {
+            return next(apiErrors.badRequest("La clave de cierre no existe"));
+          }
+          if (claveCierre.es_pendiente === true) {
+            return next(apiErrors.badRequest("No se puede cerrar con una clave pendiente"));
           }
         }
 
@@ -551,11 +571,20 @@ const QuejaController = {
           return next(apiErrors.notFound("Queja"));
         }
 
-        const updatedData = await Queja.findByPk(id);
+        const updatedData = await Queja.findByPk(id, {
+          include: [
+            { association: "tb_clave", attributes: ["id_clave", "clave"] },
+            {
+              association: "tb_clave_cierre",
+              attributes: ["id_clave", "clave", "es_pendiente"],
+              required: false,
+            },
+          ],
+        });
 
         res.json({
           success: true,
-          message: "ERROR.QUEJA.UPDATED",
+          message: "Queja actualizada exitosamente",
           data: updatedData,
         });
       } catch (error) {
@@ -593,6 +622,85 @@ const QuejaController = {
       next(error);
     }
   },
+
+  cerrar: [
+    validate(cerrarQuejaSchema, "body"),
+    async (req, res, next) => {
+      try {
+        const { id } = req.params;
+        const { id_clavecierre, fechaok } = req.body;
+
+        // 1. Verificar que la queja existe
+        const queja = await Queja.findByPk(id, {
+          attributes: ["id_queja", "estado"],
+        });
+
+        if (!queja) {
+          return next(apiErrors.notFound("Queja"));
+        }
+
+        // 2. Validar que no esté ya cerrada
+        if (queja.estado === "Cerrada") {
+          return next(apiErrors.badRequest("La queja ya está cerrada"));
+        }
+
+        // 3. Validar que la clave de cierre exista y no sea pendiente
+        const claveCierre = await Clave.findByPk(id_clavecierre);
+        if (!claveCierre) {
+          return next(apiErrors.badRequest("La clave de cierre no existe"));
+        }
+        if (claveCierre.es_pendiente === true) {
+          return next(apiErrors.badRequest("No se puede cerrar con una clave pendiente"));
+        }
+
+        // 4. Validar transición de estado (opcional)
+        const estadosValidosParaCerrar = ["Resuelta", "Asignada", "Probada"];
+        if (!estadosValidosParaCerrar.includes(queja.estado)) {
+          return next(
+            apiErrors.badRequest(
+              `No se puede cerrar una queja en estado "${queja.estado}". La queja debe estar en estado Resuelta, Asignada o Probada.`,
+            ),
+          );
+        }
+
+        // 5. Actualizar la queja
+        await Queja.update(
+          {
+            estado: "Cerrada",
+            id_clavecierre: id_clavecierre,
+            fechaok: fechaok,
+            updated_by: req.userId,
+          },
+          {
+            where: { id_queja: parseInt(id) },
+            validate: false, // Desactivar validación
+            individualHooks: false,
+          },
+        );
+
+        // 6. Obtener la queja actualizada con sus relaciones
+        const updatedData = await Queja.findByPk(id, {
+          include: [
+            { association: "tb_clave", attributes: ["id_clave", "clave"] },
+            {
+              association: "tb_clave_cierre",
+              attributes: ["id_clave", "clave", "es_pendiente"],
+              required: false,
+            },
+          ],
+        });
+
+        res.json({
+          success: true,
+          message: "Queja cerrada exitosamente",
+          data: updatedData,
+        });
+      } catch (error) {
+        console.error("❌ Error cerrando queja:", error);
+        next(error);
+      }
+    },
+  ],
 };
 
 module.exports = QuejaController;
