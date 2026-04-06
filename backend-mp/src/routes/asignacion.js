@@ -26,4 +26,11 @@ router.get("/", AsignacionController.getAll);
  */
 router.get("/:id", AsignacionController.getById);
 
+/**
+ * @route   DELETE /api/asignacion/:id
+ * @desc    Eliminar una asignacion por ID
+ * @access  Public
+ */
+router.delete("/:id", AsignacionController.delete);
+
 module.exports = router;

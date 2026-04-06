@@ -1,6 +1,32 @@
 import api from "./apiMp";
 
-// Interfaces principales
+//#region RESPUESTAS ESTÁNDAR DEL API
+// ============================================
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+//#endregion RESPUESTAS ESTÁNDAR DEL API
+
+//#region DOMINIO: CATÁLOGOS (Combos/Selectores)
+// ============================================
 export interface Telefono {
   id_telefono: number;
   telefono: string;
@@ -9,6 +35,9 @@ export interface Telefono {
 export interface Trabajador {
   id_trabajador: number;
   clave_trabajador: string;
+  nombre?: string;
+  apellidos?: string;
+  cargo?: string;
 }
 
 export interface TipoQueja {
@@ -19,6 +48,7 @@ export interface TipoQueja {
 export interface Clave {
   id_clave: number;
   clave: string;
+  descripcion?: string;
 }
 
 export interface ResultadoPrueba {
@@ -35,37 +65,10 @@ export interface Linea {
   id_linea: number;
   clavelinea: string;
 }
+//#endregion DOMINIO: CATÁLOGOS (Combos/Selectores)
 
-// Interfaces relacionadas para detalles
-export interface PruebaItem {
-  id_prueba: number;
-  fecha: string | null;
-  id_resultado: number | null;
-  id_trabajador: number | null;
-  id_cable: number | null;
-  id_clave: number | null;
-  id_queja: number | null;
-  estado: string | null;
-  createdAt: string;
-  updatedAt: string;
-  tb_resultadoprueba: any | null;
-  tb_cable: any | null;
-  tb_clave: Clave | null;
-  tb_trabajador: any | null;
-}
-
-export interface TrabajoItem {
-  id_trabajo: number;
-  fecha: string;
-  probador: number;
-  estado: number | null;
-  observaciones: string | null;
-  id_queja: number;
-  tb_trabajador: any | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
+//#region DOMINIO: QUEJA
+// ============================================
 export interface QuejaItem {
   num_reporte: number;
   fecha: string;
@@ -89,13 +92,13 @@ export interface QuejaItem {
   claves_flujo?: number[];
   fechas_flujo?: string[];
 
-  // Campos relacionados
+  // Relaciones
   tb_telefono?: Telefono | null;
   tb_linea?: Linea | null;
   tb_tipoqueja?: TipoQueja | null;
   tb_clave?: Clave | null;
   tb_pizarra?: Pizarra | null;
-  tb_trabajador?: any | null;
+  tb_trabajador?: Trabajador | null;
 }
 
 export interface CreateQuejaRequest {
@@ -117,6 +120,46 @@ export interface CreateQuejaRequest {
   reportado_por?: string | null;
 }
 
+export interface UpdateQuejaRequest extends Partial<CreateQuejaRequest> {}
+
+export interface FlujoItem {
+  id_clave: number | null;
+  fecha: string | null;
+}
+
+export interface QuejaDetallesResponse {
+  success: boolean;
+  data: {
+    queja: QuejaItem;
+    pruebas: PruebaItem[];
+    trabajos: TrabajoItem[];
+    asignacion: AsignacionItem[];
+    flujo: FlujoItem[];
+  };
+}
+//#endregion DOMINIO: QUEJA
+
+//#region DOMINIO: PRUEBA
+// ============================================
+export interface PruebaItem {
+  id_prueba: number;
+  fecha: string | null;
+  id_resultado: number | null;
+  id_trabajador: number | null;
+  id_cable: number | null;
+  id_clave: number | null;
+  id_queja: number | null;
+  estado: string | null;
+  createdAt: string;
+  updatedAt: string;
+
+  // Relaciones
+  tb_resultadoprueba: ResultadoPrueba | null;
+  tb_cable: any | null; // Pendiente tipar Cable
+  tb_clave: Clave | null;
+  tb_trabajador: Trabajador | null;
+}
+
 export interface CreatePruebaRequest {
   fecha?: string | null;
   id_resultado?: number | null;
@@ -124,6 +167,24 @@ export interface CreatePruebaRequest {
   id_cable?: number | null;
   id_clave?: number | null;
   id_queja: number;
+}
+//#endregion DOMINIO: PRUEBA
+
+//#region DOMINIO: TRABAJO
+// ============================================
+export interface TrabajoItem {
+  id_trabajo: number;
+  fecha: string;
+  probador: number;
+  estado: number | null;
+  observaciones: string | null;
+  id_queja: number;
+  createdAt: string;
+  updatedAt: string;
+
+  // Relaciones
+  tb_trabajador: Trabajador | null;
+  tb_clave?: Clave | null; // Para el estado como clave
 }
 
 export interface CreateTrabajoRequest {
@@ -133,45 +194,53 @@ export interface CreateTrabajoRequest {
   observaciones?: string | null;
   id_queja: number;
 }
+//#endregion DOMINIO: TRABAJO
 
-export interface UpdateQuejaRequest extends Partial<CreateQuejaRequest> {}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  pagination?: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-  };
+//#region DOMINIO: ASIGNACIÓN
+// ============================================
+export interface AsignacionTrabajadores {
+  id_trabajador: number;
+  clave_trabajador: string;
+  nombre?: string;
 }
 
-export interface PaginatedResponse<T> {
-  success: boolean;
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-  };
+export interface AsignacionItem {
+  id_asignacion: number;
+  id_queja: number;
+  fechaAsignacion: string;
+  createdAt: string;
+  updatedAt: string;
+  trabajadores: AsignacionTrabajadores[];
 }
 
-export interface FlujoItem {
-  id_clave: number | null;
-  fecha: string | null;
+export interface CreateAsignacionRequest {
+  id_queja: number;
+  fechaAsignacion: string;
+  trabajadores: { id_trabajador: number }[];
 }
+//#endregion DOMINIO: ASIGNACIÓN
 
-export interface QuejaDetallesResponse {
-  queja: QuejaItem;
-  pruebas: PruebaItem[];
-  trabajos: TrabajoItem[];
-  flujo?: FlujoItem[]; // historial derivado de claves_flujo y fechas_flujo
+//#region TIPOS INTERNOS DEL FRONTEND
+// ============================================
+export interface HistorialEvento {
+  id: number;
+  tipo: "clave_inicial" | "prueba" | "trabajo" | "asignacion";
+  fecha: string;
+  titulo: string;
+  descripcion: string;
+  realizadoPor?: string;
+  detalles: Record<string, any>;
 }
+//#endregion TIPOS INTERNOS DEL FRONTEND
 
+//#region SERVICIO
+// ============================================
 export const quejaService = {
-  // Obtener quejas con paginación
+  // ==================== QUEJAS ====================
+
+  /**
+   * Obtiene lista paginada de quejas
+   */
   async getQuejas(
     page: number = 1,
     limit: number = 10,
@@ -183,127 +252,171 @@ export const quejaService = {
       limit: limit.toString(),
     });
 
-    if (search) {
-      params.append("search", search);
-      console.log("🔍 Buscando quejas con término:", search);
-    }
-
+    if (search) params.append("search", search);
     if (estado) {
-      if (estado === "red") {
-        params.append("red", "true");
-      } else if (estado === "resuelta") {
-        params.append("red", "false");
-      }
-      console.log("🎯 Aplicando filtro estado:", estado);
+      if (estado === "red") params.append("red", "true");
+      else if (estado === "resuelta") params.append("red", "false");
     }
 
-    // const url = `/queja?${params.toString()}`;
-    // console.log('📡 URL de petición:', url);
-
-    const response = await api.get<PaginatedResponse<QuejaItem>>(
-      `/queja?${params.toString()}`,
-    );
+    const response = await api.get<PaginatedResponse<QuejaItem>>(`/queja?${params.toString()}`);
     return response.data;
   },
 
-  // Obtener detalles de una queja específica
-  async getQuejaDetalles(id: number): Promise<QuejaDetallesResponse> {
-    const response = await api.get<ApiResponse<QuejaDetallesResponse>>(
-      `/queja/${id}`,
-    );
-    return response.data.data;
+  /**
+   * Obtiene detalles completos de una queja
+   */
+  async getQuejaDetalles(id: number): Promise<QuejaDetallesResponse["data"]> {
+    console.log("🔵 [SERVICIO] Llamando a API para queja ID:", id);
+
+    try {
+      const response = await api.get(`/queja/${id}`);
+
+      if (response.data && response.data.success && response.data.data) {
+        return response.data.data;
+      }
+
+      if (response.data && response.data.queja) {
+        return response.data;
+      }
+
+      console.error("🔵 [SERVICIO] Estructura no reconocida:", response.data);
+      throw new Error("Estructura de respuesta no reconocida");
+    } catch (error) {
+      console.error("🔵 [SERVICIO] Error en la petición:", error);
+      throw error;
+    }
   },
 
-  // Obtener teléfonos para combo
-  async getTelefonos(): Promise<Telefono[]> {
-    const response = await api.get<ApiResponse<Telefono[]>>(
-      "/telefono?limit=100",
-    );
-    return response.data.data;
-  },
-
-  // Obtener tipos de queja para combo
-  async getTiposQueja(): Promise<TipoQueja[]> {
-    const response = await api.get<ApiResponse<TipoQueja[]>>(
-      "/tipoqueja?limit=100",
-    );
-    return response.data.data;
-  },
-
-  // Obtener claves para combo
-  async getClaves(): Promise<Clave[]> {
-    const response = await api.get<ApiResponse<Clave[]>>("/clave?limit=100");
-    return response.data.data;
-  },
-
-  // Obtener pizarras para combo
-  async getPizarras(): Promise<Pizarra[]> {
-    const response =
-      await api.get<ApiResponse<Pizarra[]>>("/pizarra?limit=100");
-    return response.data.data;
-  },
-
-  //Obtener pruebas para combo
-  async getResultadosPrueba(): Promise<ResultadoPrueba[]> {
-    const response = await api.get<ApiResponse<ResultadoPrueba[]>>(
-      "/resultadoprueba?limit=100",
-    );
-    return response.data.data;
-  },
-
-  // Obtener líneas para combo
-  async getLineas(): Promise<Linea[]> {
-    const response = await api.get<ApiResponse<Linea[]>>("/linea?limit=100");
-    return response.data.data;
-  },
-
-  //Obtener probadores para combo
-  async getProbadores(): Promise<Trabajador[]> {
-    const response = await api.get<ApiResponse<Trabajador[]>>(
-      "/trabajador/getProbadores",
-    );
-    return response.data.data;
-  },
-
-  // Crear nueva queja
+  /**
+   * Crea una nueva queja
+   */
   async createQueja(data: CreateQuejaRequest): Promise<QuejaItem> {
     const response = await api.post<ApiResponse<QuejaItem>>("/queja", data);
     return response.data.data;
   },
 
-  // Actualizar queja
+  /**
+   * Actualiza una queja existente
+   */
   async updateQueja(id: number, data: UpdateQuejaRequest): Promise<QuejaItem> {
-    const response = await api.put<ApiResponse<QuejaItem>>(
-      `/queja/${id}`,
-      data,
-    );
+    const response = await api.put<ApiResponse<QuejaItem>>(`/queja/${id}`, data);
     return response.data.data;
   },
 
-  // Eliminar queja
+  /**
+   * Elimina una queja
+   */
   async deleteQueja(id: number): Promise<void> {
     await api.delete(`/queja/${id}`);
   },
 
-  // Crear nueva prueba
+  // ==================== PRUEBAS ====================
+
+  /**
+   * Crea una nueva prueba
+   */
   async createPrueba(data: CreatePruebaRequest): Promise<PruebaItem> {
     const response = await api.post<ApiResponse<PruebaItem>>("/prueba", data);
     return response.data.data;
   },
 
-  // Eliminar prueba
+  /**
+   * Elimina una prueba
+   */
   async deletePrueba(id: number): Promise<void> {
     await api.delete(`/prueba/${id}`);
   },
 
-  // Crear nuevo trabajo
+  // ==================== TRABAJOS ====================
+
+  /**
+   * Crea un nuevo trabajo
+   */
   async createTrabajo(data: CreateTrabajoRequest): Promise<TrabajoItem> {
     const response = await api.post<ApiResponse<TrabajoItem>>("/trabajo", data);
     return response.data.data;
   },
 
-  // Eliminar trabajo
+  /**
+   * Elimina un trabajo
+   */
   async deleteTrabajo(id: number): Promise<void> {
     await api.delete(`/trabajo/${id}`);
   },
+
+  // ==================== ASIGNACIONES ====================
+
+  /**
+   * Crea una nueva asignación
+   */
+  async createAsignacion(data: CreateAsignacionRequest): Promise<AsignacionItem> {
+    const response = await api.post<ApiResponse<AsignacionItem>>("/asignacion", data);
+    return response.data.data;
+  },
+
+  /**
+   * Elimina una asignación
+   */
+  async deleteAsignacion(id: number): Promise<void> {
+    await api.delete(`/asignacion/${id}`);
+  },
+
+  // ==================== CATÁLOGOS (Combos) ====================
+
+  /**
+   * Obtiene teléfonos para combo
+   */
+  async getTelefonos(): Promise<Telefono[]> {
+    const response = await api.get<ApiResponse<Telefono[]>>("/telefono?limit=100");
+    return response.data.data;
+  },
+
+  /**
+   * Obtiene tipos de queja para combo
+   */
+  async getTiposQueja(): Promise<TipoQueja[]> {
+    const response = await api.get<ApiResponse<TipoQueja[]>>("/tipoqueja?limit=100");
+    return response.data.data;
+  },
+
+  /**
+   * Obtiene claves para combo
+   */
+  async getClaves(): Promise<Clave[]> {
+    const response = await api.get<ApiResponse<Clave[]>>("/clave?limit=100");
+    return response.data.data;
+  },
+
+  /**
+   * Obtiene pizarras para combo
+   */
+  async getPizarras(): Promise<Pizarra[]> {
+    const response = await api.get<ApiResponse<Pizarra[]>>("/pizarra?limit=100");
+    return response.data.data;
+  },
+
+  /**
+   * Obtiene resultados de prueba para combo
+   */
+  async getResultadosPrueba(): Promise<ResultadoPrueba[]> {
+    const response = await api.get<ApiResponse<ResultadoPrueba[]>>("/resultadoprueba?limit=100");
+    return response.data.data;
+  },
+
+  /**
+   * Obtiene líneas para combo
+   */
+  async getLineas(): Promise<Linea[]> {
+    const response = await api.get<ApiResponse<Linea[]>>("/linea?limit=100");
+    return response.data.data;
+  },
+
+  /**
+   * Obtiene probadores para combo
+   */
+  async getProbadores(): Promise<Trabajador[]> {
+    const response = await api.get<ApiResponse<Trabajador[]>>("/trabajador/getProbadores");
+    return response.data.data;
+  },
 };
+//#endregion SERVICIO

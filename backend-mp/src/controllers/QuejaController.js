@@ -2,6 +2,8 @@ const {
   Queja,
   Prueba,
   Trabajo,
+  Asignacion,
+  AsignacionTrabajadores,
   Resultadoprueba,
   Trabajador,
   Cable,
@@ -263,7 +265,7 @@ const QuejaController = {
         return next(apiErrors.notFound("Queja"));
       }
 
-      const [pruebas, trabajos] = await Promise.all([
+      const [pruebas, trabajos, asignaciones] = await Promise.all([
         Prueba.findAll({
           where: { id_queja: id },
           include: [
@@ -289,7 +291,38 @@ const QuejaController = {
             },
           ],
         }),
+        // MODIFICADO: Incluir los trabajadores asociados a cada asignación
+        Asignacion.findAll({
+          where: { id_queja: id },
+          include: [
+            {
+              association: "tb_asignacion_trabajadores", // Nombre de la asociación
+              include: [
+                {
+                  association: "tb_trabajador", // Incluir los datos del trabajador
+                  attributes: ["id_trabajador", "clave_trabajador", "nombre"],
+                },
+              ],
+            },
+          ],
+          order: [["fechaAsignacion", "DESC"]], // Ordenar por fecha descendente
+        }),
       ]);
+
+      // Procesar asignaciones para formatear la respuesta
+      const asignacionesFormateadas = asignaciones.map((asignacion) => {
+        const asignacionObj = asignacion.toJSON();
+        // Extraer los trabajadores asociados
+        const trabajadoresAsignados =
+          asignacionObj.tb_asignacion_trabajadores?.map(
+            (at) => at.tb_trabajador,
+          ) || [];
+
+        return {
+          ...asignacionObj,
+          trabajadores: trabajadoresAsignados, // Agregar array de trabajadores
+        };
+      });
 
       // Construir historial de flujo
       const flujo = [];
@@ -308,7 +341,13 @@ const QuejaController = {
 
       res.json({
         success: true,
-        data: { queja, pruebas, trabajos, flujo },
+        data: {
+          queja,
+          pruebas,
+          trabajos,
+          asignacion: asignacionesFormateadas, // Enviar asignaciones formateadas
+          flujo,
+        },
       });
     } catch (error) {
       next(error);

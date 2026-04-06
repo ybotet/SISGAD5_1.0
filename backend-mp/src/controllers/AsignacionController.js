@@ -1,5 +1,5 @@
 const apiError = require("../utils/apiErrors");
-const { Asignacion, AsignacionTrabajadores } = require("../models");
+const { Asignacion, AsignacionTrabajadores, Queja } = require("../models");
 const { Op } = require("sequelize");
 const { parseListParams } = require("../utils/parseListParams");
 const {
@@ -30,6 +30,16 @@ const AsignacionController = {
           }));
           await AsignacionTrabajadores.bulkCreate(trabajadoresData);
         }
+
+        // Actualizando el estado de la queja
+        await Queja.update(
+          { estado: "Asignada" },
+          {
+            where: { id_queja: data.id_queja },
+            validate: false, // Esto omite las validaciones del modelo
+            individualHooks: false,
+          },
+        );
 
         res.status(201).json({
           success: true,
@@ -93,6 +103,26 @@ const AsignacionController = {
       res.json({
         success: true,
         data,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  },
+
+  delete: async (req, res, next) => {
+    try {
+      const data = await Asignacion.findOne({
+        where: { id_asignacion: req.params.id },
+      });
+      if (!data) {
+        return next(apiError.notFound("Asignacion"));
+      }
+      await Asignacion.destroy({
+        where: { id_asignacion: req.params.id },
+      });
+      res.json({
+        success: true,
+        message: "Asignacion eliminada exitosamente",
       });
     } catch (error) {
       return next(error);

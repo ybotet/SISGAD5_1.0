@@ -275,6 +275,25 @@ TbOs.hasMany(Movimiento, { foreignKey: "id_os", as: "tb_movimientos" });
 Movimiento.belongsTo(TbOs, { foreignKey: "id_os", as: "tb_os" });
 //#endregion
 
+// Relaciones de Asignacion
+Asignacion.hasMany(AsignacionTrabajadores, {
+  foreignKey: "id_asignacion",
+  as: "tb_asignacion_trabajadores",
+});
+AsignacionTrabajadores.belongsTo(Asignacion, {
+  foreignKey: "id_asignacion",
+  as: "tb_asignacion",
+});
+
+Trabajador.hasMany(AsignacionTrabajadores, {
+  foreignKey: "id_trabajador",
+  as: "tb_asignacion_trabajadores",
+});
+AsignacionTrabajadores.belongsTo(Trabajador, {
+  foreignKey: "id_trabajador",
+  as: "tb_trabajador",
+});
+
 // Sincronizar modelos
 const syncModels = async () => {
   try {
