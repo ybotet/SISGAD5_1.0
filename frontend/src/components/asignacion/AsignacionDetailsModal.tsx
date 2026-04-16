@@ -10,7 +10,13 @@ interface Props {
   loading?: boolean;
 }
 
-export default function AsignacionDetailsModal({ show, onClose, asignacion, trabajador, loading = false }: Props) {
+export default function AsignacionDetailsModal({
+  show,
+  onClose,
+  asignacion,
+  trabajador,
+  loading = false,
+}: Props) {
   if (!show) return null;
 
   return (
@@ -18,7 +24,9 @@ export default function AsignacionDetailsModal({ show, onClose, asignacion, trab
       <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-3xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Detalles de la Asignación</h3>
-          <button onClick={onClose} className="text-gray-600 hover:text-gray-900">×</button>
+          <button onClick={onClose} className="text-gray-600 hover:text-gray-900">
+            ×
+          </button>
         </div>
 
         {loading && (
@@ -37,7 +45,9 @@ export default function AsignacionDetailsModal({ show, onClose, asignacion, trab
               </div>
               <div>
                 <p className="text-sm text-gray-500">Fecha</p>
-                <p className="font-medium">{new Date(asignacion.fecha_asignacion).toLocaleString()}</p>
+                <p className="font-medium">
+                  {new Date(asignacion.fecha_asignacion).toLocaleString()}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Trabajador (ID)</p>
@@ -55,6 +65,8 @@ export default function AsignacionDetailsModal({ show, onClose, asignacion, trab
                 <div className="bg-gray-50 p-3 rounded">
                   <p className="text-sm text-gray-600">Nombre</p>
                   <p className="font-medium">{trabajador.nombre || "-"}</p>
+                  <p className="text-sm text-gray-600">Clave de trabajador</p>
+                  <p className="font-medium">{trabajador.clave_trabajador || "-"}</p>
                   <p className="text-sm text-gray-600 mt-2">Cargo</p>
                   <p className="font-medium">{trabajador.cargo || "-"}</p>
                   <p className="text-sm text-gray-600 mt-2">Activo</p>
@@ -86,7 +98,9 @@ export default function AsignacionDetailsModal({ show, onClose, asignacion, trab
                           <td className="px-3 py-2">{d.tb_material?.codigo || "-"}</td>
                           <td className="px-3 py-2">{d.tb_material?.nombre || "-"}</td>
                           <td className="px-3 py-2 text-right">{d.cantidad}</td>
-                          <td className="px-3 py-2 text-right">{d.costo_unitario?.toFixed(2) ?? "-"}</td>
+                          <td className="px-3 py-2 text-right">
+                            {d.costo_unitario?.toFixed(2) ?? "-"}
+                          </td>
                         </tr>
                       ))
                     ) : (
@@ -102,7 +116,9 @@ export default function AsignacionDetailsModal({ show, onClose, asignacion, trab
             </div>
 
             <div className="text-right">
-              <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded">Cerrar</button>
+              <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded">
+                Cerrar
+              </button>
             </div>
           </div>
         )}

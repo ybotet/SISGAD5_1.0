@@ -1,10 +1,13 @@
 import type { AsignacionItem } from "../../services/asignacionService";
+import type { TrabajadorItem } from "../../services/trabajadorService";
 
 interface AsignacionTableProps {
   items: AsignacionItem[];
   onEdit: (item: AsignacionItem) => void;
   onView?: (item: AsignacionItem) => void;
   onDelete: (id: number) => void;
+  trabajadorMap?: Record<number, string> | null;
+  startIndex?: number;
   loading?: boolean;
 }
 
@@ -13,6 +16,8 @@ export default function AsignacionTable({
   onEdit,
   onDelete,
   onView,
+  trabajadorMap = {},
+  startIndex = 0,
   loading = false,
 }: AsignacionTableProps) {
   if (items.length === 0) {
@@ -29,7 +34,7 @@ export default function AsignacionTable({
       <table className="w-full">
         <thead className="bg-gray-50 border-b border-gray-200">
           <tr>
-            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">ID</th>
+            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">No.</th>
             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Trabajador</th>
             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Fecha</th>
             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Detalles</th>
@@ -40,10 +45,14 @@ export default function AsignacionTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {items.map((item) => (
+          {items.map((item, idx) => (
             <tr key={item.id} className={`hover:bg-gray-50 ${loading ? "opacity-50" : ""}`}>
-              <td className="px-6 py-4 text-sm text-gray-900 font-medium">{item.id}</td>
-              <td className="px-6 py-4 text-sm text-gray-700">{item.id_trabajador}</td>
+              <td className="px-6 py-4 text-sm text-gray-900 font-medium">{startIndex + idx + 1}</td>
+              <td className="px-6 py-4 text-sm text-gray-700">
+                {trabajadorMap && trabajadorMap[item.id_trabajador]
+                  ? trabajadorMap[item.id_trabajador]
+                  : `ID ${item.id_trabajador}`}
+              </td>
               <td className="px-6 py-4 text-sm text-gray-700">
                 {new Date(item.fecha_asignacion).toLocaleDateString("es-ES")}
               </td>

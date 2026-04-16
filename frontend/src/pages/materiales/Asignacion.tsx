@@ -20,6 +20,7 @@ import { trabajadorService } from "../../services/trabajadorService";
 export default function AsignacionPage() {
   const [items, setItems] = useState<AsignacionItem[]>([]);
   const [materiales, setMateriales] = useState<MaterialItem[]>([]);
+  const [trabajadorMap, setTrabajadorMap] = useState<Record<number, string>>({});
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -43,6 +44,7 @@ export default function AsignacionPage() {
   useEffect(() => {
     loadAsignaciones();
     loadMateriales();
+    loadTrabajadores();
   }, []);
 
   useEffect(() => {
@@ -84,6 +86,22 @@ export default function AsignacionPage() {
       setMateriales(response.data || []);
     } catch (err) {
       console.error("Error loading materiales:", err);
+    }
+  };
+
+  const loadTrabajadores = async () => {
+    try {
+      const response = await trabajadorService.getTrabajadores(1, 1000);
+      const map: Record<number, string> = {};
+      (response.data || []).forEach((t) => {
+        // trabajadorService uses id_trabajador field
+        // map by numeric id
+        // ensure numeric key
+        map[Number(t.id_trabajador)] = t.clave_trabajador || "";
+      });
+      setTrabajadorMap(map);
+    } catch (err) {
+      console.error("Error loading trabajadores:", err);
     }
   };
 
@@ -241,6 +259,8 @@ export default function AsignacionPage() {
         onEdit={handleEdit}
         onView={handleView}
         onDelete={handleDelete}
+        trabajadorMap={trabajadorMap}
+        startIndex={(pagination.page - 1) * pagination.limit}
         loading={loading && items.length > 0}
       />
 

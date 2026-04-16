@@ -22,6 +22,10 @@ export interface AsignacionItem {
   detalles?: AsignacionDetalleItem[];
   created_at: string;
   updated_at: string;
+  tb_trabajador?: {
+    id_trabajador: number;
+    clave_trabajador: string | null;
+  };
 }
 
 export interface CreateAsignacionRequest {
