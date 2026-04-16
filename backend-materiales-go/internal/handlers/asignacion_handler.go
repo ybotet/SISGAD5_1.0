@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/models"
@@ -35,6 +36,10 @@ func (h *AsignacionHandler) CrearAsignacion(w http.ResponseWriter, r *http.Reque
     
     // Decodificar JSON
     if err := json.NewDecoder(r.Body).Decode(&asignacion); err != nil {
+            if strings.Contains(err.Error(), "parsing time") {
+                http.Error(w, "Formato de fecha inválido. Use formato ISO 8601: 2024-01-15T10:00:00Z", http.StatusBadRequest)
+            return
+        }
         http.Error(w, "JSON inválido: "+err.Error(), http.StatusBadRequest)
         return
     }
@@ -50,6 +55,17 @@ func (h *AsignacionHandler) CrearAsignacion(w http.ResponseWriter, r *http.Reque
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(asignacion)
+}
+
+func (h *AsignacionHandler) ListarAsignaciones(w http.ResponseWriter, r *http.Request) {
+    asignaciones, err := h.service.ListarAsignaciones()
+    if err != nil {
+        http.Error(w, "Error obteniendo asignaciones: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(asignaciones)
 }
 
 // ListarPorTrabajador godoc
@@ -100,9 +116,14 @@ func (h *AsignacionHandler) ObtenerAsignacion(w http.ResponseWriter, r *http.Req
         return
     }
 
-    // Este método necesitaríamos implementarlo en el servicio y repositorio
-    // Por ahora devolvemos un 501 Not Implemented
-    http.Error(w, "Método no implementado", http.StatusNotImplemented)
+    asignacion, err := h.service.ObtenerAsignacionPorID(asignacionID)
+    if err != nil {
+        http.Error(w, "Error obteniendo asignación: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(asignacion)
 }
 
 // ActualizarAsignacion godoc
@@ -131,8 +152,14 @@ func (h *AsignacionHandler) ActualizarAsignacion(w http.ResponseWriter, r *http.
 
     asignacion.ID = asignacionID
 
-    // Este método necesitaríamos implementarlo
-    http.Error(w, "Método no implementado", http.StatusNotImplemented)
+    if err := h.service.ActualizarAsignacion(asignacionID, &asignacion); err != nil {
+        status := http.StatusInternalServerError
+        if err.Error() == "asignación no encontrada" {
+            status = http.StatusNotFound
+        }
+        http.Error(w, err.Error(), status)
+        return
+    }
 }
 
 // EliminarAsignacion godoc
@@ -142,15 +169,26 @@ func (h *AsignacionHandler) ActualizarAsignacion(w http.ResponseWriter, r *http.
 // @Success 204 {string} string "Sin contenido"
 // @Failure 404 {string} string "Asignación no encontrada"
 // @Router /asignaciones/{id} [delete]
+// EliminarAsignacion maneja DELETE /api/v1/asignaciones/{id}
 func (h *AsignacionHandler) EliminarAsignacion(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
-    asignacionID, err := strconv.Atoi(vars["id"])
+    idStr := vars["id"]
+    
+    id, err := strconv.Atoi(idStr)
     if err != nil {
-        http.Error(w, "ID de asignación inválido", http.StatusBadRequest)
-        fmt.Println(asignacionID)
+        http.Error(w, "ID inválido", http.StatusBadRequest)
         return
     }
-
-    // Este método necesitaríamos implementarlo
-    http.Error(w, "Método no implementado", http.StatusNotImplemented)
+    
+    if err := h.service.EliminarAsignacion(id); err != nil {
+        status := http.StatusInternalServerError
+        if err.Error() == "asignación no encontrada" {
+            status = http.StatusNotFound
+        }
+        http.Error(w, err.Error(), status)
+        return
+    }
+    
+    w.WriteHeader(http.StatusNoContent) // 204
 }
+

@@ -130,7 +130,7 @@ func (s *MaterialService) validarMaterial(m *models.Material) error {
     // Limpiar espacios
     m.Nombre = strings.TrimSpace(m.Nombre)
     m.Codigo = strings.TrimSpace(m.Codigo)
-    m.Categoria = strings.TrimSpace(m.Categoria)
+
     
     // Validaciones
     if m.Nombre == "" {

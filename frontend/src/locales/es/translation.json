@@ -27,7 +27,10 @@
     "estadisticas": "Estadísticas",
     "panel_admin": "Panel administrativo",
     "gestion_usuarios": "Gestión de usuarios",
-    "materiales": "Materiales"
+    "materiales": "Materiales",
+    "asignacion": "Asignaciones de materiales",
+    "unidad_medida": "Unidades de medida",
+    "categoria_material": "Categorías de material"
   },
   "actions": {
     "close_session": "Cerrar sesión"

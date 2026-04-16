@@ -31,7 +31,7 @@ func (r *ConsumoRepository) CrearConsumoConDetalles(consumo *models.Consumo) err
     }()
     
     // 1. Insertar el consumo (cabecera)
-    queryConsumo := `INSERT INTO consumos (
+    queryConsumo := `INSERT INTO tb_consumos (
         id_trabajo, id_trabajador, fecha_consumo, observaciones, created_at
     ) VALUES ($1, $2, $3, $4, NOW())
     RETURNING id_consumo, created_at`
@@ -53,7 +53,7 @@ func (r *ConsumoRepository) CrearConsumoConDetalles(consumo *models.Consumo) err
         detalle := &consumo.Detalles[i]
         detalle.IDConsumo = consumo.ID
         
-        queryDetalle := `INSERT INTO consumo_detalle (
+        queryDetalle := `INSERT INTO tb_consumo_detalle (
             id_consumo, id_material, cantidad_usada, 
             costo_unitario_momento, id_asignacion
         ) VALUES ($1, $2, $3, $4, $5)
@@ -88,7 +88,7 @@ func (r *ConsumoRepository) ObtenerConsumosPorTrabajo(trabajoID int) ([]models.C
     query := `SELECT 
         id_consumo, id_trabajo, id_trabajador, 
         fecha_consumo, observaciones, created_at
-        FROM consumos
+        FROM tb_consumos
         WHERE id_trabajo = $1
         ORDER BY fecha_consumo DESC`
     
@@ -120,7 +120,7 @@ func (r *ConsumoRepository) ObtenerConsumosPorTrabajador(
     query := `SELECT 
         id_consumo, id_trabajo, id_trabajador, 
         fecha_consumo, observaciones, created_at
-        FROM consumos
+        FROM tb_consumos
         WHERE id_trabajador = $1
         AND fecha_consumo BETWEEN $2 AND $3
         ORDER BY fecha_consumo DESC`
@@ -149,7 +149,7 @@ func (r *ConsumoRepository) obtenerDetallesPorConsumo(consumoID int) ([]models.C
     query := `SELECT 
         id_detalle, id_consumo, id_material, 
         cantidad_usada, costo_unitario_momento, id_asignacion
-        FROM consumo_detalle
+        FROM tb_consumo_detalle
         WHERE id_consumo = $1`
     
     err := DB.Select(&detalles, query, consumoID)

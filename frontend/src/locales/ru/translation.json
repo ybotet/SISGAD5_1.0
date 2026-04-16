@@ -27,7 +27,10 @@
     "estadisticas": "Статистика",
     "panel_admin": "Админ-панель",
     "gestion_usuarios": "Управление пользователями",
-    "materiales": "Материалы"
+    "materiales": "Материалы",
+    "asignacion": "Назначения материалов",
+    "unidad_medida": "Единицы измерения",
+    "categoria_material": "Категории материала"
   },
   "actions": {
     "close_session": "Выйти"

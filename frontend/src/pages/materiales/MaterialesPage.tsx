@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { materialService } from "../../services/materialService";
-import type {
-  CreateMaterialRequest,
-  MaterialItem,
-} from "../../services/materialService";
+import { unidadMedidaService } from "../../services/unidadMedidaService";
+import { categoriaMaterialService } from "../../services/categoriaMaterialService";
+import type { CreateMaterialRequest, MaterialItem } from "../../services/materialService";
+import type { UnidadMedidaItem } from "../../services/unidadMedidaService";
+import type { CategoriaMaterialItem } from "../../services/categoriaMaterialService";
 import {
   MaterialHeader,
   MaterialError,
@@ -26,6 +27,8 @@ export default function MaterialesPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [unidadMedidas, setUnidadMedidas] = useState<UnidadMedidaItem[]>([]);
+  const [categoriasMaterial, setCategoriasMaterial] = useState<CategoriaMaterialItem[]>([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
@@ -33,6 +36,8 @@ export default function MaterialesPage() {
 
   useEffect(() => {
     loadMaterials(1, limit, "");
+    loadUnidadMedidas();
+    loadCategoriasMaterial();
   }, []);
 
   const loadMaterials = async (
@@ -43,11 +48,7 @@ export default function MaterialesPage() {
     try {
       setLoading(true);
       setError("");
-      const result = await materialService.getMaterials(
-        pageNumber,
-        pageSize,
-        search,
-      );
+      const result = await materialService.getMaterials(pageNumber, pageSize, search);
       setItems(result.data);
       setPage(result.page);
       setLimit(result.limit);
@@ -61,6 +62,24 @@ export default function MaterialesPage() {
     }
   };
 
+  const loadUnidadMedidas = async () => {
+    try {
+      const unidades = await unidadMedidaService.listAllUnidadesMedida();
+      setUnidadMedidas(unidades);
+    } catch (err) {
+      console.error("Error cargando unidades de medida:", err);
+    }
+  };
+
+  const loadCategoriasMaterial = async () => {
+    try {
+      const categorias = await categoriaMaterialService.listAllCategorias();
+      setCategoriasMaterial(categorias);
+    } catch (err) {
+      console.error("Error cargando categorías de material:", err);
+    }
+  };
+
   const handleSave = async (formData: FormData) => {
     try {
       setSaving(true);
@@ -69,8 +88,8 @@ export default function MaterialesPage() {
         codigo: (formData.get("codigo") as string)?.trim() || "",
         nombre: (formData.get("nombre") as string)?.trim() || "",
         descripcion: (formData.get("descripcion") as string)?.trim() || "",
-        categoria: (formData.get("categoria") as string)?.trim() || "",
-        unidad: (formData.get("unidad") as string)?.trim() || "",
+        categoria: Number(formData.get("categoria") || 0),
+        unidad: Number(formData.get("unidad") || 0),
         precio: Number(formData.get("precio") || 0),
       };
 
@@ -126,13 +145,7 @@ export default function MaterialesPage() {
 
       <MaterialError error={error} onClose={() => setError("")} />
 
-      <MaterialStats
-        total={total}
-        showing={items.length}
-        page={page}
-        pages={pages}
-        limit={limit}
-      />
+      <MaterialStats total={total} showing={items.length} page={page} pages={pages} limit={limit} />
 
       <MaterialFilters
         searchTerm={searchTerm}
@@ -174,6 +187,8 @@ export default function MaterialesPage() {
         show={showModal}
         editingItem={editingItem}
         saving={saving}
+        unidadOptions={unidadMedidas}
+        categoriaOptions={categoriasMaterial}
         onClose={() => {
           setShowModal(false);
           setEditingItem(null);

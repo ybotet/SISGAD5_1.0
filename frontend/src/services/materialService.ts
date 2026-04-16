@@ -5,19 +5,31 @@ export interface MaterialItem {
   codigo: string;
   nombre: string;
   descripcion: string;
-  categoria: string;
-  unidad: string;
+  categoria: number;
+  unidad: number;
   precio: number;
   created_at: string;
   updated_at: string;
+  tb_unidad_medida?: UnidadMedida;
+  tb_categoria_material?: CategoriaMaterial;
+}
+
+export interface UnidadMedida {
+  id: number;
+  nombre: string;
+}
+
+export interface CategoriaMaterial {
+  id: number;
+  nombre: string;
 }
 
 export interface CreateMaterialRequest {
   codigo: string;
   nombre: string;
   descripcion?: string;
-  categoria: string;
-  unidad: string;
+  categoria: number;
+  unidad: number;
   precio: number;
 }
 
@@ -43,35 +55,22 @@ export const materialService = {
       params.append("search", search);
     }
 
-    const response = await api.get<MaterialesPageResponse>(
-      `/materiales?${params.toString()}`,
-    );
+    const response = await api.get<MaterialesPageResponse>(`/materiales?${params.toString()}`);
     return response.data;
   },
 
   async getMaterial(id: number): Promise<MaterialItem> {
-    const response = await api.get<MaterialItem>(
-      `/materiales/${id}`,
-    );
+    const response = await api.get<MaterialItem>(`/materiales/${id}`);
     return response.data;
   },
 
   async createMaterial(data: CreateMaterialRequest): Promise<MaterialItem> {
-    const response = await api.post<MaterialItem>(
-      "/materiales",
-      data,
-    );
+    const response = await api.post<MaterialItem>("/materiales", data);
     return response.data;
   },
 
-  async updateMaterial(
-    id: number,
-    data: Partial<CreateMaterialRequest>,
-  ): Promise<MaterialItem> {
-    const response = await api.put<MaterialItem>(
-      `/materiales/${id}`,
-      data,
-    );
+  async updateMaterial(id: number, data: Partial<CreateMaterialRequest>): Promise<MaterialItem> {
+    const response = await api.put<MaterialItem>(`/materiales/${id}`, data);
     return response.data;
   },
 

@@ -6,6 +6,8 @@ import LoginPage from "./pages/auth/LoginPage";
 
 import DebugLogin from "./pages/auth/DebugLogin";
 import ProfilePage from "./pages/auth/ProfilePage";
+
+// MP
 import DashboardPage from "./pages/DashboardPage";
 import ClasificacionPage from "./pages/nomencladores/ClasificacionPage";
 import MandosPage from "./pages/nomencladores/MandosPage";
@@ -17,7 +19,6 @@ import ClasificadorClavePage from "./pages/nomencladores/ClasificadorClavePage";
 import ClasifpizarraPage from "./pages/nomencladores/ClasifpizarraPage";
 import TipoQuejaPage from "./pages/nomencladores/TipoquejaPage";
 import CablePage from "./pages/nomencladores/CablePage";
-import MaterialesPage from "./pages/materiales/MaterialesPage";
 import PlantaPage from "./pages/nomencladores/PlantaPage";
 import TipoPizarraPage from "./pages/nomencladores/TipopizarraPage";
 import MovimientoPage from "./pages/MovimientoPage";
@@ -30,9 +31,21 @@ import TelefonoPage from "./pages/TelefonoPage";
 import LineaPage from "./pages/LineaPage";
 import QuejaPage from "./pages/quejaPage";
 import PizarraPage from "./pages/PizarraPage";
+
+//Users y Roles
 import UsuariosPage from "./pages/auth/admin/UsuariosPage";
 import RolesPage from "./pages/auth/admin/RolesPage";
+
+//Stats
 import StatsPage from "./pages/StatsPage";
+
+// Materiales
+import UnidadMedidaPage from "./pages/nomencladores/UnidadMedida";
+import CategoriaMaterialPage from "./pages/nomencladores/CategoriaMaterial";
+import AsignacionPage from "./pages/materiales/Asignacion";
+import MaterialesPage from "./pages/materiales/MaterialesPage";
+
+//404
 import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
@@ -198,6 +211,22 @@ export default function App() {
           }
         />
         <Route
+          path="nomencladores/unidadmedida"
+          element={
+            <ProtectedRoute permission="nomencladores.gestionar">
+              <UnidadMedidaPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="nomencladores/categoriamaterial"
+          element={
+            <ProtectedRoute permission="nomencladores.gestionar">
+              <CategoriaMaterialPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="nomencladores/planta"
           element={
             <ProtectedRoute permission="nomencladores.gestionar">
@@ -250,6 +279,14 @@ export default function App() {
           element={
             <ProtectedRoute permission="materiales.gestionar">
               <MaterialesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="materiales/asignacion"
+          element={
+            <ProtectedRoute permission="nomencladores.gestionar">
+              <AsignacionPage />
             </ProtectedRoute>
           }
         />

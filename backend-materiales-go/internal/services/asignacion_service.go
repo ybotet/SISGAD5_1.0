@@ -78,6 +78,17 @@ func (s *AsignacionService) validarDetalleAsignacion(d *models.AsignacionDetalle
     return nil
 }
 
+func (s *AsignacionService) ListarAsignaciones() ([]models.Asignacion, error) {
+    return s.repo.ListarAsignacionesPaginated(1, 10, "")
+}
+
+func (s *AsignacionService) ObtenerAsignacionPorID(id int) (*models.Asignacion, error) {
+    if id <= 0 {
+        return nil, errors.New("ID de asignación inválido")
+    }
+    return s.repo.ObtenerAsignacionPorID(id)
+}
+
 // ObtenerAsignacionesPorTrabajador con lógica adicional
 func (s *AsignacionService) ObtenerAsignacionesPorTrabajador(trabajadorID int) ([]models.Asignacion, error) {
     if trabajadorID <= 0 {
@@ -85,4 +96,26 @@ func (s *AsignacionService) ObtenerAsignacionesPorTrabajador(trabajadorID int) (
     }
     
     return s.repo.ObtenerAsignacionesPorTrabajador(trabajadorID)
+}
+
+func (s *AsignacionService) ActualizarAsignacion(id int, asignacion *models.Asignacion) error {
+    if id <= 0 {
+        return errors.New("ID de asignación inválido")
+    }
+    return s.repo.ActualizarAsignacion(id, asignacion)
+}
+
+func (s *AsignacionService) EliminarAsignacion(id int) error {
+    if id <= 0 {
+        return errors.New("ID de asignación inválido")
+    }
+    // Verificar que existe
+    existente, err := s.repo.ObtenerAsignacionPorID(id)
+    if err != nil {
+        return fmt.Errorf("error verificando asignación: %w", err)
+    }
+    if existente == nil {
+        return errors.New("asignación no encontrada")
+    }
+    return s.repo.EliminarAsignacion(id)
 }

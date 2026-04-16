@@ -1,10 +1,5 @@
 import axios from "axios";
-import {
-  ApiError,
-  ForbiddenError,
-  NotFoundError,
-  UnauthorizedError,
-} from "../errors/ApiError";
+import { ApiError, ForbiddenError, NotFoundError, UnauthorizedError } from "../errors/ApiError";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
@@ -29,13 +24,13 @@ api.interceptors.request.use(
 );
 
 function getBackendMessage(
-  data: { message?: string; error?: string; details?: string[] } | undefined,
+  data: { message?: string; error?: string; details?: string[] } | string | undefined,
 ): string {
   if (!data) return "Error del servidor";
+  if (typeof data === "string") return data;
   if (data.message) return data.message;
   if (data.error) return data.error;
-  if (Array.isArray(data.details) && data.details.length > 0)
-    return data.details.join(". ");
+  if (Array.isArray(data.details) && data.details.length > 0) return data.details.join(". ");
   return "Error del servidor";
 }
 
@@ -62,4 +57,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-

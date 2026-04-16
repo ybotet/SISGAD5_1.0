@@ -74,6 +74,12 @@ export default function Sidebar() {
           icon: "ri-tools-line",
           permission: "materiales.gestionar",
         },
+        {
+          id: "asignacion",
+          name: t("menu.asignacion"),
+          icon: "ri-inbox-archive-line",
+          permission: "nomencladores.gestionar",
+        },
       ],
     },
     {
@@ -177,6 +183,18 @@ export default function Sidebar() {
           icon: "ri-feedback-line",
           permission: "nomencladores.gestionar",
         },
+        {
+          id: "unidadmedida",
+          name: t("menu.unidad_medida"),
+          icon: "ri-ruler-line",
+          permission: "nomencladores.gestionar",
+        },
+        {
+          id: "categoriamaterial",
+          name: t("menu.categoria_material"),
+          icon: "ri-price-tag-3-line",
+          permission: "nomencladores.gestionar",
+        },
       ],
     },
     {
@@ -216,9 +234,7 @@ export default function Sidebar() {
 
   const toggleExpanded = (itemId: string) => {
     setExpandedItems((prev) =>
-      prev.includes(itemId)
-        ? prev.filter((id) => id !== itemId)
-        : [...prev, itemId],
+      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
     );
   };
 
@@ -261,9 +277,7 @@ export default function Sidebar() {
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="p-1 rounded hover:bg-blue-800 transition-colors"
             >
-              <i
-                className={`ri-${isCollapsed ? "menu-unfold" : "menu-fold"}-line`}
-              ></i>
+              <i className={`ri-${isCollapsed ? "menu-unfold" : "menu-fold"}-line`}></i>
             </button>
           </div>
         </div>
@@ -287,9 +301,7 @@ export default function Sidebar() {
                 <div className="w-5 h-5 flex items-center justify-center">
                   <i className={`${item.icon} text-lg`}></i>
                 </div>
-                {!isCollapsed && (
-                  <span className="text-sm font-medium">{item.name}</span>
-                )}
+                {!isCollapsed && <span className="text-sm font-medium">{item.name}</span>}
               </div>
               {!isCollapsed && item.children && (
                 <i
@@ -299,28 +311,24 @@ export default function Sidebar() {
             </button>
 
             {/* Submenus  */}
-            {!isCollapsed &&
-              item.children &&
-              expandedItems.includes(item.id) && (
-                <div className="ml-4 mt-1 space-y-1">
-                  {item.children
-                    .filter(canSeeItem) // aquí también filtramos los hijos
-                    .map((child) => (
-                      <button
-                        key={child.id}
-                        onClick={() =>
-                          handleNavigation(`/sistema/${item.id}/${child.id}`)
-                        }
-                        className="w-full flex items-center space-x-3 p-2 rounded-lg hover:bg-blue-800 transition-colors text-sm"
-                      >
-                        <div className="w-4 h-4 flex items-center justify-center">
-                          <i className={`${child.icon} text-sm`}></i>
-                        </div>
-                        <span>{child.name}</span>
-                      </button>
-                    ))}
-                </div>
-              )}
+            {!isCollapsed && item.children && expandedItems.includes(item.id) && (
+              <div className="ml-4 mt-1 space-y-1">
+                {item.children
+                  .filter(canSeeItem) // aquí también filtramos los hijos
+                  .map((child) => (
+                    <button
+                      key={child.id}
+                      onClick={() => handleNavigation(`/sistema/${item.id}/${child.id}`)}
+                      className="w-full flex items-center space-x-3 p-2 rounded-lg hover:bg-blue-800 transition-colors text-sm"
+                    >
+                      <div className="w-4 h-4 flex items-center justify-center">
+                        <i className={`${child.icon} text-sm`}></i>
+                      </div>
+                      <span>{child.name}</span>
+                    </button>
+                  ))}
+              </div>
+            )}
           </div>
         ))}
       </nav>

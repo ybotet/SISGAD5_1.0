@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -82,7 +83,7 @@ func (h *DashboardHandler) ResumenMateriales(w http.ResponseWriter, r *http.Requ
 
     for _, m := range materiales {
         totalValor += m.Precio
-        categorias[m.Categoria]++
+        categorias[fmt.Sprintf("%d", m.TbCategoria.ID)]++
     }
 
     respuesta := map[string]interface{}{

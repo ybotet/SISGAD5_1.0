@@ -5,6 +5,8 @@ interface MaterialModalProps {
   show: boolean;
   editingItem: MaterialItem | null;
   saving: boolean;
+  unidadOptions: Array<{ id: number; nombre: string }>;
+  categoriaOptions: Array<{ id: number; nombre: string }>;
   onClose: () => void;
   onSave: (formData: FormData) => void;
 }
@@ -13,6 +15,8 @@ export default function MaterialModal({
   show,
   editingItem,
   saving,
+  unidadOptions,
+  categoriaOptions,
   onClose,
   onSave,
 }: MaterialModalProps) {
@@ -31,8 +35,8 @@ export default function MaterialModal({
         codigo: editingItem.codigo,
         nombre: editingItem.nombre,
         descripcion: editingItem.descripcion || "",
-        categoria: editingItem.categoria,
-        unidad: editingItem.unidad,
+        categoria: editingItem.categoria.toString(),
+        unidad: editingItem.unidad.toString(),
         precio: editingItem.precio.toString(),
       });
     } else {
@@ -50,7 +54,7 @@ export default function MaterialModal({
   if (!show) return null;
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -70,9 +74,7 @@ export default function MaterialModal({
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Código *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Código *</label>
               <input
                 name="codigo"
                 value={formData.codigo}
@@ -83,9 +85,7 @@ export default function MaterialModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
               <input
                 name="nombre"
                 value={formData.nombre}
@@ -96,9 +96,7 @@ export default function MaterialModal({
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Descripción
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
               <textarea
                 name="descripcion"
                 value={formData.descripcion}
@@ -109,35 +107,43 @@ export default function MaterialModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Categoría *
-              </label>
-              <input
+              <label className="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
+              <select
                 name="categoria"
                 value={formData.categoria}
                 onChange={handleChange}
                 required
                 disabled={saving}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-              />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Seleccione una categoría</option>
+                {categoriaOptions.map((categoria, index) => (
+                  <option key={`${categoria.id}-${index}`} value={categoria.id}>
+                    {categoria.nombre}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Unidad *
-              </label>
-              <input
+              <label className="block text-sm font-medium text-gray-700 mb-1">Unidad *</label>
+              <select
                 name="unidad"
                 value={formData.unidad}
                 onChange={handleChange}
                 required
                 disabled={saving}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-              />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Seleccione una unidad</option>
+                {unidadOptions.map((unidad, index) => (
+                  <option key={`${unidad.id}-${index}`} value={unidad.id}>
+                    {unidad.nombre}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Precio *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Precio *</label>
               <input
                 name="precio"
                 type="number"

@@ -20,6 +20,12 @@ func NewMaterialHandler(service *services.MaterialService) *MaterialHandler {
     }
 }
 
+func writeJSONError(w http.ResponseWriter, status int, message string) {
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(status)
+    json.NewEncoder(w).Encode(map[string]string{"message": message})
+}
+
 func (h *MaterialHandler) Listar(w http.ResponseWriter, r *http.Request) {
     query := r.URL.Query()
     page := 1
@@ -85,12 +91,12 @@ func (h *MaterialHandler) Obtener(w http.ResponseWriter, r *http.Request) {
 func (h *MaterialHandler) Crear(w http.ResponseWriter, r *http.Request) {
     var material models.Material
     if err := json.NewDecoder(r.Body).Decode(&material); err != nil {
-        http.Error(w, "JSON inválido", http.StatusBadRequest)
+        writeJSONError(w, http.StatusBadRequest, "JSON inválido")
         return
     }
     
     if err := h.service.CrearMaterial(&material); err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
+        writeJSONError(w, http.StatusBadRequest, err.Error())
         return
     }
     
@@ -105,7 +111,7 @@ func (h *MaterialHandler) Actualizar(w http.ResponseWriter, r *http.Request) {
     
     var material models.Material
     if err := json.NewDecoder(r.Body).Decode(&material); err != nil {
-        http.Error(w, "JSON inválido", http.StatusBadRequest)
+        writeJSONError(w, http.StatusBadRequest, "JSON inválido")
         return
     }
     
@@ -118,7 +124,7 @@ func (h *MaterialHandler) Actualizar(w http.ResponseWriter, r *http.Request) {
         } else if err.Error() == "el nombre del material es requerido" {
             status = http.StatusBadRequest
         }
-        http.Error(w, err.Error(), status)
+        writeJSONError(w, status, err.Error())
         return
     }
     
@@ -135,7 +141,7 @@ func (h *MaterialHandler) Eliminar(w http.ResponseWriter, r *http.Request) {
         if err.Error() == "material no encontrado" {
             status = http.StatusNotFound
         }
-        http.Error(w, err.Error(), status)
+        writeJSONError(w, status, err.Error())
         return
     }
     

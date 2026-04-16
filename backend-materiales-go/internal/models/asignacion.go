@@ -12,6 +12,7 @@ type Asignacion struct {
     IDTrabajo      *int      `json:"id_trabajo,omitempty" db:"id_trabajo"`
     Observaciones  string    `json:"observaciones" db:"observaciones"`
     CreatedAt      time.Time `json:"created_at" db:"created_at"`
+    UpdatedAt      time.Time `json:"updated_at" db:"updated_at"`
     // Relación: una asignación tiene muchos detalles
     // No es una columna, es para uso en Go
     Detalles       []AsignacionDetalle `json:"detalles,omitempty"`
@@ -21,7 +22,9 @@ type Asignacion struct {
 type AsignacionDetalle struct {
     ID              int     `json:"id" db:"id_detalle"`
     IDAsignacion    int     `json:"id_asignacion" db:"id_asignacion"`
+    TbAasignacion     *Asignacion `json:"tb_asignacion,omitempty"`
     IDMaterial      int     `json:"id_material" db:"id_material"`
+    TbMaterial        *Material `json:"tb_material,omitempty"`
     Cantidad        int     `json:"cantidad" db:"cantidad_asignada"`
     CostoUnitario   float64 `json:"costo_unitario" db:"costo_unitario_momento"`
 }

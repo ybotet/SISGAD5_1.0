@@ -1,18 +1,18 @@
-import type { MaterialItem } from "../../services/materialService";
+import type { UnidadMedidaItem } from "../../services/unidadMedidaService";
 
-interface MaterialTableProps {
-  items: MaterialItem[];
-  onEdit: (item: MaterialItem) => void;
+interface UnidadMedidaTableProps {
+  items: UnidadMedidaItem[];
+  onEdit: (item: UnidadMedidaItem) => void;
   onDelete: (id: number) => void;
   loading?: boolean;
 }
 
-export default function MaterialTable({
+export function UnidadMedidaTable({
   items,
   onEdit,
   onDelete,
   loading = false,
-}: MaterialTableProps) {
+}: UnidadMedidaTableProps) {
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow p-8 text-center">
@@ -29,22 +29,7 @@ export default function MaterialTable({
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Código
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Nombre
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Categoría
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Unidad
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Precio
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Creado
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Acciones
@@ -54,7 +39,7 @@ export default function MaterialTable({
           <tbody className="bg-white divide-y divide-gray-200">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={2} className="px-6 py-8 text-center text-gray-500">
                   <i className="ri-inbox-line text-3xl mb-2 block"></i>
                   No se encontraron resultados
                 </td>
@@ -63,30 +48,7 @@ export default function MaterialTable({
               items.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {item.codigo}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {item.nombre}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {item.tb_categoria_material ? (
-                      item.tb_categoria_material.nombre
-                    ) : (
-                      <span className="text-gray-400 italic">Sin categoría</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {item.tb_unidad_medida ? (
-                      item.tb_unidad_medida.nombre
-                    ) : (
-                      <span className="text-gray-400 italic">Sin unidad</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {item.precio.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(item.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">

@@ -53,8 +53,10 @@ func main() {
     // ========================================
     logger.Println("📁 Inicializando repositorios...")
     materialRepo := postgres.NewMaterialRepository()
-    asignacionRepo := postgres.NewAsignacionRepository()
+    asignacionRepo := postgres.NewAsignacionRepository(materialRepo)
     consumoRepo := postgres.NewConsumoRepository()
+    unidadMedidaRepo := postgres.NewUnidadMedidaRepository()
+    categoriaMaterialRepo := postgres.NewCategoriaMaterialRepository()
 
     // ========================================
     // 5. CREAR SERVICIOS (inyección de dependencias)
@@ -63,8 +65,9 @@ func main() {
     materialService := services.NewMaterialService(materialRepo)
     asignacionService := services.NewAsignacionService(asignacionRepo, materialRepo)
     consumoService := services.NewConsumoService(consumoRepo, materialRepo, asignacionRepo)
-
-    // ========================================
+    unidadMedidaService := services.NewUnidadMedidaService(unidadMedidaRepo)
+    categoriaMaterialService := services.NewCategoriaMaterialService(categoriaMaterialRepo) 
+    
     // 6. CREAR HANDLERS
     // ========================================
     logger.Println("🎮 Inicializando handlers...")
@@ -72,6 +75,8 @@ func main() {
     asignacionHandler := handlers.NewAsignacionHandler(asignacionService)
     consumoHandler := handlers.NewConsumoHandler(consumoService)
     dashboardHandler := handlers.NewDashboardHandler(consumoService, materialService)
+    unidadMedidaHandler := handlers.NewUnidadMedidaHandler(unidadMedidaService)
+    categoriaMaterialHandler := handlers.NewCategoriaMaterialHandler(categoriaMaterialService)
 
     // ========================================
     // 7. CONFIGURAR RUTAS (ROUTER)
@@ -125,6 +130,7 @@ func main() {
     api.HandleFunc("/materiales/{id:[0-9]+}", materialHandler.Eliminar).Methods("DELETE")
 
     // --- Rutas de asignaciones ---
+    api.HandleFunc("/asignaciones", asignacionHandler.ListarAsignaciones).Methods("GET")
     api.HandleFunc("/asignaciones", asignacionHandler.CrearAsignacion).Methods("POST")
     api.HandleFunc("/asignaciones/trabajador/{id:[0-9]+}", asignacionHandler.ListarPorTrabajador).Methods("GET")
     api.HandleFunc("/asignaciones/{id:[0-9]+}", asignacionHandler.ObtenerAsignacion).Methods("GET")
@@ -144,6 +150,23 @@ func main() {
     api.HandleFunc("/dashboard/materiales", dashboardHandler.ResumenMateriales).Methods("GET")
     api.HandleFunc("/dashboard/alertas", dashboardHandler.AlertasGlobales).Methods("GET")
     api.HandleFunc("/dashboard/general", dashboardHandler.ResumenGeneral).Methods("GET")
+
+    // --- Rutas de nomencladores (unidades de medida) ---
+    // Aquí podríamos agregar rutas para gestionar unidades de medida, tipos de materiales, etc.
+    api.HandleFunc("/unidades-medida", unidadMedidaHandler.Listar).Methods("GET")
+    api.HandleFunc("/unidades-medida/{id:[0-9]+}", unidadMedidaHandler.Obtener).Methods("GET")
+    api.HandleFunc("/unidades-medida", unidadMedidaHandler.Crear).Methods("POST")
+    api.HandleFunc("/unidades-medida/{id:[0-9]+}", unidadMedidaHandler.Actualizar).Methods("PUT")
+    api.HandleFunc("/unidades-medida/{id:[0-9]+}", unidadMedidaHandler.Eliminar).Methods("DELETE")
+
+    // --- Rutas de nomencladores (categorías de material) ---
+    api.HandleFunc("/categorias-material/paginated", categoriaMaterialHandler.ListarPaginado).Methods("GET")
+    api.HandleFunc("/categorias-material", categoriaMaterialHandler.Listar).Methods("GET")
+    api.HandleFunc("/categorias-material/{id:[0-9]+}", categoriaMaterialHandler.Obtener).Methods("GET")
+    api.HandleFunc("/categorias-material", categoriaMaterialHandler.Crear).Methods("POST")
+    api.HandleFunc("/categorias-material/{id:[0-9]+}", categoriaMaterialHandler.Actualizar).Methods("PUT")
+    api.HandleFunc("/categorias-material/{id:[0-9]+}", categoriaMaterialHandler.Eliminar).Methods("DELETE")
+
 
     // ========================================
     // 8. CONFIGURAR CORS (para que React pueda llamar)
