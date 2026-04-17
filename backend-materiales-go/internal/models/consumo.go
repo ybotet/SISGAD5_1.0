@@ -12,6 +12,7 @@ type Consumo struct {
     FechaConsumo  time.Time `json:"fecha_consumo" db:"fecha_consumo"`
     Observaciones string    `json:"observaciones" db:"observaciones"`
     CreatedAt     time.Time `json:"created_at" db:"created_at"`
+    UpdatedAt     time.Time `json:"updated_at" db:"updated_at"`
     // Relación
     Detalles      []ConsumoDetalle `json:"detalles,omitempty"`
 }

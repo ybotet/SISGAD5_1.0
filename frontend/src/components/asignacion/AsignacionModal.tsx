@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import type { AsignacionItem } from "../../services/asignacionService";
 import type { MaterialItem } from "../../services/materialService";
+import { trabajadorService, type TrabajadorItem } from "../../services/trabajadorService";
 
 interface AsignacionModalProps {
   showModal: boolean;
@@ -20,6 +21,7 @@ export default function AsignacionModal({
   materiales = [],
 }: AsignacionModalProps) {
   const [trabajadorId, setTrabajadorId] = useState("");
+  const [trabajadores, setTrabajadores] = useState<TrabajadorItem[]>([]);
   const [fechaAsignacion, setFechaAsignacion] = useState("");
   const [observaciones, setObservaciones] = useState("");
   const [detalles, setDetalles] = useState<Array<{ id_material: number; cantidad: number }>>([]);
@@ -46,6 +48,23 @@ export default function AsignacionModal({
     setSelectedMaterial("");
     setCantidad("1");
   }, [editingItem, showModal]);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const resp = await trabajadorService.getTrabajadores(1, 1000);
+        if (!mounted) return;
+        setTrabajadores(resp.data || []);
+      } catch (err) {
+        console.error("Error cargando trabajadores:", err);
+      }
+    };
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleAddDetalle = () => {
     if (!selectedMaterial || !cantidad || parseInt(cantidad) <= 0) {
@@ -109,15 +128,21 @@ export default function AsignacionModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Trabajador ID */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">ID Trabajador *</label>
-            <input
-              type="number"
+            <label className="block text-sm font-medium text-gray-700 mb-2">Trabajador *</label>
+            <select
               value={trabajadorId}
               onChange={(e) => setTrabajadorId(e.target.value)}
               disabled={saving}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
               required
-            />
+            >
+              <option value="">Seleccionar trabajador...</option>
+              {trabajadores.map((t) => (
+                <option key={t.id_trabajador} value={t.id_trabajador}>
+                  {t.clave_trabajador} {t.nombre ? `- ${t.nombre}` : ""}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Fecha */}

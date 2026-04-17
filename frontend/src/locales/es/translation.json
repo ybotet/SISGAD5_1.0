@@ -30,7 +30,8 @@
     "materiales": "Materiales",
     "asignacion": "Asignaciones de materiales",
     "unidad_medida": "Unidades de medida",
-    "categoria_material": "Categorías de material"
+    "categoria_material": "Categorías de material",
+    "consumos": "Consumo de materiales"
   },
   "actions": {
     "close_session": "Cerrar sesión"

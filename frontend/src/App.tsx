@@ -44,6 +44,7 @@ import UnidadMedidaPage from "./pages/nomencladores/UnidadMedida";
 import CategoriaMaterialPage from "./pages/nomencladores/CategoriaMaterial";
 import AsignacionPage from "./pages/materiales/Asignacion";
 import MaterialesPage from "./pages/materiales/MaterialesPage";
+import ConsumoPage from "./pages/materiales/Consumo";
 
 //404
 import NotFoundPage from "./pages/NotFoundPage";
@@ -287,6 +288,14 @@ export default function App() {
           element={
             <ProtectedRoute permission="nomencladores.gestionar">
               <AsignacionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="materiales/consumos"
+          element={
+            <ProtectedRoute permission="materiales.gestionar">
+              <ConsumoPage />
             </ProtectedRoute>
           }
         />

@@ -80,6 +80,12 @@ export default function Sidebar() {
           icon: "ri-inbox-archive-line",
           permission: "nomencladores.gestionar",
         },
+        {
+          id: "consumos",
+          name: t("menu.consumos"),
+          icon: "ri-inbox-unarchive-line",
+          permission: "nomencladores.gestionar",
+        },
       ],
     },
     {

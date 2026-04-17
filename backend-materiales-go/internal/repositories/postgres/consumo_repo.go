@@ -55,16 +55,15 @@ func (r *ConsumoRepository) CrearConsumoConDetalles(consumo *models.Consumo) err
         
         queryDetalle := `INSERT INTO tb_consumo_detalle (
             id_consumo, id_material, cantidad_usada, 
-            costo_unitario_momento, id_asignacion
-        ) VALUES ($1, $2, $3, $4, $5)
+            costo_unitario_momento
+        ) VALUES ($1, $2, $3, $4)
         RETURNING id_detalle`
-        
+
         err = tx.QueryRow(queryDetalle,
             detalle.IDConsumo,
             detalle.IDMaterial,
             detalle.Cantidad,
             detalle.CostoUnitario,
-            detalle.IDAsignacion, // puede ser nil
         ).Scan(&detalle.ID)
         
         if err != nil {
@@ -148,7 +147,7 @@ func (r *ConsumoRepository) obtenerDetallesPorConsumo(consumoID int) ([]models.C
     
     query := `SELECT 
         id_detalle, id_consumo, id_material, 
-        cantidad_usada, costo_unitario_momento, id_asignacion
+        cantidad_usada, costo_unitario_momento
         FROM tb_consumo_detalle
         WHERE id_consumo = $1`
     

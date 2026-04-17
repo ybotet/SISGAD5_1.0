@@ -1,6 +1,6 @@
-// vite.config.ts - CORREGIDO
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig(({ mode }) => {
   const isProduction = mode === "production";
@@ -8,22 +8,25 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
       dedupe: ["react", "react-dom"],
     },
 
     base: isProduction ? "/sisgad5/" : "/",
 
     server: {
-      host: true, // Esto está bien
+      host: true,
       port: 5004,
-      strictPort: true, // Cambia a true para forzar el puerto exacto
+      strictPort: true,
       watch: {
-        usePolling: true, // Necesario para hot reload en Docker
+        usePolling: true,
       },
       proxy: !isProduction
         ? {
             "/api": {
-              target: "http://api-gateway:5000", // CAMBIO CRÍTICO: usa el nombre del servicio, no localhost
+              target: "http://api-gateway:5000",
               changeOrigin: true,
               secure: false,
             },

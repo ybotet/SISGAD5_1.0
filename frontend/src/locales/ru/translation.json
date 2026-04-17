@@ -30,7 +30,8 @@
     "materiales": "Материалы",
     "asignacion": "Назначения материалов",
     "unidad_medida": "Единицы измерения",
-    "categoria_material": "Категории материала"
+    "categoria_material": "Категории материала",
+    "consumos": "Потребление материалов"
   },
   "actions": {
     "close_session": "Выйти"
