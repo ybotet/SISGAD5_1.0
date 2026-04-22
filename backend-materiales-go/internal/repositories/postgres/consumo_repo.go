@@ -159,8 +159,56 @@ func (r *ConsumoRepository) obtenerDetallesPorConsumo(consumoID int) ([]models.C
     return detalles, nil
 }
 
+//obtenerConsumos es un método adicional para listar todos los consumos (sin filtro) - útil p   ara admin o dashboard
+func (r *ConsumoRepository) ObtenerTodosConsumos() ([]models.Consumo, error) {
+    var consumos []models.Consumo    
 
+    query := `SELECT
+        id_consumo, id_trabajo, id_trabajador,
+        fecha_consumo, observaciones, created_at
+        FROM tb_consumos
+        ORDER BY fecha_consumo DESC`
 
+    err := DB.Select(&consumos, query)
+    if err != nil {
+        return nil, fmt.Errorf("error obteniendo consumos: %w", err)
+    }
+
+    // Cargar detalles para cada consumo
+    for i := range consumos {
+        detalles, err := r.obtenerDetallesPorConsumo(consumos[i].ID)
+        if err != nil {
+            return nil, fmt.Errorf("error cargando detalles del consumo %d: %w", consumos[i].ID, err)
+        }
+        consumos[i].Detalles = detalles
+    }
+
+    return consumos, nil
+}
+
+// ObtenerConsumoPorID devuelve un consumo con sus detalles por su ID
+func (r *ConsumoRepository) ObtenerConsumoPorID(consumoID int) (*models.Consumo, error) {
+    var consumo models.Consumo
+
+    query := `SELECT
+        id_consumo, id_trabajo, id_trabajador,
+        fecha_consumo, observaciones, created_at
+        FROM tb_consumos
+        WHERE id_consumo = $1`
+
+    err := DB.Get(&consumo, query, consumoID)
+    if err != nil {
+        return nil, fmt.Errorf("error obteniendo consumo: %w", err)
+    }
+
+    detalles, err := r.obtenerDetallesPorConsumo(consumo.ID)
+    if err != nil {
+        return nil, fmt.Errorf("error cargando detalles del consumo %d: %w", consumo.ID, err)
+    }
+    consumo.Detalles = detalles
+
+    return &consumo, nil
+}
 
 // ======================================================================================================================
 // Métodos adicionales para el dashboard de técnicos (promedios, stock, alertas) - pueden ser parte de otro repo si quieres 

@@ -128,6 +128,30 @@ func (r *AsignacionRepository) ListarAsignacionesPaginated(page, limit int, sear
     return asignaciones, nil
 }
 
+// ListarTodasAsignaciones devuelve todas las asignaciones (sin paginación)
+func (r *AsignacionRepository) ListarTodasAsignaciones() ([]models.Asignacion, error) {
+    var asignaciones []models.Asignacion
+
+    query := `SELECT id_asignacion, id_trabajador, fecha_asignacion, id_trabajo, observaciones, created_at
+        FROM tb_asignaciones
+        ORDER BY fecha_asignacion DESC`
+
+    err := DB.Select(&asignaciones, query)
+    if err != nil {
+        return nil, fmt.Errorf("error obteniendo asignaciones: %w", err)
+    }
+
+    for i := range asignaciones {
+        detalles, err := r.obtenerDetallesPorAsignacion(asignaciones[i].ID)
+        if err != nil {
+            return nil, err
+        }
+        asignaciones[i].Detalles = detalles
+    }
+
+    return asignaciones, nil
+}
+
 // ObtenerAsignacionesPorTrabajador lista asignaciones de un técnico
 func (r *AsignacionRepository) ObtenerAsignacionesPorTrabajador(trabajadorID int) ([]models.Asignacion, error) {
     var asignaciones []models.Asignacion

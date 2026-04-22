@@ -30,6 +30,9 @@ export default function AsignacionPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<AsignacionItem | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [fechaDesde, setFechaDesde] = useState<string | undefined>(undefined);
+  const [fechaHasta, setFechaHasta] = useState<string | undefined>(undefined);
+  const [claveTrabajador, setClaveTrabajador] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [saving, setSaving] = useState(false);
@@ -49,13 +52,20 @@ export default function AsignacionPage() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      loadAsignaciones(1, pagination.limit, searchTerm);
+      loadAsignaciones(1, pagination.limit, searchTerm, fechaDesde, fechaHasta, claveTrabajador);
     }, 500);
 
     return () => clearTimeout(timeout);
-  }, [searchTerm]);
+  }, [searchTerm, fechaDesde, fechaHasta, claveTrabajador]);
 
-  const loadAsignaciones = async (page: number = 1, limit: number = 10, search: string = "") => {
+  const loadAsignaciones = async (
+    page: number = 1,
+    limit: number = 10,
+    search: string = "",
+    fechaDesde?: string,
+    fechaHasta?: string,
+    claveTrabajador?: string,
+  ) => {
     try {
       setLoading(true);
       setError("");
@@ -63,6 +73,9 @@ export default function AsignacionPage() {
         page,
         limit,
         search,
+        fechaDesde,
+        fechaHasta,
+        claveTrabajador,
       );
       setItems(response.data || []);
       setPagination({
@@ -107,7 +120,7 @@ export default function AsignacionPage() {
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= pagination.pages) {
-      loadAsignaciones(page, pagination.limit, searchTerm);
+      loadAsignaciones(page, pagination.limit, searchTerm, fechaDesde, fechaHasta, claveTrabajador);
     }
   };
 
@@ -124,7 +137,7 @@ export default function AsignacionPage() {
   };
 
   const handleLimitChange = (newLimit: number) => {
-    loadAsignaciones(1, newLimit, searchTerm);
+    loadAsignaciones(1, newLimit, searchTerm, fechaDesde, fechaHasta, claveTrabajador);
   };
 
   const handleDelete = (id: number) => {
@@ -250,8 +263,23 @@ export default function AsignacionPage() {
 
       <AsignacionFilters
         searchTerm={searchTerm}
+        fechaDesde={fechaDesde}
+        fechaHasta={fechaHasta}
+        claveTrabajador={claveTrabajador}
         onSearchChange={setSearchTerm}
-        onRefresh={() => loadAsignaciones(pagination.page, pagination.limit, searchTerm)}
+        onFechaDesdeChange={setFechaDesde}
+        onFechaHastaChange={setFechaHasta}
+        onClaveChange={setClaveTrabajador}
+        onRefresh={() =>
+          loadAsignaciones(
+            pagination.page,
+            pagination.limit,
+            searchTerm,
+            fechaDesde,
+            fechaHasta,
+            claveTrabajador,
+          )
+        }
       />
 
       <AsignacionTable

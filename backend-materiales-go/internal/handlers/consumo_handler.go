@@ -150,8 +150,18 @@ func (h *ConsumoHandler) ObtenerConsumo(w http.ResponseWriter, r *http.Request) 
         return
     }
 
-    // Este método necesitaríamos implementarlo
-    http.Error(w, "Método no implementado", http.StatusNotImplemented)
+    consumo, err := h.service.ObtenerConsumoPorID(consumoID)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    if consumo == nil {
+        http.Error(w, "Consumo no encontrado", http.StatusNotFound)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(consumo)
 }
 
 // ActualizarConsumo godoc
@@ -198,4 +208,21 @@ func (h *ConsumoHandler) EliminarConsumo(w http.ResponseWriter, r *http.Request)
     }
 
     http.Error(w, "Método no implementado", http.StatusNotImplemented)
+}
+
+
+// ListarConsumos godoc
+// @Summary Lista todos los consumos registrados
+// @Tags Consumos
+// @Success 200 {array} models.Consumo
+// @Router /consumos [get]
+func (h *ConsumoHandler) ListarConsumos(w http.ResponseWriter, r *http.Request) {
+    consumos, err := h.service.ObtenerTodosConsumos()
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(consumos)
 }

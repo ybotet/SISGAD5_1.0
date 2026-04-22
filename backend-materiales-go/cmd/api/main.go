@@ -138,6 +138,7 @@ func main() {
     api.HandleFunc("/asignaciones/{id:[0-9]+}", asignacionHandler.EliminarAsignacion).Methods("DELETE")
 
     // --- Rutas de consumos ---
+    api.HandleFunc("/consumos", consumoHandler.ListarConsumos).Methods("GET")
     api.HandleFunc("/consumos", consumoHandler.CrearConsumo).Methods("POST")
     api.HandleFunc("/consumos/trabajo/{id:[0-9]+}", consumoHandler.ListarPorTrabajo).Methods("GET")
     api.HandleFunc("/consumos/trabajador/{id:[0-9]+}", consumoHandler.ListarPorTrabajador).Methods("GET")

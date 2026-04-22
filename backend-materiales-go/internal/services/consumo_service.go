@@ -141,6 +141,35 @@ func (s *ConsumoService) ObtenerConsumosPorTrabajador(trabajadorID int, desde, h
     return consumos, nil
 }
 
+// obtener Todos los consumos (para admin)
+func (s *ConsumoService) ObtenerTodosConsumos() ([]models.Consumo, error) {
+    consumos, err := s.repo.ObtenerTodosConsumos()
+    if err != nil {
+        return nil, fmt.Errorf("error obteniendo todos los consumos: %w", err)
+    }
+    if consumos == nil {
+        consumos = []models.Consumo{}
+    }
+    return consumos, nil
+}
+
+// ObtenerConsumoPorID obtiene un consumo con sus detalles por su ID
+func (s *ConsumoService) ObtenerConsumoPorID(id int) (*models.Consumo, error) {
+    if id <= 0 {
+        return nil, errors.New("id de consumo inválido")
+    }
+
+    consumo, err := s.repo.ObtenerConsumoPorID(id)
+    if err != nil {
+        return nil, fmt.Errorf("error obteniendo consumo %d: %w", id, err)
+    }
+    if consumo == nil {
+        return nil, nil
+    }
+    return consumo, nil
+}
+    
+
 // // ObtenerDashboardTrabajador genera el dashboard completo para un trabajador
 // func (s *ConsumoService) ObtenerDashboardTrabajador(
 //     trabajadorID int,

@@ -43,4 +43,8 @@ export const consumoService = {
     const response = await api.get<ConsumoItem[]>(`/consumos/trabajador/${idTrabajador}${q}`);
     return response.data || [];
   },
+  async listAllConsumos(): Promise<ConsumoItem[]> {
+    const response = await api.get<ConsumoItem[]>("/consumos");
+    return response.data || [];
+  },
 };

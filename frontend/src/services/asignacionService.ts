@@ -1,4 +1,5 @@
 import api from "./apiMaterials";
+import { trabajadorService } from "./trabajadorService";
 
 export interface AsignacionDetalleItem {
   id: number;
@@ -52,6 +53,9 @@ export const asignacionService = {
     page: number = 1,
     limit: number = 10,
     search: string = "",
+    fechaDesde?: string,
+    fechaHasta?: string,
+    claveTrabajador?: string,
   ): Promise<PaginatedResponse<AsignacionItem>> {
     try {
       // El backend solo soporta /asignaciones sin paginación
@@ -59,15 +63,47 @@ export const asignacionService = {
       const response = await api.get<AsignacionItem[]>("/asignaciones");
       const items = response.data || [];
 
-      // Aplicar búsqueda si existe
+      // Aplicar búsqueda/filtrado si existe
       let filtered = items;
+
+      // Filtrar por texto genérico (`search`) sobre observaciones o clave/id trabajador
       if (search) {
-        search = search.toLowerCase();
-        filtered = items.filter(
+        const s = search.toLowerCase();
+        filtered = filtered.filter(
           (item) =>
-            item.id_trabajador.toString().includes(search) ||
-            item.observaciones.toLowerCase().includes(search),
+            (item.observaciones || "").toLowerCase().includes(s) ||
+            item.id_trabajador.toString().includes(s) ||
+            (item.tb_trabajador?.clave_trabajador || "").toLowerCase().includes(s),
         );
+      }
+
+      // Filtrar por rango/fecha exacta si se proporcionan
+      if (fechaDesde || fechaHasta) {
+        const desde = fechaDesde ? new Date(fechaDesde) : null;
+        const hasta = fechaHasta ? new Date(fechaHasta) : null;
+        filtered = filtered.filter((item) => {
+          const d = new Date(item.fecha_asignacion);
+          if (desde && d < desde) return false;
+          if (hasta && d > hasta) return false;
+          return true;
+        });
+      }
+
+      // Filtrar por clave del trabajador consultando el microservicio MP
+      if (claveTrabajador) {
+        // intentamos obtener trabajadores que coincidan con la clave
+        try {
+          const resp = await trabajadorService.getTrabajadores(1, 50, claveTrabajador);
+          const ids = (resp.data || []).map((t) => t.id_trabajador);
+          const claveLower = claveTrabajador.toLowerCase();
+          filtered = filtered.filter(
+            (item) =>
+              (item.tb_trabajador && ids.includes(item.tb_trabajador.id_trabajador)) ||
+              (item.tb_trabajador?.clave_trabajador || "").toLowerCase().includes(claveLower),
+          );
+        } catch (e) {
+          // Si falla la consulta a MP, no filtramos por trabajador (fallo silencioso)
+        }
       }
 
       // Aplicar paginación

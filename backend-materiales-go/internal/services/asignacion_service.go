@@ -79,7 +79,9 @@ func (s *AsignacionService) validarDetalleAsignacion(d *models.AsignacionDetalle
 }
 
 func (s *AsignacionService) ListarAsignaciones() ([]models.Asignacion, error) {
-    return s.repo.ListarAsignacionesPaginated(1, 10, "")
+    // Devuelve todas las asignaciones para que el frontend pueda aplicar
+    // paginado/filtrado del lado del cliente cuando sea necesario.
+    return s.repo.ListarTodasAsignaciones()
 }
 
 func (s *AsignacionService) ObtenerAsignacionPorID(id int) (*models.Asignacion, error) {
