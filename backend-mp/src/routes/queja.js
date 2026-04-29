@@ -42,4 +42,14 @@ router.delete("/:id", QuejaController.delete);
 
 router.patch("/:id/cerrar", QuejaController.cerrar);
 
+// Dashboard endpoints
+router.get("/dashboard/summary", QuejaController.dashboardSummary);
+router.get("/dashboard/sankey", QuejaController.sankey);
+router.get("/dashboard/funnel", QuejaController.funnel);
+router.get("/dashboard/heatmap", QuejaController.heatmap);
+router.get("/dashboard/historic", QuejaController.historic);
+router.get("/dashboard/mttr", QuejaController.mttr);
+router.get("/dashboard/recurrentes", QuejaController.recurrentes);
+router.get("/dashboard/close_buckets", QuejaController.closeBuckets);
+
 module.exports = router;

@@ -216,34 +216,25 @@ export const telefonoService = {
 
   // Obtener clasificaciones para el combo
   async getClasificaciones(): Promise<Clasificacion[]> {
-    const response = await api.get<ApiResponse<Clasificacion[]>>(
-      "/clasificacion?limit=100",
-    );
+    const response = await api.get<ApiResponse<Clasificacion[]>>("/clasificacion?limit=100");
     return response.data.data;
   },
 
   // Crear nuevo teléfono
   async createTelefono(data: CreateTelefonoRequest): Promise<TelefonoItem> {
     try {
-      const response = await api.post<ApiResponse<TelefonoItem>>(
-        "/telefono",
-        data,
-      );
+      const response = await api.post<ApiResponse<TelefonoItem>>("/telefono", data);
       if (response.data && response.data.success) {
         return response.data.data;
       }
-      const err: any = new Error(
-        response.data.message || "Error al crear el teléfono",
-      );
+      const err: any = new Error(response.data.message || "Error al crear el teléfono");
       err.response = { data: response.data };
       throw err;
     } catch (error: any) {
       // Si la petición falla con un código HTTP (axios error), reenviamos tal cual
       if (error?.response) throw error;
       // Si es otro error, lo normalizamos
-      const err: any = new Error(
-        error?.message || "Error al crear el teléfono",
-      );
+      const err: any = new Error(error?.message || "Error al crear el teléfono");
       err.response = {
         data: error?.response?.data || { error: error?.message },
       };
@@ -252,22 +243,14 @@ export const telefonoService = {
   },
 
   // Actualizar teléfono
-  async updateTelefono(
-    id: number,
-    data: Partial<CreateTelefonoRequest>,
-  ): Promise<TelefonoItem> {
-    const response = await api.put<ApiResponse<TelefonoItem>>(
-      `/telefono/${id}`,
-      data,
-    );
+  async updateTelefono(id: number, data: Partial<CreateTelefonoRequest>): Promise<TelefonoItem> {
+    const response = await api.put<ApiResponse<TelefonoItem>>(`/telefono/${id}`, data);
     return response.data.data;
   },
 
   // Dar Baja teléfono
   async darBajaTelefono(id: number): Promise<TelefonoItem> {
-    const response = await api.get<ApiResponse<TelefonoItem>>(
-      `/telefono/darbaja/${id}`,
-    );
+    const response = await api.get<ApiResponse<TelefonoItem>>(`/telefono/darbaja/${id}`);
     return response.data.data;
   },
 
@@ -300,6 +283,14 @@ export const telefonoService = {
     return response.data;
   },
 
+  async getDashboard(fecha_desde?: string, fecha_hasta?: string) {
+    const params = new URLSearchParams();
+    if (fecha_desde) params.append("fecha_desde", fecha_desde);
+    if (fecha_hasta) params.append("fecha_hasta", fecha_hasta);
+    const response = await api.get(`/telefono/dashboard?${params.toString()}`);
+    return response.data;
+  },
+
   // Obtener plantas para combo
   async getPlantas(): Promise<Planta[]> {
     const response = await api.get<ApiResponse<Planta[]>>("/planta?limit=100");
@@ -308,9 +299,7 @@ export const telefonoService = {
 
   // Obtener propietarios para combo
   async getPropietarios(): Promise<Propietario[]> {
-    const response = await api.get<ApiResponse<Propietario[]>>(
-      "/propietario?limit=100",
-    );
+    const response = await api.get<ApiResponse<Propietario[]>>("/propietario?limit=100");
     return response.data.data;
   },
 
@@ -322,29 +311,19 @@ export const telefonoService = {
 
   // Obtener sistemas para combo
   async getSistemas(): Promise<Sistema[]> {
-    const response =
-      await api.get<ApiResponse<Sistema[]>>("/sistema?limit=100");
+    const response = await api.get<ApiResponse<Sistema[]>>("/sistema?limit=100");
     return response.data.data;
   },
 
   // Crear nuevo recorrido
   async createRecorrido(data: CreateRecorridoRequest): Promise<RecorridoItem> {
-    const response = await api.post<ApiResponse<RecorridoItem>>(
-      "/recorrido",
-      data,
-    );
+    const response = await api.post<ApiResponse<RecorridoItem>>("/recorrido", data);
     return response.data.data;
   },
 
   // Actualizar recorrido
-  async updateRecorrido(
-    id: number,
-    data: UpdateRecorridoRequest,
-  ): Promise<RecorridoItem> {
-    const response = await api.put<ApiResponse<RecorridoItem>>(
-      `/recorrido/${id}`,
-      data,
-    );
+  async updateRecorrido(id: number, data: UpdateRecorridoRequest): Promise<RecorridoItem> {
+    const response = await api.put<ApiResponse<RecorridoItem>>(`/recorrido/${id}`, data);
     return response.data.data;
   },
 

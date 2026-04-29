@@ -12,6 +12,9 @@ router.use(auth);
  * @access  Public
  */
 router.get("/", TrabajadorController.getAll);
+
+// dashboard
+router.get("/dashboard", TrabajadorController.dashboard);
 router.get("/getProbadores", TrabajadorController.getProbadores);
 
 /**

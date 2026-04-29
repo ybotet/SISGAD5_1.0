@@ -190,9 +190,7 @@ export const lineaService = {
       }
     }
 
-    const response = await api.get<PaginatedResponse<LineaItem>>(
-      `/linea?${params.toString()}`,
-    );
+    const response = await api.get<PaginatedResponse<LineaItem>>(`/linea?${params.toString()}`);
     return response.data;
   },
 
@@ -208,25 +206,19 @@ export const lineaService = {
 
   // Obtener señalizaciones para el combo
   async getSenalizaciones(): Promise<Senalizacion[]> {
-    const response = await api.get<ApiResponse<Senalizacion[]>>(
-      "/senalizacion?limit=100",
-    );
+    const response = await api.get<ApiResponse<Senalizacion[]>>("/senalizacion?limit=100");
     return response.data.data;
   },
 
   // Obtener tipos de línea para el combo
   async getTiposLinea(): Promise<TipoLinea[]> {
-    const response = await api.get<ApiResponse<TipoLinea[]>>(
-      "/tipolinea?limit=100",
-    );
+    const response = await api.get<ApiResponse<TipoLinea[]>>("/tipolinea?limit=100");
     return response.data.data;
   },
 
   // Obtener propietarios para el combo
   async getPropietarios(): Promise<Propietario[]> {
-    const response = await api.get<ApiResponse<Propietario[]>>(
-      "/propietario?limit=100",
-    );
+    const response = await api.get<ApiResponse<Propietario[]>>("/propietario?limit=100");
     return response.data.data;
   },
 
@@ -237,14 +229,8 @@ export const lineaService = {
   },
 
   // Actualizar línea
-  async updateLinea(
-    id: number,
-    data: Partial<CreateLineaRequest>,
-  ): Promise<LineaItem> {
-    const response = await api.put<ApiResponse<LineaItem>>(
-      `/linea/${id}`,
-      data,
-    );
+  async updateLinea(id: number, data: Partial<CreateLineaRequest>): Promise<LineaItem> {
+    const response = await api.put<ApiResponse<LineaItem>>(`/linea/${id}`, data);
     return response.data.data;
   },
 
@@ -274,8 +260,7 @@ export const lineaService = {
 
   // Obtener sistemas para combo
   async getSistemas(): Promise<Sistema[]> {
-    const response =
-      await api.get<ApiResponse<Sistema[]>>("/sistema?limit=100");
+    const response = await api.get<ApiResponse<Sistema[]>>("/sistema?limit=100");
     return response.data.data;
   },
 
@@ -297,24 +282,24 @@ export const lineaService = {
     return response.data;
   },
 
+  // Obtener estadísticas/aggregados para dashboard
+  async getDashboard(fecha_desde?: string, fecha_hasta?: string) {
+    const params = new URLSearchParams();
+    if (fecha_desde) params.append("fecha_desde", fecha_desde);
+    if (fecha_hasta) params.append("fecha_hasta", fecha_hasta);
+    const response = await api.get(`/linea/dashboard?${params.toString()}`);
+    return response.data;
+  },
+
   // Crear nuevo recorrido
   async createRecorrido(data: CreateRecorridoRequest): Promise<RecorridoItem> {
-    const response = await api.post<ApiResponse<RecorridoItem>>(
-      "/recorrido",
-      data,
-    );
+    const response = await api.post<ApiResponse<RecorridoItem>>("/recorrido", data);
     return response.data.data;
   },
 
   // Actualizar recorrido
-  async updateRecorrido(
-    id: number,
-    data: UpdateRecorridoRequest,
-  ): Promise<RecorridoItem> {
-    const response = await api.put<ApiResponse<RecorridoItem>>(
-      `/recorrido/${id}`,
-      data,
-    );
+  async updateRecorrido(id: number, data: UpdateRecorridoRequest): Promise<RecorridoItem> {
+    const response = await api.put<ApiResponse<RecorridoItem>>(`/recorrido/${id}`, data);
     return response.data.data;
   },
 

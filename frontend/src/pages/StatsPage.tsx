@@ -8,13 +8,13 @@ import PizarraModuleStats from "../components/stats/PizarraModuleStats";
 import TrabajadorModuleStats from "../components/stats/TrabajadorModuleStats";
 import MaterialesModuleStats from "../components/stats/MaterialesModuleStats";
 
-type Periodo = "hoy" | "semana" | "mes" | "trimestre" | "ano" | "todo" | "personalizado";
+type Periodo = string;
 
 export default function StatsPage() {
-  const [activeTab, setActiveTab] = useState("telefono");
   const [fechaDesde, setFechaDesde] = useState("");
   const [fechaHasta, setFechaHasta] = useState("");
   const [periodo, setPeriodo] = useState<Periodo>("mes");
+  const [activeTab, setActiveTab] = useState<string>("telefono");
 
   const handleDateRangeChange = (desde: string, hasta: string, periodoSeleccionado: Periodo) => {
     setFechaDesde(desde);
@@ -38,10 +38,28 @@ export default function StatsPage() {
       ),
     },
     // Estos componentes aún NO soportan filtro de fechas (no reciben props)
-    { id: "linea", label: "🔌 Líneas", component: <LineaModuleStats /> },
+    {
+      id: "linea",
+      label: "🔌 Líneas",
+      component: (
+        <LineaModuleStats fechaDesde={fechaDesde} fechaHasta={fechaHasta} periodo={periodo} />
+      ),
+    },
     { id: "pizarra", label: "📋 Pizarras", component: <PizarraModuleStats /> },
-    { id: "queja", label: "⚠️ Quejas", component: <QuejaModuleStats /> },
-    { id: "trabajador", label: "👥 Trabajadores", component: <TrabajadorModuleStats /> },
+    {
+      id: "queja",
+      label: "⚠️ Quejas",
+      component: (
+        <QuejaModuleStats fechaDesde={fechaDesde} fechaHasta={fechaHasta} periodo={periodo} />
+      ),
+    },
+    {
+      id: "trabajador",
+      label: "👥 Trabajadores",
+      component: (
+        <TrabajadorModuleStats fechaDesde={fechaDesde} fechaHasta={fechaHasta} periodo={periodo} />
+      ),
+    },
   ];
 
   return (

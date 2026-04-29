@@ -683,6 +683,10 @@ export default function MaterialesModuleStats({
                   uds/material
                 </span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Porcentaje filtrado:</span>
+                <span className="font-semibold">{porcentajeFiltrado.toFixed(1)}%</span>
+              </div>
             </div>
           </div>
 

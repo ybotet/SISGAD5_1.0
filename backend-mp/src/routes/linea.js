@@ -12,6 +12,9 @@ router.use(auth);
  */
 router.get("/", LineaController.getAll);
 
+// Dashboard endpoint for aggregated stats
+router.get("/dashboard", LineaController.dashboard);
+
 /**
  * @route   GET /api/tbLinea/:id
  * @desc    Obtener un Linea por ID

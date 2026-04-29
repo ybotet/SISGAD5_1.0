@@ -1,6 +1,6 @@
-const { TrabajoTrabajadores } = require('../models');
-const { Op } = require('sequelize');
-const apiErrors = require('../utils/apiErrors');
+const { TrabajoTrabajadores } = require("../models");
+const { Op } = require("sequelize");
+const apiErrors = require("../utils/apiErrors");
 
 const TrabajoTrabajadoresController = {
   /**
@@ -13,13 +13,15 @@ const TrabajoTrabajadoresController = {
       const {
         page = 1,
         limit = 10,
-        sortBy = 'createdAt',
-        sortOrder = 'DESC',
-        search = '',
+        sortBy = "createdAt",
+        sortOrder = "DESC",
+        search = "",
         ...filters
       } = req.query;
 
-      const offset = (page - 1) * limit;
+      const pageNum = parseInt(page) || 1;
+      const limitNum = parseInt(limit) || 10;
+      const offset = (pageNum - 1) * limitNum;
 
       // Construir where clause para búsqueda
       const whereClause = {};
@@ -27,25 +29,24 @@ const TrabajoTrabajadoresController = {
         // Solo tiene IDs
         if (!isNaN(search)) {
           const searchNum = parseInt(search);
-          whereClause[Op.or] = [
-            { id_trabajo: searchNum },
-            { id_trabajador: searchNum }
-          ];
+          whereClause[Op.or] = [{ id_trabajo: searchNum }, { id_trabajador: searchNum }];
         }
       }
 
       // Agregar otros filtros
-      Object.keys(filters).forEach(key => {
+      Object.keys(filters).forEach((key) => {
         if (filters[key]) {
           whereClause[key] = filters[key];
         }
       });
 
+      const safeSortOrder = typeof sortOrder === "string" ? sortOrder.toUpperCase() : "DESC";
+
       const data = await TrabajoTrabajadores.findAndCountAll({
         where: whereClause,
-        limit: parseInt(limit),
+        limit: limitNum,
         offset: offset,
-        order: [[sortBy, sortOrder.toUpperCase()]]
+        order: [[sortBy, safeSortOrder]],
       });
 
       res.json({
@@ -55,8 +56,8 @@ const TrabajoTrabajadoresController = {
           page: parseInt(page),
           limit: parseInt(limit),
           total: data.count,
-          pages: Math.ceil(data.count / limit)
-        }
+          pages: Math.ceil(data.count / limit),
+        },
       });
     } catch (error) {
       return next(error);
@@ -74,12 +75,12 @@ const TrabajoTrabajadoresController = {
       const data = await TrabajoTrabajadores.findByPk(id);
 
       if (!data) {
-        return next(apiErrors.notFound('TrabajoTrabajadores'));
+        return next(apiErrors.notFound("TrabajoTrabajadores"));
       }
 
       res.json({
         success: true,
-        data
+        data,
       });
     } catch (error) {
       return next(error);
@@ -98,12 +99,11 @@ const TrabajoTrabajadoresController = {
       res.status(201).json({
         success: true,
         data,
-        message: 'TrabajoTrabajadores creado exitosamente'
+        message: "TrabajoTrabajadores creado exitosamente",
       });
     } catch (error) {
-      if (error.name === 'SequelizeValidationError') {
-        const mensajes =
-          error.errors?.map(err => err.message).join('. ') || error.message;
+      if (error.name === "SequelizeValidationError") {
+        const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
         return next(apiErrors.badRequest(mensajes));
       }
 
@@ -121,11 +121,11 @@ const TrabajoTrabajadoresController = {
       const { id } = req.params;
 
       const [affectedRows] = await TrabajoTrabajadores.update(req.body, {
-        where: { id_trabajo_trabajadores: id }
+        where: { id_trabajo_trabajadores: id },
       });
 
       if (affectedRows === 0) {
-        return next(apiErrors.notFound('TrabajoTrabajadores'));
+        return next(apiErrors.notFound("TrabajoTrabajadores"));
       }
 
       const updatedData = await TrabajoTrabajadores.findByPk(id);
@@ -133,12 +133,11 @@ const TrabajoTrabajadoresController = {
       res.json({
         success: true,
         data: updatedData,
-        message: 'TrabajoTrabajadores actualizado exitosamente'
+        message: "TrabajoTrabajadores actualizado exitosamente",
       });
     } catch (error) {
-      if (error.name === 'SequelizeValidationError') {
-        const mensajes =
-          error.errors?.map(err => err.message).join('. ') || error.message;
+      if (error.name === "SequelizeValidationError") {
+        const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
         return next(apiErrors.badRequest(mensajes));
       }
 
@@ -156,21 +155,21 @@ const TrabajoTrabajadoresController = {
       const { id } = req.params;
 
       const affectedRows = await TrabajoTrabajadores.destroy({
-        where: { id_trabajo_trabajadores: id }
+        where: { id_trabajo_trabajadores: id },
       });
 
       if (affectedRows === 0) {
-        return next(apiErrors.notFound('TrabajoTrabajadores'));
+        return next(apiErrors.notFound("TrabajoTrabajadores"));
       }
 
       res.json({
         success: true,
-        message: 'TrabajoTrabajadores eliminado exitosamente'
+        message: "TrabajoTrabajadores eliminado exitosamente",
       });
     } catch (error) {
       return next(error);
     }
-  }
+  },
 };
 
 module.exports = TrabajoTrabajadoresController;

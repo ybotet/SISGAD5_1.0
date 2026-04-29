@@ -65,6 +65,14 @@ export const trabajadorService = {
     return response.data;
   },
 
+  async getDashboard(fecha_desde?: string, fecha_hasta?: string) {
+    const params = new URLSearchParams();
+    if (fecha_desde) params.append("fecha_desde", fecha_desde);
+    if (fecha_hasta) params.append("fecha_hasta", fecha_hasta);
+    const response = await api.get(`/trabajador/dashboard?${params.toString()}`);
+    return response.data;
+  },
+
   async createTrabajador(data: CreateTrabajadorRequest): Promise<TrabajadorItem> {
     const response = await api.post<ApiResponse<TrabajadorItem>>("/trabajador", data);
     return response.data.data;

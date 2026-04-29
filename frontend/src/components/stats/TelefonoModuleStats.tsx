@@ -6,15 +6,12 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   LineChart,
   Line,
   PieChart,
   Pie,
   Cell,
-  AreaChart,
-  Area,
 } from "recharts";
 import type { TelefonoItem } from "../../services/telefonoService";
 import { telefonoService } from "../../services/telefonoService";
@@ -111,47 +108,30 @@ function HorizontalBarChart({
   );
 }
 
-// Función para filtrar items por fecha
-const filtrarPorFecha = (items: TelefonoItem[], desde?: string, hasta?: string): TelefonoItem[] => {
-  if (!desde && !hasta) return items;
-
-  return items.filter((item) => {
-    const fecha = new Date(item.createdAt);
-    if (desde && fecha < new Date(desde)) return false;
-    if (hasta && fecha > new Date(hasta)) return false;
-    return true;
-  });
-};
-
-// Función de agrupación (se mantiene)
-function groupBy<T, K extends string | number>(items: T[], keyFn: (i: T) => K | undefined) {
-  const map = new Map<K, number>();
-  for (const it of items) {
-    const k = keyFn(it as any);
-    if (k === undefined || k === null) continue;
-    map.set(k, (map.get(k as K) || 0) + 1);
-  }
-  return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
-}
+// Date filtering and grouping is handled server-side for dashboard endpoints
 
 // Componente principal
 export default function TelefonoModuleStats({
   fechaDesde,
   fechaHasta,
-  periodo,
+  periodo: _periodo,
 }: TelefonoModuleStatsProps) {
   const [allItems, setAllItems] = useState<TelefonoItem[]>([]);
+  const [dashboardState, setDashboardState] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Cargar datos (solo una vez)
+  // Cargar datos (re-fetch when date range changes)
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
         setError(null);
-        const resp = await telefonoService.getTelefonos(1, 10000, "", "");
-        setAllItems(resp.data || []);
+        const resp = await telefonoService.getDashboard(fechaDesde, fechaHasta);
+        const d = (resp && (resp.data !== undefined ? resp.data : resp)) || {};
+        // store aggregates in component state
+        setDashboardState(d);
+        setAllItems([]);
       } catch (err) {
         console.error("Error cargando teléfonos", err);
         setError("Error al cargar los datos");
@@ -160,55 +140,47 @@ export default function TelefonoModuleStats({
         setLoading(false);
       }
     })();
-  }, []);
+  }, [fechaDesde, fechaHasta]);
 
-  // Filtrar items según fechas seleccionadas
-  const items = filtrarPorFecha(allItems, fechaDesde, fechaHasta);
-  const totalItems = allItems.length;
-  const itemsFiltrados = items.length;
-  const porcentajeFiltrado = totalItems > 0 ? (itemsFiltrados / totalItems) * 100 : 0;
+  // Use backend dashboard aggregates when available
+  const dashboard = dashboardState || null;
+  const totalItems = dashboard ? Number(dashboard.total || 0) : allItems.length;
+  const itemsFiltrados = totalItems; // backend already applied date filters
 
-  // Procesar datos filtrados
-  const extGroups = groupBy(items, (t) => (t.extensiones ?? 0).toString());
-  const mandoGroups = groupBy(items, (t) => (t.tb_mando ? t.tb_mando.mando : "Sin mando"));
-  const clasifGroups = groupBy(items, (t) =>
-    t.tb_clasificacion ? t.tb_clasificacion.nombre : "Sin clasificación",
+  const topModelosData: { name: string; value: number }[] = (dashboard?.byMando || []).map(
+    (m: any) => ({
+      name: m.name || "Sin mando",
+      value: Number(m.value || 0),
+    }),
   );
-  const yearGroups = groupBy(items, (t) => new Date(t.createdAt).getFullYear().toString());
-
-  const maxCount = Math.max(
-    extGroups[0]?.[1] || 0,
-    mandoGroups[0]?.[1] || 0,
-    clasifGroups[0]?.[1] || 0,
-    yearGroups[0]?.[1] || 0,
+  const pieData: { name: string; value: number }[] = (dashboard?.byClasif || []).map((c: any) => ({
+    name: c.name || "Sin clasificación",
+    value: Number(c.value || 0),
+  }));
+  const lineData: { year: string | number; cantidad: number }[] = (dashboard?.byYear || []).map(
+    (y: any) => ({
+      year: y.year,
+      cantidad: Number(y.cantidad || 0),
+    }),
+  );
+  const barData: { name: string; cantidad: number }[] = (dashboard?.byExtensiones || []).map(
+    (e: any) => ({
+      name: e.name,
+      cantidad: Number(e.value || 0),
+    }),
   );
 
-  // Datos para gráficos
-  const barData = extGroups.slice(0, 10).map(([name, value]) => ({
-    name: `${name} ext.`,
-    cantidad: value,
-  }));
+  const maxCount = Math.max(...barData.map((b: { cantidad: number }) => b.cantidad), 1);
+  const extGroups: [string, number][] = barData.map(
+    (b: { name: string; cantidad: number }) => [b.name, b.cantidad] as [string, number],
+  );
 
-  const lineData = yearGroups
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([year, count]) => ({
-      year: year,
-      cantidad: count,
-    }));
-
-  const pieData = clasifGroups.slice(0, 10).map(([name, value]) => ({
-    name: name.toString(),
-    value: value,
-  }));
-
-  const topModelosData = mandoGroups.slice(0, 6).map(([name, value]) => ({
-    name: name.toString(),
-    value: value,
-  }));
-
-  // KPIs
-  const activos = items.filter((t) => t.extensiones && t.extensiones > 0).length;
-  const sinAsignar = items.filter((t) => !t.extensiones || t.extensiones === 0).length;
+  const activos = dashboard
+    ? Number(dashboard.activos || 0)
+    : allItems.filter((t) => t.extensiones && t.extensiones > 0).length;
+  const sinAsignar = dashboard
+    ? Number(dashboard.inactivos || 0)
+    : allItems.filter((t) => !t.extensiones || t.extensiones === 0).length;
   const tasaActividad = itemsFiltrados > 0 ? (activos / itemsFiltrados) * 100 : 0;
 
   // Tendencia mensual (solo con datos filtrados)
@@ -226,10 +198,7 @@ export default function TelefonoModuleStats({
     "Nov",
     "Dic",
   ];
-  const tendenciaMensual = meses.map((mes, idx) => {
-    const count = items.filter((t) => new Date(t.createdAt).getMonth() === idx).length;
-    return { mes, ingresos: count, bajas: Math.floor(count * 0.3) };
-  });
+  const tendenciaMensual = meses.map((mes) => ({ mes, ingresos: 0, bajas: 0 }));
 
   const PIE_COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d"];
 
@@ -279,7 +248,7 @@ export default function TelefonoModuleStats({
         />
         <KPICard
           title="En Reparación"
-          value={items.filter((t) => t.extensiones === 1).length}
+          value={allItems.filter((t) => t.extensiones === 1).length}
           subtitle="Requieren atención"
           color="orange"
         />
@@ -307,7 +276,7 @@ export default function TelefonoModuleStats({
                   paddingAngle={3}
                   dataKey="value"
                 >
-                  {pieData.map((_, index) => (
+                  {pieData.map((_: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
@@ -317,7 +286,7 @@ export default function TelefonoModuleStats({
           </div>
           <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
             <h3 className="font-semibold text-gray-800 mb-3">🔢 Por Extensiones</h3>
-            {extGroups.slice(0, 6).map(([k, v]) => (
+            {extGroups.slice(0, 6).map(([k, v]: [string, number]) => (
               <SimpleBar key={k} label={`${k} extensiones`} value={v} max={maxCount} />
             ))}
           </div>
@@ -366,21 +335,21 @@ export default function TelefonoModuleStats({
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Modelos distintos:</span>
-                <span className="font-semibold">{mandoGroups.length}</span>
+                <span className="font-semibold">{topModelosData.length}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Años abarcados:</span>
-                <span className="font-semibold">{yearGroups.length}</span>
+                <span className="font-semibold">{lineData.length}</span>
               </div>
             </div>
           </div>
           <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
             <h3 className="font-semibold text-gray-800 mb-3">📋 Clasificaciones</h3>
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {clasifGroups.slice(0, 8).map(([k, v]) => (
-                <div key={k} className="flex justify-between text-sm">
-                  <span className="text-gray-600 truncate max-w-[120px]">{k}</span>
-                  <span className="font-semibold text-gray-800">{v}</span>
+              {(pieData || []).slice(0, 8).map((c) => (
+                <div key={c.name} className="flex justify-between text-sm">
+                  <span className="text-gray-600 truncate max-w-[120px]">{c.name}</span>
+                  <span className="font-semibold text-gray-800">{c.value}</span>
                 </div>
               ))}
             </div>

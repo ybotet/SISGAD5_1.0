@@ -427,5 +427,77 @@ export const quejaService = {
     const response = await api.get<ApiResponse<Trabajador[]>>("/trabajador/getProbadores");
     return response.data.data;
   },
+  // ==================== DASHBOARD ====================
+  async getDashboardSummary(params: { fecha_desde?: string; fecha_hasta?: string } = {}) {
+    const qs = new URLSearchParams();
+    if (params.fecha_desde) qs.append("fecha_desde", params.fecha_desde);
+    if (params.fecha_hasta) qs.append("fecha_hasta", params.fecha_hasta);
+    // Add cache-buster to avoid 304 cached responses during development
+    qs.append("_ts", String(Date.now()));
+    const response = await api.get<ApiResponse<any>>(`/queja/dashboard/summary?${qs.toString()}`);
+    return response.data.data;
+  },
+
+  async getSankey(params: { fecha_desde?: string; fecha_hasta?: string } = {}) {
+    const qs = new URLSearchParams({ _ts: String(Date.now()) });
+    if (params.fecha_desde) qs.append("fecha_desde", params.fecha_desde);
+    if (params.fecha_hasta) qs.append("fecha_hasta", params.fecha_hasta);
+    const response = await api.get<ApiResponse<any>>(`/queja/dashboard/sankey?${qs.toString()}`);
+    return response.data.data;
+  },
+
+  async getFunnel(params: { fecha_desde?: string; fecha_hasta?: string } = {}) {
+    const qs = new URLSearchParams({ _ts: String(Date.now()) });
+    if (params.fecha_desde) qs.append("fecha_desde", params.fecha_desde);
+    if (params.fecha_hasta) qs.append("fecha_hasta", params.fecha_hasta);
+    const response = await api.get<ApiResponse<any>>(`/queja/dashboard/funnel?${qs.toString()}`);
+    return response.data.data;
+  },
+
+  async getHeatmap(params: { fecha_desde?: string; fecha_hasta?: string } = {}) {
+    const qs = new URLSearchParams({ _ts: String(Date.now()) });
+    if (params.fecha_desde) qs.append("fecha_desde", params.fecha_desde);
+    if (params.fecha_hasta) qs.append("fecha_hasta", params.fecha_hasta);
+    const response = await api.get<ApiResponse<any>>(`/queja/dashboard/heatmap?${qs.toString()}`);
+    return response.data.data;
+  },
+
+  async getHistoric(days = 90, params: { fecha_desde?: string; fecha_hasta?: string } = {}) {
+    const qs = new URLSearchParams({ days: String(days), _ts: String(Date.now()) });
+    if (params.fecha_desde) qs.append("fecha_desde", params.fecha_desde);
+    if (params.fecha_hasta) qs.append("fecha_hasta", params.fecha_hasta);
+    const response = await api.get<ApiResponse<any>>(`/queja/dashboard/historic?${qs.toString()}`);
+    return response.data.data;
+  },
+
+  async getMttr(
+    dimension = "tipo_falla",
+    params: { fecha_desde?: string; fecha_hasta?: string } = {},
+  ) {
+    const qs = new URLSearchParams({ dimension, _ts: String(Date.now()) });
+    if (params.fecha_desde) qs.append("fecha_desde", params.fecha_desde);
+    if (params.fecha_hasta) qs.append("fecha_hasta", params.fecha_hasta);
+    const response = await api.get<ApiResponse<any>>(`/queja/dashboard/mttr?${qs.toString()}`);
+    return response.data.data;
+  },
+
+  async getRecurrentes(days = 30, params: { fecha_desde?: string; fecha_hasta?: string } = {}) {
+    const qs = new URLSearchParams({ days: String(days), _ts: String(Date.now()) });
+    if (params.fecha_desde) qs.append("fecha_desde", params.fecha_desde);
+    if (params.fecha_hasta) qs.append("fecha_hasta", params.fecha_hasta);
+    const response = await api.get<ApiResponse<any>>(
+      `/queja/dashboard/recurrentes?${qs.toString()}`,
+    );
+    return response.data.data;
+  },
+  async getCloseBuckets(days = 30, params: { fecha_desde?: string; fecha_hasta?: string } = {}) {
+    const qs = new URLSearchParams({ days: String(days), _ts: String(Date.now()) });
+    if (params.fecha_desde) qs.append("fecha_desde", params.fecha_desde);
+    if (params.fecha_hasta) qs.append("fecha_hasta", params.fecha_hasta);
+    const response = await api.get<ApiResponse<any>>(
+      `/queja/dashboard/close_buckets?${qs.toString()}`,
+    );
+    return response.data.data;
+  },
 };
 //#endregion SERVICIO

@@ -20,27 +20,26 @@ const TelefonoController = {
     validate(listTelefonoSchema, "query"),
     async (req, res, next) => {
       try {
-        const { page, limit, sortBy, sortOrder, search, offset } =
-          parseListParams(req.query, {
-            allowedSortFields: [
-              "telefono",
-              "nombre",
-              "direccion",
-              "lic",
-              "zona",
-              "esbaja",
-              "extensiones",
-              "facturado",
-              "sector",
-              "id_mando",
-              "id_clasificacion",
-              "createdAt",
-              "updatedAt",
-            ],
-            defaultSort: "createdAt",
-            defaultOrder: "DESC",
-            maxLimit: 100,
-          });
+        const { page, limit, sortBy, sortOrder, search, offset } = parseListParams(req.query, {
+          allowedSortFields: [
+            "telefono",
+            "nombre",
+            "direccion",
+            "lic",
+            "zona",
+            "esbaja",
+            "extensiones",
+            "facturado",
+            "sector",
+            "id_mando",
+            "id_clasificacion",
+            "createdAt",
+            "updatedAt",
+          ],
+          defaultSort: "createdAt",
+          defaultOrder: "DESC",
+          maxLimit: 100,
+        });
 
         // Construir where clause para búsqueda
         const whereClause = {};
@@ -305,3 +304,66 @@ const TelefonoController = {
 };
 
 module.exports = TelefonoController;
+
+TelefonoController.dashboard = async function (req, res, next) {
+  try {
+    const { fecha_desde, fecha_hasta } = req.query;
+    const where = {};
+    if (fecha_desde || fecha_hasta) {
+      where.createdAt = {};
+      if (fecha_desde) where.createdAt[Op.gte] = new Date(fecha_desde);
+      if (fecha_hasta) where.createdAt[Op.lte] = new Date(fecha_hasta);
+    }
+
+    const total = await Telefono.count({ where });
+    const activos = await Telefono.count({ where: { ...where, esbaja: false } });
+    const inactivos = await Telefono.count({ where: { ...where, esbaja: true } });
+
+    const byMando = await Telefono.sequelize.query(
+      `SELECT m.mando as name, COUNT(1) as value FROM tb_telefono t LEFT JOIN tb_mando m ON t.id_mando = m.id_mando
+        WHERE ($1::timestamp IS NULL OR t."createdAt" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."createdAt" <= $2::timestamp)
+        GROUP BY m.mando ORDER BY value DESC LIMIT 10`,
+      {
+        bind: [fecha_desde || null, fecha_hasta || null],
+        type: Telefono.sequelize.QueryTypes.SELECT,
+      },
+    );
+
+    const byClasif = await Telefono.sequelize.query(
+      `SELECT c.nombre as name, COUNT(1) as value FROM tb_telefono t LEFT JOIN tb_clasificacion c ON t.id_clasificacion = c.id_clasificacion
+        WHERE ($1::timestamp IS NULL OR t."createdAt" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."createdAt" <= $2::timestamp)
+        GROUP BY c.nombre ORDER BY value DESC LIMIT 10`,
+      {
+        bind: [fecha_desde || null, fecha_hasta || null],
+        type: Telefono.sequelize.QueryTypes.SELECT,
+      },
+    );
+
+    const byYear = await Telefono.sequelize.query(
+      `SELECT to_char(t."createdAt", 'YYYY') as year, COUNT(1) as cantidad FROM tb_telefono t
+        WHERE ($1::timestamp IS NULL OR t."createdAt" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."createdAt" <= $2::timestamp)
+        GROUP BY year ORDER BY year ASC`,
+      {
+        bind: [fecha_desde || null, fecha_hasta || null],
+        type: Telefono.sequelize.QueryTypes.SELECT,
+      },
+    );
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        activos,
+        inactivos,
+        byMando: byMando || [],
+        byClasif: byClasif || [],
+        byYear: byYear || [],
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};

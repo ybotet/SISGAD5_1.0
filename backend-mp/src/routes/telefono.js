@@ -12,6 +12,9 @@ router.use(auth);
  */
 router.get("/", TelefonoController.getAll);
 
+// dashboard
+router.get("/dashboard", TelefonoController.dashboard);
+
 /**
  * @route   GET /api/tbTelefono/:id
  * @desc    Obtener un Telefono por ID

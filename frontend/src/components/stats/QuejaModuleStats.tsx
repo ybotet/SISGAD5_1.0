@@ -1,220 +1,150 @@
-import { useEffect, useState } from 'react';
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
-    LineChart,
-    Line,
-    PieChart,
-    Pie,
-    Cell
-} from 'recharts';
-import type { QuejaItem } from '../../services/quejaService';
-import { quejaService } from '../../services/quejaService';
+import { useEffect, useState } from "react";
+import DashboardCards from "../../components/queja/DashboardCards";
+import DashboardCharts from "../../components/queja/DashboardCharts";
+import { quejaService } from "../../services/quejaService";
 
-function groupBy<T, K extends string | number>(items: T[], keyFn: (i: T) => K | undefined) {
-    const map = new Map<K, number>();
-    for (const it of items) {
-        const k = keyFn(it as any);
-        if (k === undefined || k === null) continue;
-        map.set(k, (map.get(k as K) || 0) + 1);
+type Props = { fechaDesde?: string; fechaHasta?: string; periodo?: string };
+
+export default function QuejaModuleStats({ fechaDesde, fechaHasta }: Props) {
+  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState<any | null>(null);
+  const [sankey, setSankey] = useState<any>({ nodes: [], links: [] });
+  const [funnel, setFunnel] = useState<any>({ stages: [] });
+  const [heatmap, setHeatmap] = useState<any[]>([]);
+  const [historic, setHistoric] = useState<any>({ counts: [], moving: [], projection: [] });
+  const [mttr, setMttr] = useState<any[]>([]);
+  const [closeBuckets, setCloseBuckets] = useState<any>(null);
+
+  async function loadDashboard(params: { fecha_desde?: string; fecha_hasta?: string } = {}) {
+    try {
+      setLoading(true);
+      const s = await quejaService.getDashboardSummary(params);
+      console.debug("dashboardSummary", s);
+      const sk = await quejaService.getSankey(params);
+      console.debug("sankey", sk);
+      setSankey(sk);
+
+      const fu = await quejaService.getFunnel(params);
+      console.debug("funnel", fu);
+      setFunnel(fu);
+
+      const hm = await quejaService.getHeatmap(params);
+      console.debug("heatmap", hm);
+      setHeatmap(hm);
+
+      const hi = await quejaService.getHistoric(90, params);
+      console.debug("historic", hi);
+      setHistoric(hi);
+
+      const mt = await quejaService.getMttr("tipo_falla", params);
+      console.debug("mttr", mt);
+      setMttr(mt);
+
+      const cb = await quejaService.getCloseBuckets(30, params);
+      console.debug("closeBuckets", cb);
+      setCloseBuckets(cb);
+
+      // Build a merged/fallback summary so the UI can show sensible numbers
+      const mergedSummary = {
+        total: Number(s?.total ?? 0),
+        periodo: s?.periodo ?? {},
+        telefonos: {
+          count: Number(s?.telefonos?.count ?? 0),
+          pct: Number(s?.telefonos?.pct ?? 0),
+          prev: Number(s?.telefonos?.prev ?? 0),
+        },
+        lineas: {
+          count: Number(s?.lineas?.count ?? 0),
+          pct: Number(s?.lineas?.pct ?? 0),
+          prev: Number(s?.lineas?.prev ?? 0),
+        },
+        pizarras: {
+          count: Number(s?.pizarras?.count ?? 0),
+          pct: Number(s?.pizarras?.pct ?? 0),
+          prev: Number(s?.pizarras?.prev ?? 0),
+        },
+      };
+
+      // If summary has zeros but funnel/heatmap contain data, use them as fallback
+      if (mergedSummary.total === 0 && fu?.stages?.[0]?.count) {
+        mergedSummary.total = Number(fu.stages[0].count || 0);
+      }
+
+      if ((mergedSummary.telefonos.count || 0) === 0 && Array.isArray(hm) && hm.length > 0) {
+        mergedSummary.telefonos.count = hm.reduce((acc, r) => acc + Number(r.telefonos || 0), 0);
+      }
+      if ((mergedSummary.lineas.count || 0) === 0 && Array.isArray(hm) && hm.length > 0) {
+        mergedSummary.lineas.count = hm.reduce((acc, r) => acc + Number(r.lineas || 0), 0);
+      }
+      if ((mergedSummary.pizarras.count || 0) === 0 && Array.isArray(hm) && hm.length > 0) {
+        mergedSummary.pizarras.count = hm.reduce((acc, r) => acc + Number(r.pizarras || 0), 0);
+      }
+
+      console.debug("mergedSummary", mergedSummary);
+      setSummary(mergedSummary);
+    } catch (err) {
+      console.error("Error cargando dashboard de quejas", err);
+    } finally {
+      setLoading(false);
     }
-    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
-}
+  }
 
-const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1', '#d084d0'];
+  useEffect(() => {
+    // Load when component mounts or when parent date props change (uses global timer/controller)
+    const params: any = {};
+    if (fechaDesde) params.fecha_desde = fechaDesde;
+    if (fechaHasta) params.fecha_hasta = fechaHasta;
+    loadDashboard(params);
+  }, [fechaDesde, fechaHasta]);
 
-export default function QuejaModuleStats() {
-    const [quejas, setQuejas] = useState<QuejaItem[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        (async () => {
-            try {
-                setLoading(true);
-                const resp = await quejaService.getQuejas(1, 10000, '', '');
-                setQuejas(resp.data || []);
-            } catch (err) {
-                console.error('Error cargando quejas para stats', err);
-                setQuejas([]);
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, []);
-
-    if (loading) {
-        return <div className="p-4 bg-white rounded shadow text-center">Cargando estadísticas de quejas...</div>;
-    }
-
-    // quejas por servicio [telefono, linea, pizarra] (pie)
-    const servicioCounts = {
-        Teléfono: 0,
-        Línea: 0,
-        Pizarra: 0,
-        Otro: 0,
-    };
-    for (const q of quejas) {
-        if (q.id_telefono) servicioCounts.Teléfono++;
-        else if (q.id_linea) servicioCounts.Línea++;
-        else if (q.id_pizarra) servicioCounts.Pizarra++;
-        else servicioCounts.Otro++;
-    }
-    const servicioPieData = Object.entries(servicioCounts)
-        .filter(([, value]) => value > 0)
-        .map(([name, value]) => ({ name, value }));
-
-    // quejas por tipo de queja (pie)
-    const tipoGroups = groupBy(quejas, (q) => (q.tb_tipoqueja ? q.tb_tipoqueja.tipoqueja : 'Sin tipo'));
-    const tipoPieData = tipoGroups.map(([name, value]) => ({
-        name: name.toString(),
-        value,
-    }));
-
-    // quejas creadas por año (líneas)
-    const yearGroups = groupBy(quejas, (q) => new Date(q.fecha).getFullYear().toString());
-    const yearLineData = yearGroups
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([year, count]) => ({
-            year,
-            cantidad: count,
-        }));
-
-    // quejas por clave (barras)
-    const claveGroups = groupBy(quejas, (q) => (q.tb_clave ? q.tb_clave.clave : 'Sin clave'));
-    const claveBarData = claveGroups.slice(0, 10).map(([name, value]) => ({
-        name: name.toString(),
-        cantidad: value,
-    }));
-
-    // diferencia fecha - fecha OK (dona)
-    const diffBuckets: Record<string, number> = {
-        '≤ 24 h': 0,
-        '≤ 48 h': 0,
-        '≤ 72 h': 0,
-        '> 72 h': 0,
-    };
-
-    for (const q of quejas) {
-        if (!q.fecha || !q.fechaok) continue;
-        const inicio = new Date(q.fecha).getTime();
-        const fin = new Date(q.fechaok).getTime();
-        if (isNaN(inicio) || isNaN(fin) || fin < inicio) continue;
-        const horas = (fin - inicio) / (1000 * 60 * 60);
-        if (horas <= 24) diffBuckets['≤ 24 h']++;
-        else if (horas <= 48) diffBuckets['≤ 48 h']++;
-        else if (horas <= 72) diffBuckets['≤ 72 h']++;
-        else diffBuckets['> 72 h']++;
-    }
-
-    const diffPieData = Object.entries(diffBuckets)
-        .filter(([, value]) => value > 0)
-        .map(([name, value]) => ({ name, value }));
-
+  if (loading) {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Quejas por servicio (pie) */}
-            <div className="bg-white rounded-lg shadow p-4">
-                <h4 className="font-semibold mb-3">Quejas por servicio</h4>
-                <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                        <Pie
-                            data={servicioPieData}
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={100}
-                            dataKey="value"
-                            label={({ name, percent = 0 }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        >
-                            {servicioPieData.map((_, index) => (
-                                <Cell key={`cell-serv-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip />
-                    </PieChart>
-                </ResponsiveContainer>
-            </div>
-
-            {/* Quejas por tipo de queja (pie) */}
-            <div className="bg-white rounded-lg shadow p-4">
-                <h4 className="font-semibold mb-3">Quejas por tipo</h4>
-                <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                        <Pie
-                            data={tipoPieData}
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={100}
-                            dataKey="value"
-                            label={({ name, percent = 0 }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        >
-                            {tipoPieData.map((_, index) => (
-                                <Cell key={`cell-tipo-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip />
-                    </PieChart>
-                </ResponsiveContainer>
-            </div>
-
-            {/* Quejas creadas por año (líneas) */}
-            <div className="bg-white rounded-lg shadow p-4">
-                <h4 className="font-semibold mb-3">Quejas creadas por año</h4>
-                <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={yearLineData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="year" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="cantidad" stroke="#8884d8" strokeWidth={2} />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
-
-            {/* Quejas por clave (barras) */}
-            <div className="bg-white rounded-lg shadow p-4">
-                <h4 className="font-semibold mb-3">Quejas por clave</h4>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={claveBarData} margin={{ top: 5, right: 30, left: 20, bottom: 80 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" height={80} />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="cantidad" fill="#82ca9d" />
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
-
-            {/* Diferencia fecha - fecha OK (dona) */}
-            <div className="bg-white rounded-lg shadow p-4">
-                <h4 className="font-semibold mb-3">Tiempo de resolución de quejas</h4>
-                <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                        <Pie
-                            data={diffPieData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={100}
-                            dataKey="value"
-                            label={({ name, percent = 0 }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        >
-                            {diffPieData.map((_, index) => (
-                                <Cell key={`cell-diff-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip />
-                    </PieChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
+      <div className="p-4 bg-white rounded shadow text-center">
+        Cargando estadísticas de quejas...
+      </div>
     );
-}
+  }
 
+  return (
+    <div>
+      {/* Date range controlled by parent `StatsPage` - this module uses those props */}
+      {summary && <DashboardCards data={summary} />}
+      <DashboardCharts
+        sankey={sankey}
+        funnel={funnel}
+        historic={historic}
+        mttr={mttr}
+        mttrMeta={6}
+        closeBuckets={closeBuckets}
+      />
+
+      <div className="mt-6 bg-white rounded-lg shadow p-4">
+        <h3 className="font-semibold mb-2">Matriz Causa Raíz</h3>
+        <div className="overflow-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-gray-600">
+                <th>Tipo</th>
+                <th>Teléfonos</th>
+                <th>Líneas</th>
+                <th>Pizarras</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {heatmap.map((r, i) => (
+                <tr key={i} className="border-t">
+                  <td className="py-2">{r.tipo}</td>
+                  <td>{r.telefonos}</td>
+                  <td>{r.lineas}</td>
+                  <td>{r.pizarras}</td>
+                  <td>{r.total}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

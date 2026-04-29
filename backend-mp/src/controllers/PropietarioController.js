@@ -20,16 +20,10 @@ const PropietarioController = {
       try {
         // 🔹 1. Extraer valores con fallback explícito (NUNCA confiar en req.query directo)
         const page = typeof req.query.page === "number" ? req.query.page : 1;
-        const limit =
-          typeof req.query.limit === "number" ? req.query.limit : 10;
-        const sortBy =
-          typeof req.query.sortBy === "string" ? req.query.sortBy : "createdAt";
-        const sortOrder =
-          typeof req.query.sortOrder === "string"
-            ? req.query.sortOrder
-            : "DESC";
-        const search =
-          typeof req.query.search === "string" ? req.query.search : "";
+        const limit = typeof req.query.limit === "number" ? req.query.limit : 10;
+        const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "createdAt";
+        const sortOrder = typeof req.query.sortOrder === "string" ? req.query.sortOrder : "DESC";
+        const search = typeof req.query.search === "string" ? req.query.search : "";
 
         // 🔹 2. Calcular offset de forma segura
         const safePage = Math.max(1, parseInt(page) || 1);
@@ -38,13 +32,9 @@ const PropietarioController = {
 
         // 🔹 3. Whitelist de ordenamiento + fallback
         const ALLOWED_SORT = ["nombre", "createdAt", "updatedAt"];
-        const sortByValue = ALLOWED_SORT.includes(sortBy)
-          ? sortBy
-          : "createdAt";
-        const sortOrderRaw = sortOrder.toUpperCase();
-        const sortOrderValue = ["ASC", "DESC"].includes(sortOrderRaw)
-          ? sortOrderRaw
-          : "DESC";
+        const sortByValue = ALLOWED_SORT.includes(sortBy) ? sortBy : "createdAt";
+        const sortOrderRaw = typeof sortOrder === "string" ? sortOrder.toUpperCase() : "DESC";
+        const sortOrderValue = ["ASC", "DESC"].includes(sortOrderRaw) ? sortOrderRaw : "DESC";
 
         // 🔹 4. Debug crítico (puedes quitarlo después)
         console.log("🔍 PROP ORDER DEBUG:", {
@@ -128,8 +118,7 @@ const PropietarioController = {
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
           const mensaje =
-            error.errors?.map((err) => err.message).join(". ") ||
-            "Error de validación";
+            error.errors?.map((err) => err.message).join(". ") || "Error de validación";
           return next(apiErrors.badRequest(mensaje));
         }
 
@@ -171,8 +160,7 @@ const PropietarioController = {
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
           const mensaje =
-            error.errors?.map((err) => err.message).join(". ") ||
-            "Error de validación";
+            error.errors?.map((err) => err.message).join(". ") || "Error de validación";
           return next(apiErrors.badRequest(mensaje));
         }
 

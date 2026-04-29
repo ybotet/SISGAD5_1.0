@@ -31,13 +31,7 @@ const LineaController = {
           id_tipolinea,
           id_propietario,
         } = parseListParams(req.query, {
-          allowedSortFields: [
-            "clavelinea",
-            "clave_n",
-            "codificacion",
-            "createdAt",
-            "updatedAt",
-          ],
+          allowedSortFields: ["clavelinea", "clave_n", "codificacion", "createdAt", "updatedAt"],
           defaultSort: "createdAt",
           defaultOrder: "DESC",
           maxLimit: 100,
@@ -245,6 +239,80 @@ const LineaController = {
       return next(error);
     }
   },
+};
+
+// Dashboard stats for frontend
+LineaController.dashboard = async function (req, res, next) {
+  try {
+    const { fecha_desde, fecha_hasta } = req.query;
+    const where = {};
+    if (fecha_desde || fecha_hasta) {
+      where.createdAt = {};
+      if (fecha_desde) where.createdAt[Op.gte] = new Date(fecha_desde);
+      if (fecha_hasta) where.createdAt[Op.lte] = new Date(fecha_hasta);
+    }
+
+    const total = await Linea.count({ where });
+    const activas = await Linea.count({ where: { ...where, esbaja: false } });
+    const inactivas = await Linea.count({ where: { ...where, esbaja: true } });
+
+    // Top propietarios
+    const propietarios = await Linea.findAll({
+      where,
+      attributes: [["id_propietario", "id_propietario"]],
+      include: [{ association: "tb_propietario", attributes: ["nombre"] }],
+      limit: 0,
+    });
+
+    // For lightweight response, compute some aggregates via raw queries
+    const byProp = await Linea.sequelize.query(
+      `SELECT p.nombre as name, COUNT(1) as value FROM tb_linea l LEFT JOIN tb_propietario p ON l.id_propietario = p.id_propietario
+        WHERE ($1::timestamp IS NULL OR l."createdAt" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR l."createdAt" <= $2::timestamp)
+        GROUP BY p.nombre ORDER BY value DESC LIMIT 10`,
+      { bind: [fecha_desde || null, fecha_hasta || null], type: Linea.sequelize.QueryTypes.SELECT },
+    );
+
+    const bySenal = await Linea.sequelize.query(
+      `SELECT s.senalizacion as name, COUNT(1) as value FROM tb_linea l LEFT JOIN tb_senalizacion s ON l.id_senalizacion = s.id_senalizacion
+        WHERE ($1::timestamp IS NULL OR l."createdAt" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR l."createdAt" <= $2::timestamp)
+        GROUP BY s.senalizacion ORDER BY value DESC LIMIT 10`,
+      { bind: [fecha_desde || null, fecha_hasta || null], type: Linea.sequelize.QueryTypes.SELECT },
+    );
+
+    const byYear = await Linea.sequelize.query(
+      `SELECT to_char(l."createdAt", 'YYYY') as year, COUNT(1) as cantidad FROM tb_linea l
+        WHERE ($1::timestamp IS NULL OR l."createdAt" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR l."createdAt" <= $2::timestamp)
+        GROUP BY year ORDER BY year ASC`,
+      { bind: [fecha_desde || null, fecha_hasta || null], type: Linea.sequelize.QueryTypes.SELECT },
+    );
+
+    const topLineasQuejas = await Linea.sequelize.query(
+      `SELECT COALESCE(l.clavelinea, CONCAT('Línea ', l.id_linea)) as name, COUNT(q.id_queja) as value
+        FROM tb_linea l LEFT JOIN tb_queja q ON q.id_linea = l.id_linea
+        WHERE ($1::timestamp IS NULL OR q."createdAt" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR q."createdAt" <= $2::timestamp)
+        GROUP BY name ORDER BY value DESC LIMIT 10`,
+      { bind: [fecha_desde || null, fecha_hasta || null], type: Linea.sequelize.QueryTypes.SELECT },
+    );
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        activas,
+        inactivas,
+        byProp: byProp || [],
+        bySenal: bySenal || [],
+        byYear: byYear || [],
+        topLineasQuejas: topLineasQuejas || [],
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 module.exports = LineaController;

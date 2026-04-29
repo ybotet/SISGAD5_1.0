@@ -30,6 +30,7 @@ import TrabajadorPage from "./pages/TrabajadorPage";
 import TelefonoPage from "./pages/TelefonoPage";
 import LineaPage from "./pages/LineaPage";
 import QuejaPage from "./pages/quejaPage";
+import DashboardQuejaPage from "./pages/queja/DashboardQuejaPage";
 import PizarraPage from "./pages/PizarraPage";
 
 //Users y Roles
@@ -96,6 +97,14 @@ export default function App() {
           element={
             <ProtectedRoute permission="quejas.ver">
               <QuejaPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="main/quejas/dashboard"
+          element={
+            <ProtectedRoute permission="quejas.ver">
+              <DashboardQuejaPage />
             </ProtectedRoute>
           }
         />
