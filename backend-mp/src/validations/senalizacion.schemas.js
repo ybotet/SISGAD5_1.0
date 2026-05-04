@@ -4,6 +4,7 @@ const { z } = require("zod");
 const senalizacionBaseSchema = z.object({
   senalizacion: z
     .string()
+    .trim()
     .max(25, "ERROR.SENALIZACION.SENALIZACION.MAX_LENGTH")
     .optional()
     .nullable(),

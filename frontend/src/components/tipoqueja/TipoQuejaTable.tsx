@@ -44,13 +44,13 @@ export default function TipoQuejaTable({
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                No.
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Tipo de Queja
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Servicio
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Fecha Creación
                             </th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Acciones
@@ -66,8 +66,11 @@ export default function TipoQuejaTable({
                                 </td>
                             </tr>
                         ) : (
-                            items.map((item) => (
+                            items.map((item, index) => (
                                 <tr key={item.id_tipoqueja} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {index + 1}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {item.tipoqueja}
                                     </td>
@@ -76,9 +79,6 @@ export default function TipoQuejaTable({
                                             <i className={`${getServicioIcon(item.servicio)} mr-2 text-blue-500`}></i>
                                             <span className="text-gray-900">{item.servicio}</span>
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {new Date(item.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end space-x-2">

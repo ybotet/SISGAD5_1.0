@@ -9,6 +9,7 @@ const {
   listTelefonoSchema,
 } = require("../validations/telefono.schemas");
 const validate = require("../middleware/validate");
+const { normalizeDateRange } = require("../utils/dateUtils");
 
 const TelefonoController = {
   /**
@@ -16,6 +17,8 @@ const TelefonoController = {
    * @route   GET /api/tbTelefono
    * @access  Public
    */
+
+  // TelefonoController.js - getAll corregido
   getAll: [
     validate(listTelefonoSchema, "query"),
     async (req, res, next) => {
@@ -39,7 +42,22 @@ const TelefonoController = {
           defaultSort: "createdAt",
           defaultOrder: "DESC",
           maxLimit: 100,
+          columnMapping: {
+            createdAt: "created_at",
+            updatedAt: "updated_at",
+          },
         });
+
+        // ✅ Mapear sortBy al nombre de la columna en la BD
+        const columnMapping = {
+          createdAt: "created_at",
+          updatedAt: "updated_at",
+        };
+
+        const sortColumn = columnMapping[sortBy] || sortBy;
+
+        console.log("📝 Original sortBy:", sortBy);
+        console.log("📝 Mapeado a columna:", sortColumn);
 
         // Construir where clause para búsqueda
         const whereClause = {};
@@ -47,27 +65,32 @@ const TelefonoController = {
           whereClause[Op.or] = [{ telefono: { [Op.iLike]: `%${search}%` } }];
         }
 
+        // TelefonoController.js - getAll (después de obtener los datos)
         const data = await Telefono.findAndCountAll({
           where: whereClause,
           include: [
-            {
-              association: "tb_clasificacion",
-              attributes: ["id_clasificacion", "nombre"],
-            },
-            {
-              association: "tb_mando",
-              attributes: ["id_mando", "mando"],
-            },
+            { association: "tb_clasificacion", attributes: ["id_clasificacion", "nombre"] },
+            { association: "tb_mando", attributes: ["id_mando", "mando"] },
           ],
           limit: parseInt(limit),
           offset: parseInt(offset),
-          order: [[sortBy, sortOrder]],
+          order: [[sortColumn, sortOrder]],
           distinct: true,
+        });
+
+        // ✅ Normalizar los timestamps en cada fila
+        const rowsNormalizados = data.rows.map((row) => {
+          const json = row.toJSON();
+          json.createdAt = json.created_at;
+          json.updatedAt = json.updated_at;
+          delete json.created_at;
+          delete json.updated_at;
+          return json;
         });
 
         res.json({
           success: true,
-          data: data.rows,
+          data: rowsNormalizados,
           pagination: {
             page: page,
             limit: limit,
@@ -76,6 +99,7 @@ const TelefonoController = {
           },
         });
       } catch (error) {
+        console.error("❌ Error en getAll:", error);
         return next(error);
       }
     },
@@ -141,15 +165,41 @@ const TelefonoController = {
         limit: 100, // o paginación
       });
 
+      // ✅ Normalizar la respuesta: convertir created_at → createdAt
+      const telefonoNormalizado = telefono.toJSON();
+      telefonoNormalizado.createdAt = telefonoNormalizado.created_at;
+      telefonoNormalizado.updatedAt = telefonoNormalizado.updated_at;
+      delete telefonoNormalizado.created_at;
+      delete telefonoNormalizado.updated_at;
+
+      const recorridosNormalizados = recorridos.map((r) => {
+        const json = r.toJSON();
+        json.createdAt = json.created_at;
+        json.updatedAt = json.updated_at;
+        delete json.created_at;
+        delete json.updated_at;
+        return json;
+      });
+
+      const quejasNormalizadas = quejas.map((q) => {
+        const json = q.toJSON();
+        json.createdAt = json.created_at;
+        json.updatedAt = json.updated_at;
+        delete json.created_at;
+        delete json.updated_at;
+        return json;
+      });
+
       res.json({
         success: true,
         data: {
-          telefono,
-          recorridos,
-          quejas,
+          telefono: telefonoNormalizado,
+          recorridos: recorridosNormalizados,
+          quejas: quejasNormalizadas,
         },
       });
     } catch (error) {
+      console.error("❌ Error en getById:", error);
       return next(error);
     }
   },
@@ -308,11 +358,12 @@ module.exports = TelefonoController;
 TelefonoController.dashboard = async function (req, res, next) {
   try {
     const { fecha_desde, fecha_hasta } = req.query;
+    const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
     const where = {};
-    if (fecha_desde || fecha_hasta) {
-      where.createdAt = {};
-      if (fecha_desde) where.createdAt[Op.gte] = new Date(fecha_desde);
-      if (fecha_hasta) where.createdAt[Op.lte] = new Date(fecha_hasta);
+    if (normalizedRange.from || normalizedRange.to) {
+      where.created_at = {};
+      if (normalizedRange.from) where.created_at[Op.gte] = normalizedRange.from;
+      if (normalizedRange.to) where.created_at[Op.lte] = normalizedRange.to;
     }
 
     const total = await Telefono.count({ where });
@@ -321,33 +372,46 @@ TelefonoController.dashboard = async function (req, res, next) {
 
     const byMando = await Telefono.sequelize.query(
       `SELECT m.mando as name, COUNT(1) as value FROM tb_telefono t LEFT JOIN tb_mando m ON t.id_mando = m.id_mando
-        WHERE ($1::timestamp IS NULL OR t."createdAt" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR t."createdAt" <= $2::timestamp)
+        WHERE ($1::timestamp IS NULL OR t."created_at" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."created_at" <= $2::timestamp)
         GROUP BY m.mando ORDER BY value DESC LIMIT 10`,
       {
-        bind: [fecha_desde || null, fecha_hasta || null],
+        bind: [normalizedRange.from || null, normalizedRange.to || null],
         type: Telefono.sequelize.QueryTypes.SELECT,
       },
     );
 
     const byClasif = await Telefono.sequelize.query(
       `SELECT c.nombre as name, COUNT(1) as value FROM tb_telefono t LEFT JOIN tb_clasificacion c ON t.id_clasificacion = c.id_clasificacion
-        WHERE ($1::timestamp IS NULL OR t."createdAt" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR t."createdAt" <= $2::timestamp)
+        WHERE ($1::timestamp IS NULL OR t."created_at" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."created_at" <= $2::timestamp)
         GROUP BY c.nombre ORDER BY value DESC LIMIT 10`,
       {
-        bind: [fecha_desde || null, fecha_hasta || null],
+        bind: [normalizedRange.from || null, normalizedRange.to || null],
         type: Telefono.sequelize.QueryTypes.SELECT,
       },
     );
 
     const byYear = await Telefono.sequelize.query(
-      `SELECT to_char(t."createdAt", 'YYYY') as year, COUNT(1) as cantidad FROM tb_telefono t
-        WHERE ($1::timestamp IS NULL OR t."createdAt" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR t."createdAt" <= $2::timestamp)
+      `SELECT to_char(t."created_at", 'YYYY') as year, COUNT(1) as cantidad FROM tb_telefono t
+        WHERE ($1::timestamp IS NULL OR t."created_at" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."created_at" <= $2::timestamp)
         GROUP BY year ORDER BY year ASC`,
       {
-        bind: [fecha_desde || null, fecha_hasta || null],
+        bind: [normalizedRange.from || null, normalizedRange.to || null],
+        type: Telefono.sequelize.QueryTypes.SELECT,
+      },
+    );
+
+    //telefonos con mas quejas en el periodo
+    const byMasQuejas = await Telefono.sequelize.query(
+      `SELECT t.telefono, COUNT(q.id_queja) as cantidad FROM tb_telefono t
+        LEFT JOIN tb_queja q ON t.id_telefono = q.id_telefono
+        WHERE ($1::timestamp IS NULL OR t."created_at" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."created_at" <= $2::timestamp)
+        GROUP BY t.telefono ORDER BY cantidad DESC LIMIT 10`,
+      {
+        bind: [normalizedRange.from || null, normalizedRange.to || null],
         type: Telefono.sequelize.QueryTypes.SELECT,
       },
     );
@@ -361,6 +425,7 @@ TelefonoController.dashboard = async function (req, res, next) {
         byMando: byMando || [],
         byClasif: byClasif || [],
         byYear: byYear || [],
+        byMasQuejas: byMasQuejas || [],
       },
     });
   } catch (error) {

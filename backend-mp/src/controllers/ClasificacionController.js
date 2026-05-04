@@ -22,8 +22,8 @@ const ClasificacionController = {
         const { page, limit, offset, sortBy, sortOrder, search } =
           parseListParams(req.query, {
             allowedSortFields: ["mando", "createdAt", "updatedAt"],
-            defaultSort: "createdAt",
-            defaultOrder: "DESC",
+            defaultSort: "nombre",
+            defaultOrder: "ASC",
             maxLimit: 100, // Ajustar según necesites
           });
 

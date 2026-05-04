@@ -29,8 +29,8 @@ const CableController = {
           id_propietario,
         } = parseListParams(req.query, {
           allowedSortFields: ["mando", "createdAt", "updatedAt"],
-          defaultSort: "createdAt",
-          defaultOrder: "DESC",
+          defaultSort: "numero",
+          defaultOrder: "ASC",
           maxLimit: 100, // Ajustar según necesites
         });
 

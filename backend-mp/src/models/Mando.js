@@ -28,16 +28,6 @@ module.exports = (sequelize) => {
         },
         unique: true,
       },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
     },
     {
       tableName: "tb_mando",

@@ -20,13 +20,12 @@ const MandoController = {
     async (req, res, next) => {
       try {
         // 🔹 1. Parsear parámetros de forma segura (REEMPLAZA la desestructuración manual)
-        const { page, limit, offset, sortBy, sortOrder, search } =
-          parseListParams(req.query, {
-            allowedSortFields: ["mando", "createdAt", "updatedAt"],
-            defaultSort: "createdAt",
-            defaultOrder: "DESC",
-            maxLimit: 100, // Ajustar según necesites
-          });
+        const { page, limit, offset, sortBy, sortOrder, search } = parseListParams(req.query, {
+          allowedSortFields: ["mando", "createdAt", "updatedAt"],
+          defaultSort: "mando",
+          defaultOrder: "ASC",
+          maxLimit: 100, // Ajustar según necesites
+        });
 
         // 🔹 2. Construir where clause
         const whereClause = {};
@@ -100,8 +99,7 @@ const MandoController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
 
@@ -142,8 +140,7 @@ const MandoController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
 

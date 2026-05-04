@@ -30,10 +30,10 @@ export default function PlantaTable({
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Planta
+                No.
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Fecha Creación
+                Planta
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Acciones
@@ -43,22 +43,22 @@ export default function PlantaTable({
           <tbody className="bg-white divide-y divide-gray-200">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
                   <i className="ri-inbox-line text-3xl mb-2 block"></i>
                   No se encontraron resultados
                 </td>
               </tr>
             ) : (
-              items.map((item) => (
+              items.map((item, index) => (
                 <tr key={item.id_planta} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {index + 1}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex items-center">
                       <i className="ri-building-2-line mr-2 text-green-500"></i>
                       {item.planta}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(item.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">

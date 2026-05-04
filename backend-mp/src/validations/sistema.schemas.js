@@ -2,14 +2,19 @@ const { z } = require("zod");
 
 // Schema base para validaciones de Sistema
 const sistemaBaseSchema = z.object({
-  id_propietario: z.number().int().positive().optional().nullable(),
+  id_propietario: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.coerce.number().int().positive().optional().nullable(),
+  ),
   sistema: z
     .string()
+    .trim()
     .max(15, "ERROR.SISTEMA.SISTEMA.MAX_LENGTH")
     .optional()
     .nullable(),
   direccion: z
     .string()
+    .trim()
     .max(30, "ERROR.SISTEMA.DIRECCION.MAX_LENGTH")
     .optional()
     .nullable(),

@@ -1,6 +1,7 @@
 const { Senalizacion } = require("../models");
 const { Op } = require("sequelize");
 const apiErrors = require("../utils/apiErrors");
+const { parseListParams } = require("../utils/parseListParams");
 const {
   createSenalizacionSchema,
   updateSenalizacionSchema,
@@ -8,56 +9,70 @@ const {
 } = require("../validations/senalizacion.schemas");
 const validate = require("../middleware/validate");
 
+// Helper para normalizar timestamps
+const normalizeTimestamps = (data) => {
+  if (!data) return data;
+  if (Array.isArray(data)) {
+    return data.map((item) => normalizeTimestamps(item));
+  }
+  if (typeof data === "object" && data !== null) {
+    const result = { ...data };
+    if (result.created_at !== undefined) {
+      result.createdAt = result.created_at;
+      delete result.created_at;
+    }
+    if (result.updated_at !== undefined) {
+      result.updatedAt = result.updated_at;
+      delete result.updated_at;
+    }
+    return result;
+  }
+  return data;
+};
+
 const SenalizacionController = {
   /**
    * @desc    Obtener todos los registros (CON validación Zod en query)
-   * @route   GET /api/tbSenalizacion
+   * @route   GET /api/mp/senalizacion
    * @access  Public
    */
   getAll: [
     validate(listSenalizacionSchema, "query"),
     async (req, res, next) => {
       try {
-        const { page, limit, sortBy, sortOrder, search } = req.query;
-
-        const offset = (page - 1) * limit;
+        const { page, limit, offset, sortBy, sortOrder, search } = parseListParams(req.query, {
+          allowedSortFields: ["senalizacion", "createdAt", "updatedAt"],
+          defaultSort: "senalizacion",
+          defaultOrder: "ASC",
+          maxLimit: 100,
+          columnMapping: {
+            createdAt: "created_at",
+            updatedAt: "updated_at",
+          },
+        });
 
         // Construir where clause para búsqueda
         const whereClause = {};
         if (search) {
-          whereClause[Op.or] = [
-            // Buscar en campos de texto (ajusta según tus campos)
-            { senalizacion: { [Op.iLike]: `%${search}%` } },
-          ].filter(Boolean);
+          whereClause[Op.or] = [{ senalizacion: { [Op.iLike]: `%${search}%` } }];
         }
-
-        // Validación defensiva para orden
-        const ALLOWED_SORT = ["senalizacion", "createdAt", "updatedAt"];
-
-        // Forzar valores seguros (nunca undefined/NaN)
-        const sortByRaw = req.query.sortBy;
-        const sortByValue =
-          typeof sortByRaw === "string" && ALLOWED_SORT.includes(sortByRaw)
-            ? sortByRaw
-            : "createdAt";
-
-        const sortOrderRaw = req.query.sortOrder;
-        const sortOrderValue =
-          typeof sortOrderRaw === "string" &&
-          ["ASC", "DESC"].includes(sortOrderRaw.toUpperCase())
-            ? sortOrderRaw.toUpperCase()
-            : "DESC";
 
         const data = await Senalizacion.findAndCountAll({
           where: whereClause,
           limit: parseInt(limit),
           offset: parseInt(offset),
-          order: [[sortByValue, sortOrderValue]],
+          order: [[sortBy, sortOrder]],
+          distinct: true,
+        });
+
+        const rowsNormalizados = data.rows.map((row) => {
+          const plainRow = row.toJSON(); // 🔑 CLAVE: convertir a objeto plano
+          return normalizeTimestamps(plainRow);
         });
 
         res.json({
           success: true,
-          data: data.rows,
+          data: rowsNormalizados,
           pagination: {
             page: parseInt(page),
             limit: parseInt(limit),
@@ -66,6 +81,7 @@ const SenalizacionController = {
           },
         });
       } catch (error) {
+        console.error("❌ Error en getAll Senalizacion:", error);
         return next(error);
       }
     },
@@ -73,7 +89,7 @@ const SenalizacionController = {
 
   /**
    * @desc    Obtener un registro por ID
-   * @route   GET /api/tbSenalizacion/:id
+   * @route   GET /api/mp/senalizacion/:id
    * @access  Public
    */
   async getById(req, res, next) {
@@ -85,38 +101,50 @@ const SenalizacionController = {
         return next(apiErrors.notFound("Senalizacion"));
       }
 
+      // Normalizar timestamps
+      const dataNormalizada = normalizeTimestamps(data.toJSON());
+
       res.json({
         success: true,
-        data,
+        data: dataNormalizada,
       });
     } catch (error) {
+      console.error("❌ Error en getById Senalizacion:", error);
       return next(error);
     }
   },
 
   /**
    * @desc    Crear nuevo registro (CON validación Zod en body)
-   * @route   POST /api/tbSenalizacion
+   * @route   POST /api/mp/senalizacion
    * @access  Public
    */
   create: [
     validate(createSenalizacionSchema, "body"),
     async (req, res, next) => {
       try {
-        const data = await Senalizacion.create(req.body);
+        // Filtrar campos de timestamps
+        const { createdAt, updatedAt, ...cleanData } = req.body;
+
+        const data = await Senalizacion.create(cleanData);
+
+        // Normalizar respuesta
+        const dataNormalizada = normalizeTimestamps(data.toJSON());
 
         res.status(201).json({
           success: true,
-          data,
-          message: "Senalizacion creado exitosamente",
+          data: dataNormalizada,
+          message: "Señalización creada exitosamente",
         });
       } catch (error) {
+        console.error("❌ Error creando Senalizacion:", error);
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
-
+        if (error.name === "SequelizeUniqueConstraintError") {
+          return next(apiErrors.conflict("La señalización ya existe"));
+        }
         return next(error);
       }
     },
@@ -124,7 +152,7 @@ const SenalizacionController = {
 
   /**
    * @desc    Actualizar registro (CON validación Zod parcial)
-   * @route   PUT /api/tbSenalizacion/:id
+   * @route   PUT /api/mp/senalizacion/:id
    * @access  Public
    */
   update: [
@@ -133,7 +161,10 @@ const SenalizacionController = {
       try {
         const { id } = req.params;
 
-        const [affectedRows] = await Senalizacion.update(req.body, {
+        // Filtrar campos de timestamps
+        const { createdAt, updatedAt, ...cleanData } = req.body;
+
+        const [affectedRows] = await Senalizacion.update(cleanData, {
           where: { id_senalizacion: id },
         });
 
@@ -143,18 +174,20 @@ const SenalizacionController = {
 
         const updatedData = await Senalizacion.findByPk(id);
 
+        // Normalizar respuesta
+        const dataNormalizada = normalizeTimestamps(updatedData.toJSON());
+
         res.json({
           success: true,
-          data: updatedData,
-          message: "Senalizacion actualizado exitosamente",
+          data: dataNormalizada,
+          message: "Señalización actualizada exitosamente",
         });
       } catch (error) {
+        console.error("❌ Error actualizando Senalizacion:", error);
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
-
         return next(error);
       }
     },
@@ -162,7 +195,7 @@ const SenalizacionController = {
 
   /**
    * @desc    Eliminar registro
-   * @route   DELETE /api/tbSenalizacion/:id
+   * @route   DELETE /api/mp/senalizacion/:id
    * @access  Public
    */
   async delete(req, res, next) {
@@ -179,9 +212,10 @@ const SenalizacionController = {
 
       res.json({
         success: true,
-        message: "Senalizacion eliminado exitosamente",
+        message: "Señalización eliminada exitosamente",
       });
     } catch (error) {
+      console.error("❌ Error eliminando Senalizacion:", error);
       return next(error);
     }
   },

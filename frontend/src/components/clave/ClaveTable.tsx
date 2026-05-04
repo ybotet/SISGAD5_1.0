@@ -30,6 +30,9 @@ export default function ClaveTable({
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                No.
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Clave
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -40,9 +43,6 @@ export default function ClaveTable({
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Estado
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Fecha Creación
                             </th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Acciones
@@ -58,8 +58,11 @@ export default function ClaveTable({
                                 </td>
                             </tr>
                         ) : (
-                            items.map((item) => (
+                            items.map((item, index) => (
                                 <tr key={item.id_clave} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {index + 1}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         <div className="flex items-center">
                                             <i className="ri-key-2-line mr-2 text-blue-500"></i>
@@ -86,9 +89,6 @@ export default function ClaveTable({
                                                 Ok
                                             </span>
                                         )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {new Date(item.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end space-x-2">

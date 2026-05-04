@@ -2,8 +2,8 @@ const { z } = require("zod");
 
 // Schema base para validaciones de Tipoqueja
 const tipoquejaBaseSchema = z.object({
-  tipoqueja: z.string().optional().nullable(),
-  servicio: z.string().optional().nullable(),
+  tipoqueja: z.string().trim().optional().nullable(),
+  servicio: z.string().trim().optional().nullable(),
 });
 
 // Schema para CREAR: base con validaciones requeridas

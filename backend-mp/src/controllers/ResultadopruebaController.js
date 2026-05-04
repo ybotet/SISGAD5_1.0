@@ -20,13 +20,12 @@ const ResultadopruebaController = {
     async (req, res, next) => {
       try {
         // 🔹 Parsear parámetros (REEMPLAZA la desestructuración manual)
-        const { page, limit, offset, sortBy, sortOrder, search } =
-          parseListParams(req.query, {
-            allowedSortFields: ["resultado", "createdAt", "updatedAt"],
-            defaultSort: "createdAt",
-            defaultOrder: "DESC",
-            maxLimit: 100,
-          });
+        const { page, limit, offset, sortBy, sortOrder, search } = parseListParams(req.query, {
+          allowedSortFields: ["resultado", "createdAt", "updatedAt"],
+          defaultSort: "resultado",
+          defaultOrder: "ASC",
+          maxLimit: 100,
+        });
 
         // 🔹 Where clause
         const whereClause = {};
@@ -96,8 +95,7 @@ const ResultadopruebaController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
         return next(error);
@@ -131,8 +129,7 @@ const ResultadopruebaController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
         return next(error);

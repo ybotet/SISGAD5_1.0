@@ -6,7 +6,6 @@ const claveBaseSchema = z.object({
   descripcion: z.string().max(25, "ERROR.CLAVE.DESCRIPCION.MAX_LENGTH").optional().nullable(),
   valor_p: z.number().min(0, "ERROR.CLAVE.VALOR_P.MIN_VALUE").optional().nullable(),
   id_clasificadorclave: z
-    .number()
     .int()
     .positive("ERROR.CLASIFICADORCLAVE.INVALID")
     .optional()

@@ -7,7 +7,9 @@ const asignacionBaseSchema = z.object({
     .positive("ERROR.QUEJA.INVALID")
     .optional()
     .nullable(),
-  fechaAsignacion: z.coerce.date().optional().nullable(), // 👈 coerce convierte string a date
+  fechaAsignacion: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "ERROR.ASIGNACION.FECHA_ASIGNACION.INVALID",
+  }),
   trabajadores: z
     .array(
       z.object({

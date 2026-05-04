@@ -30,10 +30,10 @@ export default function ClasifpizarraTable({
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Clasificación
+                                No.
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Fecha Creación
+                                Clasificación
                             </th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Acciones
@@ -49,13 +49,13 @@ export default function ClasifpizarraTable({
                                 </td>
                             </tr>
                         ) : (
-                            items.map((item) => (
+                            items.map((item, index) => (
                                 <tr key={item.id_clasifpizarra} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {item.clasificacion}
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {index + 1}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {new Date(item.createdAt).toLocaleDateString()}
+                                        {item.clasificacion}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end space-x-2">

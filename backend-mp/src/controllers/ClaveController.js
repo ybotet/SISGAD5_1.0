@@ -104,17 +104,40 @@ const ClaveController = {
     validate(createClaveSchema, "body"),
     async (req, res, next) => {
       try {
-        const data = await Clave.create(req.body);
+        console.log("📝 Recibido en backend:", req.body);
+
+        // ✅ Sanitizar datos
+        const sanitizedData = {
+          clave: req.body.clave?.trim(),
+          descripcion: req.body.descripcion?.trim(),
+          valor_p:
+            req.body.valor_p !== undefined && req.body.valor_p !== null
+              ? parseFloat(req.body.valor_p)
+              : 0,
+          es_pendiente: req.body.es_pendiente === true || req.body.es_pendiente === "true",
+        };
+
+        console.log("📝 Datos sanitizados:", sanitizedData);
+
+        const data = await Clave.create(sanitizedData);
 
         res.status(201).json({
           success: true,
           data,
-          message: "Clave creado exitosamente",
+          message: "Clave creada exitosamente",
         });
       } catch (error) {
+        console.error("❌ Error detallado:", error);
+
+        // ✅ Mostrar error específico de Sequelize
         if (error.name === "SequelizeValidationError") {
-          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => `${err.path}: ${err.message}`).join(". ");
           return next(apiErrors.badRequest(mensajes));
+        }
+
+        // ✅ Error de unique constraint
+        if (error.name === "SequelizeUniqueConstraintError") {
+          return next(apiErrors.badRequest("La clave ya existe"));
         }
 
         return next(error);

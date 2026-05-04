@@ -19,13 +19,12 @@ const PlantaController = {
     validate(listPlantaSchema, "query"),
     async (req, res, next) => {
       try {
-        const { page, limit, offset, sortBy, sortOrder, search } =
-          parseListParams(req.query, {
-            allowedSortFields: ["planta", "createdAt", "updatedAt"],
-            defaultSort: "createdAt",
-            defaultOrder: "DESC",
-            maxLimit: 100,
-          });
+        const { page, limit, offset, sortBy, sortOrder, search } = parseListParams(req.query, {
+          allowedSortFields: ["planta", "createdAt", "updatedAt"],
+          defaultSort: "planta",
+          defaultOrder: "ASC",
+          maxLimit: 100,
+        });
 
         // Construir where clause para búsqueda
         const whereClause = {};
@@ -96,8 +95,7 @@ const PlantaController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
 
@@ -134,8 +132,7 @@ const PlantaController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
 

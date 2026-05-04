@@ -11,7 +11,10 @@
     "generate:models": "node scripts/generate-models.js",
     "generate:cruds": "node scripts/generate-cruds.js",
     "db:sync": "node -e \"require('./src/models').syncModels()\"",
-    "swagger:export": "node -e \"const swagger=require('./src/config/swagger');const fs=require('fs');fs.mkdirSync('docs',{recursive:true});fs.writeFileSync('docs/swagger.json',JSON.stringify(swagger,null,2));console.log('✅ Swagger exportado a docs/swagger.json')\""
+    "swagger:export": "node -e \"const swagger=require('./src/config/swagger');const fs=require('fs');fs.mkdirSync('docs',{recursive:true});fs.writeFileSync('docs/swagger.json',JSON.stringify(swagger,null,2));console.log('✅ Swagger exportado a docs/swagger.json')\"",
+    "migrate:timezone": "node scripts/migrate-timezone.js",
+    "fix:dates": "node scripts/fix-existing-dates.js",
+    "test:db": "node scripts/test-db.js"
   },
   "keywords": [
     "express",

@@ -12,6 +12,7 @@ const securityMiddleware = require("./config/security");
 const mpLimiter = require("./config/rateLimit");
 const authMiddleware = require("./middleware/auth"); // ⚠️ Asegúrate de importar tu auth
 
+// Cargar variables
 dotenv.config({ path: path.join(__dirname, "../../.env.local") });
 const { testConnection } = require("./config/database");
 
@@ -46,6 +47,46 @@ app.use(requestLogger);
 
 // 6️⃣ Security middleware adicional (si aplica)
 app.use(securityMiddleware);
+
+// Middleware para normalizar todas las fechas entrantes
+app.use((req, res, next) => {
+  const normalizeDates = (obj) => {
+    if (!obj || typeof obj !== "object") return obj;
+
+    for (const key in obj) {
+      const value = obj[key];
+
+      // Si es un string que parece datetime-local
+      if (
+        typeof value === "string" &&
+        value.includes("T") &&
+        value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/)
+      ) {
+        // Convertir "2026-05-01T15:30" a "2026-05-01 15:30:00"
+        obj[key] = value.replace("T", " ") + ":00";
+      }
+      // Si es un objeto Date
+      else if (value instanceof Date) {
+        const year = value.getFullYear();
+        const month = String(value.getMonth() + 1).padStart(2, "0");
+        const day = String(value.getDate()).padStart(2, "0");
+        const hours = String(value.getHours()).padStart(2, "0");
+        const minutes = String(value.getMinutes()).padStart(2, "0");
+        const seconds = String(value.getSeconds()).padStart(2, "0");
+        obj[key] = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      }
+      // Recursivo para objetos anidados
+      else if (typeof value === "object" && value !== null) {
+        normalizeDates(value);
+      }
+    }
+  };
+
+  if (req.body) normalizeDates(req.body);
+  if (req.query) normalizeDates(req.query);
+
+  next();
+});
 
 // 7️⃣ Test DB
 testConnection();

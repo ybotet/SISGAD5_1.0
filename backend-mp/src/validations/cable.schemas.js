@@ -4,20 +4,20 @@ const { z } = require("zod");
 const cableBaseSchema = z.object({
   numero: z
     .string()
+    .trim()
     .max(13, "ERROR.CABLE.NUMERO.MAX_LENGTH")
     .optional()
     .nullable(),
   direccion: z
     .string()
+    .trim()
     .max(60, "ERROR.CABLE.DIRECCION.MAX_LENGTH")
     .optional()
     .nullable(),
-  id_propietario: z
-    .number()
-    .int()
-    .positive("ERROR.PROPIETARIO.INVALID")
-    .optional()
-    .nullable(),
+  id_propietario: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.coerce.number().int().positive("ERROR.PROPIETARIO.INVALID").optional().nullable(),
+  ),
 });
 
 // Schema para CREAR: base con validaciones requeridas

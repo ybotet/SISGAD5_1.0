@@ -9,6 +9,7 @@ const {
   listTrabajoSchema,
 } = require("../validations/trabajo.schemas");
 const validate = require("../middleware/validate");
+const { normalizeToDbDateTime } = require("../utils/dateUtils");
 
 const TrabajoController = {
   /**
@@ -137,6 +138,9 @@ const TrabajoController = {
     async (req, res, next) => {
       try {
         const { trabajadores, ...trabajoData } = req.body;
+        if (trabajoData.fecha) {
+          trabajoData.fecha = normalizeToDbDateTime(trabajoData.fecha);
+        }
 
         console.log("📝 Datos recibidos:", { trabajoData, trabajadores });
 
@@ -211,6 +215,9 @@ const TrabajoController = {
       try {
         const { id } = req.params;
         const { trabajadores, ...updateData } = req.body;
+        if (updateData.fecha) {
+          updateData.fecha = normalizeToDbDateTime(updateData.fecha);
+        }
 
         const existing = await Trabajo.findByPk(id);
         if (!existing) {

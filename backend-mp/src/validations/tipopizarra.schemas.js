@@ -4,10 +4,14 @@ const { z } = require("zod");
 const tipopizarraBaseSchema = z.object({
   tipo: z
     .string()
+    .trim()
     .max(20, "ERROR.TIPOPIZARRA.TIPO.MAX_LENGTH")
     .optional()
     .nullable(),
-  id_clasifpizarra: z.number().int().positive().optional().nullable(),
+  id_clasifpizarra: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.coerce.number().int().positive().optional().nullable(),
+  ),
 });
 
 // Schema para CREAR: base con validaciones requeridas

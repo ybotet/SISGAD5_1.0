@@ -8,6 +8,7 @@ const {
   listPruebaSchema,
 } = require("../validations/prueba.schemas");
 const validate = require("../middleware/validate");
+const { normalizeToDbDateTime } = require("../utils/dateUtils");
 
 const PruebaController = {
   /**
@@ -109,7 +110,11 @@ const PruebaController = {
     validate(createPruebaSchema, "body"),
     async (req, res, next) => {
       try {
-        const data = await Prueba.create(req.body);
+        const payload = { ...req.body };
+        if (payload.fecha) {
+          payload.fecha = normalizeToDbDateTime(payload.fecha);
+        }
+        const data = await Prueba.create(payload);
 
         // actualizar flujo de la queja asociada
         if (data.id_queja) {
@@ -153,6 +158,10 @@ const PruebaController = {
     async (req, res, next) => {
       try {
         const { id } = req.params;
+        const payload = { ...req.body };
+        if (payload.fecha) {
+          payload.fecha = normalizeToDbDateTime(payload.fecha);
+        }
 
         // obtener valores antiguos para mantener el flujo
         const existing = await Prueba.findByPk(id);
@@ -163,7 +172,7 @@ const PruebaController = {
         const oldClave = existing.id_clave;
         const oldFecha = existing.fecha;
 
-        const [affectedRows] = await Prueba.update(req.body, {
+        const [affectedRows] = await Prueba.update(payload, {
           where: { id_prueba: id },
         });
 

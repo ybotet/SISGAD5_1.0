@@ -19,13 +19,12 @@ const TipoquejaController = {
     validate(listTipoquejaSchema, "query"),
     async (req, res, next) => {
       try {
-        const { page, limit, offset, sortBy, sortOrder, search } =
-          parseListParams(req.query, {
-            allowedSortFields: ["tipoqueja", "createdAt", "updatedAt"],
-            defaultSort: "tipo",
-            defaultOrder: "ASC",
-            maxLimit: 500, // ← Permitir hasta 500 para este endpoint
-          });
+        const { page, limit, offset, sortBy, sortOrder, search } = parseListParams(req.query, {
+          allowedSortFields: ["tipoqueja", "createdAt", "updatedAt"],
+          defaultSort: "tipoqueja",
+          defaultOrder: "ASC",
+          maxLimit: 500, // ← Permitir hasta 500 para este endpoint
+        });
 
         // Construir where clause para búsqueda
         const whereClause = {};
@@ -34,27 +33,20 @@ const TipoquejaController = {
         }
 
         // Validación defensiva para orden
-        const ALLOWED_SORT = [
-          "tipoqueja",
-          "servicio",
-          "id_tipoqueja",
-          "createdAt",
-          "updatedAt",
-        ];
+        const ALLOWED_SORT = ["tipoqueja", "servicio", "id_tipoqueja"];
 
         // Forzar valores seguros (nunca undefined/NaN)
         const sortByRaw = req.query.sortBy;
         const sortByValue =
           typeof sortByRaw === "string" && ALLOWED_SORT.includes(sortByRaw)
             ? sortByRaw
-            : "createdAt";
+            : "tipoqueja";
 
         const sortOrderRaw = req.query.sortOrder;
         const sortOrderValue =
-          typeof sortOrderRaw === "string" &&
-          ["ASC", "DESC"].includes(sortOrderRaw.toUpperCase())
+          typeof sortOrderRaw === "string" && ["ASC", "DESC"].includes(sortOrderRaw.toUpperCase())
             ? sortOrderRaw.toUpperCase()
-            : "DESC";
+            : "ASC";
 
         const data = await Tipoqueja.findAndCountAll({
           where: whereClause,
@@ -120,8 +112,7 @@ const TipoquejaController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
 
@@ -158,8 +149,7 @@ const TipoquejaController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
 

@@ -21,8 +21,8 @@ const PropietarioController = {
         // 🔹 1. Extraer valores con fallback explícito (NUNCA confiar en req.query directo)
         const page = typeof req.query.page === "number" ? req.query.page : 1;
         const limit = typeof req.query.limit === "number" ? req.query.limit : 10;
-        const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "createdAt";
-        const sortOrder = typeof req.query.sortOrder === "string" ? req.query.sortOrder : "DESC";
+        const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "nombre";
+        const sortOrder = typeof req.query.sortOrder === "string" ? req.query.sortOrder : "ASC";
         const search = typeof req.query.search === "string" ? req.query.search : "";
 
         // 🔹 2. Calcular offset de forma segura
@@ -32,9 +32,9 @@ const PropietarioController = {
 
         // 🔹 3. Whitelist de ordenamiento + fallback
         const ALLOWED_SORT = ["nombre", "createdAt", "updatedAt"];
-        const sortByValue = ALLOWED_SORT.includes(sortBy) ? sortBy : "createdAt";
-        const sortOrderRaw = typeof sortOrder === "string" ? sortOrder.toUpperCase() : "DESC";
-        const sortOrderValue = ["ASC", "DESC"].includes(sortOrderRaw) ? sortOrderRaw : "DESC";
+        const sortByValue = ALLOWED_SORT.includes(sortBy) ? sortBy : "nombre";
+        const sortOrderRaw = typeof sortOrder === "string" ? sortOrder.toUpperCase() : "ASC";
+        const sortOrderValue = ["ASC", "DESC"].includes(sortOrderRaw) ? sortOrderRaw : "ASC";
 
         // 🔹 4. Debug crítico (puedes quitarlo después)
         console.log("🔍 PROP ORDER DEBUG:", {

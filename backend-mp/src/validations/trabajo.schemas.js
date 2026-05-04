@@ -2,7 +2,9 @@ const { z } = require("zod");
 
 // Schema base para validaciones de Trabajo
 const trabajoBaseSchema = z.object({
-  fecha: z.coerce.date().optional().nullable(),
+  fecha: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "ERROR.TRABAJO.FECHA.INVALID",
+  }),
   probador: z.coerce.number().int().positive().optional().nullable(),
   estado: z.coerce.number().int().positive().optional().nullable(),
   observaciones: z.string().optional().nullable(),

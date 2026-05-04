@@ -1,4 +1,3 @@
-// React import not required with new JSX transform
 import {
   Sankey,
   Tooltip,
@@ -12,14 +11,64 @@ import {
   BarChart,
   Bar,
   Cell,
-  Legend,
 } from "recharts";
 
-export function SankeyChart({ data }: { data: any }) {
-  // expects { nodes: string[]|{name:string}[], links: {source,target,value}[] }
-  // defensive: accept nodes as strings or objects, links with names or indices
+// Definir colores consistentes para cada estado
+const STATE_COLORS: Record<string, string> = {
+  Abierta: "#FF6B6B", // Rojo suave
+  Probada: "#4ECDC4", // Turquesa
+  Asignada: "#45B7D1", // Azul cielo
+  Pendiente: "#F9CA24", // Amarillo
+  Resuelta: "#6AB04C", // Verde
+  Cerrada: "#95A5A6", // Gris
+};
+
+// Definir interfaces para TypeScript
+interface NodeType {
+  name: string;
+  color: string;
+}
+
+interface LinkType {
+  source: number;
+  target: number;
+  value: number;
+}
+
+interface SankeyData {
+  nodes?: any[];
+  links?: any[];
+}
+
+interface LegendProps {
+  nodes: NodeType[];
+  nodeTotals: Record<string, number>;
+}
+
+// Componente de leyenda personalizada
+const Legend = ({ nodes, nodeTotals }: LegendProps) => {
+  return (
+    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+      {nodes.map((node: NodeType) => (
+        <div
+          key={node.name}
+          className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200"
+        >
+          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: node.color }} />
+          <div className="flex flex-col">
+            <span className="text-xs font-semibold text-gray-700">{node.name}</span>
+            <span className="text-lg font-bold text-gray-900">{nodeTotals[node.name] || 0}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export function SankeyChart({ data }: { data: SankeyData }) {
   console.debug("SankeyChart props", data);
-  if (!data) {
+
+  if (!data || !data.links || data.links.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-4 mb-4">
         <h3 className="font-semibold mb-2">Flujo de estados (Sankey)</h3>
@@ -28,77 +77,122 @@ export function SankeyChart({ data }: { data: any }) {
     );
   }
 
-  // If nodes are empty but links exist, build nodes from links
-  const incomingLinks = Array.isArray(data.links) ? data.links : [];
-  const rawNodes = Array.isArray(data.nodes) ? data.nodes : [];
-  if (rawNodes.length === 0 && incomingLinks.length > 0) {
-    const names = new Set<string>();
-    incomingLinks.forEach((l: any) => {
-      if (typeof l.source === "string") names.add(l.source);
-      if (typeof l.target === "string") names.add(l.target);
+  // Procesar nodos con colores
+  let nodes: NodeType[] = [];
+  let links: LinkType[] = [];
+
+  if (data.nodes && Array.isArray(data.nodes)) {
+    // Si los nodos vienen con colores del backend
+    nodes = data.nodes.map((node: any) => ({
+      name: typeof node === "string" ? node : node.name,
+      color:
+        typeof node === "string"
+          ? STATE_COLORS[node]
+          : node.color || STATE_COLORS[node.name] || "#8884d8",
+    }));
+  } else {
+    // Construir nodos desde los links
+    const nodeNames = new Set<string>();
+    data.links.forEach((link: any) => {
+      if (typeof link.source === "string") nodeNames.add(link.source);
+      if (typeof link.target === "string") nodeNames.add(link.target);
     });
-    // fallback order if missing: common states
+
     const order = ["Abierta", "Probada", "Asignada", "Pendiente", "Resuelta", "Cerrada"];
-    const nodesFromLinks = Array.from(names).sort((a, b) => {
+    const sortedNames = Array.from(nodeNames).sort((a: string, b: string) => {
       const ia = order.indexOf(a) === -1 ? 999 : order.indexOf(a);
       const ib = order.indexOf(b) === -1 ? 999 : order.indexOf(b);
       return ia - ib;
     });
-    // use these as nodes
-    data = { ...data, nodes: nodesFromLinks };
+
+    nodes = sortedNames.map((name: string) => ({
+      name,
+      color: STATE_COLORS[name] || "#8884d8",
+    }));
   }
-  if (!Array.isArray(data.nodes) || data.nodes.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow p-4 mb-4">
-        <h3 className="font-semibold mb-2">Flujo de estados (Sankey)</h3>
-        <div className="text-sm text-gray-500">No hay datos para mostrar el flujo.</div>
-      </div>
-    );
-  }
-  const nodes = data.nodes.map((n: any) =>
-    typeof n === "string"
-      ? { name: n, color: "#8884d8" }
-      : { ...(n as any), color: n.color || "#8884d8" },
-  );
-  const links = (data.links || []).map((l: any) => {
+
+  // Procesar links con índices de nodos
+  links = data.links.map((link: any) => {
     let sourceIndex =
-      typeof l.source === "number" ? l.source : nodes.findIndex((nn: any) => nn.name === l.source);
+      typeof link.source === "number"
+        ? link.source
+        : nodes.findIndex((n: NodeType) => n.name === link.source);
     let targetIndex =
-      typeof l.target === "number" ? l.target : nodes.findIndex((nn: any) => nn.name === l.target);
+      typeof link.target === "number"
+        ? link.target
+        : nodes.findIndex((n: NodeType) => n.name === link.target);
+
     if (sourceIndex < 0) sourceIndex = 0;
     if (targetIndex < 0) targetIndex = Math.min(nodes.length - 1, sourceIndex + 1);
-    return { source: sourceIndex, target: targetIndex, value: Number(l.value || 0) };
+
+    return {
+      source: sourceIndex,
+      target: targetIndex,
+      value: Number(link.value || 0),
+    };
   });
-  // build simple totals per node for a legend (sum of attached link values)
+
+  // Calcular totales por nodo para la leyenda
   const nodeTotals: Record<string, number> = {};
-  nodes.forEach((n: any) => (nodeTotals[n.name] = 0));
-  links.forEach((l: any) => {
-    const s = nodes[l.source]?.name;
-    const t = nodes[l.target]?.name;
-    if (s) nodeTotals[s] = (nodeTotals[s] || 0) + Number(l.value || 0);
-    if (t) nodeTotals[t] = (nodeTotals[t] || 0) + Number(l.value || 0);
+  nodes.forEach((node: NodeType) => (nodeTotals[node.name] = 0));
+  links.forEach((link: LinkType) => {
+    if (nodes[link.source]) nodeTotals[nodes[link.source].name] += link.value;
+    if (nodes[link.target]) nodeTotals[nodes[link.target].name] += link.value;
   });
+
+  // Configuración para el Sankey de recharts
+  const sankeyData = {
+    nodes: nodes.map((node: NodeType) => ({ name: node.name })),
+    links: links,
+  };
+
+  // Custom node renderer with colors
+  const renderSankeyNode = (props: any) => {
+    const { x, y, width, height, index } = props;
+    const nodeInfo = nodes[index];
+
+    return (
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill={nodeInfo?.color || "#8884d8"}
+        stroke="#fff"
+        strokeWidth={2}
+        rx={4}
+      />
+    );
+  };
+
   return (
     <div className="bg-white rounded-lg shadow p-4 mb-4">
-      <h3 className="font-semibold mb-2">Flujo de estados (Sankey)</h3>
-      <div style={{ width: "100%", height: 250, minWidth: 0, minHeight: 200 }}>
+      <h3 className="font-semibold mb-3">Flujo de estados (Sankey)</h3>
+
+      <div style={{ width: "100%", height: 300, minWidth: 0, minHeight: 200 }}>
         <ResponsiveContainer>
-          <Sankey data={{ nodes, links }} nodePadding={10} nodeWidth={12} />
+          <Sankey
+            data={sankeyData}
+            nodePadding={10}
+            nodeWidth={15}
+            margin={{ top: 20, left: 100, right: 100, bottom: 20 }}
+            node={renderSankeyNode}
+          >
+            <Tooltip />
+          </Sankey>
         </ResponsiveContainer>
       </div>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {nodes.map((n: any) => (
-          <div key={n.name} className="text-xs px-2 py-1 bg-gray-100 rounded">
-            <strong className="mr-2">{n.name}</strong>
-            <span className="text-gray-600">{nodeTotals[n.name] || 0}</span>
-          </div>
-        ))}
-      </div>
+
+      {/* Leyenda con colores */}
+      <Legend nodes={nodes} nodeTotals={nodeTotals} />
     </div>
   );
 }
 
-export function LineHistoric({ counts, moving }: any) {
+// El resto de tus componentes (LineHistoric, MttrBar, FunnelMini, CloseTimeBuckets, DashboardCharts)
+// se mantienen igual, solo asegúrate de agregar las interfaces adecuadas
+
+export function LineHistoric({ counts, moving, projection }: any) {
   const chartData = counts.map((c: any, i: number) => ({
     day: c.day,
     cnt: c.cnt,
@@ -114,7 +208,6 @@ export function LineHistoric({ counts, moving }: any) {
             <XAxis dataKey="day" tickFormatter={(d) => new Date(d).toLocaleDateString()} />
             <YAxis />
             <Tooltip />
-            <Legend />
             <Area type="monotone" dataKey="cnt" stroke="#8884d8" fill="#f3f0ff" />
             <Line type="monotone" dataKey="ma" stroke="#ff7300" dot={false} />
           </LineChart>
@@ -127,7 +220,7 @@ export function LineHistoric({ counts, moving }: any) {
 export function MttrBar({ data, meta = 6 }: { data: any[]; meta?: number }) {
   return (
     <div className="bg-white rounded-lg shadow p-4 mb-4">
-      <h3 className="font-semibold mb-2">MTTR por dimensión</h3>
+      <h3 className="font-semibold mb-2">Promedio de horas por tipo de queja</h3>
       <div style={{ width: "100%", height: 260 }}>
         <ResponsiveContainer>
           <BarChart data={data} layout="vertical">
@@ -161,7 +254,7 @@ export function FunnelMini({ stages }: { stages: any[] }) {
     <div className="bg-white rounded-lg shadow p-4 mb-4">
       <h3 className="font-semibold mb-2">Embudo - Tiempos promedio</h3>
       <div className="space-y-2">
-        {stages.map((s, i) => (
+        {stages.map((s: any, i: number) => (
           <div key={i} className="flex items-center">
             <div className="w-2/5 text-sm text-gray-600">{s.name}</div>
             <div className="w-3/5">
@@ -227,8 +320,8 @@ export default function DashboardCharts(props: any) {
         />
       </div>
       <div>
-        <FunnelMini stages={props.funnel.stages} />
-        <MttrBar data={props.mttr} meta={props.mttrMeta} />
+        <FunnelMini stages={props.funnel?.stages || []} />
+        <MttrBar data={props.mttr || []} meta={props.mttrMeta} />
         <CloseTimeBuckets data={props.closeBuckets} />
       </div>
     </div>

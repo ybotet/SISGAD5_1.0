@@ -1,5 +1,14 @@
 const { Sequelize, DataTypes } = require("sequelize");
-const { sequelize } = require("../config/database");
+const { sequelize, setupPostgresTimezone } = require("../config/database");
+
+// Configurar zona horaria antes de cualquier operación
+(async () => {
+  try {
+    await setupPostgresTimezone();
+  } catch (error) {
+    console.warn("⚠️ No se pudo configurar zona horaria:", error.message);
+  }
+})();
 
 const Asignacion = require("./Asignacion")(sequelize);
 const AsignacionTrabajadores = require("./AsignacionTrabajadores")(sequelize);
@@ -29,11 +38,6 @@ const Tipoqueja = require("./Tipoqueja")(sequelize);
 const Trabajador = require("./Trabajador")(sequelize);
 const Trabajo = require("./Trabajo")(sequelize);
 const TrabajoTrabajadores = require("./Trabajo_trabajadores")(sequelize);
-
-const TbMaterial = require("./tb_material")(sequelize);
-const TbMaterialEntregado = require("./tb_material_entregado")(sequelize);
-const TbMaterialempleado = require("./tb_materialempleado")(sequelize);
-const TbOs = require("./tb_os")(sequelize);
 
 // Configurar relaciones aquí
 //#region Primeras relaciones
@@ -274,11 +278,6 @@ Movimiento.belongsTo(Telefono, {
 Linea.hasMany(Movimiento, { foreignKey: "id_linea", as: "tb_movimientos" });
 Movimiento.belongsTo(Linea, { foreignKey: "id_linea", as: "tb_linea" });
 
-//Movimiento - Os 1:N
-TbOs.hasMany(Movimiento, { foreignKey: "id_os", as: "tb_movimientos" });
-Movimiento.belongsTo(TbOs, { foreignKey: "id_os", as: "tb_os" });
-//#endregion
-
 // Relaciones de Asignacion
 Asignacion.hasMany(AsignacionTrabajadores, {
   foreignKey: "id_asignacion",
@@ -301,12 +300,64 @@ AsignacionTrabajadores.belongsTo(Trabajador, {
 // Sincronizar modelos
 const syncModels = async () => {
   try {
+    // Configurar zona horaria antes de sincronizar
+    await setupPostgresTimezone();
+
     await sequelize.sync({ force: false });
     console.log("✅ Modelos sincronizados con la base de datos");
+
+    // Verificar que las columnas de fecha sean del tipo correcto
+    await ensureDateColumnsType();
   } catch (error) {
     console.error("❌ Error sincronizando modelos: ", error);
   }
 };
+
+// Función para asegurar que las columnas de fecha sean del tipo correcto
+async function ensureDateColumnsType() {
+  try {
+    // Obtener todas las tablas con columnas de fecha
+    const tables = [
+      "tb_queja",
+      "tb_telefono",
+      "tb_linea",
+      "tb_pizarra",
+      "tb_prueba",
+      "tb_asignacion",
+      "tb_movimiento",
+      "tb_trabajo",
+    ];
+
+    for (const table of tables) {
+      try {
+        // Cambiar columnas de timestamp a text si es necesario
+        await sequelize.query(`
+          DO $$
+          DECLARE
+            rec RECORD;
+          BEGIN
+            FOR rec IN 
+              SELECT column_name 
+              FROM information_schema.columns 
+              WHERE table_name = '${table}' 
+              AND data_type LIKE '%timestamp%'
+            LOOP
+              EXECUTE format('ALTER TABLE ${table} ALTER COLUMN ' || rec.column_name || ' TYPE text USING ' || rec.column_name || '::text');
+            END LOOP;
+          END $$;
+        `);
+        console.log(`✅ Columnas de fecha en ${table} convertidas a texto`);
+      } catch (err) {
+        // Si la tabla no existe o hay error, continuar
+        if (!err.message.includes("does not exist")) {
+          console.warn(`⚠️ Error procesando ${table}:`, err.message);
+        }
+      }
+    }
+  } catch (error) {
+    console.warn("⚠️ No se pudieron convertir columnas de fecha:", error.message);
+  }
+}
 
 module.exports = {
   sequelize,
@@ -323,11 +374,7 @@ module.exports = {
   Linea,
   Mando,
   Sistema,
-  TbMaterial,
-  TbMaterialEntregado,
-  TbMaterialempleado,
   Movimiento,
-  TbOs,
   Pizarra,
   Planta,
   Propietario,

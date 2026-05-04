@@ -1,3 +1,4 @@
+// ClasifpizarraController.js
 const { Clasifpizarra } = require("../models");
 const { Op } = require("sequelize");
 const apiErrors = require("../utils/apiErrors");
@@ -8,48 +9,53 @@ const {
 } = require("../validations/clasifpizarra.schemas");
 const validate = require("../middleware/validate");
 
+// ✅ Debug: Verificar que el modelo existe
+console.log("🔍 Modelo Clasifpizarra cargado:", !!Clasifpizarra);
+
 const ClasifpizarraController = {
   /**
    * @desc    Obtener todos los registros (CON validación Zod en query)
-   * @route   GET /api/tbClasifpizarra
+   * @route   GET /api/mp/clasifpizarra
    * @access  Public
    */
   getAll: [
     validate(listClasifpizarraSchema, "query"),
     async (req, res, next) => {
       try {
-        const { page, limit, sortBy, sortOrder, search } = req.query;
+        // ✅ Verificar modelo antes de usar
+        if (!Clasifpizarra) {
+          console.error("❌ Modelo Clasifpizarra no está disponible");
+          return next(apiErrors.internal("Error interno: modelo no disponible"));
+        }
 
-        const offset = (page - 1) * limit;
+        const {
+          page = 1,
+          limit = 10,
+          sortBy = "clasificacion",
+          sortOrder = "ASC",
+          search,
+        } = req.query;
+
+        const offset = (parseInt(page) - 1) * parseInt(limit);
 
         // Construir where clause para búsqueda
         const whereClause = {};
-        if (search) {
-          whereClause[Op.or] = [
-            // Buscar en el campo clasificacion
-            { clasificacion: { [Op.iLike]: `%${search}%` } },
-          ].filter(Boolean);
+        if (search && search.trim()) {
+          whereClause.clasificacion = { [Op.iLike]: `%${search}%` };
         }
 
-        // Forzar valores seguros (nunca undefined/NaN)
-        const sortByRaw = req.query.sortBy;
-        const sortByValue =
-          typeof sortByRaw === "string" && ALLOWED_SORT.includes(sortByRaw)
-            ? sortByRaw
-            : "createdAt";
+        // ✅ Validar sortBy y sortOrder
+        const ALLOWED_SORT = ["clasificacion", "created_at", "updated_at"];
+        const sortBySafe = ALLOWED_SORT.includes(sortBy) ? sortBy : "clasificacion";
+        const sortOrderSafe = sortOrder.toUpperCase() === "DESC" ? "DESC" : "ASC";
 
-        const sortOrderRaw = req.query.sortOrder;
-        const sortOrderValue =
-          typeof sortOrderRaw === "string" &&
-          ["ASC", "DESC"].includes(sortOrderRaw.toUpperCase())
-            ? sortOrderRaw.toUpperCase()
-            : "DESC";
+        console.log("📝 Query params:", { page, limit, sortBySafe, sortOrderSafe, search });
 
         const data = await Clasifpizarra.findAndCountAll({
           where: whereClause,
           limit: parseInt(limit),
-          offset: parseInt(offset),
-          order: [[sortByValue, sortOrderValue]],
+          offset: offset,
+          order: [[sortBySafe, sortOrderSafe]],
         });
 
         res.json({
@@ -63,14 +69,42 @@ const ClasifpizarraController = {
           },
         });
       } catch (error) {
+        console.error("❌ Error en getAll Clasifpizarra:", error);
         return next(error);
       }
     },
   ],
 
   /**
+   * @desc    Obtener todos (sin paginación) para selects
+   * @route   GET /api/mp/clasifpizarra/all
+   * @access  Public
+   */
+  async getAllSimple(req, res, next) {
+    try {
+      if (!Clasifpizarra) {
+        console.error("❌ Modelo Clasifpizarra no está disponible");
+        return next(apiErrors.internal("Error interno: modelo no disponible"));
+      }
+
+      const data = await Clasifpizarra.findAll({
+        attributes: ["id_clasifpizarra", "clasificacion"],
+        order: [["clasificacion", "ASC"]],
+      });
+
+      res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      console.error("❌ Error en getAllSimple Clasifpizarra:", error);
+      return next(error);
+    }
+  },
+
+  /**
    * @desc    Obtener un registro por ID
-   * @route   GET /api/tbClasifpizarra/:id
+   * @route   GET /api/mp/clasifpizarra/:id
    * @access  Public
    */
   async getById(req, res, next) {
@@ -92,8 +126,8 @@ const ClasifpizarraController = {
   },
 
   /**
-   * @desc    Crear nuevo registro (CON validación Zod en body)
-   * @route   POST /api/tbClasifpizarra
+   * @desc    Crear nuevo registro
+   * @route   POST /api/mp/clasifpizarra
    * @access  Public
    */
   create: [
@@ -109,19 +143,17 @@ const ClasifpizarraController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
-
         return next(error);
       }
     },
   ],
 
   /**
-   * @desc    Actualizar registro (CON validación Zod parcial)
-   * @route   PUT /api/tbClasifpizarra/:id
+   * @desc    Actualizar registro
+   * @route   PUT /api/mp/clasifpizarra/:id
    * @access  Public
    */
   update: [
@@ -147,11 +179,9 @@ const ClasifpizarraController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
-
         return next(error);
       }
     },
@@ -159,7 +189,7 @@ const ClasifpizarraController = {
 
   /**
    * @desc    Eliminar registro
-   * @route   DELETE /api/tbClasifpizarra/:id
+   * @route   DELETE /api/mp/clasifpizarra/:id
    * @access  Public
    */
   async delete(req, res, next) {

@@ -246,9 +246,9 @@ TrabajadorController.dashboard = async function (req, res, next) {
     const { fecha_desde, fecha_hasta } = req.query;
     const where = {};
     if (fecha_desde || fecha_hasta) {
-      where.createdAt = {};
-      if (fecha_desde) where.createdAt[Op.gte] = new Date(fecha_desde);
-      if (fecha_hasta) where.createdAt[Op.lte] = new Date(fecha_hasta);
+      where.created_at = {};
+      if (fecha_desde) where.created_at[Op.gte] = new Date(fecha_desde);
+      if (fecha_hasta) where.created_at[Op.lte] = new Date(fecha_hasta);
     }
 
     const total = await Trabajador.count({ where });
@@ -258,8 +258,8 @@ TrabajadorController.dashboard = async function (req, res, next) {
     // by group
     const byGroup = await Trabajador.sequelize.query(
       `SELECT g.grupo as name, COUNT(1) as value FROM tb_trabajador t LEFT JOIN tb_grupow g ON t.id_grupow = g.id_grupow
-        WHERE ($1::timestamp IS NULL OR t."createdAt" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR t."createdAt" <= $2::timestamp)
+        WHERE ($1::timestamp IS NULL OR t."created_at" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."created_at" <= $2::timestamp)
         GROUP BY g.grupo ORDER BY value DESC LIMIT 10`,
       {
         bind: [fecha_desde || null, fecha_hasta || null],
@@ -268,9 +268,9 @@ TrabajadorController.dashboard = async function (req, res, next) {
     );
 
     const byYear = await Trabajador.sequelize.query(
-      `SELECT to_char(t."createdAt", 'YYYY') as year, COUNT(1) as cantidad FROM tb_trabajador t
-        WHERE ($1::timestamp IS NULL OR t."createdAt" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR t."createdAt" <= $2::timestamp)
+      `SELECT to_char(t."created_at", 'YYYY') as year, COUNT(1) as cantidad FROM tb_trabajador t
+        WHERE ($1::timestamp IS NULL OR t."created_at" >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."created_at" <= $2::timestamp)
         GROUP BY year ORDER BY year ASC`,
       {
         bind: [fecha_desde || null, fecha_hasta || null],
@@ -284,8 +284,8 @@ TrabajadorController.dashboard = async function (req, res, next) {
           FROM tb_asignacion a
           LEFT JOIN tb_asignacion_trabajadores at ON a.id_asignacion = at.id_asignacion
           LEFT JOIN tb_trabajador t ON at.id_trabajador = t.id_trabajador
-          WHERE ($1::timestamp IS NULL OR a."createdAt" >= $1::timestamp)
-            AND ($2::timestamp IS NULL OR a."createdAt" <= $2::timestamp)
+          WHERE ($1::timestamp IS NULL OR a."created_at" >= $1::timestamp)
+            AND ($2::timestamp IS NULL OR a."created_at" <= $2::timestamp)
           GROUP BY name ORDER BY value DESC LIMIT 10`,
       {
         bind: [fecha_desde || null, fecha_hasta || null],
@@ -296,8 +296,8 @@ TrabajadorController.dashboard = async function (req, res, next) {
     // total asignaciones in period
     const totalAsignacionesRes = await Trabajador.sequelize.query(
       `SELECT COUNT(1) as total FROM tb_asignacion a
-          WHERE ($1::timestamp IS NULL OR a."createdAt" >= $1::timestamp)
-            AND ($2::timestamp IS NULL OR a."createdAt" <= $2::timestamp)`,
+          WHERE ($1::timestamp IS NULL OR a."created_at" >= $1::timestamp)
+            AND ($2::timestamp IS NULL OR a."created_at" <= $2::timestamp)`,
       {
         bind: [fecha_desde || null, fecha_hasta || null],
         type: Trabajador.sequelize.QueryTypes.SELECT,

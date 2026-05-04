@@ -19,18 +19,12 @@ const SistemaController = {
     validate(listSistemaSchema, "query"),
     async (req, res, next) => {
       try {
-        const { page, limit, sortBy, sortOrder, search, offset } =
-          parseListParams(req.query, {
-            allowedSortFields: [
-              "sistema",
-              "direccion",
-              "createdAt",
-              "updatedAt",
-            ],
-            defaultSort: "createdAt",
-            defaultOrder: "DESC",
-            maxLimit: 100,
-          });
+        const { page, limit, sortBy, sortOrder, search, offset } = parseListParams(req.query, {
+          allowedSortFields: ["sistema", "direccion", "createdAt", "updatedAt"],
+          defaultSort: "sistema",
+          defaultOrder: "ASC",
+          maxLimit: 100,
+        });
 
         // Construir where clause para búsqueda
         const whereClause = {};
@@ -120,8 +114,7 @@ const SistemaController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
 
@@ -165,8 +158,7 @@ const SistemaController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensajes =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
 

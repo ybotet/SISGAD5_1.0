@@ -30,9 +30,9 @@ const MovimientoController = {
           id_tipomovimiento,
           id_linea,
         } = parseListParams(req.query, {
-          allowedSortFields: ["fecha", "motivo", "createdAt", "updatedAt"],
-          defaultSort: "createdAt",
-          defaultOrder: "DESC",
+          allowedSortFields: ["fecha", "motivo"],
+          defaultSort: "motivo",
+          defaultOrder: "ASC",
           maxLimit: 100,
         });
 
@@ -41,8 +41,7 @@ const MovimientoController = {
         if (search) {
           whereClause[Op.or] = [{ movimiento: { [Op.iLike]: `%${search}%` } }];
         }
-        if (id_tipomovimiento)
-          whereClause.id_tipomovimiento = id_tipomovimiento;
+        if (id_tipomovimiento) whereClause.id_tipomovimiento = id_tipomovimiento;
         if (id_telefono) whereClause.id_telefono = id_telefono;
         if (id_linea) whereClause.id_linea = id_linea;
 
@@ -125,8 +124,7 @@ const MovimientoController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensaje =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensaje = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensaje));
         }
 
@@ -163,8 +161,7 @@ const MovimientoController = {
         });
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
-          const mensaje =
-            error.errors?.map((err) => err.message).join(". ") || error.message;
+          const mensaje = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensaje));
         }
 
@@ -202,14 +199,11 @@ const MovimientoController = {
   async getMovimientoByTelefono(req, res, next) {
     try {
       const { telefono } = req.params;
-      const { page, limit, offset, sortBy, sortOrder } = parseListParams(
-        req.query,
-        {
-          allowedSortFields: ["fecha", "motivo", "createdAt"],
-          defaultSort: "fecha",
-          maxLimit: 100,
-        },
-      );
+      const { page, limit, offset, sortBy, sortOrder } = parseListParams(req.query, {
+        allowedSortFields: ["fecha", "motivo"],
+        defaultSort: "fecha",
+        maxLimit: 100,
+      });
 
       const data = await Movimiento.findAll({
         where: { id_telefono: telefono },

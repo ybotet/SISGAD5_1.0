@@ -4,6 +4,7 @@ const { z } = require("zod");
 const clasificadorclaveBaseSchema = z.object({
   clasificador: z
     .string()
+    .trim()
     .min(1, "ERROR.CLASIFICADORCLAVE.CLASIFICADOR.REQUIRED")
     .max(255, "ERROR.CLASIFICADORCLAVE.CLASIFICADOR.MAX_LENGTH")
     .optional()

@@ -25,9 +25,7 @@ const updateClasifpizarraSchema = clasifpizarraBaseSchema.partial();
 const listClasifpizarraSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  sortBy: z
-    .enum(["clasificacion", "createdAt", "updatedAt"])
-    .default("clasificacion"),
+  sortBy: z.enum(["clasificacion", "createdAt", "updatedAt"]).default("clasificacion"),
   sortOrder: z.enum(["ASC", "DESC"]).default("ASC"),
   search: z.string().optional(),
 });

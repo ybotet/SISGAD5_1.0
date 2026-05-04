@@ -30,6 +30,9 @@ export default function SistemaTable({
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                No.
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Sistema
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -37,9 +40,6 @@ export default function SistemaTable({
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Dirección
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Fecha Creación
                             </th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Acciones
@@ -49,14 +49,17 @@ export default function SistemaTable({
                     <tbody className="bg-white divide-y divide-gray-200">
                         {items.length === 0 ? (
                             <tr>
-                                <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
+                                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                                     <i className="ri-inbox-line text-3xl mb-2 block"></i>
                                     No se encontraron resultados
                                 </td>
                             </tr>
                         ) : (
-                            items.map((item) => (
+                            items.map((item, index) => (
                                 <tr key={item.id_sistema} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {index + 1}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {item.sistema}
                                     </td>
@@ -65,9 +68,6 @@ export default function SistemaTable({
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {item.direccion || 'Sin dirección'}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {new Date(item.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end space-x-2">

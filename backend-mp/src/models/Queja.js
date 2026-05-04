@@ -13,9 +13,9 @@ module.exports = (sequelize) => {
         validate: { isInt: { msg: "num_reporte must be integer" } },
       },
       fecha: {
-        type: DataTypes.DATE,
-        allowNull: true,
-        validate: { isDate: { msg: "fecha must be valid date" } },
+        type: DataTypes.STRING,
+        allowNull: false,
+        //validate: { isDate: { msg: "fecha must be valid date" } },,
       },
       prioridad: {
         type: DataTypes.INTEGER,
@@ -69,7 +69,7 @@ module.exports = (sequelize) => {
         allowNull: true,
       },
       fechaok: {
-        type: DataTypes.DATE,
+        type: DataTypes.STRING,
         allowNull: true,
       },
       reportado_por: { type: DataTypes.STRING, allowNull: true },
@@ -89,8 +89,23 @@ module.exports = (sequelize) => {
     },
     {
       tableName: "tb_queja",
-      timestamps: true,
-      underscored: true,
+      timestamps: true, // ✅ Habilita la creación automática de timestamps
+      underscored: true, // ✅ Usa created_at y updated_at en la BD
+      createdAt: "created_at", // ✅ Nombre de la columna en BD
+      updatedAt: "updated_at", // ✅ Nombre de la columna en BD
+
+      // ✅ Hooks para lógica adicional si la necesitas
+      hooks: {
+        beforeCreate: (instance, options) => {
+          // Esto es automático con timestamps: true
+          // Solo lo agregas si necesitas lógica adicional
+          console.log("📝 Creando registro en:", new Date().toISOString());
+        },
+        beforeUpdate: (instance, options) => {
+          // Esto es automático con timestamps: true
+          console.log("🔄 Actualizando registro en:", new Date().toISOString());
+        },
+      },
       createdAt: "createdAt",
       updatedAt: "updatedAt",
 

@@ -97,12 +97,8 @@ export default function QuejaModal({
         }
       }
 
-      const fechaPdte = editingItem.fecha_pdte
-        ? editingItem.fecha_pdte.split("T")[0]
-        : "";
-      const fechaOk = editingItem.fechaok
-        ? editingItem.fechaok.split("T")[0]
-        : "";
+      const fechaPdte = editingItem.fecha_pdte ? editingItem.fecha_pdte.split("T")[0] : "";
+      const fechaOk = editingItem.fechaok ? editingItem.fechaok.split("T")[0] : "";
 
       setFormData({
         num_reporte: editingItem.num_reporte?.toString() || "",
@@ -148,21 +144,15 @@ export default function QuejaModal({
   const loadCombos = async () => {
     try {
       setLoadingCombos(true);
-      const [
-        telefonosData,
-        tiposQuejaData,
-        clavesData,
-        pizarrasData,
-        lineasData,
-        probadoresData,
-      ] = await Promise.all([
-        quejaService.getTelefonos(),
-        quejaService.getTiposQueja(),
-        quejaService.getClaves(),
-        quejaService.getPizarras(),
-        quejaService.getLineas(),
-        quejaService.getProbadores(),
-      ]);
+      const [telefonosData, tiposQuejaData, clavesData, pizarrasData, lineasData, probadoresData] =
+        await Promise.all([
+          quejaService.getTelefonos(),
+          quejaService.getTiposQueja(),
+          quejaService.getClaves(),
+          quejaService.getPizarras(),
+          quejaService.getLineas(),
+          quejaService.getProbadores(),
+        ]);
       setTelefonos(telefonosData);
       setTiposQueja(tiposQuejaData);
       setClaves(clavesData);
@@ -190,17 +180,11 @@ export default function QuejaModal({
       claveok: formData.claveok || undefined,
       fechaok: formData.fechaok || undefined,
       red: formData.red === "true",
-      id_telefono: formData.id_telefono
-        ? parseInt(formData.id_telefono)
-        : undefined,
+      id_telefono: formData.id_telefono ? parseInt(formData.id_telefono) : undefined,
       id_linea: formData.id_linea ? parseInt(formData.id_linea) : undefined,
-      id_tipoqueja: formData.id_tipoqueja
-        ? parseInt(formData.id_tipoqueja)
-        : undefined,
+      id_tipoqueja: formData.id_tipoqueja ? parseInt(formData.id_tipoqueja) : undefined,
       id_clave: formData.id_clave ? parseInt(formData.id_clave) : undefined,
-      id_pizarra: formData.id_pizarra
-        ? parseInt(formData.id_pizarra)
-        : undefined,
+      id_pizarra: formData.id_pizarra ? parseInt(formData.id_pizarra) : undefined,
       reportado_por: formData.reportado_por || undefined,
     };
 
@@ -249,9 +233,7 @@ export default function QuejaModal({
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -296,18 +278,14 @@ export default function QuejaModal({
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-500">
-              {telefonos.length} teléfonos disponibles
-            </p>
+            <p className="text-xs text-gray-500">{telefonos.length} teléfonos disponibles</p>
           </div>
         );
 
       case "linea":
         return (
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Seleccionar Línea *
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Seleccionar Línea *</label>
             <select
               name="id_linea"
               value={formData.id_linea}
@@ -323,18 +301,14 @@ export default function QuejaModal({
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-500">
-              {lineas.length} líneas disponibles
-            </p>
+            <p className="text-xs text-gray-500">{lineas.length} líneas disponibles</p>
           </div>
         );
 
       case "pizarra":
         return (
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Seleccionar Pizarra *
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Seleccionar Pizarra *</label>
             <select
               name="id_pizarra"
               value={formData.id_pizarra}
@@ -350,9 +324,7 @@ export default function QuejaModal({
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-500">
-              {pizarras.length} pizarras disponibles
-            </p>
+            <p className="text-xs text-gray-500">{pizarras.length} pizarras disponibles</p>
           </div>
         );
 
@@ -360,9 +332,7 @@ export default function QuejaModal({
         return (
           <div className="text-center py-4 border-2 border-dashed border-gray-300 rounded-lg">
             <i className="ri-question-line text-2xl text-gray-400 mb-2"></i>
-            <p className="text-sm text-gray-500">
-              Seleccione un tipo de servicio para continuar
-            </p>
+            <p className="text-sm text-gray-500">Seleccione un tipo de servicio para continuar</p>
           </div>
         );
     }
@@ -403,9 +373,7 @@ export default function QuejaModal({
             {/* Columna 1 - Información básica */}
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Fecha *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
                 <input
                   type="datetime-local"
                   name="fecha"
@@ -431,17 +399,12 @@ export default function QuejaModal({
                 >
                   <option value="">Seleccione un probador</option>
                   {probadores.map((probador) => (
-                    <option
-                      key={probador.id_trabajador}
-                      value={probador.id_trabajador}
-                    >
+                    <option key={probador.id_trabajador} value={probador.id_trabajador}>
                       {probador.clave_trabajador}
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-500">
-                  {probadores.length} probadores disponibles
-                </p>
+                <p className="text-xs text-gray-500">{probadores.length} probadores disponibles</p>
               </div>
 
               <div>
@@ -461,9 +424,7 @@ export default function QuejaModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tipo Queja
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo Queja</label>
                 <select
                   name="id_tipoqueja"
                   value={formData.id_tipoqueja}
@@ -481,9 +442,7 @@ export default function QuejaModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Clave
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Clave</label>
                 <select
                   name="id_clave"
                   value={formData.id_clave}
@@ -553,9 +512,7 @@ export default function QuejaModal({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Prioridad
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Prioridad</label>
                   <input
                     type="number"
                     name="prioridad"

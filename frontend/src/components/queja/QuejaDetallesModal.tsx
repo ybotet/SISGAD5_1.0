@@ -11,7 +11,7 @@ import type {
 } from "../../services/quejaService";
 import { quejaService } from "../../services/quejaService";
 import { useState, useEffect } from "react";
-import { formatDateTimeLocal } from "../../utils/dateFormats";
+import { formatDateTimeLocal, formatToDisplay, formatDateToDisplay } from "../../utils/dateFormats";
 
 //#region Interfaces de props
 interface QuejaDetallesModalProps {
@@ -167,7 +167,6 @@ export default function QuejaDetallesModal({
       setLoadingCombos(false);
     }
   };
-  // const clavesCierre = claves.filter((clave) => clave.es_pendiente === false);
   //#endregion
 
   //#region Función para cargar historial
@@ -296,13 +295,29 @@ export default function QuejaDetallesModal({
       setGuardando(true);
       setError("");
 
-      await quejaService.createPrueba({
-        fecha: nuevaPrueba.fecha || null,
+      // ✅ Asegurar que la fecha tenga el formato correcto (sin objetos Date)
+      let fechaFormateada = null;
+      if (nuevaPrueba.fecha) {
+        // Si la fecha viene en formato datetime-local "YYYY-MM-DDTHH:MM"
+        if (nuevaPrueba.fecha.includes("T")) {
+          fechaFormateada = nuevaPrueba.fecha + ":00";
+        } else {
+          fechaFormateada = nuevaPrueba.fecha;
+        }
+      }
+
+      // ✅ Crear objeto con los datos limpios (sin createdAt/updatedAt)
+      const datosPrueba = {
+        fecha: fechaFormateada,
         id_clave: nuevaPrueba.id_clave ? parseInt(nuevaPrueba.id_clave) : null,
         id_resultado: nuevaPrueba.id_resultado ? parseInt(nuevaPrueba.id_resultado) : null,
         id_trabajador: nuevaPrueba.id_trabajador ? parseInt(nuevaPrueba.id_trabajador) : null,
         id_queja: queja.id_queja,
-      });
+      };
+
+      console.log("📝 Datos de prueba a enviar:", datosPrueba);
+
+      await quejaService.createPrueba(datosPrueba);
 
       setNuevaPrueba({
         fecha: "",
@@ -315,13 +330,13 @@ export default function QuejaDetallesModal({
       await cargarHistorial();
       if (onDataUpdated) onDataUpdated();
     } catch (err: any) {
-      setError(err?.response?.data?.error || "Error al crear la prueba");
+      const errorMsg = err?.response?.data?.error || err?.message || "Error al crear la prueba";
+      setError(errorMsg);
       console.error("Error creando prueba:", err);
     } finally {
       setGuardando(false);
     }
   };
-
   const handleCrearTrabajo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!queja) return;
@@ -434,56 +449,6 @@ export default function QuejaDetallesModal({
       setGuardando(false);
     }
   };
-  //#endregion
-
-  //#region Handlers de eliminación
-  // const handleEliminarPrueba = async (id: number) => {
-  //   if (!confirm("¿Está seguro de eliminar esta prueba?")) return;
-
-  //   try {
-  //     setEliminandoPrueba(id);
-  //     setError("");
-  //     await quejaService.deletePrueba(id);
-  //     await cargarHistorial();
-  //     if (onDataUpdated) onDataUpdated();
-  //   } catch (err: any) {
-  //     setError(err?.response?.data?.error || "Error al eliminar la prueba");
-  //   } finally {
-  //     setEliminandoPrueba(null);
-  //   }
-  // };
-
-  // const handleEliminarTrabajo = async (id: number) => {
-  //   if (!confirm("¿Está seguro de eliminar este trabajo?")) return;
-
-  //   try {
-  //     setEliminandoTrabajo(id);
-  //     setError("");
-  //     await quejaService.deleteTrabajo(id);
-  //     await cargarHistorial();
-  //     if (onDataUpdated) onDataUpdated();
-  //   } catch (err: any) {
-  //     setError(err?.response?.data?.error || "Error al eliminar el trabajo");
-  //   } finally {
-  //     setEliminandoTrabajo(null);
-  //   }
-  // };
-
-  // const handleEliminarAsignacion = async (id: number) => {
-  //   if (!confirm("¿Está seguro de eliminar esta asignación?")) return;
-
-  //   try {
-  //     setEliminandoAsignacion(id);
-  //     setError("");
-  //     await quejaService.deleteAsignacion(id);
-  //     await cargarHistorial();
-  //     if (onDataUpdated) onDataUpdated();
-  //   } catch (err: any) {
-  //     setError(err?.response?.data?.error || "Error al eliminar la asignación");
-  //   } finally {
-  //     setEliminandoAsignacion(null);
-  //   }
-  // };
   //#endregion
 
   //#region Handlers de cambios en formularios
@@ -636,10 +601,7 @@ export default function QuejaDetallesModal({
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Fecha Reporte</h4>
-                      <p className="text-sm text-gray-900">
-                        {new Date(queja.fecha).toLocaleDateString()}{" "}
-                        {new Date(queja.fecha).toLocaleTimeString()}
-                      </p>
+                      <p className="text-sm text-gray-900">{formatToDisplay(queja.fecha)}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Servicio</h4>
@@ -648,10 +610,16 @@ export default function QuejaDetallesModal({
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             Teléfono: {queja.tb_telefono.telefono}
                           </span>
-                        ) : (
+                        ) : queja.tb_linea ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Línea: {queja.tb_linea?.clavelinea}
+                            Línea: {queja.tb_linea.clavelinea}
                           </span>
+                        ) : queja.tb_pizarra ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            Pizarra: {queja.tb_pizarra.nombre}
+                          </span>
+                        ) : (
+                          "N/A"
                         )}
                       </p>
                     </div>
@@ -1167,8 +1135,9 @@ export default function QuejaDetallesModal({
                                   {getEventoIcono(evento.tipo)}
                                   <h5 className="font-semibold">{evento.titulo}</h5>
                                 </div>
+                                {/* ✅ CORREGIDO: Usar formatToDisplay para la fecha del historial */}
                                 <span className="text-xs text-gray-500">
-                                  {new Date(evento.fecha).toLocaleString()}
+                                  {formatToDisplay(evento.fecha)}
                                 </span>
                               </div>
                               <p className="text-sm text-gray-600 mt-1">{evento.descripcion}</p>

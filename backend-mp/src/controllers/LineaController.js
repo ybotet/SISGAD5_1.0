@@ -9,13 +9,30 @@ const {
   listLineaSchema,
 } = require("../validations/linea.schemas");
 const validate = require("../middleware/validate");
+const { normalizeDateRange } = require("../utils/dateUtils");
+
+// Helper para normalizar timestamps en respuesta
+const normalizeTimestamps = (data) => {
+  if (!data) return data;
+  if (Array.isArray(data)) {
+    return data.map((item) => normalizeTimestamps(item));
+  }
+  if (typeof data === "object" && data !== null) {
+    const result = { ...data };
+    if (result.created_at !== undefined) {
+      result.createdAt = result.created_at;
+      delete result.created_at;
+    }
+    if (result.updated_at !== undefined) {
+      result.updatedAt = result.updated_at;
+      delete result.updated_at;
+    }
+    return result;
+  }
+  return data;
+};
 
 const LineaController = {
-  /**
-   * @desc    Obtener todos los registros (CON validación Zod en query)
-   * @route   GET /api/tbLinea
-   * @access  Public
-   */
   getAll: [
     validate(listLineaSchema, "query"),
     async (req, res, next) => {
@@ -35,9 +52,19 @@ const LineaController = {
           defaultSort: "createdAt",
           defaultOrder: "DESC",
           maxLimit: 100,
+          // ✅ Mapeo de camelCase a snake_case para la BD
+          columnMapping: {
+            createdAt: "created_at",
+            updatedAt: "updated_at",
+          },
         });
 
-        // Construir where clause para búsqueda
+        // ✅ Ya no necesitas mapear manualmente, parseListParams lo hace por ti
+
+        console.log("📊 sortBy (ya mapeado):", sortBy);
+        console.log("📊 sortOrder:", sortOrder);
+
+        // Construir where clause
         const whereClause = {};
         if (search) {
           whereClause[Op.or] = [{ clavelinea: { [Op.iLike]: `%${search}%` } }];
@@ -49,28 +76,33 @@ const LineaController = {
         const data = await Linea.findAndCountAll({
           where: whereClause,
           include: [
-            {
-              association: "tb_tipolinea",
-              attributes: ["id_tipolinea", "tipo"],
-            },
-            {
-              association: "tb_propietario",
-              attributes: ["id_propietario", "nombre"],
-            },
-            {
-              association: "tb_senalizacion",
-              attributes: ["id_senalizacion", "senalizacion"],
-            },
+            { association: "tb_tipolinea", attributes: ["id_tipolinea", "tipo"] },
+            { association: "tb_propietario", attributes: ["id_propietario", "nombre"] },
+            { association: "tb_senalizacion", attributes: ["id_senalizacion", "senalizacion"] },
           ],
           limit: parseInt(limit),
           offset: parseInt(offset),
-          order: [[sortBy, sortOrder]],
+          order: [[sortBy, sortOrder]], // ✅ sortBy ya es 'created_at' o 'updated_at'
           distinct: true,
+        });
+
+        // Normalizar timestamps (solo lo necesario, sin circular references)
+        const rowsNormalizados = data.rows.map((row) => {
+          const json = row.toJSON();
+          if (json.created_at !== undefined) {
+            json.createdAt = json.created_at;
+            delete json.created_at;
+          }
+          if (json.updated_at !== undefined) {
+            json.updatedAt = json.updated_at;
+            delete json.updated_at;
+          }
+          return json;
         });
 
         res.json({
           success: true,
-          data: data.rows,
+          data: rowsNormalizados,
           pagination: {
             page: parseInt(page),
             limit: parseInt(limit),
@@ -79,16 +111,12 @@ const LineaController = {
           },
         });
       } catch (error) {
+        console.error("❌ Error en getAll Linea:", error);
         return next(error);
       }
     },
   ],
 
-  /**
-   * @desc    Obtener un registro por ID
-   * @route   GET /api/tbLinea/:id
-   * @access  Public
-   */
   async getById(req, res, next) {
     try {
       const { id } = req.params;
@@ -98,6 +126,14 @@ const LineaController = {
             association: "tb_tipolinea",
             attributes: ["id_tipolinea", "tipo"],
           },
+          {
+            association: "tb_propietario",
+            attributes: ["id_propietario", "nombre"],
+          },
+          {
+            association: "tb_senalizacion",
+            attributes: ["id_senalizacion", "senalizacion"],
+          },
         ],
       });
 
@@ -106,89 +142,86 @@ const LineaController = {
       }
 
       const recorridos = await Recorrido.findAll({
-        where: { id_telefono: id },
+        where: { id_linea: id }, // ✅ Corregido: usar id_linea, no id_telefono
         include: [
-          {
-            association: "tb_cable",
-            attributes: ["id_cable", "numero"],
-          },
-          {
-            association: "tb_planta",
-            attributes: ["id_planta", "planta"],
-          },
-          {
-            association: "tb_sistema",
-            attributes: ["id_sistema", "sistema"],
-          },
-          {
-            association: "tb_propietario",
-            attributes: ["id_propietario", "nombre"],
-          },
+          { association: "tb_cable", attributes: ["id_cable", "numero"] },
+          { association: "tb_planta", attributes: ["id_planta", "planta"] },
+          { association: "tb_sistema", attributes: ["id_sistema", "sistema"] },
+          { association: "tb_propietario", attributes: ["id_propietario", "nombre"] },
         ],
-        limit: 100, // o paginación
+        limit: 100,
       });
 
       const quejas = await Queja.findAll({
-        where: { id_telefono: id },
-        // include: [
-        //   { model: Cable, attributes: ['id_cable', 'numero'] },
-        //   { model: Planta, attributes: ['id_planta', 'planta'] }
-        // ],
-        limit: 100, // o paginación
+        where: { id_linea: id },
+        include: [
+          { association: "tb_trabajador", attributes: ["id_trabajador", "clave_trabajador"] },
+        ],
+        limit: 100,
       });
+
+      // ✅ Normalizar timestamps en toda la respuesta
+      const lineaNormalizada = normalizeTimestamps(linea.toJSON());
+      const recorridosNormalizados = normalizeTimestamps(recorridos);
+      const quejasNormalizadas = normalizeTimestamps(quejas);
 
       res.json({
         success: true,
         data: {
-          linea,
-          recorridos,
-          quejas,
+          linea: lineaNormalizada,
+          recorridos: recorridosNormalizados,
+          quejas: quejasNormalizadas,
         },
       });
     } catch (error) {
+      console.error("❌ Error en getById Linea:", error);
       return next(error);
     }
   },
 
-  /**
-   * @desc    Crear nuevo registro (CON validación Zod en body)
-   * @route   POST /api/tbLinea
-   * @access  Public
-   */
   create: [
     validate(createLineaSchema, "body"),
     async (req, res, next) => {
       try {
-        const data = await Linea.create(req.body);
+        // ✅ Filtrar campos de timestamps
+        const { createdAt, updatedAt, ...cleanData } = req.body;
+
+        console.log("📝 Creando línea con datos:", cleanData);
+
+        const data = await Linea.create(cleanData);
+
+        // ✅ Normalizar respuesta
+        const dataNormalizada = normalizeTimestamps(data.toJSON());
 
         res.status(201).json({
           success: true,
-          data,
-          message: "Linea creado exitosamente",
+          data: dataNormalizada,
+          message: "Línea creada exitosamente",
         });
       } catch (error) {
+        console.error("❌ Error creando línea:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors.map((err) => err.message).join(". ");
           return next(apiErrors.badRequest(mensajes));
         }
-
+        if (error.name === "SequelizeUniqueConstraintError") {
+          return next(apiErrors.conflict("La clave de línea ya existe"));
+        }
         return next(error);
       }
     },
   ],
 
-  /**
-   * @desc    Actualizar registro (CON validación Zod parcial)
-   * @route   PUT /api/tbLinea/:id
-   * @access  Public
-   */
   update: [
     validate(updateLineaSchema, "body"),
     async (req, res, next) => {
       try {
         const { id } = req.params;
 
-        const [affectedRows] = await Linea.update(req.body, {
+        // ✅ Filtrar campos de timestamps
+        const { createdAt, updatedAt, ...cleanData } = req.body;
+
+        const [affectedRows] = await Linea.update(cleanData, {
           where: { id_linea: id },
         });
 
@@ -198,27 +231,25 @@ const LineaController = {
 
         const updatedData = await Linea.findByPk(id);
 
+        // ✅ Normalizar respuesta
+        const dataNormalizada = normalizeTimestamps(updatedData.toJSON());
+
         res.json({
           success: true,
-          data: updatedData,
-          message: "Linea actualizado exitosamente",
+          data: dataNormalizada,
+          message: "Línea actualizada exitosamente",
         });
       } catch (error) {
+        console.error("❌ Error actualizando línea:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors.map((err) => err.message).join(". ");
           return next(apiErrors.badRequest(mensajes));
         }
-
         return next(error);
       }
     },
   ],
 
-  /**
-   * @desc    Eliminar registro
-   * @route   DELETE /api/tbLinea/:id
-   * @access  Public
-   */
   async delete(req, res, next) {
     try {
       const { id } = req.params;
@@ -233,9 +264,10 @@ const LineaController = {
 
       res.json({
         success: true,
-        message: "Linea eliminado exitosamente",
+        message: "Línea eliminada exitosamente",
       });
     } catch (error) {
+      console.error("❌ Error eliminando línea:", error);
       return next(error);
     }
   },
@@ -245,57 +277,66 @@ const LineaController = {
 LineaController.dashboard = async function (req, res, next) {
   try {
     const { fecha_desde, fecha_hasta } = req.query;
+    const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
     const where = {};
-    if (fecha_desde || fecha_hasta) {
-      where.createdAt = {};
-      if (fecha_desde) where.createdAt[Op.gte] = new Date(fecha_desde);
-      if (fecha_hasta) where.createdAt[Op.lte] = new Date(fecha_hasta);
+    if (normalizedRange.from || normalizedRange.to) {
+      where.created_at = {}; // ✅ Usar created_at (nombre en BD)
+      if (normalizedRange.from) where.created_at[Op.gte] = normalizedRange.from;
+      if (normalizedRange.to) where.created_at[Op.lte] = normalizedRange.to;
     }
 
     const total = await Linea.count({ where });
     const activas = await Linea.count({ where: { ...where, esbaja: false } });
     const inactivas = await Linea.count({ where: { ...where, esbaja: true } });
 
-    // Top propietarios
-    const propietarios = await Linea.findAll({
-      where,
-      attributes: [["id_propietario", "id_propietario"]],
-      include: [{ association: "tb_propietario", attributes: ["nombre"] }],
-      limit: 0,
-    });
-
-    // For lightweight response, compute some aggregates via raw queries
+    // ✅ Usar created_at en las consultas SQL
     const byProp = await Linea.sequelize.query(
-      `SELECT p.nombre as name, COUNT(1) as value FROM tb_linea l LEFT JOIN tb_propietario p ON l.id_propietario = p.id_propietario
-        WHERE ($1::timestamp IS NULL OR l."createdAt" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR l."createdAt" <= $2::timestamp)
-        GROUP BY p.nombre ORDER BY value DESC LIMIT 10`,
-      { bind: [fecha_desde || null, fecha_hasta || null], type: Linea.sequelize.QueryTypes.SELECT },
+      `SELECT p.nombre as name, COUNT(1) as value FROM tb_linea l 
+       LEFT JOIN tb_propietario p ON l.id_propietario = p.id_propietario
+       WHERE ($1::timestamp IS NULL OR l."created_at" >= $1::timestamp)
+         AND ($2::timestamp IS NULL OR l."created_at" <= $2::timestamp)
+       GROUP BY p.nombre ORDER BY value DESC LIMIT 10`,
+      {
+        bind: [normalizedRange.from || null, normalizedRange.to || null],
+        type: Linea.sequelize.QueryTypes.SELECT,
+      },
     );
 
     const bySenal = await Linea.sequelize.query(
-      `SELECT s.senalizacion as name, COUNT(1) as value FROM tb_linea l LEFT JOIN tb_senalizacion s ON l.id_senalizacion = s.id_senalizacion
-        WHERE ($1::timestamp IS NULL OR l."createdAt" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR l."createdAt" <= $2::timestamp)
-        GROUP BY s.senalizacion ORDER BY value DESC LIMIT 10`,
-      { bind: [fecha_desde || null, fecha_hasta || null], type: Linea.sequelize.QueryTypes.SELECT },
+      `SELECT s.senalizacion as name, COUNT(1) as value FROM tb_linea l 
+       LEFT JOIN tb_senalizacion s ON l.id_senalizacion = s.id_senalizacion
+       WHERE ($1::timestamp IS NULL OR l."created_at" >= $1::timestamp)
+         AND ($2::timestamp IS NULL OR l."created_at" <= $2::timestamp)
+       GROUP BY s.senalizacion ORDER BY value DESC LIMIT 10`,
+      {
+        bind: [normalizedRange.from || null, normalizedRange.to || null],
+        type: Linea.sequelize.QueryTypes.SELECT,
+      },
     );
 
     const byYear = await Linea.sequelize.query(
-      `SELECT to_char(l."createdAt", 'YYYY') as year, COUNT(1) as cantidad FROM tb_linea l
-        WHERE ($1::timestamp IS NULL OR l."createdAt" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR l."createdAt" <= $2::timestamp)
-        GROUP BY year ORDER BY year ASC`,
-      { bind: [fecha_desde || null, fecha_hasta || null], type: Linea.sequelize.QueryTypes.SELECT },
+      `SELECT to_char(l."created_at", 'YYYY') as year, COUNT(1) as cantidad 
+       FROM tb_linea l
+       WHERE ($1::timestamp IS NULL OR l."created_at" >= $1::timestamp)
+         AND ($2::timestamp IS NULL OR l."created_at" <= $2::timestamp)
+       GROUP BY year ORDER BY year ASC`,
+      {
+        bind: [normalizedRange.from || null, normalizedRange.to || null],
+        type: Linea.sequelize.QueryTypes.SELECT,
+      },
     );
 
     const topLineasQuejas = await Linea.sequelize.query(
       `SELECT COALESCE(l.clavelinea, CONCAT('Línea ', l.id_linea)) as name, COUNT(q.id_queja) as value
-        FROM tb_linea l LEFT JOIN tb_queja q ON q.id_linea = l.id_linea
-        WHERE ($1::timestamp IS NULL OR q."createdAt" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR q."createdAt" <= $2::timestamp)
-        GROUP BY name ORDER BY value DESC LIMIT 10`,
-      { bind: [fecha_desde || null, fecha_hasta || null], type: Linea.sequelize.QueryTypes.SELECT },
+       FROM tb_linea l 
+       LEFT JOIN tb_queja q ON q.id_linea = l.id_linea
+       WHERE ($1::timestamp IS NULL OR q."created_at" >= $1::timestamp)
+         AND ($2::timestamp IS NULL OR q."created_at" <= $2::timestamp)
+       GROUP BY name ORDER BY value DESC LIMIT 10`,
+      {
+        bind: [normalizedRange.from || null, normalizedRange.to || null],
+        type: Linea.sequelize.QueryTypes.SELECT,
+      },
     );
 
     res.json({
@@ -311,6 +352,7 @@ LineaController.dashboard = async function (req, res, next) {
       },
     });
   } catch (error) {
+    console.error("❌ Error en dashboard Linea:", error);
     return next(error);
   }
 };

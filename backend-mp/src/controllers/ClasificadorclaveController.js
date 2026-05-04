@@ -36,7 +36,7 @@ const ClasificadorclaveController = {
         const sortByValue =
           typeof sortByRaw === "string" && ALLOWED_SORT.includes(sortByRaw)
             ? sortByRaw
-            : "createdAt";
+            : "clasificador";
 
         const sortOrderRaw = req.query.sortOrder;
         const sortOrderValue =

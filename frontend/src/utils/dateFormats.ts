@@ -55,3 +55,51 @@ export const formatDateLocal = (date?: Date | string | null): string => {
 
   return `${year}-${month}-${day}`;
 };
+
+// ✅ NUEVA FUNCIÓN: Para mostrar fechas en la interfaz de usuario
+/**
+ * Formatea una fecha para mostrar en la interfaz (DD/MM/YYYY HH:MM)
+ * @param dateString - String de fecha en cualquier formato válido
+ * @returns String formateado para mostrar, o texto de "No definida" si no hay fecha
+ */
+export const formatToDisplay = (dateString: string | null | undefined): string => {
+  if (!dateString) return "No definida";
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  } catch {
+    return dateString;
+  }
+};
+
+// ✅ NUEVA FUNCIÓN: Para formatear fecha corta (solo fecha, sin hora)
+/**
+ * Formatea una fecha para mostrar en la interfaz (DD/MM/YYYY)
+ * @param dateString - String de fecha en cualquier formato válido
+ * @returns String formateado para mostrar, o texto de "No definida" si no hay fecha
+ */
+export const formatDateToDisplay = (dateString: string | null | undefined): string => {
+  if (!dateString) return "No definida";
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  } catch {
+    return dateString;
+  }
+};

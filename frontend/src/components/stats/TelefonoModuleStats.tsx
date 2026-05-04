@@ -82,7 +82,7 @@ function HorizontalBarChart({
   title,
   maxValue,
 }: {
-  data: { name: string; value: number }[];
+  data: { name: string; value: number; telefono?: string; cantidad?: number }[];
   title: string;
   maxValue?: number;
 }) {
@@ -93,7 +93,9 @@ function HorizontalBarChart({
       {data.slice(0, 8).map((item, idx) => (
         <div key={idx}>
           <div className="flex justify-between text-xs text-gray-600 mb-0.5">
-            <span className="truncate max-w-[100px]">{item.name}</span>
+            <span className="truncate max-w-[100px]">
+              {item.name} {item.telefono}
+            </span>
             <span>{item.value}</span>
           </div>
           <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
@@ -170,7 +172,15 @@ export default function TelefonoModuleStats({
     }),
   );
 
-  const maxCount = Math.max(...barData.map((b: { cantidad: number }) => b.cantidad), 1);
+  const topMasQuejasData: { name: string; value: number }[] = (dashboard?.byMasQuejas || []).map(
+    (t: any) => ({
+      name: t.telefono,
+      value: Number(t.cantidad || 0),
+    }),
+  );
+  const maxQuejas = Math.max(...topMasQuejasData.map((item) => item.value), 1);
+
+  const maxMando = Math.max(...topModelosData.map((item) => item.value), 1);
   const extGroups: [string, number][] = barData.map(
     (b: { name: string; cantidad: number }) => [b.name, b.cantidad] as [string, number],
   );
@@ -216,7 +226,7 @@ export default function TelefonoModuleStats({
       {/* Indicador del filtro aplicado */}
       {fechaDesde && fechaHasta && (
         <div className="text-sm text-gray-500 bg-gray-50 p-2 rounded-lg">
-          📊 Mostrando datos del período: {fechaDesde} → {fechaHasta}
+          Mostrando datos del período: {fechaDesde} → {fechaHasta}
           {totalItems !== itemsFiltrados && (
             <span className="ml-2 text-blue-600">
               ({itemsFiltrados} de {totalItems} registros)
@@ -260,34 +270,39 @@ export default function TelefonoModuleStats({
         {/* Columna izquierda */}
         <div className="lg:col-span-3 space-y-6">
           <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
-            <h3 className="font-semibold text-gray-800 mb-3">📟 Por Mando</h3>
-            <HorizontalBarChart data={topModelosData} title="" maxValue={maxCount} />
+            <h3 className="font-semibold text-gray-800 mb-3">Por Mando</h3>
+            <HorizontalBarChart data={topModelosData} title="" maxValue={maxMando} />
           </div>
-          <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
-            <h3 className="font-semibold text-gray-800 mb-3">🏷️ Por Clasificación</h3>
+          {/* <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
+            <h3 className="font-semibold text-gray-800 mb-3"> Top de teléfonos con mas quejas</h3>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
-                  data={pieData}
+                  data={topMasQuejasData}
                   cx="50%"
                   cy="50%"
                   innerRadius={40}
                   outerRadius={70}
                   paddingAngle={3}
                   dataKey="value"
+                  label={({ name, value }) => `${name}: ${value}`}
                 >
-                  {pieData.map((_: any, index: number) => (
+                  {topMasQuejasData.map((_: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
+          </div> */}
+          <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
+            <h3 className="font-semibold text-gray-800 mb-3">Top de teléfonos con mas quejas</h3>
+            <HorizontalBarChart data={topMasQuejasData} title="" maxValue={maxQuejas} />
           </div>
           <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
-            <h3 className="font-semibold text-gray-800 mb-3">🔢 Por Extensiones</h3>
+            <h3 className="font-semibold text-gray-800 mb-3"> Por Extensiones</h3>
             {extGroups.slice(0, 6).map(([k, v]: [string, number]) => (
-              <SimpleBar key={k} label={`${k} extensiones`} value={v} max={maxCount} />
+              <SimpleBar key={k} label={`${k} extensiones`} value={v} max={maxMando} />
             ))}
           </div>
         </div>
@@ -295,7 +310,7 @@ export default function TelefonoModuleStats({
         {/* Columna central */}
         <div className="lg:col-span-6 space-y-6">
           <div className="bg-white rounded-xl shadow p-5 border border-gray-100">
-            <h3 className="font-semibold text-gray-800 mb-4">📈 Tendencia por Año</h3>
+            <h3 className="font-semibold text-gray-800 mb-4">Tendencia por Año</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={lineData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -307,7 +322,7 @@ export default function TelefonoModuleStats({
             </ResponsiveContainer>
           </div>
           <div className="bg-white rounded-xl shadow p-5 border border-gray-100">
-            <h3 className="font-semibold text-gray-800 mb-4">📅 Distribución por Mes</h3>
+            <h3 className="font-semibold text-gray-800 mb-4">Distribución por Mes</h3>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={tendenciaMensual}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -323,7 +338,7 @@ export default function TelefonoModuleStats({
         {/* Columna derecha */}
         <div className="lg:col-span-3 space-y-6">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow p-4 border border-blue-100">
-            <h3 className="font-semibold text-gray-800 mb-2">📊 Resumen del Período</h3>
+            <h3 className="font-semibold text-gray-800 mb-2">Resumen del Período</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">Registros:</span>
@@ -344,7 +359,7 @@ export default function TelefonoModuleStats({
             </div>
           </div>
           <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
-            <h3 className="font-semibold text-gray-800 mb-3">📋 Clasificaciones</h3>
+            <h3 className="font-semibold text-gray-800 mb-3">Clasificaciones</h3>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {(pieData || []).slice(0, 8).map((c) => (
                 <div key={c.name} className="flex justify-between text-sm">

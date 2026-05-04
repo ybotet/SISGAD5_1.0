@@ -18,16 +18,6 @@ module.exports = (sequelize) => {
           len: [0, 12],
         },
       },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
     },
     {
       tableName: "tb_planta",

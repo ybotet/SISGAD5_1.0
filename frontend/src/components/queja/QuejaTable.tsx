@@ -1,5 +1,6 @@
 import type { QuejaItem } from "../../services/quejaService";
 import QuejaEstadoBadge from "./QuejaEstadoBadge";
+import { formatToDisplay } from "../../utils/dateFormats";
 
 interface QuejaTableProps {
   items: QuejaItem[];
@@ -140,15 +141,13 @@ export default function QuejaTable({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {new Date(item.fecha).toLocaleDateString()}
-                    </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-sm text-gray-900">{formatToDisplay(item.fecha)}</div>
+                    {/* <div className="text-xs text-gray-500">
                       {new Date(item.fecha).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
-                    </div>
+                    </div> */}
                   </td>
                   <td className="px-6 py-4">{renderServicio(item)}</td>
                   <td className="px-6 py-4 whitespace-nowrap">

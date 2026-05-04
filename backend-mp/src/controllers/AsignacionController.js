@@ -10,6 +10,7 @@ const {
 const validate = require("../middleware/validate");
 const { create } = require("./TrabajoTrabajadoresController");
 const { get } = require("../routes/asignacion");
+const { normalizeToDbDateTime } = require("../utils/dateUtils");
 
 const AsignacionController = {
   /**
@@ -21,10 +22,15 @@ const AsignacionController = {
     validate(createAsignacionSchema),
     async (req, res, next) => {
       try {
-        const data = await Asignacion.create(req.body);
+        const payload = { ...req.body };
+        if (payload.fechaAsignacion) {
+          payload.fechaAsignacion = normalizeToDbDateTime(payload.fechaAsignacion);
+        }
 
-        if (req.body.trabajadores && req.body.trabajadores.length > 0) {
-          const trabajadoresData = req.body.trabajadores.map((trabajador) => ({
+        const data = await Asignacion.create(payload);
+
+        if (payload.trabajadores && payload.trabajadores.length > 0) {
+          const trabajadoresData = payload.trabajadores.map((trabajador) => ({
             id_asignacion: data.id_asignacion,
             id_trabajador: trabajador.id_trabajador,
           }));

@@ -25,7 +25,7 @@ const updateClasificacionSchema = clasificacionBaseSchema.partial();
 // Schema para QUERY
 const listClasificacionSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
+  limit: z.coerce.number().int().min(1).max(200).default(10),
   sortBy: z.enum(["nombre", "createdAt", "updatedAt"]).default("createdAt"),
   sortOrder: z.enum(["ASC", "DESC"]).default("DESC"),
   search: z.string().optional(),
