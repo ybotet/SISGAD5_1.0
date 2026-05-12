@@ -111,7 +111,7 @@ const LineaController = {
           },
         });
       } catch (error) {
-        console.error("❌ Error en getAll Linea:", error);
+        console.error(" Error en getAll Linea:", error);
         return next(error);
       }
     },
@@ -174,7 +174,7 @@ const LineaController = {
         },
       });
     } catch (error) {
-      console.error("❌ Error en getById Linea:", error);
+      console.error(" Error en getById Linea:", error);
       return next(error);
     }
   },
@@ -199,7 +199,7 @@ const LineaController = {
           message: "Línea creada exitosamente",
         });
       } catch (error) {
-        console.error("❌ Error creando línea:", error);
+        console.error(" Error creando línea:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors.map((err) => err.message).join(". ");
           return next(apiErrors.badRequest(mensajes));
@@ -240,7 +240,7 @@ const LineaController = {
           message: "Línea actualizada exitosamente",
         });
       } catch (error) {
-        console.error("❌ Error actualizando línea:", error);
+        console.error(" Error actualizando línea:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors.map((err) => err.message).join(". ");
           return next(apiErrors.badRequest(mensajes));
@@ -267,7 +267,7 @@ const LineaController = {
         message: "Línea eliminada exitosamente",
       });
     } catch (error) {
-      console.error("❌ Error eliminando línea:", error);
+      console.error(" Error eliminando línea:", error);
       return next(error);
     }
   },
@@ -352,7 +352,7 @@ LineaController.dashboard = async function (req, res, next) {
       },
     });
   } catch (error) {
-    console.error("❌ Error en dashboard Linea:", error);
+    console.error(" Error en dashboard Linea:", error);
     return next(error);
   }
 };

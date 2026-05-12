@@ -127,7 +127,7 @@ const ClaveController = {
           message: "Clave creada exitosamente",
         });
       } catch (error) {
-        console.error("❌ Error detallado:", error);
+        console.error(" Error detallado:", error);
 
         // ✅ Mostrar error específico de Sequelize
         if (error.name === "SequelizeValidationError") {

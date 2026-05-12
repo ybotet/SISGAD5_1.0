@@ -81,7 +81,7 @@ const TipolineaController = {
           },
         });
       } catch (error) {
-        console.error("❌ Error en getAll Tipolinea:", error);
+        console.error(" Error en getAll Tipolinea:", error);
         return next(error);
       }
     },
@@ -109,7 +109,7 @@ const TipolineaController = {
         data: dataNormalizada,
       });
     } catch (error) {
-      console.error("❌ Error en getById Tipolinea:", error);
+      console.error(" Error en getById Tipolinea:", error);
       return next(error);
     }
   },
@@ -137,7 +137,7 @@ const TipolineaController = {
           message: "Tipo de línea creado exitosamente",
         });
       } catch (error) {
-        console.error("❌ Error creando Tipolinea:", error);
+        console.error(" Error creando Tipolinea:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
@@ -183,7 +183,7 @@ const TipolineaController = {
           message: "Tipo de línea actualizado exitosamente",
         });
       } catch (error) {
-        console.error("❌ Error actualizando Tipolinea:", error);
+        console.error(" Error actualizando Tipolinea:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
@@ -215,7 +215,7 @@ const TipolineaController = {
         message: "Tipo de línea eliminado exitosamente",
       });
     } catch (error) {
-      console.error("❌ Error eliminando Tipolinea:", error);
+      console.error(" Error eliminando Tipolinea:", error);
       return next(error);
     }
   },

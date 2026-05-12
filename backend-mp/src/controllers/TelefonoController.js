@@ -99,7 +99,7 @@ const TelefonoController = {
           },
         });
       } catch (error) {
-        console.error("❌ Error en getAll:", error);
+        console.error(" Error en getAll:", error);
         return next(error);
       }
     },
@@ -199,7 +199,7 @@ const TelefonoController = {
         },
       });
     } catch (error) {
-      console.error("❌ Error en getById:", error);
+      console.error(" Error en getById:", error);
       return next(error);
     }
   },

@@ -194,7 +194,7 @@ const TrabajoController = {
           message: "Trabajo creado exitosamente",
         });
       } catch (error) {
-        console.error("❌ Error en create:", error);
+        console.error(" Error en create:", error);
         if (error.name === "SequelizeValidationError") {
           const mensaje = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensaje));

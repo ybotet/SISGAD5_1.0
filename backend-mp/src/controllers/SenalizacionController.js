@@ -81,7 +81,7 @@ const SenalizacionController = {
           },
         });
       } catch (error) {
-        console.error("❌ Error en getAll Senalizacion:", error);
+        console.error(" Error en getAll Senalizacion:", error);
         return next(error);
       }
     },
@@ -109,7 +109,7 @@ const SenalizacionController = {
         data: dataNormalizada,
       });
     } catch (error) {
-      console.error("❌ Error en getById Senalizacion:", error);
+      console.error(" Error en getById Senalizacion:", error);
       return next(error);
     }
   },
@@ -137,7 +137,7 @@ const SenalizacionController = {
           message: "Señalización creada exitosamente",
         });
       } catch (error) {
-        console.error("❌ Error creando Senalizacion:", error);
+        console.error(" Error creando Senalizacion:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
@@ -183,7 +183,7 @@ const SenalizacionController = {
           message: "Señalización actualizada exitosamente",
         });
       } catch (error) {
-        console.error("❌ Error actualizando Senalizacion:", error);
+        console.error(" Error actualizando Senalizacion:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
@@ -215,7 +215,7 @@ const SenalizacionController = {
         message: "Señalización eliminada exitosamente",
       });
     } catch (error) {
-      console.error("❌ Error eliminando Senalizacion:", error);
+      console.error(" Error eliminando Senalizacion:", error);
       return next(error);
     }
   },

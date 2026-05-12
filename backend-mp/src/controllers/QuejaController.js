@@ -18,7 +18,11 @@ const {
 } = require("../validations/queja.schemas");
 const validate = require("../middleware/validate");
 const apiErrors = require("../utils/apiErrors");
-const { normalizeToDbDateTime, normalizeDateRange, getCurrentDateTime } = require("../utils/dateUtils");
+const {
+  normalizeToDbDateTime,
+  normalizeDateRange,
+  getCurrentDateTime,
+} = require("../utils/dateUtils");
 
 const QuejaController = {
   /**
@@ -360,7 +364,7 @@ const QuejaController = {
         },
       });
     } catch (error) {
-      console.error("❌ Error en getById:", error);
+      console.error(" Error en getById:", error);
       next(error);
     }
   },
@@ -709,7 +713,7 @@ const QuejaController = {
           data: updatedData,
         });
       } catch (error) {
-        console.error("❌ Error cerrando queja:", error);
+        console.error(" Error cerrando queja:", error);
         next(error);
       }
     },
@@ -804,7 +808,8 @@ QuejaController.sankey = async (req, res, next) => {
     // Función para filtrar por fecha
     const dateFilter = (alias = "q") => {
       const parts = [];
-      if (normalizedRange.from) parts.push(`${alias}.fecha >= '${normalizedRange.from}'::timestamp`);
+      if (normalizedRange.from)
+        parts.push(`${alias}.fecha >= '${normalizedRange.from}'::timestamp`);
       if (normalizedRange.to) parts.push(`${alias}.fecha <= '${normalizedRange.to}'::timestamp`);
       return parts.length ? ` AND ${parts.join(" AND ")}` : "";
     };
@@ -914,14 +919,15 @@ QuejaController.funnel = async (req, res, next) => {
 
     // Counts per stage
     const total = await Queja.count({
-      where: normalizedRange.from || normalizedRange.to
-        ? {
-            fecha: {
-              [Op.gte]: normalizedRange.from || undefined,
-              [Op.lte]: normalizedRange.to || undefined,
-            },
-          }
-        : {},
+      where:
+        normalizedRange.from || normalizedRange.to
+          ? {
+              fecha: {
+                [Op.gte]: normalizedRange.from || undefined,
+                [Op.lte]: normalizedRange.to || undefined,
+              },
+            }
+          : {},
     });
     const cnt_probada =
       (

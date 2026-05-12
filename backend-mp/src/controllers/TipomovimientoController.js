@@ -81,7 +81,7 @@ const TipomovimientoController = {
           },
         });
       } catch (error) {
-        console.error("❌ Error en getAll Tipomovimiento:", error);
+        console.error(" Error en getAll Tipomovimiento:", error);
         return next(error);
       }
     },
@@ -109,7 +109,7 @@ const TipomovimientoController = {
         data: dataNormalizada,
       });
     } catch (error) {
-      console.error("❌ Error en getById Tipomovimiento:", error);
+      console.error(" Error en getById Tipomovimiento:", error);
       return next(error);
     }
   },
@@ -137,7 +137,7 @@ const TipomovimientoController = {
           message: "Tipo de movimiento creado exitosamente",
         });
       } catch (error) {
-        console.error("❌ Error creando Tipomovimiento:", error);
+        console.error(" Error creando Tipomovimiento:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
@@ -183,7 +183,7 @@ const TipomovimientoController = {
           message: "Tipo de movimiento actualizado exitosamente",
         });
       } catch (error) {
-        console.error("❌ Error actualizando Tipomovimiento:", error);
+        console.error(" Error actualizando Tipomovimiento:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
@@ -215,7 +215,7 @@ const TipomovimientoController = {
         message: "Tipo de movimiento eliminado exitosamente",
       });
     } catch (error) {
-      console.error("❌ Error eliminando Tipomovimiento:", error);
+      console.error(" Error eliminando Tipomovimiento:", error);
       return next(error);
     }
   },

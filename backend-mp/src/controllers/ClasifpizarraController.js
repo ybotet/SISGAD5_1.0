@@ -24,7 +24,7 @@ const ClasifpizarraController = {
       try {
         // ✅ Verificar modelo antes de usar
         if (!Clasifpizarra) {
-          console.error("❌ Modelo Clasifpizarra no está disponible");
+          console.error(" Modelo Clasifpizarra no está disponible");
           return next(apiErrors.internal("Error interno: modelo no disponible"));
         }
 
@@ -69,7 +69,7 @@ const ClasifpizarraController = {
           },
         });
       } catch (error) {
-        console.error("❌ Error en getAll Clasifpizarra:", error);
+        console.error(" Error en getAll Clasifpizarra:", error);
         return next(error);
       }
     },
@@ -83,7 +83,7 @@ const ClasifpizarraController = {
   async getAllSimple(req, res, next) {
     try {
       if (!Clasifpizarra) {
-        console.error("❌ Modelo Clasifpizarra no está disponible");
+        console.error(" Modelo Clasifpizarra no está disponible");
         return next(apiErrors.internal("Error interno: modelo no disponible"));
       }
 
@@ -97,7 +97,7 @@ const ClasifpizarraController = {
         data,
       });
     } catch (error) {
-      console.error("❌ Error en getAllSimple Clasifpizarra:", error);
+      console.error(" Error en getAllSimple Clasifpizarra:", error);
       return next(error);
     }
   },
