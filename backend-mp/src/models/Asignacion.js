@@ -18,19 +18,9 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      createdAt: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
-      updatedAt: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
     },
     {
-      tableName: "tb_prueba",
+      tableName: "tb_asignacion",
       timestamps: true, // ✅ Habilita la creación automática de timestamps
       underscored: true, // ✅ Usa created_at y updated_at en la BD
       createdAt: "created_at", // ✅ Nombre de la columna en BD

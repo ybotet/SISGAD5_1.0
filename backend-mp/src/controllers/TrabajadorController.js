@@ -1,6 +1,7 @@
 const { Trabajador, Grupow } = require("../models");
 const { Op } = require("sequelize");
 const apiErrors = require("../utils/apiErrors");
+const { parseListParams } = require("../utils/parseListParams");
 const {
   createTrabajadorSchema,
   updateTrabajadorSchema,
@@ -15,12 +16,28 @@ const TrabajadorController = {
    * @access  Public
    */
   getAll: [
-    validate(listTrabajadorSchema, "query"),
+    validate(listTrabajadorSchema, "query", {
+      allowedSortFields: ["clave_trabajador", "nombre", "cargo", "createdAt", "updatedAt"],
+      defaultSort: "createdAt",
+      defaultOrder: "DESC",
+      maxLimit: 100,
+      columnMapping: {
+        createdAt: "created_at",
+        updatedAt: "updated_at",
+      },
+    }),
     async (req, res, next) => {
       try {
-        const { page, limit, sortBy, sortOrder, search } = req.query;
-
-        const offset = (page - 1) * limit;
+        const { page, limit, sortBy, sortOrder, search, offset } = parseListParams(req.query, {
+          allowedSortFields: ["clave_trabajador", "nombre", "cargo", "createdAt", "updatedAt"],
+          defaultSort: "createdAt",
+          defaultOrder: "DESC",
+          maxLimit: 100,
+          columnMapping: {
+            createdAt: "created_at",
+            updatedAt: "updated_at",
+          },
+        });
 
         // Construir where clause para búsqueda
         const whereClause = {};
@@ -32,40 +49,16 @@ const TrabajadorController = {
           ];
         }
 
-        // Validación defensiva para orden
-        const ALLOWED_SORT = [
-          "clave_trabajador",
-          "nombre",
-          "cargo",
-          "id_grupow",
-          "activo",
-          "id_trabajador",
-          "createdAt",
-          "updatedAt",
-        ];
-
-        // Forzar valores seguros (nunca undefined/NaN)
-        const sortByRaw = req.query.sortBy;
-        const sortByValue =
-          typeof sortByRaw === "string" && ALLOWED_SORT.includes(sortByRaw)
-            ? sortByRaw
-            : "createdAt";
-
-        const sortOrderRaw = req.query.sortOrder;
-        const sortOrderValue =
-          typeof sortOrderRaw === "string" && ["ASC", "DESC"].includes(sortOrderRaw.toUpperCase())
-            ? sortOrderRaw.toUpperCase()
-            : "DESC";
-
         const data = await Trabajador.findAndCountAll({
           where: whereClause,
           limit: parseInt(limit),
           offset: parseInt(offset),
-          order: [[sortByValue, sortOrderValue]],
+          order: [[sortBy, sortOrder]],
           include: [
             {
               model: Grupow,
               as: "tb_grupow",
+              // maxLimit: 100,
               attributes: ["id_grupow", "grupo"],
             },
           ],

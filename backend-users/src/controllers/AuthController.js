@@ -75,20 +75,20 @@ const authController = {
       // Buscar usuario
       const usuario = await User.findOne({
         where: { email },
-        // include: [
-        //   {
-        //     model: Rol,
-        //     as: "tb_rol",
-        //     through: { attributes: [] },
-        //     include: [
-        //       {
-        //         model: Permiso,
-        //         as: "tb_permiso",
-        //         through: { attributes: [] },
-        //       },
-        //     ],
-        //   },
-        // ],
+        include: [
+          {
+            model: Rol,
+            as: "tb_rol",
+            through: { attributes: [] },
+            include: [
+              {
+                model: Permiso,
+                as: "tb_permiso",
+                through: { attributes: [] },
+              },
+            ],
+          },
+        ],
       });
 
       if (!usuario) {
@@ -143,9 +143,7 @@ const authController = {
         success: false,
         message: "Error interno del servidor",
         details:
-          process.env.NODE_ENV === "development"
-            ? error.message || String(error)
-            : undefined,
+          process.env.NODE_ENV === "development" ? error.message || String(error) : undefined,
       });
     }
   },

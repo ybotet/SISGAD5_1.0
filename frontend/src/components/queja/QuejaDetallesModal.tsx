@@ -658,12 +658,19 @@ export default function QuejaDetallesModal({
                           </div>
                           <span className="text-sm font-medium text-yellow-700">Asignada</span>
                         </div>
-                      ) : queja.estado === "Cerrada" ? (
+                      ) : queja.estado === "Resuelta" ? (
                         <div className="flex items-center mb-2">
-                          <div className="bg-green-100 rounded-full p-1 mr-2">
+                          <div className="bg-emerald-100 rounded-full p-1 mr-2">
                             <i className="ri-checkbox-circle-line text-green-600 text-xs"></i>
                           </div>
-                          <span className="text-sm font-medium text-green-700">Cerrada</span>
+                          <span className="text-sm font-medium text-green-700">Resuelta</span>
+                        </div>
+                      ) : queja.estado === "Cerrada" ? (
+                        <div className="flex items-center mb-2">
+                          <div className="bg-gray-100 rounded-full p-1 mr-2">
+                            <i className="ri-archive-line text-gray-600 text-xs"></i>
+                          </div>
+                          <span className="text-sm font-medium text-gray-700">Cerrada</span>
                         </div>
                       ) : queja.estado === "Abierta" ? (
                         <div className="flex items-center mb-2">

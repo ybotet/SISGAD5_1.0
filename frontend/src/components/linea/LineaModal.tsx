@@ -1,9 +1,4 @@
-import type {
-  LineaItem,
-  Senalizacion,
-  TipoLinea,
-  Propietario,
-} from "../../services/lineaService";
+import type { LineaItem, Senalizacion, TipoLinea, Propietario } from "../../services/lineaService";
 import type { TipoMovimientoItem } from "../../services/tipomovimientoService";
 import { tipomovimientoService } from "../../services/tipomovimientoService";
 import { useState, useEffect } from "react";
@@ -47,9 +42,7 @@ export default function LineaModal({
   const [senalizaciones, setSenalizaciones] = useState<Senalizacion[]>([]);
   const [tiposLinea, setTiposLinea] = useState<TipoLinea[]>([]);
   const [propietarios, setPropietarios] = useState<Propietario[]>([]);
-  const [tiposMovimiento, setTiposMovimiento] = useState<TipoMovimientoItem[]>(
-    [],
-  );
+  const [tiposMovimiento, setTiposMovimiento] = useState<TipoMovimientoItem[]>([]);
   const [loadingCombos, setLoadingCombos] = useState(false);
   const [errors, setErrors] = useState<string[] | Record<string, string[]>>([]);
 
@@ -117,17 +110,13 @@ export default function LineaModal({
   const loadCombos = async () => {
     try {
       setLoadingCombos(true);
-      const [
-        senalizacionesData,
-        tiposLineaData,
-        propietariosData,
-        tiposMovimientoData,
-      ] = await Promise.all([
-        lineaService.getSenalizaciones(),
-        lineaService.getTiposLinea(),
-        lineaService.getPropietarios(),
-        tipomovimientoService.getTiposMovimiento(1, 100),
-      ]);
+      const [senalizacionesData, tiposLineaData, propietariosData, tiposMovimientoData] =
+        await Promise.all([
+          lineaService.getSenalizaciones(),
+          lineaService.getTiposLinea(),
+          lineaService.getPropietarios(),
+          tipomovimientoService.getTiposMovimiento(1, 100),
+        ]);
       setSenalizaciones(senalizacionesData);
       setTiposLinea(tiposLineaData);
       setPropietarios(propietariosData);
@@ -169,9 +158,7 @@ export default function LineaModal({
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -181,23 +168,17 @@ export default function LineaModal({
   };
 
   const handleMovimientoChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
 
     // Si es el select de movimiento, también actualizar id_tipomovimiento
     if (name === "movimiento") {
-      const tipoSeleccionado = tiposMovimiento.find(
-        (tipo) => tipo.movimiento === value,
-      );
+      const tipoSeleccionado = tiposMovimiento.find((tipo) => tipo.movimiento === value);
       setFormMovimiento((prev) => ({
         ...prev,
         [name]: value,
-        id_tipomovimiento: tipoSeleccionado
-          ? tipoSeleccionado.id_tipomovimiento.toString()
-          : "",
+        id_tipomovimiento: tipoSeleccionado ? tipoSeleccionado.id_tipomovimiento.toString() : "",
       }));
     } else {
       setFormMovimiento((prev) => ({ ...prev, [name]: value }));
@@ -256,9 +237,7 @@ export default function LineaModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Desde *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Desde *</label>
                 <input
                   type="text"
                   name="desde"
@@ -290,9 +269,7 @@ export default function LineaModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Zona Desde *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Zona Desde *</label>
                 <input
                   type="text"
                   name="zd"
@@ -307,9 +284,7 @@ export default function LineaModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hasta *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Hasta *</label>
                 <input
                   type="text"
                   name="hasta"
@@ -324,9 +299,7 @@ export default function LineaModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tipo Línea
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo Línea</label>
                 <select
                   name="id_tipolinea"
                   value={formData.id_tipolinea}
@@ -364,9 +337,7 @@ export default function LineaModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Zona Hasta *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Zona Hasta *</label>
                 <input
                   type="text"
                   name="zh"
@@ -381,9 +352,7 @@ export default function LineaModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hilos
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Hilos</label>
                 <input
                   type="text"
                   name="hilos"
@@ -397,9 +366,7 @@ export default function LineaModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Señalización
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Señalización</label>
                 <select
                   name="id_senalizacion"
                   value={formData.id_senalizacion}
@@ -409,10 +376,7 @@ export default function LineaModal({
                 >
                   <option value="">Seleccione señalización</option>
                   {senalizaciones.map((senalizacion) => (
-                    <option
-                      key={senalizacion.id_senalizacion}
-                      value={senalizacion.id_senalizacion}
-                    >
+                    <option key={senalizacion.id_senalizacion} value={senalizacion.id_senalizacion}>
                       {senalizacion.senalizacion}
                     </option>
                   ))}
@@ -420,9 +384,7 @@ export default function LineaModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Propietario
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Propietario</label>
                 <select
                   name="id_propietario"
                   value={formData.id_propietario}
@@ -432,10 +394,7 @@ export default function LineaModal({
                 >
                   <option value="">Seleccione propietario</option>
                   {propietarios.map((propietario) => (
-                    <option
-                      key={propietario.id_propietario}
-                      value={propietario.id_propietario}
-                    >
+                    <option key={propietario.id_propietario} value={propietario.id_propietario}>
                       {propietario.nombre}
                     </option>
                   ))}
@@ -443,9 +402,7 @@ export default function LineaModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Estado
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
                 <select
                   name="esbaja"
                   value={formData.esbaja}
@@ -454,7 +411,7 @@ export default function LineaModal({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
                   <option value="false">Activo</option>
-                  <option value="true">Baja</option>
+                  {editingItem ? <option value="true">Baja</option> : null}
                 </select>
               </div>
             </div>
@@ -463,9 +420,7 @@ export default function LineaModal({
           {/* Campos adicionales */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Clave N
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Clave N</label>
               <input
                 type="text"
                 name="clave_n"
@@ -478,9 +433,7 @@ export default function LineaModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Codificación
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Codificación</label>
               <input
                 type="text"
                 name="codificacion"
@@ -493,9 +446,7 @@ export default function LineaModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sector
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sector</label>
               <input
                 type="text"
                 name="sector"
@@ -530,10 +481,7 @@ export default function LineaModal({
                   >
                     <option value="">Seleccionar tipo de movimiento</option>
                     {tiposMovimiento.map((tipo) => (
-                      <option
-                        key={tipo.id_tipomovimiento}
-                        value={tipo.id_tipomovimiento}
-                      >
+                      <option key={tipo.id_tipomovimiento} value={tipo.id_tipomovimiento}>
                         {tipo.movimiento}
                       </option>
                     ))}

@@ -19,20 +19,25 @@ const PizarraController = {
     validate(listPizarraSchema, "query"),
     async (req, res, next) => {
       try {
-        const {
-          page,
-          limit,
-          sortBy,
-          sortOrder,
-          offset,
-          search,
-          id_tipopizarra,
-        } = parseListParams(req.query, {
-          allowedSortFields: ["nombre", "createdAt", "updatedAt"],
-          defaultSort: "createdAt",
-          defaultOrder: "DESC",
-          maxLimit: 100,
-        });
+        const { page, limit, sortBy, sortOrder, offset, search, id_tipopizarra } = parseListParams(
+          req.query,
+          {
+            allowedSortFields: ["nombre", "createdAt", "updatedAt"],
+            defaultSort: "createdAt",
+            defaultOrder: "DESC",
+            maxLimit: 100,
+            columnMapping: {
+              createdAt: "created_at",
+              updatedAt: "updated_at",
+            },
+          },
+        );
+
+        const columnMapping = {
+          createdAt: "created_at",
+          updatedAt: "updated_at",
+        };
+        const sortColumn = columnMapping[sortBy] || sortBy;
 
         // Construir where clause para búsqueda
         const whereClause = {};
@@ -55,9 +60,18 @@ const PizarraController = {
           distinct: true,
         });
 
+        const rowsNormalizados = data.rows.map((row) => {
+          const json = row.toJSON();
+          json.createdAt = json.created_at;
+          json.updatedAt = json.updated_at;
+          delete json.created_at;
+          delete json.updated_at;
+          return json;
+        });
+
         res.json({
           success: true,
-          data: data.rows,
+          data: rowsNormalizados,
           pagination: {
             page: parseInt(page),
             limit: parseInt(limit),
@@ -79,15 +93,21 @@ const PizarraController = {
   async getById(req, res, next) {
     try {
       const { id } = req.params;
-      const data = await Pizarra.findByPk(id);
+      const pizarra = await Pizarra.findByPk(id);
 
-      if (!data) {
+      if (!pizarra) {
         return next(apiErrors.notFound("Pizarra"));
       }
 
+      const pizarraNormalizada = pizarra.toJSON();
+      pizarraNormalizada.createdAt = pizarraNormalizada.created_at;
+      pizarraNormalizada.updatedAt = pizarraNormalizada.updated_at;
+      delete pizarraNormalizada.created_at;
+      delete pizarraNormalizada.updated_at;
+
       res.json({
         success: true,
-        data,
+        data: pizarraNormalizada,
       });
     } catch (error) {
       return next(error);
@@ -103,11 +123,11 @@ const PizarraController = {
     validate(createPizarraSchema, "body"),
     async (req, res, next) => {
       try {
-        const data = await Pizarra.create(req.body);
+        const pizarra = await Pizarra.create(req.body);
 
         res.status(201).json({
           success: true,
-          data,
+          data: pizarra,
           message: "Pizarra creado exitosamente",
         });
       } catch (error) {

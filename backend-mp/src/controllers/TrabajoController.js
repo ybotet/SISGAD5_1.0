@@ -1,4 +1,4 @@
-const { Trabajo, TrabajoTrabajadores, Queja, Trabajador } = require("../models");
+const { Trabajo, TrabajoTrabajadores, Queja, Trabajador, Clave } = require("../models");
 const { addFlowEntry, removeFlowEntry } = require("../utils/quejaFlow");
 const { Op } = require("sequelize");
 const { parseListParams } = require("../utils/parseListParams");
@@ -159,8 +159,11 @@ const TrabajoController = {
           console.log("✅ Trabajadores asociados creados");
         }
 
+        let clave = await Clave.findByPk(trabajoData.estado);
+        console.log("🔍 Clave encontrada:", clave ? clave.clave : "No encontrada");
+
         await Queja.update(
-          { estado: "Resuelta" },
+          { estado: clave && clave.es_pendiente === false ? "Resuelta" : "Pendiente" },
           {
             where: { id_queja: data.id_queja },
             validate: false,
