@@ -106,9 +106,25 @@ const cerrarQuejaSchema = z.object({
   fechaok: z.coerce.date(),
 });
 
+const validTransitions = {
+  Abierta: ["Probada"],
+  Probada: ["Asignada", "Resuelta"],
+  Asignada: ["Pendiente", "Resuelta"],
+  Pendiente: ["Asignada", "Resuelta"],
+  Resuelta: ["Cerrada"],
+  Cerrada: [], // Terminal
+};
+
+const validateStateTransition = (current, next) => {
+  if (!validTransitions[current]?.includes(next)) {
+    throw new AppError(`Transición inválida: ${current} → ${next}`, 400);
+  }
+};
+
 module.exports = {
   createQuejaSchema,
   updateQuejaSchema,
   listQuejaSchema,
   cerrarQuejaSchema,
+  validateStateTransition,
 };

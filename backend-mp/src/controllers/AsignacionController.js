@@ -22,6 +22,14 @@ const AsignacionController = {
     validate(createAsignacionSchema),
     async (req, res, next) => {
       try {
+        //Comprobar que la queja esta en estado "Pendiente" o "Probada"
+        const queja = await Queja.findOne({
+          where: { id_queja: req.body.id_queja },
+        });
+        if (!queja || (queja && queja.estado !== "Pendiente" && queja.estado !== "Probada")) {
+          return next(apiError.badRequest("La queja debe estar en estado 'Pendiente' o 'Probada'"));
+        }
+
         const payload = { ...req.body };
         if (payload.fechaAsignacion) {
           payload.fechaAsignacion = normalizeToDbDateTime(payload.fechaAsignacion);

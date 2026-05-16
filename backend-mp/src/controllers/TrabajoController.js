@@ -2,7 +2,7 @@ const { Trabajo, TrabajoTrabajadores, Queja, Trabajador, Clave } = require("../m
 const { addFlowEntry, removeFlowEntry } = require("../utils/quejaFlow");
 const { Op } = require("sequelize");
 const { parseListParams } = require("../utils/parseListParams");
-const apiErrors = require("../utils/apiErrors");
+const apiError = require("../utils/apiErrors");
 const {
   createTrabajoSchema,
   updateTrabajoSchema,
@@ -109,7 +109,7 @@ const TrabajoController = {
       });
 
       if (!data) {
-        return next(apiErrors.notFound("Trabajo"));
+        return next(apiError.notFound("Trabajo"));
       }
 
       const trabajoObj = data.toJSON();
@@ -138,6 +138,14 @@ const TrabajoController = {
     async (req, res, next) => {
       try {
         const { trabajadores, ...trabajoData } = req.body;
+        //Comprobar que la queja esta en estado "Asignada"
+        const queja = await Queja.findOne({
+          where: { id_queja: trabajoData.id_queja },
+        });
+        if (!queja || (queja && queja.estado !== "Asignada")) {
+          return next(apiError.badRequest("La queja debe estar en estado 'Asignada'"));
+        }
+
         if (trabajoData.fecha) {
           trabajoData.fecha = normalizeToDbDateTime(trabajoData.fecha);
         }
@@ -200,7 +208,7 @@ const TrabajoController = {
         console.error(" Error en create:", error);
         if (error.name === "SequelizeValidationError") {
           const mensaje = error.errors?.map((err) => err.message).join(". ") || error.message;
-          return next(apiErrors.badRequest(mensaje));
+          return next(apiError.badRequest(mensaje));
         }
         return next(error);
       }
@@ -224,7 +232,7 @@ const TrabajoController = {
 
         const existing = await Trabajo.findByPk(id);
         if (!existing) {
-          return next(apiErrors.notFound("Trabajo"));
+          return next(apiError.notFound("Trabajo"));
         }
 
         // valores antiguos para mantener sincronía del flujo
@@ -237,7 +245,7 @@ const TrabajoController = {
         });
 
         if (affectedRows === 0 && !trabajadores) {
-          return next(apiErrors.notFound("Trabajo"));
+          return next(apiError.notFound("Trabajo"));
         }
 
         // Actualizar trabajadores si se enviaron
@@ -298,7 +306,7 @@ const TrabajoController = {
       } catch (error) {
         if (error.name === "SequelizeValidationError") {
           const mensaje = error.errors?.map((err) => err.message).join(". ") || error.message;
-          return next(apiErrors.badRequest(mensaje));
+          return next(apiError.badRequest(mensaje));
         }
         return next(error);
       }
@@ -316,7 +324,7 @@ const TrabajoController = {
 
       const existing = await Trabajo.findByPk(id);
       if (!existing) {
-        return next(apiErrors.notFound("Trabajo"));
+        return next(apiError.notFound("Trabajo"));
       }
 
       // limpiar flujo asociado antes de eliminar

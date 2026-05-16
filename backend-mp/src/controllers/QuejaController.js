@@ -670,7 +670,7 @@ const QuejaController = {
           return next(apiErrors.badRequest("No se puede cerrar con una clave pendiente"));
         }
 
-        // 4. Validar transición de estado (opcional)
+        // 4. Validar transición de estado para cerrar
         const estadosValidosParaCerrar = ["Resuelta", "Probada"];
         if (!estadosValidosParaCerrar.includes(queja.estado)) {
           return next(

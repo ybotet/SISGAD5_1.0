@@ -101,13 +101,11 @@ func (r *AsignacionRepository) ListarAsignacionesPaginated(page, limit int, sear
             return nil, fmt.Errorf("error obteniendo asignaciones: %w", err)
         }
         // Para cada asignación, cargar sus detalles
-        for i := range asignaciones {
-            detalles, err := r.obtenerDetallesPorAsignacion(asignaciones[i].ID)
-            if err != nil {
-                return nil, err
-            }
-            asignaciones[i].Detalles = detalles
+        err2 := r.cargarDetalles(asignaciones)
+        if err2 != nil {
+            return nil, fmt.Errorf("error cargando detalles: %w", err2)
         }
+
     } else {
         baseQuery += ` ORDER BY fecha_asignacion DESC LIMIT $1 OFFSET $2`
         err := DB.Select(&asignaciones, baseQuery, limit, offset)
@@ -126,6 +124,16 @@ func (r *AsignacionRepository) ListarAsignacionesPaginated(page, limit int, sear
 
 
     return asignaciones, nil
+}
+
+// Extraer la carga de detalles a una función auxiliar
+func (r *AsignacionRepository) cargarDetalles(asignaciones []models.Asignacion) error {
+    for i := range asignaciones {
+        detalles, err := r.obtenerDetallesPorAsignacion(asignaciones[i].ID)
+        if err != nil { return err }
+        asignaciones[i].Detalles = detalles
+    }
+    return nil
 }
 
 // ListarTodasAsignaciones devuelve todas las asignaciones (sin paginación)
@@ -291,18 +299,58 @@ func (r *AsignacionRepository) ActualizarAsignacion(id int, asignacion *models.A
     if existente == nil {
         return errors.New("asignación no encontrada")
     }
-    
-    // Actualizar y capturar updated_at
+    // Abrir transacción para garantizar ACID al actualizar cabecera y detalles
+    tx, err := DB.Beginx()
+    if err != nil {
+        return fmt.Errorf("error iniciando transacción: %w", err)
+    }
+
+    // Si algo falla, hacemos rollback
+    defer func() {
+        if err != nil {
+            tx.Rollback()
+        }
+    }()
+
+    // 1) Actualizar cabecera y obtener updated_at
     query := `UPDATE tb_asignaciones 
               SET id_trabajador = $1, fecha_asignacion = $2, updated_at = NOW()
               WHERE id_asignacion = $3
               RETURNING updated_at`
-    
-    err = DB.QueryRow(query, asignacion.IDTrabajador, asignacion.FechaAsignacion, id).Scan(&asignacion.UpdatedAt)
-    if err != nil {
+    if err = tx.QueryRow(query, asignacion.IDTrabajador, asignacion.FechaAsignacion, id).Scan(&asignacion.UpdatedAt); err != nil {
         return fmt.Errorf("error actualizando asignación: %w", err)
     }
-    
+
+    // 2) Eliminar detalles anteriores
+    if _, err = tx.Exec(`DELETE FROM tb_asignacion_detalle WHERE id_asignacion = $1`, id); err != nil {
+        return fmt.Errorf("error eliminando detalles anteriores: %w", err)
+    }
+
+    // 3) Insertar nuevos detalles (si hay)
+    for i := range asignacion.Detalles {
+        detalle := &asignacion.Detalles[i]
+        detalle.IDAsignacion = id
+
+        queryDetalle := `INSERT INTO tb_asignacion_detalle (
+            id_asignacion, id_material, cantidad_asignada, costo_unitario_momento
+        ) VALUES ($1, $2, $3, $4)
+        RETURNING id_detalle`
+
+        if err = tx.QueryRow(queryDetalle,
+            detalle.IDAsignacion,
+            detalle.IDMaterial,
+            detalle.Cantidad,
+            detalle.CostoUnitario,
+        ).Scan(&detalle.ID); err != nil {
+            return fmt.Errorf("error insertando detalle: %w", err)
+        }
+    }
+
+    // 4) Commit
+    if err = tx.Commit(); err != nil {
+        return fmt.Errorf("error haciendo commit: %w", err)
+    }
+
     return nil
 }
 func (r *AsignacionRepository) EliminarAsignacion(id int) error {

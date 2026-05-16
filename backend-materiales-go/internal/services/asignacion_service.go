@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/models"
@@ -47,20 +48,44 @@ func (s *AsignacionService) CrearAsignacion(asignacion *models.Asignacion) error
         asignacion.FechaAsignacion = time.Now()
     }
     
-    // Calcular costo unitario (precio actual del material)
+    // Calcular costo unitario (precio actual del material) en paralelo
+    type res struct {
+        idx     int
+        precio  float64
+        err     error
+    }
+
+    ch := make(chan res, len(asignacion.Detalles))
+    var wg sync.WaitGroup
     for i := range asignacion.Detalles {
-        material, err := s.materialRepo.GetByID(asignacion.Detalles[i].IDMaterial)
-        if err != nil {
-            return fmt.Errorf("error obteniendo material %d: %w", 
-                asignacion.Detalles[i].IDMaterial, err)
+        wg.Add(1)
+        go func(i int) {
+            defer wg.Done()
+            mID := asignacion.Detalles[i].IDMaterial
+            material, err := s.materialRepo.GetByID(mID)
+            if err != nil {
+                ch <- res{idx: i, err: fmt.Errorf("error obteniendo material %d: %w", mID, err)}
+                return
+            }
+            if material == nil {
+                ch <- res{idx: i, err: fmt.Errorf("material %d no encontrado", mID)}
+                return
+            }
+            ch <- res{idx: i, precio: material.Precio, err: nil}
+        }(i)
+    }
+
+    // Cerramos el canal cuando terminen las goroutines
+    go func() {
+        wg.Wait()
+        close(ch)
+    }()
+
+    for r := range ch {
+        if r.err != nil {
+            return r.err
         }
-        if material == nil {
-            return fmt.Errorf("material %d no encontrado", 
-                asignacion.Detalles[i].IDMaterial)
-        }
-        
-        // Guardar el costo en el momento de la asignación
-        asignacion.Detalles[i].CostoUnitario = material.Precio
+        asignacion.Detalles[r.idx].CostoUnitario = r.precio
     }
     
     // Guardar
@@ -104,6 +129,51 @@ func (s *AsignacionService) ActualizarAsignacion(id int, asignacion *models.Asig
     if id <= 0 {
         return errors.New("ID de asignación inválido")
     }
+    // Validar detalles y obtener precios en paralelo antes de actualizar
+    for i, detalle := range asignacion.Detalles {
+        if err := s.validarDetalleAsignacion(&detalle); err != nil {
+            return fmt.Errorf("detalle %d: %w", i+1, err)
+        }
+    }
+
+    type res struct {
+        idx    int
+        precio float64
+        err    error
+    }
+
+    ch := make(chan res, len(asignacion.Detalles))
+    var wg sync.WaitGroup
+    for i := range asignacion.Detalles {
+        wg.Add(1)
+        go func(i int) {
+            defer wg.Done()
+            mID := asignacion.Detalles[i].IDMaterial
+            material, err := s.materialRepo.GetByID(mID)
+            if err != nil {
+                ch <- res{idx: i, err: fmt.Errorf("error obteniendo material %d: %w", mID, err)}
+                return
+            }
+            if material == nil {
+                ch <- res{idx: i, err: fmt.Errorf("material %d no encontrado", mID)}
+                return
+            }
+            ch <- res{idx: i, precio: material.Precio, err: nil}
+        }(i)
+    }
+
+    go func() {
+        wg.Wait()
+        close(ch)
+    }()
+
+    for r := range ch {
+        if r.err != nil {
+            return r.err
+        }
+        asignacion.Detalles[r.idx].CostoUnitario = r.precio
+    }
+
     return s.repo.ActualizarAsignacion(id, asignacion)
 }
 

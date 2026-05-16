@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/models"
@@ -52,29 +53,50 @@ func (s *ConsumoService) CrearConsumo(consumo *models.Consumo) error {
         consumo.FechaConsumo = time.Now()
     }
     
-    // Verificar stock disponible (si se proporcionó asignación)
+    // Obtener precio del material y verificar stock en paralelo
+    type res struct {
+        idx    int
+        precio float64
+        err    error
+    }
+
+    ch := make(chan res, len(consumo.Detalles))
+    var wg sync.WaitGroup
     for i := range consumo.Detalles {
-        detalle := &consumo.Detalles[i]
-        
-        // Obtener precio del material
-        material, err := s.materialRepo.GetByID(detalle.IDMaterial)
-        if err != nil {
-            return fmt.Errorf("error obteniendo material %d: %w", detalle.IDMaterial, err)
-        }
-        if material == nil {
-            return fmt.Errorf("material %d no encontrado", detalle.IDMaterial)
-        }
-        
-        // Guardar costo en el momento del consumo
-        detalle.CostoUnitario = material.Precio
-        
-        // Si especificó una asignación, verificar que tenga suficiente stock
-        if detalle.IDAsignacion != nil {
-            if err := s.verificarStockAsignacion(*detalle.IDAsignacion, 
-                detalle.IDMaterial, detalle.Cantidad); err != nil {
-                return err
+        wg.Add(1)
+        go func(i int) {
+            defer wg.Done()
+            detalle := &consumo.Detalles[i]
+            material, err := s.materialRepo.GetByID(detalle.IDMaterial)
+            if err != nil {
+                ch <- res{idx: i, err: fmt.Errorf("error obteniendo material %d: %w", detalle.IDMaterial, err)}
+                return
             }
+            if material == nil {
+                ch <- res{idx: i, err: fmt.Errorf("material %d no encontrado", detalle.IDMaterial)}
+                return
+            }
+            // Verificar stock si tiene asignación (placeholder: verifica asincrónica)
+            if detalle.IDAsignacion != nil {
+                if err := s.verificarStockAsignacion(*detalle.IDAsignacion, detalle.IDMaterial, detalle.Cantidad); err != nil {
+                    ch <- res{idx: i, err: err}
+                    return
+                }
+            }
+            ch <- res{idx: i, precio: material.Precio, err: nil}
+        }(i)
+    }
+
+    go func() {
+        wg.Wait()
+        close(ch)
+    }()
+
+    for r := range ch {
+        if r.err != nil {
+            return r.err
         }
+        consumo.Detalles[r.idx].CostoUnitario = r.precio
     }
     
     // Guardar
