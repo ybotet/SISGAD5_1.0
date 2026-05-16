@@ -7,7 +7,7 @@ const errorHandler = (err, req, res, next) => {
 
   // Logging estructurado
   if (err.isOperational) {
-    logger.warn("Error operacional", {
+    logger.alerta("Error operacional", {
       message: err.message,
       statusCode: err.statusCode,
       path: req.path,

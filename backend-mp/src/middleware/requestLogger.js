@@ -1,23 +1,38 @@
 const logger = require("../config/logger");
+const { randomUUID } = require("crypto");
 
 const requestLogger = (req, res, next) => {
   const start = Date.now();
+  const requestId =
+    typeof randomUUID === "function"
+      ? randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  // Exponer request id en headers para trazabilidad
+  res.setHeader("X-Request-Id", requestId);
+  req.requestId = requestId;
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    logger.info("Request completed", {
+    const meta = {
+      requestId,
       method: req.method,
       url: req.originalUrl,
       path: req.path,
       status: res.statusCode,
       duration_ms: duration,
-      ip: req.ip || req.connection.remoteAddress,
-
+      ip: req.ip || req.connection?.remoteAddress,
       userId: req.userId || req.usuario?.id || "anonymous",
       userRole: req.usuario?.role || req.usuario?.rol || null,
-
       userAgent: req.get("user-agent"),
-    });
+    };
+
+    if (res.statusCode >= 500) {
+      logger.error("Request error", meta);
+    } else if (res.statusCode >= 400) {
+      logger.alerta("Request alerta", meta);
+    } else {
+      logger.informacion("Request completed", meta);
+    }
   });
 
   next();

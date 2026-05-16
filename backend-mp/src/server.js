@@ -125,7 +125,8 @@ app.use((req, res) => {
 const errorHandler = require("./middleware/errorHandler");
 app.use(errorHandler);
 
+const logger = require("./config/logger");
 const PORT = config.MP_PORT || 5002;
 app.listen(PORT, () => {
-  console.log(`🚀 Backend MP ejecutándose en puerto ${PORT}`);
+  logger.informacion(`🚀 Backend MP ejecutándose en puerto ${PORT}`);
 });
