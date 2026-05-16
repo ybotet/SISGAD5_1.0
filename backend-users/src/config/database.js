@@ -4,6 +4,8 @@ const dotenv = require("dotenv");
 // require("dotenv").config();
 dotenv.config({ path: path.join(__dirname, "../../.env.local") });
 
+const logger = require("./logger");
+
 const sequelize = new Sequelize(
   process.env.DB_NAME || "bd_sisgad5_users",
   process.env.DB_USER,
@@ -12,7 +14,7 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: "postgres",
-    logging: process.env.NODE_ENV === "development" ? console.log : false,
+    logging: process.env.NODE_ENV === "development" ? (msg) => logger.informacion(msg) : false,
     pool: {
       max: 5,
       min: 0,
@@ -30,9 +32,9 @@ const sequelize = new Sequelize(
 const testConnection = async () => {
   try {
     await sequelize.authenticate();
-    console.log("✅ Conexión a PostgreSQL establecida correctamente.");
+    logger.informacion("✅ Conexión a PostgreSQL establecida correctamente.");
   } catch (error) {
-    console.error("❌ Error conectando a la base de datos:", error);
+    logger.error("❌ Error conectando a la base de datos:", error);
   }
 };
 

@@ -15,6 +15,7 @@ import (
 
 	// Importar nuestros paquetes internos
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/handlers"
+	slog "github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/logger"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/repositories/postgres"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/services"
 )
@@ -23,35 +24,38 @@ func main() {
     // ========================================
     // 1. INICIALIZACIÓN DEL LOGGER
     // ========================================
-    logger := log.New(os.Stdout, "[materiales] ", log.LstdFlags|log.Lshortfile)
-    logger.Println("Iniciando servicio de materiales...")
+    if err := slog.Init(os.Getenv("SERVICE_NAME")); err != nil {
+        log.Fatalf("error inicializando logger: %v", err)
+    }
+    slog.Informacion("Iniciando servicio de materiales...")
 
     // ========================================
     // 2. CARGAR VARIABLES DE ENTORNO
     // ========================================
     if err := godotenv.Load(); err != nil {
-        logger.Println("⚠️  Archivo .env no encontrado, usando variables del sistema")
+        slog.Alerta("⚠️  Archivo .env no encontrado, usando variables del sistema")
     }
 
     // ========================================
     // 3. CONEXIÓN A LA BASE DE DATOS
     // ========================================
-    logger.Println("📦 Conectando a PostgreSQL...")
+    slog.Informacion("📦 Conectando a PostgreSQL...")
     if err := postgres.InitDB(); err != nil {
-        logger.Fatal("❌ Error conectando a BD:", err)
+        slog.Errorf("❌ Error conectando a BD: %v", err)
+        os.Exit(1)
     }
     defer func() {
         if err := postgres.CloseDB(); err != nil {
-            logger.Println("⚠️  Error cerrando BD:", err)
+            slog.Alerta("⚠️  Error cerrando BD: %v", err)
         } else {
-            logger.Println("✅ Conexión a BD cerrada correctamente")
+            slog.Informacion("✅ Conexión a BD cerrada correctamente")
         }
     }()
 
     // ========================================
     // 4. CREAR REPOSITORIOS
     // ========================================
-    logger.Println("📁 Inicializando repositorios...")
+    slog.Informacion("📁 Inicializando repositorios...")
     materialRepo := postgres.NewMaterialRepository()
     asignacionRepo := postgres.NewAsignacionRepository(materialRepo)
     consumoRepo := postgres.NewConsumoRepository()
@@ -61,7 +65,7 @@ func main() {
     // ========================================
     // 5. CREAR SERVICIOS (inyección de dependencias)
     // ========================================
-    logger.Println("⚙️  Inicializando servicios...")
+    slog.Informacion("⚙️  Inicializando servicios...")
     materialService := services.NewMaterialService(materialRepo)
     asignacionService := services.NewAsignacionService(asignacionRepo, materialRepo)
     consumoService := services.NewConsumoService(consumoRepo, materialRepo, asignacionRepo)
@@ -70,7 +74,7 @@ func main() {
     
     // 6. CREAR HANDLERS
     // ========================================
-    logger.Println("🎮 Inicializando handlers...")
+    slog.Informacion("🎮 Inicializando handlers...")
     materialHandler := handlers.NewMaterialHandler(materialService)
     asignacionHandler := handlers.NewAsignacionHandler(asignacionService)
     consumoHandler := handlers.NewConsumoHandler(consumoService)
@@ -81,16 +85,16 @@ func main() {
     // ========================================
     // 7. CONFIGURAR RUTAS (ROUTER)
     // ========================================
-    logger.Println("🛣️  Configurando rutas...")
+    slog.Informacion("🛣️  Configurando rutas...")
     r := mux.NewRouter()
 
     // Middleware de logging (muestra cada petición)
     r.Use(func(next http.Handler) http.Handler {
         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
             start := time.Now()
-            logger.Printf("→ %s %s", r.Method, r.URL.Path)
+            slog.Informacionf("→ %s %s", r.Method, r.URL.Path)
             next.ServeHTTP(w, r)
-            logger.Printf("← %s %s (%v)", r.Method, r.URL.Path, time.Since(start))
+            slog.Informacionf("← %s %s (%v)", r.Method, r.URL.Path, time.Since(start))
         })
     })
 
@@ -99,7 +103,7 @@ func main() {
         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
             defer func() {
                 if err := recover(); err != nil {
-                    logger.Printf("🔥 PANIC: %v", err)
+                    slog.Errorf("🔥 PANIC: %v", err)
                     http.Error(w, "Internal Server Error", http.StatusInternalServerError)
                 }
             }()
@@ -172,7 +176,7 @@ func main() {
     // ========================================
     // 8. CONFIGURAR CORS (para que React pueda llamar)
     // ========================================
-    logger.Println("🌐 Configurando CORS...")
+    slog.Informacion("🌐 Configurando CORS...")
     c := cors.New(cors.Options{
         AllowedOrigins:   []string{"http://localhost:5004", "http://localhost:5000"},
         AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -189,7 +193,7 @@ func main() {
     port := os.Getenv("PORT")
     if port == "" {
         port = "5003"
-        logger.Println("⚠️  PORT no definido, usando 5003 por defecto")
+        slog.Alerta("⚠️  PORT no definido, usando 5003 por defecto")
     }
 
     server := &http.Server{
@@ -203,8 +207,8 @@ func main() {
     // ========================================
     // 10. INICIAR SERVIDOR (con graceful shutdown)
     // ========================================
-    logger.Printf("✅ Servicio de Materiales listo en puerto %s", port)
-    logger.Println("📚 Endpoints disponibles en /api/v1/")
+    slog.Informacionf("✅ Servicio de Materiales listo en puerto %s", port)
+    slog.Informacion("📚 Endpoints disponibles en /api/v1/")
 
     // Canal para escuchar señales de terminación (Ctrl+C, SIGTERM)
     quit := make(chan os.Signal, 1)
@@ -213,23 +217,24 @@ func main() {
     // Iniciar servidor en una goroutine
     go func() {
         if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-            logger.Fatalf("❌ Error iniciando servidor: %v", err)
+            slog.Errorf("❌ Error iniciando servidor: %v", err)
+            os.Exit(1)
         }
     }()
 
-    logger.Println("🟢 Servidor corriendo. Presiona Ctrl+C para detener.")
+    slog.Informacion("🟢 Servidor corriendo. Presiona Ctrl+C para detener.")
 
     // Esperar señal de terminación
     <-quit
-    logger.Println("🛑 Señal de terminación recibida. Deteniendo servidor...")
+    slog.Informacion("🛑 Señal de terminación recibida. Deteniendo servidor...")
 
     // Dar tiempo para que las peticiones en curso terminen (30 segundos máximo)
     ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
     defer cancel()
 
     if err := server.Shutdown(ctx); err != nil {
-        logger.Fatalf("❌ Error en shutdown: %v", err)
+        slog.Errorf("❌ Error en shutdown: %v", err)
     }
 
-    logger.Println("✅ Servidor detenido correctamente")
+    slog.Informacion("✅ Servidor detenido correctamente")
 }

@@ -2,8 +2,9 @@ package postgres
 
 import (
 	"fmt"
-	"log"
 	"os"
+
+	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/logger"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -31,7 +32,7 @@ func InitDB() error {
 		return fmt.Errorf("Error haciendo ping a la base de datos: %w", err)
 	}
 
-	log.Println("Conexión a la base de datos exitosa")
+	logger.Informacion("Conexión a la base de datos exitosa")
 	return nil
 }
 

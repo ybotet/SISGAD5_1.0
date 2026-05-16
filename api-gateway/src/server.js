@@ -3,6 +3,8 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const requestLogger = require("./middleware/requestLogger");
+const logger = require("./config/logger");
 const path = require("path");
 const dotenv = require("dotenv");
 const { globalLimiter, authLimiter } = require("./middleware/rateLimit.js");
@@ -27,12 +29,8 @@ app.use(
   }),
 );
 
-// Logging personalizado para debugging
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  console.log("Origin:", req.headers.origin);
-  next();
-});
+// Logging personalizado (request id + centralizado)
+app.use(requestLogger);
 
 // Seguridad con Helmet (ajustado para desarrollo)
 app.use(
@@ -42,7 +40,7 @@ app.use(
   }),
 );
 
-// Logging HTTP con Morgan
+// (Morgan optional) - keep for low-level HTTP logging if needed
 app.use(morgan("combined"));
 
 // ========================================
@@ -73,10 +71,10 @@ const createServiceProxy = (target, serviceName, proxyOptions = {}) => {
       if (req.headers.authorization) {
         proxyReq.setHeader("Authorization", req.headers.authorization);
       }
-      console.log(`🔀 [${serviceName}] ${req.method} ${req.url} → ${target}`);
+      logger.informacion(`🔀 [${serviceName}] ${req.method} ${req.url} → ${target}`);
     },
     onProxyRes: (proxyRes, req, res) => {
-      console.log(`✅ [${serviceName}] ${req.url} → ${proxyRes.statusCode}`);
+      logger.informacion(`✅ [${serviceName}] ${req.url} → ${proxyRes.statusCode}`);
     },
     ...proxyOptions,
   });
@@ -248,45 +246,47 @@ app.use((req, res) => {
 // ========================================
 
 const server = app.listen(PORT, "0.0.0.0", () => {
-  console.log(`\n🚀 API Gateway corriendo en http://localhost:${PORT}`);
-  console.log(`📦 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`\n📋 Servicios configurados:`);
-  console.log(`   👥 Users:     ${process.env.USERS_SERVICE_URL || "http://backend-users:5001"}`);
-  console.log(
+  logger.informacion(`\n🚀 API Gateway corriendo en http://localhost:${PORT}`);
+  logger.informacion(`📦 Environment: ${process.env.NODE_ENV || "development"}`);
+  logger.informacion(`\n📋 Servicios configurados:`);
+  logger.informacion(
+    `   👥 Users:     ${process.env.USERS_SERVICE_URL || "http://backend-users:5001"}`,
+  );
+  logger.informacion(
     `   📦 Materiales: ${process.env.MATERIALES_SERVICE_URL || "http://backend-materiales:5003"} (Go)`,
   );
-  console.log(`   🛠️  MP:        ${process.env.MP_SERVICE_URL || "http://backend-mp:5002"}`);
-  console.log(`\n🔗 Endpoints:`);
-  console.log(`   • GET /health          → Estado del gateway`);
-  console.log(`   • GET /health/services → Estado de todos los servicios`);
-  console.log(`   • GET /                → Documentación básica\n`);
+  logger.informacion(`   🛠️  MP:        ${process.env.MP_SERVICE_URL || "http://backend-mp:5002"}`);
+  logger.informacion(`\n🔗 Endpoints:`);
+  logger.informacion(`   • GET /health          → Estado del gateway`);
+  logger.informacion(`   • GET /health/services → Estado de todos los servicios`);
+  logger.informacion(`   • GET /                → Documentación básica\n`);
 });
 
 // Graceful shutdown para cerrar conexiones limpiamente
 process.on("SIGTERM", () => {
-  console.log("🛑 SIGTERM recibido. Cerrando servidor...");
+  logger.informacion("🛑 SIGTERM recibido. Cerrando servidor...");
   server.close(() => {
-    console.log("✅ Servidor cerrado correctamente");
+    logger.informacion("✅ Servidor cerrado correctamente");
     process.exit(0);
   });
 });
 
 process.on("SIGINT", () => {
-  console.log("🛑 SIGINT recibido (Ctrl+C). Cerrando servidor...");
+  logger.informacion("🛑 SIGINT recibido (Ctrl+C). Cerrando servidor...");
   server.close(() => {
-    console.log("✅ Servidor cerrado correctamente");
+    logger.informacion("✅ Servidor cerrado correctamente");
     process.exit(0);
   });
 });
 
 // Manejo de errores no capturados
 process.on("uncaughtException", (err) => {
-  console.error("💥 Uncaught Exception:", err);
+  logger.error("💥 Uncaught Exception:", err);
   server.close(() => process.exit(1));
 });
 
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("💥 Unhandled Rejection at:", promise, "reason:", reason);
+  logger.error("💥 Unhandled Rejection at:", promise, "reason:", reason);
   // No cerramos el servidor para promesas rechazadas, pero se loguea
 });
 

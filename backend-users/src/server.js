@@ -2,6 +2,8 @@ const express = require("express");
 // const cors = require("cors"); // ❌ ELIMINAR CORS
 const helmet = require("helmet");
 const morgan = require("morgan");
+const requestLogger = require("./middleware/requestLogger");
+const logger = require("./config/logger");
 const path = require("path");
 const dotenv = require("dotenv");
 // require("dotenv").config();
@@ -21,7 +23,8 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan("combined"));
+// Registrar peticiones con Winston
+app.use(requestLogger);
 
 // Test database connection
 testConnection();
@@ -62,16 +65,13 @@ app.use((error, req, res, next) => {
   console.error("Error:", error);
   res.status(500).json({
     error: "Error interno del servidor",
-    message:
-      process.env.NODE_ENV === "development"
-        ? error.message
-        : "Contacte al administrador",
+    message: process.env.NODE_ENV === "development" ? error.message : "Contacte al administrador",
   });
 });
 
 const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Microservicio Usuarios ejecutándose en puerto ${PORT}`);
-  console.log(`📊 Entorno: ${process.env.NODE_ENV || "development"}`);
+  logger.informacion(`🚀 Microservicio Usuarios ejecutándose en puerto ${PORT}`);
+  logger.informacion(`📊 Entorno: ${process.env.NODE_ENV || "development"}`);
 });
