@@ -1,4 +1,3 @@
-// api-gateway/server.js
 const express = require("express");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
@@ -6,6 +5,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const path = require("path");
 const dotenv = require("dotenv");
+const { globalLimiter, authLimiter } = require("./middleware/rateLimit.js");
 
 // Cargar variables de entorno
 dotenv.config({ path: path.join(__dirname, "../../.env.local") });
@@ -59,10 +59,7 @@ const createServiceProxy = (target, serviceName, proxyOptions = {}) => {
     timeout: 15000, // 15 segundos timeout de conexión (optimizado)
     proxyTimeout: 15000, // 15 segundos timeout de respuesta (optimizado)
     onError: (err, req, res) => {
-      console.error(
-        `❌ [${serviceName}] Proxy error en ${req.url}:`,
-        err.message,
-      );
+      console.error(`❌ [${serviceName}] Proxy error en ${req.url}:`, err.message);
       if (!res.headersSent) {
         res.status(502).json({
           error: `Servicio ${serviceName} no disponible`,
@@ -90,28 +87,23 @@ const createServiceProxy = (target, serviceName, proxyOptions = {}) => {
 // ----------------------------------------
 app.use(
   "/api/auth",
-  createServiceProxy(
-    process.env.USERS_SERVICE_URL || "http://backend-users:5001",
-    "USERS",
-  ),
+  authLimiter, // Auth con límite estricto
+  createServiceProxy(process.env.USERS_SERVICE_URL || "http://backend-users:5001", "USERS"),
 );
+
+app.use(globalLimiter); // Límite global para todas las demás rutas
 
 // /api/users/* -> backend-users /api/*
 app.use(
   "/api/users",
-  createServiceProxy(
-    process.env.USERS_SERVICE_URL || "http://backend-users:5001",
-    "USERS",
-    {
-      pathRewrite: (path) => {
-        // Robustez ante cómo Express/ProxyMiddleware maneja el mount path
-        if (path.startsWith("/api/users"))
-          return path.replace("/api/users", "/api");
-        if (path.startsWith("/api/")) return path;
-        return `/api${path}`;
-      },
+  createServiceProxy(process.env.USERS_SERVICE_URL || "http://backend-users:5001", "USERS", {
+    pathRewrite: (path) => {
+      // Robustez ante cómo Express/ProxyMiddleware maneja el mount path
+      if (path.startsWith("/api/users")) return path.replace("/api/users", "/api");
+      if (path.startsWith("/api/")) return path;
+      return `/api${path}`;
     },
-  ),
+  }),
 );
 
 // ----------------------------------------
@@ -139,18 +131,14 @@ app.use(
 // ----------------------------------------
 app.use(
   "/api/mp",
-  createServiceProxy(
-    process.env.MP_SERVICE_URL || "http://backend-mp:5002",
-    "MP",
-    {
-      // backend-mp espera rutas bajo /api/*
-      pathRewrite: (path) => {
-        // if (path.startsWith("/api/mp")) return path.replace("/api/mp", "/api");
-        if (path.startsWith("/api/mp")) return path;
-        return `/api/mp${path}`;
-      },
+  createServiceProxy(process.env.MP_SERVICE_URL || "http://backend-mp:5002", "MP", {
+    // backend-mp espera rutas bajo /api/*
+    pathRewrite: (path) => {
+      // if (path.startsWith("/api/mp")) return path.replace("/api/mp", "/api");
+      if (path.startsWith("/api/mp")) return path;
+      return `/api/mp${path}`;
     },
-  ),
+  }),
 );
 
 // ========================================
@@ -263,15 +251,11 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`\n🚀 API Gateway corriendo en http://localhost:${PORT}`);
   console.log(`📦 Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(`\n📋 Servicios configurados:`);
-  console.log(
-    `   👥 Users:     ${process.env.USERS_SERVICE_URL || "http://backend-users:5001"}`,
-  );
+  console.log(`   👥 Users:     ${process.env.USERS_SERVICE_URL || "http://backend-users:5001"}`);
   console.log(
     `   📦 Materiales: ${process.env.MATERIALES_SERVICE_URL || "http://backend-materiales:5003"} (Go)`,
   );
-  console.log(
-    `   🛠️  MP:        ${process.env.MP_SERVICE_URL || "http://backend-mp:5002"}`,
-  );
+  console.log(`   🛠️  MP:        ${process.env.MP_SERVICE_URL || "http://backend-mp:5002"}`);
   console.log(`\n🔗 Endpoints:`);
   console.log(`   • GET /health          → Estado del gateway`);
   console.log(`   • GET /health/services → Estado de todos los servicios`);
