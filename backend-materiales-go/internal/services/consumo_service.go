@@ -116,6 +116,10 @@ func (s *ConsumoService) validarDetalleConsumo(d *models.ConsumoDetalle) error {
 
 // verificarStockAsignacion comprueba si el material está disponible en la asignación
 func (s *ConsumoService) verificarStockAsignacion(asignacionID, materialID, cantidad int) error {
+    _ = asignacionID // Placeholder: aquí iría la lógica para verificar el stock restante en la asignación.
+    _ = materialID
+    _ = cantidad
+
     // Obtener asignaciones del trabajador
     asignaciones, err := s.asignacionRepo.ObtenerAsignacionesPorTrabajador(0) // Necesitaríamos trabajadorID
     if err != nil {

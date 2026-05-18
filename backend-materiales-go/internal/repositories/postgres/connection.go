@@ -3,14 +3,16 @@ package postgres
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/logger"
+	// No importes los modelos aquí si no los necesitas para AutoMigrate
 
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-var DB *sqlx.DB
+var DB *gorm.DB
 
 func InitDB() error {
 	host := os.Getenv("DB_HOST")
@@ -20,26 +22,49 @@ func InitDB() error {
 	dbname := os.Getenv("DB_NAME")
 	sslmode := os.Getenv("DB_SSLMODE")
 
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", user, password, host, port, dbname, sslmode)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=UTC",
+		host, user, password, dbname, port, sslmode)
+
 	var err error
-	DB, err = sqlx.Connect("postgres", connStr)
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+		SkipDefaultTransaction: true,
+		// Deshabilitar logging de GORM para que no interfiera
+		Logger: nil,
+	})
 	if err != nil {
 		return fmt.Errorf("Error conectando a la base de datos: %w", err)
 	}
-	
-	err = DB.Ping()
+
+	// Obtener la conexión SQL subyacente
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return fmt.Errorf("Error obteniendo conexión subyacente: %w", err)
+	}
+
+	// Configurar pool de conexiones
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
+	// Verificar conexión
+	err = sqlDB.Ping()
 	if err != nil {
 		return fmt.Errorf("Error haciendo ping a la base de datos: %w", err)
 	}
 
-	logger.Informacion("Conexión a la base de datos exitosa")
+	logger.Informacion("Conexión a la base de datos exitosa (GORM)")
+	logger.Informacion("⚠️ Auto-migración DESHABILITADA - usando esquema existente")
 	return nil
 }
 
-// CloseDB cierra la conexión (útil para graceful shutdown)
+// CloseDB cierra la conexión
 func CloseDB() error {
-    if DB != nil {
-        return DB.Close()
-    }
-    return nil
+	if DB != nil {
+		sqlDB, err := DB.DB()
+		if err != nil {
+			return err
+		}
+		return sqlDB.Close()
+	}
+	return nil
 }

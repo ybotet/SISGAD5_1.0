@@ -46,7 +46,7 @@ func main() {
     }
     defer func() {
         if err := postgres.CloseDB(); err != nil {
-            slog.Alerta("⚠️  Error cerrando BD: %v", err)
+            slog.Errorf("⚠️  Error cerrando BD: %v", err)
         } else {
             slog.Informacion("✅ Conexión a BD cerrada correctamente")
         }

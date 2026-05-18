@@ -6,25 +6,31 @@ import (
 
 // Asignacion representa una entrega de materiales a un técnico
 type Asignacion struct {
-    ID             int       `json:"id" db:"id_asignacion"`
-    IDTrabajador   int       `json:"id_trabajador" db:"id_trabajador"`
-    FechaAsignacion time.Time `json:"fecha_asignacion" db:"fecha_asignacion"`
-    IDTrabajo      *int      `json:"id_trabajo,omitempty" db:"id_trabajo"`
-    Observaciones  string    `json:"observaciones" db:"observaciones"`
-    CreatedAt      time.Time `json:"created_at" db:"created_at"`
-    UpdatedAt      time.Time `json:"updated_at" db:"updated_at"`
-    // Relación: una asignación tiene muchos detalles
-    // No es una columna, es para uso en Go
-    Detalles       []AsignacionDetalle `json:"detalles,omitempty"`
+	ID              int                 `gorm:"primaryKey;column:id_asignacion;autoIncrement" json:"id"`
+	IDTrabajador    int                 `gorm:"column:id_trabajador" json:"id_trabajador"`
+	FechaAsignacion time.Time           `gorm:"column:fecha_asignacion" json:"fecha_asignacion"`
+	IDTrabajo       *int                `gorm:"column:id_trabajo" json:"id_trabajo,omitempty"`
+	Observaciones   string              `gorm:"column:observaciones" json:"observaciones"`
+	CreatedAt       time.Time           `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt       time.Time           `gorm:"column:updated_at" json:"updated_at"`
+	Detalles        []AsignacionDetalle `gorm:"foreignKey:IDAsignacion" json:"detalles,omitempty"`
+}
+
+func (Asignacion) TableName() string {
+	return "tb_asignaciones"
 }
 
 // AsignacionDetalle representa cada material en una asignación
 type AsignacionDetalle struct {
-    ID              int     `json:"id" db:"id_detalle"`
-    IDAsignacion    int     `json:"id_asignacion" db:"id_asignacion"`
-    TbAasignacion     *Asignacion `json:"tb_asignacion,omitempty"`
-    IDMaterial      int     `json:"id_material" db:"id_material"`
-    TbMaterial        *Material `json:"tb_material,omitempty"`
-    Cantidad        int     `json:"cantidad" db:"cantidad_asignada"`
-    CostoUnitario   float64 `json:"costo_unitario" db:"costo_unitario_momento"`
+	ID            int        `gorm:"primaryKey;column:id_detalle;autoIncrement" json:"id"`
+	IDAsignacion  int        `gorm:"column:id_asignacion" json:"id_asignacion"`
+	TbAsignacion  *Asignacion `gorm:"foreignKey:IDAsignacion;references:ID" json:"tb_asignacion,omitempty"`
+	IDMaterial    int        `gorm:"column:id_material" json:"id_material"`
+	TbMaterial    *Material   `gorm:"foreignKey:IDMaterial;references:ID" json:"tb_material,omitempty"`
+	Cantidad      int        `gorm:"column:cantidad_asignada" json:"cantidad"`
+	CostoUnitario float64    `gorm:"column:costo_unitario_momento" json:"costo_unitario"`
+}
+
+func (AsignacionDetalle) TableName() string {
+	return "tb_asignacion_detalle"
 }
