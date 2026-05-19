@@ -87,8 +87,7 @@ func (s *AsignacionService) CrearAsignacion(asignacion *models.Asignacion) error
         }
         asignacion.Detalles[r.idx].CostoUnitario = r.precio
     }
-    
-    // Guardar
+
     return s.repo.CrearAsignacionConDetalles(asignacion)
 }
 

@@ -21,12 +21,12 @@ func (Consumo) TableName() string {
 }
 
 type ConsumoDetalle struct {
-	ID            int       `gorm:"primaryKey;column:id_detalle;autoIncrement" json:"id"`
+	ID            int       `gorm:"primaryKey;column:id_detalle" json:"id"`
 	IDConsumo     int       `gorm:"column:id_consumo" json:"id_consumo"`
 	IDMaterial    int       `gorm:"column:id_material" json:"id_material"`
 	Cantidad      int       `gorm:"column:cantidad_usada" json:"cantidad"`
 	CostoUnitario float64   `gorm:"column:costo_unitario_momento" json:"costo_unitario"`
-	IDAsignacion  *int      `gorm:"column:id_asignacion" json:"id_asignacion,omitempty"`
+	// IDAsignacion  *int      `gorm:"column:id_asignacion" json:"id_asignacion,omitempty"`
 	TbMaterial    *Material `gorm:"foreignKey:IDMaterial;references:ID" json:"tb_material,omitempty"`
 }
 

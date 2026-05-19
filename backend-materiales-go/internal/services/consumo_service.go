@@ -76,13 +76,13 @@ func (s *ConsumoService) CrearConsumo(consumo *models.Consumo) error {
                 ch <- res{idx: i, err: fmt.Errorf("material %d no encontrado", detalle.IDMaterial)}
                 return
             }
-            // Verificar stock si tiene asignación (placeholder: verifica asincrónica)
-            if detalle.IDAsignacion != nil {
-                if err := s.verificarStockAsignacion(*detalle.IDAsignacion, detalle.IDMaterial, detalle.Cantidad); err != nil {
-                    ch <- res{idx: i, err: err}
-                    return
-                }
-            }
+            // // Verificar stock si tiene asignación (placeholder: verifica asincrónica)
+            // if detalle.IDAsignacion != nil {
+            //     if err := s.verificarStockAsignacion(*detalle.IDAsignacion, detalle.IDMaterial, detalle.Cantidad); err != nil {
+            //         ch <- res{idx: i, err: err}
+            //         return
+            //     }
+            // }
             ch <- res{idx: i, precio: material.Precio, err: nil}
         }(i)
     }

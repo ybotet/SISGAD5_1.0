@@ -22,7 +22,7 @@ func (Asignacion) TableName() string {
 
 // AsignacionDetalle representa cada material en una asignación
 type AsignacionDetalle struct {
-	ID            int        `gorm:"primaryKey;column:id_detalle;autoIncrement" json:"id"`
+	ID            int        `gorm:"primaryKey;column:id_detalle" json:"id"`
 	IDAsignacion  int        `gorm:"column:id_asignacion" json:"id_asignacion"`
 	TbAsignacion  *Asignacion `gorm:"foreignKey:IDAsignacion;references:ID" json:"tb_asignacion,omitempty"`
 	IDMaterial    int        `gorm:"column:id_material" json:"id_material"`
