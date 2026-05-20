@@ -1,6 +1,5 @@
 // frontend/src/pages/StatsPage.tsx
 import { useState } from "react";
-import DateRangePicker from "../components/ui/DateRangePicker";
 import TelefonoModuleStats from "../components/stats/TelefonoModuleStats";
 import LineaModuleStats from "../components/stats/LineaModuleStats";
 import QuejaModuleStats from "../components/stats/QuejaModuleStats";
@@ -16,6 +15,7 @@ export default function StatsPage() {
   const [periodo, setPeriodo] = useState<Periodo>("mes");
   const [activeTab, setActiveTab] = useState<string>("telefono");
 
+  // Esta función se pasa a los componentes hijos a través de props
   const handleDateRangeChange = (desde: string, hasta: string, periodoSeleccionado: Periodo) => {
     setFechaDesde(desde);
     setFechaHasta(hasta);
@@ -31,27 +31,30 @@ export default function StatsPage() {
       ),
     },
     {
-      id: "materiales",
-      label: "📦 Materiales",
-      component: (
-        <MaterialesModuleStats fechaDesde={fechaDesde} fechaHasta={fechaHasta} periodo={periodo} />
-      ),
-    },
-    // Estos componentes aún NO soportan filtro de fechas (no reciben props)
-    {
       id: "linea",
       label: "🔌 Líneas",
       component: (
         <LineaModuleStats fechaDesde={fechaDesde} fechaHasta={fechaHasta} periodo={periodo} />
       ),
     },
-    { id: "pizarra", label: "📋 Pizarras", component: <PizarraModuleStats /> },
     {
       id: "queja",
       label: "⚠️ Quejas",
       component: (
         <QuejaModuleStats fechaDesde={fechaDesde} fechaHasta={fechaHasta} periodo={periodo} />
       ),
+    },
+    {
+      id: "materiales",
+      label: "📦 Materiales",
+      component: (
+        <MaterialesModuleStats fechaDesde={fechaDesde} fechaHasta={fechaHasta} periodo={periodo} />
+      ),
+    },
+    {
+      id: "pizarra",
+      label: "📋 Pizarras",
+      component: <PizarraModuleStats />,
     },
     {
       id: "trabajador",
@@ -69,9 +72,19 @@ export default function StatsPage() {
         <p className="text-gray-600">Visualizaciones agregadas por módulo</p>
       </div>
 
-      {/* Selector de tiempo global */}
+      {/* Selector de tiempo global (ahora visible) */}
       <div className="mb-6">
-        <DateRangePicker onDateRangeChange={handleDateRangeChange} />
+        <label className="text-sm text-gray-600 mr-2">Período global para tendencias:</label>
+        <select
+          value={periodo}
+          onChange={(e) => handleDateRangeChange(fechaDesde, fechaHasta, e.target.value)}
+          className="border border-gray-300 rounded px-3 py-1"
+        >
+          <option value="mes">Este mes</option>
+          <option value="trimestre">Este trimestre</option>
+          <option value="año">Este año</option>
+          <option value="todo">Todo el historial</option>
+        </select>
       </div>
 
       {/* Pestañas */}

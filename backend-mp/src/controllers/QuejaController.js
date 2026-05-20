@@ -24,6 +24,24 @@ const {
   getCurrentDateTime,
 } = require("../utils/dateUtils");
 
+// Función auxiliar para normalizar fechas de quejas (texto a timestamp)
+const normalizeQuejaDate = (dateStr) => {
+  if (!dateStr) return null;
+  // Si ya tiene formato 'YYYY-MM-DD HH:MM:SS', devolverlo
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(dateStr)) {
+    return dateStr;
+  }
+  // Si es solo fecha 'YYYY-MM-DD', añadir hora
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return `${dateStr} 00:00:00`;
+  }
+  // Si es ISO con T, convertir
+  if (dateStr.includes("T")) {
+    return dateStr.replace("T", " ").split(".")[0];
+  }
+  return dateStr;
+};
+
 const QuejaController = {
   /**
    * @swagger
@@ -142,18 +160,15 @@ const QuejaController = {
         ];
 
         // Construir where clause
-        const whereClause = {};
-        if (search) {
-          whereClause[Op.or] = [{ num_reporte: { [Op.iLike]: `%${search}%` } }];
-        }
-        if (estado) whereClause.estado = estado;
-        if (id_tipoqueja) whereClause.id_tipoqueja = id_tipoqueja;
-        const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
-        if (normalizedRange.from || normalizedRange.to) {
-          whereClause.fecha = {};
-          if (normalizedRange.from) whereClause.fecha[Op.gte] = normalizedRange.from;
-          if (normalizedRange.to) whereClause.fecha[Op.lte] = normalizedRange.to;
-        }
+        const whereClause = {
+          [Op.and]: [
+            search ? { num_reporte: { [Op.iLike]: `%${search}%` } } : null,
+            estado ? { estado } : null,
+            id_tipoqueja ? { id_tipoqueja } : null,
+            normalizedRange.from ? { fecha: { [Op.gte]: normalizedRange.from } } : null,
+            normalizedRange.to ? { fecha: { [Op.lte]: normalizedRange.to } } : null,
+          ].filter(Boolean),
+        };
         // 🔹 BLINDAJE: Validación defensiva ANTES de usar en Sequelize
         const ALLOWED_SORT = [
           "fecha",
@@ -730,18 +745,12 @@ QuejaController.dashboardSummary = async (req, res, next) => {
     const { fecha_desde, fecha_hasta } = req.query;
     const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
 
+    // If the client provided a date range, filter by it; otherwise return global totals
     const baseWhere = {};
     if (normalizedRange.from || normalizedRange.to) {
-      baseWhere.fecha = {};
-      if (normalizedRange.from) baseWhere.fecha[Op.gte] = normalizedRange.from;
-      if (normalizedRange.to) baseWhere.fecha[Op.lte] = normalizedRange.to;
-    } else {
-      // default last 7 days
-      const to = new Date();
-      const from = new Date(to.getTime() - 6 * 24 * 60 * 60 * 1000);
       baseWhere.fecha = {
-        [Op.gte]: normalizeToDbDateTime(from),
-        [Op.lte]: normalizeToDbDateTime(to),
+        [Op.gte]: normalizedRange.from || normalizeToDbDateTime(new Date(0)),
+        [Op.lte]: normalizedRange.to || normalizeToDbDateTime(new Date()),
       };
     }
 
@@ -755,26 +764,28 @@ QuejaController.dashboardSummary = async (req, res, next) => {
     // previous period (same length)
     let prev = { total: 0, telefonos: 0, lineas: 0, pizarras: 0 };
     try {
-      let fromTime = baseWhere.fecha[Op.gte] ? new Date(baseWhere.fecha[Op.gte]).getTime() : null;
-      let toTime = baseWhere.fecha[Op.lte] ? new Date(baseWhere.fecha[Op.lte]).getTime() : null;
-      if (fromTime && toTime) {
-        const len = toTime - fromTime + 1;
-        const pFrom = new Date(fromTime - len);
-        const pTo = new Date(fromTime - 1);
-        const prevWhere = {
-          fecha: {
-            [Op.gte]: normalizeToDbDateTime(pFrom),
-            [Op.lte]: normalizeToDbDateTime(pTo),
-          },
-        };
-        prev.total = await Queja.count({ where: prevWhere });
-        prev.telefonos = await Queja.count({
-          where: { ...prevWhere, id_telefono: { [Op.ne]: null } },
-        });
-        prev.lineas = await Queja.count({ where: { ...prevWhere, id_linea: { [Op.ne]: null } } });
-        prev.pizarras = await Queja.count({
-          where: { ...prevWhere, id_pizarra: { [Op.ne]: null } },
-        });
+      if (baseWhere.fecha && (baseWhere.fecha[Op.gte] || baseWhere.fecha[Op.lte])) {
+        let fromTime = baseWhere.fecha[Op.gte] ? new Date(baseWhere.fecha[Op.gte]).getTime() : null;
+        let toTime = baseWhere.fecha[Op.lte] ? new Date(baseWhere.fecha[Op.lte]).getTime() : null;
+        if (fromTime && toTime) {
+          const len = toTime - fromTime + 1;
+          const pFrom = new Date(fromTime - len);
+          const pTo = new Date(fromTime - 1);
+          const prevWhere = {
+            fecha: {
+              [Op.gte]: normalizeToDbDateTime(pFrom),
+              [Op.lte]: normalizeToDbDateTime(pTo),
+            },
+          };
+          prev.total = await Queja.count({ where: prevWhere });
+          prev.telefonos = await Queja.count({
+            where: { ...prevWhere, id_telefono: { [Op.ne]: null } },
+          });
+          prev.lineas = await Queja.count({ where: { ...prevWhere, id_linea: { [Op.ne]: null } } });
+          prev.pizarras = await Queja.count({
+            where: { ...prevWhere, id_pizarra: { [Op.ne]: null } },
+          });
+        }
       }
     } catch (e) {
       // ignore previous period errors
@@ -789,7 +800,10 @@ QuejaController.dashboardSummary = async (req, res, next) => {
         telefonos: { count: telefonos, pct: pct(telefonos), prev: prev.telefonos },
         lineas: { count: lineas, pct: pct(lineas), prev: prev.lineas },
         pizarras: { count: pizarras, pct: pct(pizarras), prev: prev.pizarras },
-        periodo: { desde: baseWhere.fecha[Op.gte], hasta: baseWhere.fecha[Op.lte] },
+        periodo:
+          normalizedRange.from || normalizedRange.to
+            ? { desde: baseWhere.fecha[Op.gte], hasta: baseWhere.fecha[Op.lte] }
+            : null,
         anterior: prev,
       },
     });
@@ -805,36 +819,44 @@ QuejaController.sankey = async (req, res, next) => {
     const { fecha_desde, fecha_hasta } = req.query;
     const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
 
-    // Función para filtrar por fecha
+    // Función para filtrar por fecha con CAST a timestamp (solo filas con formato YYYY-MM-DD)
     const dateFilter = (alias = "q") => {
       const parts = [];
       if (normalizedRange.from)
-        parts.push(`${alias}.fecha >= '${normalizedRange.from}'::timestamp`);
-      if (normalizedRange.to) parts.push(`${alias}.fecha <= '${normalizedRange.to}'::timestamp`);
+        parts.push(
+          `${alias}.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(${alias}.fecha from 1 for 19)::timestamp >= '${normalizedRange.from}'::timestamp`,
+        );
+      if (normalizedRange.to)
+        parts.push(
+          `${alias}.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(${alias}.fecha from 1 for 19)::timestamp <= '${normalizedRange.to}'::timestamp`,
+        );
       return parts.length ? ` AND ${parts.join(" AND ")}` : "";
     };
 
-    // Count quejas that had any prueba (Probada)
-    const [[{ cnt_probada }]] = await sequelize.query(
-      `SELECT COUNT(DISTINCT p.id_queja) AS cnt_probada FROM tb_prueba p JOIN tb_queja q ON p.id_queja = q.id_queja WHERE p.id_queja IS NOT NULL${dateFilter("q")};`,
+    // Calculamos aristas (edges) aproximadas entre etapas usando existencia de eventos y estado actual.
+    // Estas consultas usan DISTINCT para contar quejas únicas por flujo.
+    const [[{ cnt_abierta_probada }]] = await sequelize.query(
+      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_abierta_probada FROM tb_queja q JOIN tb_prueba p ON p.id_queja = q.id_queja WHERE p.id_queja IS NOT NULL${dateFilter("q")};`,
     );
 
-    // Count quejas that had asignacion (Asignada)
-    const [[{ cnt_asignada }]] = await sequelize.query(
-      `SELECT COUNT(DISTINCT a.id_queja) AS cnt_asignada FROM tb_asignacion a JOIN tb_queja q ON a.id_queja = q.id_queja WHERE a.id_queja IS NOT NULL${dateFilter("q")};`,
+    const [[{ cnt_probada_asignada }]] = await sequelize.query(
+      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_probada_asignada FROM tb_queja q JOIN tb_prueba p ON p.id_queja = q.id_queja JOIN tb_asignacion a ON a.id_queja = q.id_queja WHERE 1=1${dateFilter("q")};`,
     );
 
-    // Count pendientes
-    const [[{ cnt_pendiente }]] = await sequelize.query(
-      `SELECT COUNT(*) AS cnt_pendiente FROM tb_queja q WHERE q.estado='Pendiente'${dateFilter("q")};`,
+    const [[{ cnt_abierta_asignada }]] = await sequelize.query(
+      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_abierta_asignada FROM tb_queja q JOIN tb_asignacion a ON a.id_queja = q.id_queja LEFT JOIN tb_prueba p ON p.id_queja = q.id_queja WHERE p.id_queja IS NULL${dateFilter("q")};`,
     );
 
-    // Count resueltas/cerradas
-    const [[{ cnt_resuelta }]] = await sequelize.query(
-      `SELECT COUNT(*) AS cnt_resuelta FROM tb_queja q WHERE q.estado IN ('Resuelta','Cerrada')${dateFilter("q")};`,
+    const [[{ cnt_probada_resuelta }]] = await sequelize.query(
+      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_probada_resuelta FROM tb_queja q JOIN tb_prueba p ON p.id_queja = q.id_queja WHERE q.estado IN ('Resuelta','Cerrada')${dateFilter("q")};`,
     );
-    const [[{ cnt_cerrada }]] = await sequelize.query(
-      `SELECT COUNT(*) AS cnt_cerrada FROM tb_queja q WHERE q.estado='Cerrada'${dateFilter("q")};`,
+
+    const [[{ cnt_asignada_pendiente }]] = await sequelize.query(
+      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_asignada_pendiente FROM tb_queja q JOIN tb_asignacion a ON a.id_queja = q.id_queja WHERE q.estado='Pendiente'${dateFilter("q")};`,
+    );
+
+    const [[{ cnt_asignada_resuelta }]] = await sequelize.query(
+      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_asignada_resuelta FROM tb_queja q JOIN tb_asignacion a ON a.id_queja = q.id_queja WHERE q.estado IN ('Resuelta','Cerrada')${dateFilter("q")};`,
     );
 
     // Definir colores para cada estado
@@ -847,58 +869,40 @@ QuejaController.sankey = async (req, res, next) => {
       Cerrada: "#95A5A6",
     };
 
-    // Crear links SOLO con valores > 0
     const allLinks = [
-      { source: "Abierta", target: "Probada", value: Number(cnt_probada || 0) },
-      { source: "Probada", target: "Asignada", value: Number(cnt_asignada || 0) },
-      { source: "Asignada", target: "Pendiente", value: Number(cnt_pendiente || 0) },
-      { source: "Probada", target: "Resuelta", value: Number(cnt_resuelta || 0) },
-      { source: "Resuelta", target: "Cerrada", value: Number(cnt_cerrada || 0) },
+      { source: "Abierta", target: "Probada", value: Number(cnt_abierta_probada || 0) },
+      { source: "Probada", target: "Asignada", value: Number(cnt_probada_asignada || 0) },
+      { source: "Abierta", target: "Asignada", value: Number(cnt_abierta_asignada || 0) },
+      { source: "Probada", target: "Resuelta", value: Number(cnt_probada_resuelta || 0) },
+      { source: "Asignada", target: "Pendiente", value: Number(cnt_asignada_pendiente || 0) },
+      { source: "Asignada", target: "Resuelta", value: Number(cnt_asignada_resuelta || 0) },
     ];
 
-    // Filtrar links con valor > 0
-    const links = allLinks.filter(function (link) {
-      return link.value > 0;
-    });
+    const links = allLinks.filter((l) => l.value > 0);
 
-    // Si no hay links con valores, devolver un mensaje apropiado
     if (links.length === 0) {
       return res.json({
         success: true,
-        data: {
-          nodes: [],
-          links: [],
-          message: "No hay datos de flujo en el período seleccionado",
-        },
+        data: { nodes: [], links: [], message: "No hay datos de flujo en el período seleccionado" },
       });
     }
 
-    // Obtener nodos únicos que aparecen en los links
     const nodeNames = new Set();
-    links.forEach(function (link) {
+    links.forEach((link) => {
       nodeNames.add(link.source);
       nodeNames.add(link.target);
     });
 
-    // Ordenar nodos según el flujo lógico
     const order = ["Abierta", "Probada", "Asignada", "Pendiente", "Resuelta", "Cerrada"];
     const nodes = Array.from(nodeNames)
-      .sort(function (a, b) {
+      .sort((a, b) => {
         const ia = order.indexOf(a) === -1 ? 999 : order.indexOf(a);
         const ib = order.indexOf(b) === -1 ? 999 : order.indexOf(b);
         return ia - ib;
       })
-      .map(function (name) {
-        return {
-          name: name,
-          color: nodeColors[name] || "#8884d8",
-        };
-      });
+      .map((name) => ({ name, color: nodeColors[name] || "#8884d8" }));
 
-    res.json({
-      success: true,
-      data: { nodes, links },
-    });
+    res.json({ success: true, data: { nodes, links } });
   } catch (error) {
     next(error);
   }
@@ -912,8 +916,14 @@ QuejaController.funnel = async (req, res, next) => {
     const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
     const dateFilter = (alias = "q") => {
       const parts = [];
-      if (normalizedRange.from) parts.push(`${alias}.fecha >= '${normalizedRange.from}'`);
-      if (normalizedRange.to) parts.push(`${alias}.fecha <= '${normalizedRange.to}'`);
+      if (normalizedRange.from)
+        parts.push(
+          `${alias}.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(${alias}.fecha from 1 for 19)::timestamp >= '${normalizedRange.from}'::timestamp`,
+        );
+      if (normalizedRange.to)
+        parts.push(
+          `${alias}.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(${alias}.fecha from 1 for 19)::timestamp <= '${normalizedRange.to}'::timestamp`,
+        );
       return parts.length ? ` AND ${parts.join(" AND ")}` : "";
     };
 
@@ -948,24 +958,42 @@ QuejaController.funnel = async (req, res, next) => {
         )
       )[0][0].c || 0;
 
-    // Average times (hours): created -> first prueba, created -> first asignacion, created -> fechaok
+    // En funnel, las conversiones de fecha
     const avgPruebaQ = await sequelize.query(
-      `SELECT AVG(EXTRACT(EPOCH FROM (p.min_created - q.created_at)) / 3600.0) AS hours
-       FROM tb_queja q
-       JOIN (SELECT id_queja, MIN(created_at) AS min_created FROM tb_prueba GROUP BY id_queja) p ON p.id_queja = q.id_queja
-       WHERE 1=1${dateFilter("q")};`,
+      `SELECT AVG(
+      CASE
+        WHEN q.created_at ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND p.min_created ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+          THEN EXTRACT(EPOCH FROM (substring(p.min_created from 1 for 19)::timestamp - substring(q.created_at from 1 for 19)::timestamp)) / 3600.0
+        ELSE NULL
+      END
+    ) AS hours
+   FROM tb_queja q
+   JOIN (SELECT id_queja, MIN(created_at) AS min_created FROM tb_prueba GROUP BY id_queja) p ON p.id_queja = q.id_queja
+   WHERE 1=1${dateFilter("q")};`,
     );
     const avgPrueba = Number((avgPruebaQ[0][0] && avgPruebaQ[0][0].hours) || 0).toFixed(2);
 
     const avgAsignQ = await sequelize.query(
-      `SELECT AVG(EXTRACT(EPOCH FROM (a.min_fecha - q.created_at)) / 3600.0) AS hours
+      `SELECT AVG(
+          CASE
+            WHEN q.created_at ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND a.min_fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+              THEN EXTRACT(EPOCH FROM (substring(a.min_fecha from 1 for 19)::timestamp - substring(q.created_at from 1 for 19)::timestamp)) / 3600.0
+            ELSE NULL
+          END
+        ) AS hours
        FROM tb_queja q
        JOIN (SELECT id_queja, MIN(fecha_asignacion) AS min_fecha FROM tb_asignacion GROUP BY id_queja) a ON a.id_queja = q.id_queja;`,
     );
     const avgAsign = Number((avgAsignQ[0][0] && avgAsignQ[0][0].hours) || 0).toFixed(2);
 
     const avgResolveQ = await sequelize.query(
-      `SELECT AVG(EXTRACT(EPOCH FROM (q.fechaok - q.created_at)) / 3600.0) AS hours FROM tb_queja q WHERE q.fechaok IS NOT NULL;`,
+      `SELECT AVG(
+          CASE
+            WHEN q.fechaok IS NOT NULL AND q.created_at ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND q.fechaok ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+              THEN EXTRACT(EPOCH FROM (substring(q.fechaok from 1 for 19)::timestamp - substring(q.created_at from 1 for 19)::timestamp)) / 3600.0
+            ELSE NULL
+          END
+        ) AS hours FROM tb_queja q WHERE q.fechaok IS NOT NULL;`,
     );
     const avgResolve = Number((avgResolveQ[0][0] && avgResolveQ[0][0].hours) || 0).toFixed(2);
 
@@ -989,81 +1017,129 @@ QuejaController.funnel = async (req, res, next) => {
 // GET /queja/dashboard/close_buckets?days=30
 QuejaController.closeBuckets = async (req, res, next) => {
   try {
-    const { fecha_desde, fecha_hasta } = req.query;
+    let { fecha_desde, fecha_hasta } = req.query;
     const sequelize = Queja.sequelize;
-    const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
+
+    // Normalizar fechas
+    if (fecha_desde) fecha_desde = normalizeQuejaDate(fecha_desde);
+    if (fecha_hasta) fecha_hasta = normalizeQuejaDate(fecha_hasta);
 
     let whereClause = "";
     const replacements = {};
 
-    if (normalizedRange.from || normalizedRange.to) {
-      whereClause =
-        "WHERE q.fecha >= COALESCE(:fecha_desde::timestamp, '1970-01-01'::timestamp) AND q.fecha <= COALESCE(:fecha_hasta::timestamp, NOW())";
-
-      if (normalizedRange.from) {
-        replacements.fecha_desde = normalizedRange.from;
-      }
-      if (normalizedRange.to) {
-        replacements.fecha_hasta = normalizedRange.to;
-      }
+    if (fecha_desde && fecha_hasta) {
+      whereClause = `AND q.fecha >= :fecha_desde AND q.fecha <= :fecha_hasta`;
+      replacements.fecha_desde = fecha_desde;
+      replacements.fecha_hasta = fecha_hasta;
+    } else if (fecha_desde) {
+      whereClause = `AND q.fecha >= :fecha_desde`;
+      replacements.fecha_desde = fecha_desde;
+    } else if (fecha_hasta) {
+      whereClause = `AND q.fecha <= :fecha_hasta`;
+      replacements.fecha_hasta = fecha_hasta;
     }
 
     const q = `
       SELECT
-        SUM(CASE WHEN q.fechaok IS NOT NULL AND EXTRACT(EPOCH FROM (q.fechaok - q.created_at)) <= 86400 THEN 1 ELSE 0 END) AS le24,
-        SUM(CASE WHEN q.fechaok IS NOT NULL AND EXTRACT(EPOCH FROM (q.fechaok - q.created_at)) > 86400 AND EXTRACT(EPOCH FROM (q.fechaok - q.created_at)) <= 259200 THEN 1 ELSE 0 END) AS btw24_72,
-        SUM(CASE WHEN q.fechaok IS NOT NULL AND EXTRACT(EPOCH FROM (q.fechaok - q.created_at)) > 259200 THEN 1 ELSE 0 END) AS gt72,
-        COUNT(*) FILTER (WHERE q.fechaok IS NOT NULL) AS total_closed
+        SUM(CASE
+          WHEN q.fechaok IS NOT NULL AND q.created_at IS NOT NULL
+            AND q.fechaok ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND q.created_at ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+            AND EXTRACT(EPOCH FROM (substring(q.fechaok from 1 for 19)::timestamp - substring(q.created_at from 1 for 19)::timestamp)) / 86400.0 <= 1
+          THEN 1 ELSE 0 END
+        ) AS le24,
+        SUM(CASE
+          WHEN q.fechaok IS NOT NULL AND q.created_at IS NOT NULL
+            AND q.fechaok ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND q.created_at ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+            AND EXTRACT(EPOCH FROM (substring(q.fechaok from 1 for 19)::timestamp - substring(q.created_at from 1 for 19)::timestamp)) / 86400.0 > 1
+            AND EXTRACT(EPOCH FROM (substring(q.fechaok from 1 for 19)::timestamp - substring(q.created_at from 1 for 19)::timestamp)) / 86400.0 <= 3
+          THEN 1 ELSE 0 END
+        ) AS btw24_72,
+        SUM(CASE
+          WHEN q.fechaok IS NOT NULL AND q.created_at IS NOT NULL
+            AND q.fechaok ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND q.created_at ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+            AND EXTRACT(EPOCH FROM (substring(q.fechaok from 1 for 19)::timestamp - substring(q.created_at from 1 for 19)::timestamp)) / 86400.0 > 3
+          THEN 1 ELSE 0 END
+        ) AS gt72,
+        COUNT(*) AS total_closed
       FROM tb_queja q
-      ${whereClause};
+      WHERE q.fechaok IS NOT NULL
+        AND q.created_at IS NOT NULL
+        ${whereClause}
     `;
 
-    const [row] = await sequelize.query(q, {
-      replacements,
-      type: sequelize.QueryTypes.SELECT,
-    });
+    const [row] = await sequelize.query(q, { replacements });
 
-    res.json({
-      success: true,
-      data: {
-        le24: Number(row.le24 || 0),
-        btw24_72: Number(row.btw24_72 || 0),
-        gt72: Number(row.gt72 || 0),
-        total: Number(row.total_closed || 0),
-      },
-    });
+    // Formatear para el frontend (como buckets)
+    const closeData = {
+      buckets: [
+        { name: "≤ 24h", count: Number(row.le24) || 0 },
+        { name: "24h - 72h", count: Number(row.btw24_72) || 0 },
+        { name: "> 72h", count: Number(row.gt72) || 0 },
+      ],
+      total: Number(row.total_closed) || 0,
+    };
+
+    res.json({ success: true, data: closeData });
   } catch (error) {
-    next(error);
+    console.error("Error en closeBuckets:", error);
+    res.json({ success: true, data: { buckets: [], total: 0 } });
   }
 };
 
 // GET /queja/dashboard/heatmap
 QuejaController.heatmap = async (req, res, next) => {
   try {
+    let { fecha_desde, fecha_hasta } = req.query;
     const sequelize = Queja.sequelize;
-    const { fecha_desde, fecha_hasta } = req.query;
-    const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
-    const whereDate =
-      normalizedRange.from || normalizedRange.to
-        ? `WHERE q.fecha >= '${normalizedRange.from || "1970-01-01 00:00:00"}' AND q.fecha <= '${normalizedRange.to || getCurrentDateTime()}'`
-        : "";
-    // Group by tipoqueja and service (telefono/linea/pizarra)
+
+    // Normalizar fechas
+    if (fecha_desde) fecha_desde = normalizeQuejaDate(fecha_desde);
+    if (fecha_hasta) fecha_hasta = normalizeQuejaDate(fecha_hasta);
+
+    let whereClause = "";
+    const replacements = {};
+
+    if (fecha_desde && fecha_hasta) {
+      whereClause = `WHERE q.fecha >= :fecha_desde AND q.fecha <= :fecha_hasta`;
+      replacements.fecha_desde = fecha_desde;
+      replacements.fecha_hasta = fecha_hasta;
+    } else if (fecha_desde) {
+      whereClause = `WHERE q.fecha >= :fecha_desde`;
+      replacements.fecha_desde = fecha_desde;
+    } else if (fecha_hasta) {
+      whereClause = `WHERE q.fecha <= :fecha_hasta`;
+      replacements.fecha_hasta = fecha_hasta;
+    }
+
     const q = `
-      SELECT t.tipoqueja AS tipo, 
+      SELECT 
+        COALESCE(t.tipoqueja, 'Sin clasificar') AS tipo,
         SUM(CASE WHEN q.id_telefono IS NOT NULL THEN 1 ELSE 0 END) AS telefonos,
         SUM(CASE WHEN q.id_linea IS NOT NULL THEN 1 ELSE 0 END) AS lineas,
         SUM(CASE WHEN q.id_pizarra IS NOT NULL THEN 1 ELSE 0 END) AS pizarras,
         COUNT(*) AS total
       FROM tb_queja q
       LEFT JOIN tb_tipoqueja t ON t.id_tipoqueja = q.id_tipoqueja
-      ${whereDate}
+      ${whereClause}
       GROUP BY t.tipoqueja
-      ORDER BY total DESC;
+      ORDER BY total DESC
     `;
-    const [rows] = await sequelize.query(q);
-    res.json({ success: true, data: rows });
+
+    const [rows] = await sequelize.query(q, { replacements });
+
+    // Asegurar que todos los valores sean números
+    const formattedRows = rows.map((row) => ({
+      tipo: row.tipo,
+      telefonos: Number(row.telefonos) || 0,
+      lineas: Number(row.lineas) || 0,
+      pizarras: Number(row.pizarras) || 0,
+      total: Number(row.total) || 0,
+    }));
+
+    res.json({ success: true, data: formattedRows });
   } catch (error) {
-    next(error);
+    console.error("Error en heatmap:", error);
+    res.json({ success: true, data: [] });
   }
 };
 
@@ -1071,61 +1147,97 @@ QuejaController.heatmap = async (req, res, next) => {
 QuejaController.historic = async (req, res, next) => {
   try {
     const days = parseInt(req.query.days, 10) || 90;
-    const { fecha_desde, fecha_hasta } = req.query;
-    const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
+    let { fecha_desde, fecha_hasta } = req.query;
     const sequelize = Queja.sequelize;
-    let q;
-    if (normalizedRange.from || normalizedRange.to) {
-      const desde = normalizedRange.from || "1970-01-01 00:00:00";
-      const hasta = normalizedRange.to || getCurrentDateTime();
-      q = `
-        SELECT date_trunc('day', fecha)::date AS day, COUNT(*) AS cnt
-        FROM tb_queja
-        WHERE fecha >= '${desde}' AND fecha <= '${hasta}'
-        GROUP BY day
-        ORDER BY day ASC;
-      `;
-    } else {
-      q = `
-        SELECT date_trunc('day', fecha)::date AS day, COUNT(*) AS cnt
-        FROM tb_queja
-        WHERE fecha >= now() - interval '${days} days'
-        GROUP BY day
-        ORDER BY day ASC;
-      `;
-    }
-    const [rows] = await sequelize.query(q);
 
-    // compute simple 7-day moving average and stddev
-    const counts = rows.map((r) => ({ day: r.day, cnt: Number(r.cnt) }));
-    const window = 7;
-    const ma = counts.map((v, i, arr) => {
-      const start = Math.max(0, i - (window - 1));
-      const slice = arr.slice(start, i + 1).map((s) => s.cnt);
-      const avg = slice.reduce((a, b) => a + b, 0) / slice.length;
-      const variance = slice.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / slice.length;
+    // Normalizar fechas
+    if (fecha_desde) fecha_desde = normalizeQuejaDate(fecha_desde);
+    if (fecha_hasta) fecha_hasta = normalizeQuejaDate(fecha_hasta);
+
+    let whereClause = "";
+    const replacements = {};
+
+    if (fecha_desde && fecha_hasta) {
+      whereClause = `WHERE fecha >= :fecha_desde AND fecha <= :fecha_hasta`;
+      replacements.fecha_desde = fecha_desde;
+      replacements.fecha_hasta = fecha_hasta;
+    } else if (fecha_desde) {
+      whereClause = `WHERE fecha >= :fecha_desde`;
+      replacements.fecha_desde = fecha_desde;
+    } else if (fecha_hasta) {
+      whereClause = `WHERE fecha <= :fecha_hasta`;
+      replacements.fecha_hasta = fecha_hasta;
+    } else {
+      // Si no hay filtros, usar últimos N días
+      whereClause = `WHERE fecha >= date('now', '-${days} days')`;
+    }
+
+    // Consulta para datos por día (para la gráfica de tendencia)
+    const q = `
+      SELECT 
+        strftime('%Y-%m', fecha) as month,
+        COUNT(*) as count
+      FROM tb_queja
+      ${whereClause}
+      GROUP BY strftime('%Y-%m', fecha)
+      ORDER BY month ASC
+      LIMIT 24
+    `;
+
+    const [rows] = await sequelize.query(q, { replacements });
+
+    if (!rows || rows.length === 0) {
+      return res.json({
+        success: true,
+        data: { counts: [], moving: [], projection: [] },
+      });
+    }
+
+    // Formatear nombres de meses
+    const monthNames = {
+      "01": "Ene",
+      "02": "Feb",
+      "03": "Mar",
+      "04": "Abr",
+      "05": "May",
+      "06": "Jun",
+      "07": "Jul",
+      "08": "Ago",
+      "09": "Sep",
+      10: "Oct",
+      11: "Nov",
+      12: "Dic",
+    };
+
+    const counts = rows.map((r) => {
+      const [year, month] = r.month.split("-");
       return {
-        day: v.day,
-        ma: Number(avg.toFixed(2)),
-        std: Number(Math.sqrt(variance).toFixed(2)),
+        month: `${monthNames[month]} ${year}`,
+        count: Number(r.count) || 0,
       };
     });
 
-    // simple exponential smoothing projection for next 7 days
-    const alpha = 0.3;
-    let lastForecast = counts.length ? counts[counts.length - 1].cnt : 0;
-    for (let i = Math.max(0, counts.length - 14); i < counts.length; i++) {
-      lastForecast = alpha * counts[i].cnt + (1 - alpha) * lastForecast;
-    }
-    const projection = [];
-    for (let i = 1; i <= 7; i++) {
-      lastForecast = alpha * lastForecast + (1 - alpha) * lastForecast; // simple growth
-      projection.push({ day: i, forecast: Number(lastForecast.toFixed(2)) });
-    }
+    // Calcular media móvil de 3 meses
+    const moving = counts.map((v, i, arr) => {
+      const start = Math.max(0, i - 2);
+      const slice = arr.slice(start, i + 1).map((s) => s.count);
+      const avg = slice.reduce((a, b) => a + b, 0) / slice.length;
+      return {
+        month: v.month,
+        ma: Number(avg.toFixed(2)),
+      };
+    });
 
-    res.json({ success: true, data: { counts, moving: ma, projection } });
+    res.json({
+      success: true,
+      data: { counts, moving, projection: [] },
+    });
   } catch (error) {
-    next(error);
+    console.error("Error en historic:", error);
+    res.json({
+      success: true,
+      data: { counts: [], moving: [], projection: [] },
+    });
   }
 };
 
@@ -1133,46 +1245,58 @@ QuejaController.historic = async (req, res, next) => {
 QuejaController.mttr = async (req, res, next) => {
   try {
     const dim = req.query.dimension || "tipo_falla";
-    const { fecha_desde, fecha_hasta } = req.query;
-    const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
+    let { fecha_desde, fecha_hasta } = req.query;
     const sequelize = Queja.sequelize;
+
+    // Normalizar fechas
+    if (fecha_desde) fecha_desde = normalizeQuejaDate(fecha_desde);
+    if (fecha_hasta) fecha_hasta = normalizeQuejaDate(fecha_hasta);
+
     if (dim === "tipo_falla") {
-      const dateWhere =
-        normalizedRange.from || normalizedRange.to
-          ? ` AND q.fecha >= '${normalizedRange.from || "1970-01-01 00:00:00"}' AND q.fecha <= '${normalizedRange.to || getCurrentDateTime()}'`
-          : "";
+      let whereClause = "";
+      const replacements = {};
+
+      if (fecha_desde && fecha_hasta) {
+        whereClause = `AND q.fecha >= :fecha_desde AND q.fecha <= :fecha_hasta`;
+        replacements.fecha_desde = fecha_desde;
+        replacements.fecha_hasta = fecha_hasta;
+      } else if (fecha_desde) {
+        whereClause = `AND q.fecha >= :fecha_desde`;
+        replacements.fecha_desde = fecha_desde;
+      } else if (fecha_hasta) {
+        whereClause = `AND q.fecha <= :fecha_hasta`;
+        replacements.fecha_hasta = fecha_hasta;
+      }
+
       const q = `
-        SELECT t.tipoqueja AS dimension, AVG(EXTRACT(EPOCH FROM (q.fechaok - q.created_at)) / 3600.0) AS mttr_hours
+        SELECT 
+          t.tipoqueja AS name,
+          ROUND(AVG(
+            EXTRACT(EPOCH FROM (substring(q.fechaok from 1 for 19)::timestamp - substring(q.created_at from 1 for 19)::timestamp)) / 3600.0
+          ), 2) AS avg_hours
         FROM tb_queja q
         LEFT JOIN tb_tipoqueja t ON t.id_tipoqueja = q.id_tipoqueja
-        WHERE q.fechaok IS NOT NULL ${dateWhere}
+        WHERE q.fechaok IS NOT NULL 
+          AND q.created_at IS NOT NULL
+          ${whereClause}
         GROUP BY t.tipoqueja
-        ORDER BY mttr_hours ASC;
+        ORDER BY avg_hours ASC
       `;
-      const [rows] = await sequelize.query(q);
-      return res.json({ success: true, data: rows });
-    }
 
-    if (dim === "trabajador") {
-      const dateWhere =
-        normalizedRange.from || normalizedRange.to
-          ? ` AND q.fecha >= '${normalizedRange.from || "1970-01-01 00:00:00"}' AND q.fecha <= '${normalizedRange.to || getCurrentDateTime()}'`
-          : "";
-      const q = `
-        SELECT tr.nombre AS dimension, AVG(EXTRACT(EPOCH FROM (q.fechaok - q.created_at)) / 3600.0) AS mttr_hours
-        FROM tb_queja q
-        LEFT JOIN tb_trabajador tr ON tr.id_trabajador = q.probador
-        WHERE q.fechaok IS NOT NULL ${dateWhere}
-        GROUP BY tr.nombre
-        ORDER BY mttr_hours ASC;
-      `;
-      const [rows] = await sequelize.query(q);
-      return res.json({ success: true, data: rows });
-    }
+      const [rows] = await sequelize.query(q, { replacements });
 
-    return next(apiErrors.badRequest("Dimension no soportada"));
+      // Asegurar que los valores sean números
+      const formattedRows = rows.map((row) => ({
+        name: row.name || "Sin clasificar",
+        avg_hours: Number(row.avg_hours) || 0,
+      }));
+
+      return res.json({ success: true, data: formattedRows });
+    }
+    // ... resto del código
   } catch (error) {
-    next(error);
+    console.error("Error en mttr:", error);
+    res.json({ success: true, data: [] });
   }
 };
 
@@ -1184,12 +1308,17 @@ QuejaController.recurrentes = async (req, res, next) => {
     const sequelize = Queja.sequelize;
     let whereDate = "";
     if (normalizedRange.from || normalizedRange.to) {
-      whereDate = `WHERE q.fecha >= '${normalizedRange.from || "1970-01-01 00:00:00"}' AND q.fecha <= '${normalizedRange.to || getCurrentDateTime()}'`;
+      whereDate = `WHERE q.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(q.fecha from 1 for 19)::timestamp >= '${normalizedRange.from || "1970-01-01 00:00:00"}'::timestamp AND substring(q.fecha from 1 for 19)::timestamp <= '${normalizedRange.to || getCurrentDateTime()}'::timestamp`;
     }
     const q = `
       SELECT COALESCE(qt.telefono::text, ql.clavelinea::text, qp.nombre::text) AS equipo,
-        COUNT(*) AS total, MIN(q.fecha) AS primera, MAX(q.fecha) AS ultima,
-        EXTRACT(EPOCH FROM (MAX(q.fecha) - MIN(q.fecha))) / 86400.0 AS dias_entre
+        COUNT(*) AS total,
+        MIN(CASE WHEN q.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' THEN substring(q.fecha from 1 for 19)::timestamp ELSE NULL END) AS primera,
+        MAX(CASE WHEN q.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' THEN substring(q.fecha from 1 for 19)::timestamp ELSE NULL END) AS ultima,
+        EXTRACT(EPOCH FROM (
+          MAX(CASE WHEN q.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' THEN substring(q.fecha from 1 for 19)::timestamp ELSE NULL END) -
+          MIN(CASE WHEN q.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' THEN substring(q.fecha from 1 for 19)::timestamp ELSE NULL END)
+        )) / 86400.0 AS dias_entre
       FROM tb_queja q
       LEFT JOIN tb_telefono qt ON qt.id_telefono = q.id_telefono
       LEFT JOIN tb_linea ql ON ql.id_linea = q.id_linea

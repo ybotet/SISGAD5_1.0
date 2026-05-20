@@ -1,5 +1,5 @@
 const { Telefono } = require("../models");
-const { Op } = require("sequelize");
+const { Op, Sequelize } = require("sequelize");
 const { Recorrido, Queja, Cable, Planta } = require("../models");
 const apiErrors = require("../utils/apiErrors");
 const { parseListParams } = require("../utils/parseListParams");
@@ -12,6 +12,40 @@ const validate = require("../middleware/validate");
 const { normalizeDateRange } = require("../utils/dateUtils");
 
 const TelefonoController = {
+  /**
+   * @swagger
+   * tags:
+   *   name: Telefonos
+   *   description: Gestión de teléfonos
+   */
+
+  /**
+   * @swagger
+   * /tbTelefono:
+   *   get:
+   *     summary: Listar teléfonos con paginación
+   *     tags: [Telefonos]
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema: { type: integer, default: 1 }
+   *       - in: query
+   *         name: limit
+   *         schema: { type: integer, default: 10 }
+   *       - in: query
+   *         name: search
+   *         schema: { type: string }
+   *     responses:
+   *       200:
+   *         description: Lista de teléfonos
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success: { type: boolean }
+   *                 data: { type: array, items: { type: object } }
+   */
   /**
    * @desc    Obtener todos los registros (CON validación Zod en query)
    * @route   GET /api/tbTelefono
@@ -360,20 +394,39 @@ TelefonoController.dashboard = async function (req, res, next) {
     const { fecha_desde, fecha_hasta } = req.query;
     const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
     const where = {};
+
     if (normalizedRange.from || normalizedRange.to) {
-      where.created_at = {};
-      if (normalizedRange.from) where.created_at[Op.gte] = normalizedRange.from;
-      if (normalizedRange.to) where.created_at[Op.lte] = normalizedRange.to;
+      const and = [];
+      if (normalizedRange.from) {
+        and.push(
+          Sequelize.where(Sequelize.cast(Sequelize.col("created_at"), "timestamp"), {
+            [Op.gte]: normalizedRange.from,
+          }),
+        );
+      }
+      if (normalizedRange.to) {
+        and.push(
+          Sequelize.where(Sequelize.cast(Sequelize.col("created_at"), "timestamp"), {
+            [Op.lte]: normalizedRange.to,
+          }),
+        );
+      }
+      where[Op.and] = and;
     }
 
     const total = await Telefono.count({ where });
-    const activos = await Telefono.count({ where: { ...where, esbaja: false } });
-    const inactivos = await Telefono.count({ where: { ...where, esbaja: true } });
+    const activos = await Telefono.count({
+      where: { [Op.and]: [...(where[Op.and] || []), { esbaja: false }] },
+    });
+    const inactivos = await Telefono.count({
+      where: { [Op.and]: [...(where[Op.and] || []), { esbaja: true }] },
+    });
 
     const byMando = await Telefono.sequelize.query(
       `SELECT m.mando as name, COUNT(1) as value FROM tb_telefono t LEFT JOIN tb_mando m ON t.id_mando = m.id_mando
-        WHERE ($1::timestamp IS NULL OR t."created_at" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR t."created_at" <= $2::timestamp)
+        WHERE t."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+          AND ($1::timestamp IS NULL OR t."created_at"::timestamp >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."created_at"::timestamp <= $2::timestamp)
         GROUP BY m.mando ORDER BY value DESC LIMIT 10`,
       {
         bind: [normalizedRange.from || null, normalizedRange.to || null],
@@ -383,8 +436,9 @@ TelefonoController.dashboard = async function (req, res, next) {
 
     const byClasif = await Telefono.sequelize.query(
       `SELECT c.nombre as name, COUNT(1) as value FROM tb_telefono t LEFT JOIN tb_clasificacion c ON t.id_clasificacion = c.id_clasificacion
-        WHERE ($1::timestamp IS NULL OR t."created_at" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR t."created_at" <= $2::timestamp)
+        WHERE t."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+          AND ($1::timestamp IS NULL OR t."created_at"::timestamp >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."created_at"::timestamp <= $2::timestamp)
         GROUP BY c.nombre ORDER BY value DESC LIMIT 10`,
       {
         bind: [normalizedRange.from || null, normalizedRange.to || null],
@@ -393,9 +447,10 @@ TelefonoController.dashboard = async function (req, res, next) {
     );
 
     const byYear = await Telefono.sequelize.query(
-      `SELECT to_char(t."created_at", 'YYYY') as year, COUNT(1) as cantidad FROM tb_telefono t
-        WHERE ($1::timestamp IS NULL OR t."created_at" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR t."created_at" <= $2::timestamp)
+      `SELECT to_char(t."created_at"::timestamp, 'YYYY') as year, COUNT(1) as cantidad FROM tb_telefono t
+        WHERE t."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+          AND ($1::timestamp IS NULL OR t."created_at"::timestamp >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."created_at"::timestamp <= $2::timestamp)
         GROUP BY year ORDER BY year ASC`,
       {
         bind: [normalizedRange.from || null, normalizedRange.to || null],
@@ -407,13 +462,50 @@ TelefonoController.dashboard = async function (req, res, next) {
     const byMasQuejas = await Telefono.sequelize.query(
       `SELECT t.telefono, COUNT(q.id_queja) as cantidad FROM tb_telefono t
         LEFT JOIN tb_queja q ON t.id_telefono = q.id_telefono
-        WHERE ($1::timestamp IS NULL OR t."created_at" >= $1::timestamp)
-          AND ($2::timestamp IS NULL OR t."created_at" <= $2::timestamp)
+        WHERE t."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+          AND ($1::timestamp IS NULL OR t."created_at"::timestamp >= $1::timestamp)
+          AND ($2::timestamp IS NULL OR t."created_at"::timestamp <= $2::timestamp)
         GROUP BY t.telefono ORDER BY cantidad DESC LIMIT 10`,
       {
         bind: [normalizedRange.from || null, normalizedRange.to || null],
         type: Telefono.sequelize.QueryTypes.SELECT,
       },
+    );
+
+    // Distribución por extensiones (inventario total)
+    const byExtensiones = await Telefono.sequelize.query(
+      `SELECT COALESCE(t.extensiones::text, 'Sin extensión') as name, COUNT(1) as value FROM tb_telefono t
+        GROUP BY name ORDER BY value DESC LIMIT 20`,
+      {
+        type: Telefono.sequelize.QueryTypes.SELECT,
+      },
+    );
+
+    // Conteo de teléfonos que tienen al menos una queja en algunos estados
+    const quejaStates = await Telefono.sequelize.query(
+      `SELECT q.estado, COUNT(DISTINCT t.id_telefono) as cnt FROM tb_telefono t
+        JOIN tb_queja q ON t.id_telefono = q.id_telefono
+        WHERE q.estado IN ('Pendiente','Asignada','Probada','Resuelta')
+        GROUP BY q.estado`,
+      {
+        type: Telefono.sequelize.QueryTypes.SELECT,
+      },
+    );
+
+    // Tendencias por mes y por trimestre (basadas en created_at si es válida)
+    const byMonth = await Telefono.sequelize.query(
+      `SELECT to_char(t."created_at"::timestamp, 'MM') as month, COUNT(1) as cantidad FROM tb_telefono t
+        WHERE t."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+          AND date_part('year', t."created_at"::timestamp) = date_part('year', now())
+        GROUP BY month ORDER BY month ASC`,
+      { type: Telefono.sequelize.QueryTypes.SELECT },
+    );
+
+    const byQuarter = await Telefono.sequelize.query(
+      `SELECT date_part('quarter', t."created_at"::timestamp) as quarter, COUNT(1) as cantidad FROM tb_telefono t
+        WHERE t."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+        GROUP BY quarter ORDER BY quarter ASC`,
+      { type: Telefono.sequelize.QueryTypes.SELECT },
     );
 
     res.json({
@@ -426,6 +518,14 @@ TelefonoController.dashboard = async function (req, res, next) {
         byClasif: byClasif || [],
         byYear: byYear || [],
         byMasQuejas: byMasQuejas || [],
+        byExtensiones: byExtensiones || [],
+        quejasPendientes:
+          (quejaStates.find((s) => s.estado === "Pendiente") || { cnt: 0 }).cnt || 0,
+        quejasAsignadas: (quejaStates.find((s) => s.estado === "Asignada") || { cnt: 0 }).cnt || 0,
+        quejasProbadas: (quejaStates.find((s) => s.estado === "Probada") || { cnt: 0 }).cnt || 0,
+        quejasResueltas: (quejaStates.find((s) => s.estado === "Resuelta") || { cnt: 0 }).cnt || 0,
+        byMonth: byMonth || [],
+        byQuarter: byQuarter || [],
       },
     });
   } catch (error) {

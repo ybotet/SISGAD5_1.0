@@ -1,4 +1,5 @@
 const winston = require("winston");
+const DailyRotateFile = require("winston-daily-rotate-file");
 const path = require("path");
 const fs = require("fs");
 
@@ -24,8 +25,22 @@ const logger = winston.createLogger({
         ),
       ),
     }),
-    new winston.transports.File({ filename: path.join(baseLogDir, `${serviceName}.log`) }),
-    new winston.transports.File({ filename: path.join(baseLogDir, `system.log`) }),
+    new DailyRotateFile({
+      filename: `${serviceName}-%DATE%.log`,
+      dirname: baseLogDir,
+      datePattern: "YYYY-MM-DD",
+      zippedArchive: true,
+      maxSize: "20m",
+      maxFiles: "30d",
+    }),
+    new DailyRotateFile({
+      filename: `system-%DATE%.log`,
+      dirname: baseLogDir,
+      datePattern: "YYYY-MM-DD",
+      zippedArchive: true,
+      maxSize: "20m",
+      maxFiles: "30d",
+    }),
   ],
 });
 

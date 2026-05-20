@@ -32,6 +32,30 @@ const normalizeTimestamps = (data) => {
 
 const TipolineaController = {
   /**
+   * @swagger
+   * tags:
+   *   name: TiposLinea
+   *   description: Gestión de tipos de línea
+   */
+
+  /**
+   * @swagger
+   * /tipolinea:
+   *   get:
+   *     summary: Listar tipos de línea
+   *     tags: [TiposLinea]
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema: { type: integer, default: 1 }
+   *       - in: query
+   *         name: limit
+   *         schema: { type: integer, default: 10 }
+   *     responses:
+   *       200:
+   *         description: Lista de tipos de línea
+   */
+  /**
    * @desc    Obtener todos los registros (CON validación Zod en query)
    * @route   GET /api/mp/tipolinea
    * @access  Public

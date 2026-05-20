@@ -112,6 +112,37 @@
     }
   ],
   "paths": {
+    "/tbPizarra": {
+      "get": {
+        "summary": "Listar pizarras con paginación",
+        "tags": [
+          "Pizarras"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de pizarras"
+          }
+        }
+      }
+    },
     "/queja": {
       "get": {
         "summary": "Listar quejas con paginación",
@@ -186,9 +217,10 @@
               "type": "string",
               "enum": [
                 "Abierta",
-                "En Proceso",
+                "Probada",
                 "Pendiente",
-                "Resuelto",
+                "Asignada",
+                "Resuelta",
                 "Cerrada"
               ]
             }
@@ -419,12 +451,6 @@
                           "items": {
                             "type": "object"
                           }
-                        },
-                        "flujo": {
-                          "type": "array",
-                          "items": {
-                            "type": "object"
-                          }
                         }
                       }
                     }
@@ -498,12 +524,13 @@
                     "type": "string",
                     "enum": [
                       "Abierta",
-                      "En Proceso",
+                      "Probada",
                       "Pendiente",
-                      "Resuelto",
+                      "Asignada",
+                      "Resuelta",
                       "Cerrada"
                     ],
-                    "example": "En Proceso",
+                    "example": "Probada",
                     "description": "Nuevo estado de la queja"
                   },
                   "prioridad": {
@@ -599,12 +626,146 @@
           }
         }
       }
+    },
+    "/tbTelefono": {
+      "get": {
+        "summary": "Listar teléfonos con paginación",
+        "tags": [
+          "Telefonos"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de teléfonos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tipolinea": {
+      "get": {
+        "summary": "Listar tipos de línea",
+        "tags": [
+          "TiposLinea"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tipos de línea"
+          }
+        }
+      }
+    },
+    "/tbTrabajador": {
+      "get": {
+        "summary": "Listar trabajadores con paginación",
+        "tags": [
+          "Trabajadores"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de trabajadores"
+          }
+        }
+      }
     }
   },
   "tags": [
     {
+      "name": "Pizarras",
+      "description": "Gestión de pizarras"
+    },
+    {
       "name": "Quejas",
       "description": "Gestión de quejas de telecomunicaciones"
+    },
+    {
+      "name": "Telefonos",
+      "description": "Gestión de teléfonos"
+    },
+    {
+      "name": "TiposLinea",
+      "description": "Gestión de tipos de línea"
+    },
+    {
+      "name": "Trabajadores",
+      "description": "Gestión de trabajadores"
     }
   ]
 }

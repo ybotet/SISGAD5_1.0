@@ -293,8 +293,9 @@ LineaController.dashboard = async function (req, res, next) {
     const byProp = await Linea.sequelize.query(
       `SELECT p.nombre as name, COUNT(1) as value FROM tb_linea l 
        LEFT JOIN tb_propietario p ON l.id_propietario = p.id_propietario
-       WHERE ($1::timestamp IS NULL OR l."created_at" >= $1::timestamp)
-         AND ($2::timestamp IS NULL OR l."created_at" <= $2::timestamp)
+       WHERE l."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+         AND ($1::timestamp IS NULL OR l."created_at"::timestamp >= $1::timestamp)
+         AND ($2::timestamp IS NULL OR l."created_at"::timestamp <= $2::timestamp)
        GROUP BY p.nombre ORDER BY value DESC LIMIT 10`,
       {
         bind: [normalizedRange.from || null, normalizedRange.to || null],
@@ -305,8 +306,9 @@ LineaController.dashboard = async function (req, res, next) {
     const bySenal = await Linea.sequelize.query(
       `SELECT s.senalizacion as name, COUNT(1) as value FROM tb_linea l 
        LEFT JOIN tb_senalizacion s ON l.id_senalizacion = s.id_senalizacion
-       WHERE ($1::timestamp IS NULL OR l."created_at" >= $1::timestamp)
-         AND ($2::timestamp IS NULL OR l."created_at" <= $2::timestamp)
+       WHERE l."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+         AND ($1::timestamp IS NULL OR l."created_at"::timestamp >= $1::timestamp)
+         AND ($2::timestamp IS NULL OR l."created_at"::timestamp <= $2::timestamp)
        GROUP BY s.senalizacion ORDER BY value DESC LIMIT 10`,
       {
         bind: [normalizedRange.from || null, normalizedRange.to || null],
@@ -314,11 +316,33 @@ LineaController.dashboard = async function (req, res, next) {
       },
     );
 
+    const byTipolinea = await Linea.sequelize.query(
+      `SELECT t.tipo as name, COUNT(1) as value FROM tb_linea l 
+       LEFT JOIN tb_tipolinea t ON l.id_tipolinea = t.id_tipolinea
+       WHERE l."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+         AND ($1::timestamp IS NULL OR l."created_at"::timestamp >= $1::timestamp)
+         AND ($2::timestamp IS NULL OR l."created_at"::timestamp <= $2::timestamp)
+       GROUP BY t.tipo ORDER BY value DESC LIMIT 10`,
+      {
+        bind: [normalizedRange.from || null, normalizedRange.to || null],
+        type: Linea.sequelize.QueryTypes.SELECT,
+      },
+    );
+
+    const byHilos = await Linea.sequelize.query(
+      `SELECT COALESCE(l.hilos, 'Sin hilos') as name, COUNT(1) as value FROM tb_linea l
+       GROUP BY name ORDER BY value DESC LIMIT 20`,
+      {
+        type: Linea.sequelize.QueryTypes.SELECT,
+      },
+    );
+
     const byYear = await Linea.sequelize.query(
-      `SELECT to_char(l."created_at", 'YYYY') as year, COUNT(1) as cantidad 
+      `SELECT to_char(l."created_at"::timestamp, 'YYYY') as year, COUNT(1) as cantidad 
        FROM tb_linea l
-       WHERE ($1::timestamp IS NULL OR l."created_at" >= $1::timestamp)
-         AND ($2::timestamp IS NULL OR l."created_at" <= $2::timestamp)
+       WHERE l."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+         AND ($1::timestamp IS NULL OR l."created_at"::timestamp >= $1::timestamp)
+         AND ($2::timestamp IS NULL OR l."created_at"::timestamp <= $2::timestamp)
        GROUP BY year ORDER BY year ASC`,
       {
         bind: [normalizedRange.from || null, normalizedRange.to || null],
@@ -326,15 +350,42 @@ LineaController.dashboard = async function (req, res, next) {
       },
     );
 
+    const byMonth = await Linea.sequelize.query(
+      `SELECT to_char(l."created_at"::timestamp, 'MM') as month, COUNT(1) as cantidad FROM tb_linea l
+       WHERE l."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+         AND date_part('year', l."created_at"::timestamp) = date_part('year', now())
+       GROUP BY month ORDER BY month ASC`,
+      { type: Linea.sequelize.QueryTypes.SELECT },
+    );
+
+    const byQuarter = await Linea.sequelize.query(
+      `SELECT date_part('quarter', l."created_at"::timestamp) as quarter, COUNT(1) as cantidad FROM tb_linea l
+       WHERE l."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+       GROUP BY quarter ORDER BY quarter ASC`,
+      { type: Linea.sequelize.QueryTypes.SELECT },
+    );
+
     const topLineasQuejas = await Linea.sequelize.query(
       `SELECT COALESCE(l.clavelinea, CONCAT('Línea ', l.id_linea)) as name, COUNT(q.id_queja) as value
        FROM tb_linea l 
        LEFT JOIN tb_queja q ON q.id_linea = l.id_linea
-       WHERE ($1::timestamp IS NULL OR q."created_at" >= $1::timestamp)
-         AND ($2::timestamp IS NULL OR q."created_at" <= $2::timestamp)
+       WHERE q."created_at" ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+         AND ($1::timestamp IS NULL OR q."created_at"::timestamp >= $1::timestamp)
+         AND ($2::timestamp IS NULL OR q."created_at"::timestamp <= $2::timestamp)
        GROUP BY name ORDER BY value DESC LIMIT 10`,
       {
         bind: [normalizedRange.from || null, normalizedRange.to || null],
+        type: Linea.sequelize.QueryTypes.SELECT,
+      },
+    );
+
+    // Conteo de líneas que tienen al menos una queja en cada estado
+    const quejaStates = await Linea.sequelize.query(
+      `SELECT q.estado, COUNT(DISTINCT l.id_linea) as cnt FROM tb_linea l
+        JOIN tb_queja q ON l.id_linea = q.id_linea
+        WHERE q.estado IN ('Pendiente','Asignada','Probada','Resuelta')
+        GROUP BY q.estado`,
+      {
         type: Linea.sequelize.QueryTypes.SELECT,
       },
     );
@@ -345,10 +396,22 @@ LineaController.dashboard = async function (req, res, next) {
         total,
         activas,
         inactivas,
+        // keep original names and provide aliases expected by frontend
         byProp: byProp || [],
+        byPropietario: byProp || [],
         bySenal: bySenal || [],
+        byTipolinea: byTipolinea || [],
+        byHilos: byHilos || [],
         byYear: byYear || [],
+        byMonth: byMonth || [],
+        byQuarter: byQuarter || [],
         topLineasQuejas: topLineasQuejas || [],
+        byMasQuejas: topLineasQuejas || [],
+        quejasPendientes:
+          (quejaStates.find((s) => s.estado === "Pendiente") || { cnt: 0 }).cnt || 0,
+        quejasAsignadas: (quejaStates.find((s) => s.estado === "Asignada") || { cnt: 0 }).cnt || 0,
+        quejasProbadas: (quejaStates.find((s) => s.estado === "Probada") || { cnt: 0 }).cnt || 0,
+        quejasResueltas: (quejaStates.find((s) => s.estado === "Resuelta") || { cnt: 0 }).cnt || 0,
       },
     });
   } catch (error) {

@@ -11,6 +11,30 @@ const validate = require("../middleware/validate");
 
 const TrabajadorController = {
   /**
+   * @swagger
+   * tags:
+   *   name: Trabajadores
+   *   description: Gestión de trabajadores
+   */
+
+  /**
+   * @swagger
+   * /tbTrabajador:
+   *   get:
+   *     summary: Listar trabajadores con paginación
+   *     tags: [Trabajadores]
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema: { type: integer, default: 1 }
+   *       - in: query
+   *         name: limit
+   *         schema: { type: integer, default: 10 }
+   *     responses:
+   *       200:
+   *         description: Lista de trabajadores
+   */
+  /**
    * @desc    Obtener todos los registros (CON validación Zod en query)
    * @route   GET /api/tbTrabajador
    * @access  Public

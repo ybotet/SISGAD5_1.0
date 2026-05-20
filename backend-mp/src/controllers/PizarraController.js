@@ -11,6 +11,30 @@ const validate = require("../middleware/validate");
 
 const PizarraController = {
   /**
+   * @swagger
+   * tags:
+   *   name: Pizarras
+   *   description: Gestión de pizarras
+   */
+
+  /**
+   * @swagger
+   * /tbPizarra:
+   *   get:
+   *     summary: Listar pizarras con paginación
+   *     tags: [Pizarras]
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema: { type: integer, default: 1 }
+   *       - in: query
+   *         name: limit
+   *         schema: { type: integer, default: 10 }
+   *     responses:
+   *       200:
+   *         description: Lista de pizarras
+   */
+  /**
    * @desc    Obtener todos los registros (CON validación Zod en query)
    * @route   GET /api/tbPizarra
    * @access  Public
