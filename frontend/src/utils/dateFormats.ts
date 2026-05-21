@@ -56,7 +56,7 @@ export const formatDateLocal = (date?: Date | string | null): string => {
   return `${year}-${month}-${day}`;
 };
 
-// ✅ NUEVA FUNCIÓN: Para mostrar fechas en la interfaz de usuario
+// NUEVA FUNCIÓN: Para mostrar fechas en la interfaz de usuario
 /**
  * Formatea una fecha para mostrar en la interfaz (DD/MM/YYYY HH:MM)
  * @param dateString - String de fecha en cualquier formato válido
@@ -81,7 +81,7 @@ export const formatToDisplay = (dateString: string | null | undefined): string =
   }
 };
 
-// ✅ NUEVA FUNCIÓN: Para formatear fecha corta (solo fecha, sin hora)
+// NUEVA FUNCIÓN: Para formatear fecha corta (solo fecha, sin hora)
 /**
  * Formatea una fecha para mostrar en la interfaz (DD/MM/YYYY)
  * @param dateString - String de fecha en cualquier formato válido

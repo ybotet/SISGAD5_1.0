@@ -52,14 +52,14 @@ const LineaController = {
           defaultSort: "createdAt",
           defaultOrder: "DESC",
           maxLimit: 100,
-          // ✅ Mapeo de camelCase a snake_case para la BD
+          // Mapeo de camelCase a snake_case para la BD
           columnMapping: {
             createdAt: "created_at",
             updatedAt: "updated_at",
           },
         });
 
-        // ✅ Ya no necesitas mapear manualmente, parseListParams lo hace por ti
+        // Ya no necesitas mapear manualmente, parseListParams lo hace por ti
 
         console.log("📊 sortBy (ya mapeado):", sortBy);
         console.log("📊 sortOrder:", sortOrder);
@@ -82,7 +82,7 @@ const LineaController = {
           ],
           limit: parseInt(limit),
           offset: parseInt(offset),
-          order: [[sortBy, sortOrder]], // ✅ sortBy ya es 'created_at' o 'updated_at'
+          order: [[sortBy, sortOrder]], // sortBy ya es 'created_at' o 'updated_at'
           distinct: true,
         });
 
@@ -142,7 +142,7 @@ const LineaController = {
       }
 
       const recorridos = await Recorrido.findAll({
-        where: { id_linea: id }, // ✅ Corregido: usar id_linea, no id_telefono
+        where: { id_linea: id }, // Corregido: usar id_linea, no id_telefono
         include: [
           { association: "tb_cable", attributes: ["id_cable", "numero"] },
           { association: "tb_planta", attributes: ["id_planta", "planta"] },
@@ -160,7 +160,7 @@ const LineaController = {
         limit: 100,
       });
 
-      // ✅ Normalizar timestamps en toda la respuesta
+      // Normalizar timestamps en toda la respuesta
       const lineaNormalizada = normalizeTimestamps(linea.toJSON());
       const recorridosNormalizados = normalizeTimestamps(recorridos);
       const quejasNormalizadas = normalizeTimestamps(quejas);
@@ -183,14 +183,14 @@ const LineaController = {
     validate(createLineaSchema, "body"),
     async (req, res, next) => {
       try {
-        // ✅ Filtrar campos de timestamps
+        // Filtrar campos de timestamps
         const { createdAt, updatedAt, ...cleanData } = req.body;
 
         console.log("📝 Creando línea con datos:", cleanData);
 
         const data = await Linea.create(cleanData);
 
-        // ✅ Normalizar respuesta
+        // Normalizar respuesta
         const dataNormalizada = normalizeTimestamps(data.toJSON());
 
         res.status(201).json({
@@ -218,7 +218,7 @@ const LineaController = {
       try {
         const { id } = req.params;
 
-        // ✅ Filtrar campos de timestamps
+        // Filtrar campos de timestamps
         const { createdAt, updatedAt, ...cleanData } = req.body;
 
         const [affectedRows] = await Linea.update(cleanData, {
@@ -231,7 +231,7 @@ const LineaController = {
 
         const updatedData = await Linea.findByPk(id);
 
-        // ✅ Normalizar respuesta
+        // Normalizar respuesta
         const dataNormalizada = normalizeTimestamps(updatedData.toJSON());
 
         res.json({
@@ -280,7 +280,7 @@ LineaController.dashboard = async function (req, res, next) {
     const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
     const where = {};
     if (normalizedRange.from || normalizedRange.to) {
-      where.created_at = {}; // ✅ Usar created_at (nombre en BD)
+      where.created_at = {}; // Usar created_at (nombre en BD)
       if (normalizedRange.from) where.created_at[Op.gte] = normalizedRange.from;
       if (normalizedRange.to) where.created_at[Op.lte] = normalizedRange.to;
     }
@@ -289,7 +289,7 @@ LineaController.dashboard = async function (req, res, next) {
     const activas = await Linea.count({ where: { ...where, esbaja: false } });
     const inactivas = await Linea.count({ where: { ...where, esbaja: true } });
 
-    // ✅ Usar created_at en las consultas SQL
+    // Usar created_at en las consultas SQL
     const byProp = await Linea.sequelize.query(
       `SELECT p.nombre as name, COUNT(1) as value FROM tb_linea l 
        LEFT JOIN tb_propietario p ON l.id_propietario = p.id_propietario

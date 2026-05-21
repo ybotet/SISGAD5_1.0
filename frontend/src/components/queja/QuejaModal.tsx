@@ -188,7 +188,7 @@ export default function QuejaModal({
       reportado_por: formData.reportado_por || undefined,
     };
 
-    // ✅ Convertir la fecha de datetime-local a ISO string con Z (formato que espera Zod)
+    // Convertir la fecha de datetime-local a ISO string con Z (formato que espera Zod)
     if (formData.fecha) {
       const date = new Date(formData.fecha);
       if (!isNaN(date.getTime())) {

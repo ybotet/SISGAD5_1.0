@@ -73,19 +73,19 @@ export default function StatsPage() {
       </div>
 
       {/* Selector de tiempo global (ahora visible) */}
-      <div className="mb-6">
-        <label className="text-sm text-gray-600 mr-2">Período global para tendencias:</label>
-        <select
-          value={periodo}
-          onChange={(e) => handleDateRangeChange(fechaDesde, fechaHasta, e.target.value)}
-          className="border border-gray-300 rounded px-3 py-1"
-        >
-          <option value="mes">Este mes</option>
-          <option value="trimestre">Este trimestre</option>
-          <option value="año">Este año</option>
-          <option value="todo">Todo el historial</option>
-        </select>
-      </div>
+      {/* <div className="mb-6">
+          <label className="text-sm text-gray-600 mr-2">Período global para tendencias:</label>
+          <select
+            value={periodo}
+            onChange={(e) => handleDateRangeChange(fechaDesde, fechaHasta, e.target.value)}
+            className="border border-gray-300 rounded px-3 py-1"
+          >
+            <option value="mes">Este mes</option>
+            <option value="trimestre">Este trimestre</option>
+            <option value="año">Este año</option>
+            <option value="todo">Todo el historial</option>
+          </select>
+        </div> */}
 
       {/* Pestañas */}
       <div className="border-b border-gray-200 mb-6">

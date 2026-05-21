@@ -295,7 +295,7 @@ export default function QuejaDetallesModal({
       setGuardando(true);
       setError("");
 
-      // ✅ Asegurar que la fecha tenga el formato correcto (sin objetos Date)
+      // Asegurar que la fecha tenga el formato correcto (sin objetos Date)
       let fechaFormateada = null;
       if (nuevaPrueba.fecha) {
         // Si la fecha viene en formato datetime-local "YYYY-MM-DDTHH:MM"
@@ -306,7 +306,7 @@ export default function QuejaDetallesModal({
         }
       }
 
-      // ✅ Crear objeto con los datos limpios (sin createdAt/updatedAt)
+      // Crear objeto con los datos limpios (sin createdAt/updatedAt)
       const datosPrueba = {
         fecha: fechaFormateada,
         id_clave: nuevaPrueba.id_clave ? parseInt(nuevaPrueba.id_clave) : null,
@@ -1142,7 +1142,7 @@ export default function QuejaDetallesModal({
                                   {getEventoIcono(evento.tipo)}
                                   <h5 className="font-semibold">{evento.titulo}</h5>
                                 </div>
-                                {/* ✅ CORREGIDO: Usar formatToDisplay para la fecha del historial */}
+                                {/* CORREGIDO: Usar formatToDisplay para la fecha del historial */}
                                 <span className="text-xs text-gray-500">
                                   {formatToDisplay(evento.fecha)}
                                 </span>

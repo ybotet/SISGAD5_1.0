@@ -697,9 +697,7 @@ export default function MaterialesModuleStats({
               ⚠️ Alertas de Stock
             </h3>
             {alertasStock.length === 0 ? (
-              <div className="text-center text-gray-400 py-4 text-sm">
-                ✅ No hay alertas activas
-              </div>
+              <div className="text-center text-gray-400 py-4 text-sm">No hay alertas activas</div>
             ) : (
               <div className="space-y-3">
                 {alertasStock.map((item, idx) => (

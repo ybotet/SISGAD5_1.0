@@ -53,14 +53,14 @@ export default function QuejaPage() {
   const [asignacion, setAsignacion] = useState<AsignacionItem[]>([]);
   const [loadingDetalles, setLoadingDetalles] = useState(false);
 
-  // ✅ Estados para claves (cargadas una sola vez)
+  // Estados para claves (cargadas una sola vez)
   const [claves, setClaves] = useState<Map<number, string>>(new Map());
   const [clavesLoaded, setClavesLoaded] = useState(false);
 
   // Cargar datos iniciales
   useEffect(() => {
     loadQuejas();
-    loadClaves(); // ✅ Cargar claves al inicio
+    loadClaves(); // Cargar claves al inicio
   }, []);
 
   // Cargar quejas cuando cambia el término de búsqueda o filtro de estado
@@ -72,7 +72,7 @@ export default function QuejaPage() {
     return () => clearTimeout(timeoutId);
   }, [searchTerm, estadoFilter]);
 
-  // ✅ Función para cargar claves
+  // Función para cargar claves
   const loadClaves = async () => {
     try {
       const clavesData = await quejaService.getClaves();
@@ -109,7 +109,7 @@ export default function QuejaPage() {
         estado,
       );
 
-      console.log("✅ Quejas cargadas:", {
+      console.log("Quejas cargadas:", {
         cantidad: response.data.length,
         pagination: response.pagination,
       });
@@ -133,7 +133,7 @@ export default function QuejaPage() {
 
       const detalles = await quejaService.getQuejaDetalles(id);
 
-      console.log("✅ Detalles cargados:", {
+      console.log("Detalles cargados:", {
         queja: detalles.queja?.num_reporte,
         pruebas: detalles.pruebas?.length,
         trabajos: detalles.trabajos?.length,
@@ -177,7 +177,7 @@ export default function QuejaPage() {
         console.log("🔍 Detalles completos después de refresh:", detalles);
         console.log("🔍 Trabajos con trabajadores:", detalles.trabajos);
 
-        console.log("✅ Detalles refrescados:", {
+        console.log("Detalles refrescados:", {
           queja: detalles.queja?.num_reporte,
           pruebas: detalles.pruebas?.length,
           trabajos: detalles.trabajos?.length,
@@ -248,7 +248,7 @@ export default function QuejaPage() {
   const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
 
-    console.log("✅ Confirmando eliminación para ID:", itemToDelete);
+    console.log("Confirmando eliminación para ID:", itemToDelete);
 
     try {
       setDeleting(true);
@@ -321,7 +321,7 @@ export default function QuejaPage() {
         await quejaService.createQueja(itemData);
       }
 
-      console.log("✅ Operación exitosa, recargando lista...");
+      console.log("Operación exitosa, recargando lista...");
       await loadQuejas(pagination.page, pagination.limit, searchTerm, estadoFilter);
 
       setShowModal(false);
@@ -409,7 +409,7 @@ export default function QuejaPage() {
         onRefresh={handleRefresh}
       />
 
-      {/* ✅ Tabla con claves desde el padre */}
+      {/* Tabla con claves desde el padre */}
       <QuejaTable
         items={items}
         onEdit={handleEdit}
@@ -449,7 +449,7 @@ export default function QuejaPage() {
         loading={deleting}
       />
 
-      {/* ✅ Modal de Detalles sin flujo */}
+      {/* Modal de Detalles sin flujo */}
       <QuejaDetallesModal
         show={showDetallesModal}
         queja={quejaDetalles}

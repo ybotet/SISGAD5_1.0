@@ -82,7 +82,7 @@ const TelefonoController = {
           },
         });
 
-        // ✅ Mapear sortBy al nombre de la columna en la BD
+        // Mapear sortBy al nombre de la columna en la BD
         const columnMapping = {
           createdAt: "created_at",
           updatedAt: "updated_at",
@@ -112,7 +112,7 @@ const TelefonoController = {
           distinct: true,
         });
 
-        // ✅ Normalizar los timestamps en cada fila
+        // Normalizar los timestamps en cada fila
         const rowsNormalizados = data.rows.map((row) => {
           const json = row.toJSON();
           json.createdAt = json.created_at;
@@ -199,7 +199,7 @@ const TelefonoController = {
         limit: 100, // o paginación
       });
 
-      // ✅ Normalizar la respuesta: convertir created_at → createdAt
+      // Normalizar la respuesta: convertir created_at → createdAt
       const telefonoNormalizado = telefono.toJSON();
       telefonoNormalizado.createdAt = telefonoNormalizado.created_at;
       telefonoNormalizado.updatedAt = telefonoNormalizado.updated_at;

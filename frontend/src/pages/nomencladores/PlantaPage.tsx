@@ -53,16 +53,15 @@ export default function PlantaPage() {
     return () => clearTimeout(timeoutId);
   }, [searchTerm]);
 
-  const loadPlantas = async (
-    page: number = 1,
-    limit: number = 10,
-    search: string = "",
-  ) => {
+  const loadPlantas = async (page: number = 1, limit: number = 10, search: string = "") => {
     try {
       setLoading(true);
       setError("");
-      const response: PaginatedResponse<PlantaItem> =
-        await plantaService.getPlantas(page, limit, search);
+      const response: PaginatedResponse<PlantaItem> = await plantaService.getPlantas(
+        page,
+        limit,
+        search,
+      );
 
       setItems(response.data);
       setPagination(response.pagination);
@@ -114,16 +113,14 @@ export default function PlantaPage() {
       setError("");
 
       await plantaService.deletePlanta(itemToDelete);
-      console.log("✅ Eliminación exitosa");
+      console.log("Eliminación exitosa");
 
       // Recargar los datos
       await loadPlantas(pagination.page, pagination.limit, searchTerm);
     } catch (err: any) {
       console.error("❌ Error en eliminación:", err);
       const errorMessage =
-        err?.response?.data?.error ||
-        err?.message ||
-        "Error al eliminar la planta";
+        err?.response?.data?.error || err?.message || "Error al eliminar la planta";
       setError(errorMessage);
     } finally {
       // Siempre cerrar el modal y resetear estados
@@ -168,9 +165,7 @@ export default function PlantaPage() {
       const errorMessage =
         err?.response?.data?.error ||
         err?.message ||
-        (editingItem
-          ? "Error al actualizar la planta"
-          : "Error al crear la planta");
+        (editingItem ? "Error al actualizar la planta" : "Error al crear la planta");
       setError(errorMessage);
       console.error("Error saving planta:", err);
     } finally {
@@ -220,9 +215,7 @@ export default function PlantaPage() {
       <PlantaFilters
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        onRefresh={() =>
-          loadPlantas(pagination.page, pagination.limit, searchTerm)
-        }
+        onRefresh={() => loadPlantas(pagination.page, pagination.limit, searchTerm)}
       />
 
       {/* Table */}

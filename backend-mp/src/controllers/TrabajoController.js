@@ -142,8 +142,13 @@ const TrabajoController = {
         const queja = await Queja.findOne({
           where: { id_queja: trabajoData.id_queja },
         });
-        if (!queja || (queja && queja.estado !== "Asignada")) {
-          return next(apiError.badRequest("La queja debe estar en estado 'Asignada'"));
+        //la queja solo pouede estar en estado "Asignada" o "Pendiente" para crear un trabajo
+        if (queja.estado !== "Asignada" && queja.estado !== "Pendiente") {
+          return next(
+            apiError.badRequest(
+              "La queja debe estar en estado 'Asignada' o 'Pendiente' para crear un trabajo",
+            ),
+          );
         }
 
         if (trabajoData.fecha) {

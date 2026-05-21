@@ -313,7 +313,7 @@ export default function LineaModuleStats({
             size="small"
           />
           <KPICard
-            title="✅ Resueltas"
+            title="Resueltas"
             value={quejasResueltas}
             subtitle={`${totalQuejas > 0 ? ((quejasResueltas / totalQuejas) * 100).toFixed(0) : 0}% del total`}
             color="green"

@@ -160,13 +160,20 @@ const QuejaController = {
         ];
 
         // Construir where clause
+        // Normalizar el rango de fechas provisto en la query
+        const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
+
         const whereClause = {
           [Op.and]: [
             search ? { num_reporte: { [Op.iLike]: `%${search}%` } } : null,
             estado ? { estado } : null,
             id_tipoqueja ? { id_tipoqueja } : null,
-            normalizedRange.from ? { fecha: { [Op.gte]: normalizedRange.from } } : null,
-            normalizedRange.to ? { fecha: { [Op.lte]: normalizedRange.to } } : null,
+            normalizedRange && normalizedRange.from
+              ? { fecha: { [Op.gte]: normalizedRange.from } }
+              : null,
+            normalizedRange && normalizedRange.to
+              ? { fecha: { [Op.lte]: normalizedRange.to } }
+              : null,
           ].filter(Boolean),
         };
         // 🔹 BLINDAJE: Validación defensiva ANTES de usar en Sequelize
@@ -301,7 +308,7 @@ const QuejaController = {
         ],
       });
 
-      // ✅ CONSULTAR TRABAJOS CON SUS TRABAJADORES ASOCIADOS
+      // CONSULTAR TRABAJOS CON SUS TRABAJADORES ASOCIADOS
       const trabajosRaw = await Trabajo.findAll({
         where: { id_queja: id },
         include: [
@@ -314,7 +321,7 @@ const QuejaController = {
             attributes: ["id_trabajador", "clave_trabajador", "nombre"],
           },
           {
-            // ✅ Esta es la asociación clave
+            // Esta es la asociación clave
             association: "tb_trabajo_trabajadores",
             required: false,
             include: [
@@ -327,7 +334,7 @@ const QuejaController = {
         ],
       });
 
-      // ✅ Formatear trabajos para incluir el array de trabajadores
+      // Formatear trabajos para incluir el array de trabajadores
       const trabajos = trabajosRaw.map((trabajo) => {
         const trabajoPlain = trabajo.toJSON();
         const trabajadoresAsignados =
@@ -374,7 +381,7 @@ const QuejaController = {
         data: {
           queja,
           pruebas,
-          trabajos, // ✅ Ahora incluye la propiedad 'trabajadores'
+          trabajos, // Ahora incluye la propiedad 'trabajadores'
           asignacion,
         },
       });
@@ -435,7 +442,7 @@ const QuejaController = {
           bodyData.fechaok = normalizeToDbDateTime(bodyData.fechaok);
         }
 
-        // ✅ num_reporte se genera automáticamente en el hook beforeCreate
+        // num_reporte se genera automáticamente en el hook beforeCreate
 
         const data = await Queja.create(bodyData);
 
@@ -571,7 +578,7 @@ const QuejaController = {
             return next(apiErrors.badRequest("ERROR.ESTADO.TRANSICION.INVALIDA"));
           }
 
-          // ✅ Si se está cerrando la queja, validar que tenga clave de cierre
+          // Si se está cerrando la queja, validar que tenga clave de cierre
           if (updateData.estado === "Cerrada") {
             if (!updateData.id_clavecierre && !req.body.id_clavecierre) {
               return next(apiErrors.badRequest("Debe seleccionar una clave de cierre"));
@@ -582,7 +589,7 @@ const QuejaController = {
           }
         }
 
-        // ✅ Si se envía id_clavecierre, validar que la clave exista y no sea pendiente
+        // Si se envía id_clavecierre, validar que la clave exista y no sea pendiente
         if (updateData.id_clavecierre) {
           const claveCierre = await Clave.findByPk(updateData.id_clavecierre);
           if (!claveCierre) {

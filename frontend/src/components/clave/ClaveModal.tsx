@@ -6,7 +6,7 @@ interface ClaveModalProps {
   editingItem: ClaveItem | null;
   saving: boolean;
   onClose: () => void;
-  onSave: (formData: any) => void; // ✅ Cambiar de FormData a any
+  onSave: (formData: any) => void; // Cambiar de FormData a any
 }
 
 export default function ClaveModal({
@@ -45,11 +45,11 @@ export default function ClaveModal({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // ✅ Construir objeto con los tipos correctos para el backend
+    // Construir objeto con los tipos correctos para el backend
     const datosEnvio = {
       clave: formData.clave.trim(),
       descripcion: formData.descripcion.trim(),
-      valor_p: formData.valor_p ? parseFloat(formData.valor_p) : 0, // ✅ Convertir a número
+      valor_p: formData.valor_p ? parseFloat(formData.valor_p) : 0, // Convertir a número
       es_pendiente: formData.es_pendiente === "true",
     };
 
@@ -111,7 +111,7 @@ export default function ClaveModal({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Valor P</label>
               <input
-                type="number" // ✅ Cambiar a number
+                type="number" // Cambiar a number
                 name="valor_p"
                 value={formData.valor_p}
                 onChange={handleInputChange}

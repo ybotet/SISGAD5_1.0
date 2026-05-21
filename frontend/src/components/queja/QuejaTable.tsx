@@ -8,7 +8,7 @@ interface QuejaTableProps {
   onDelete: (id: number) => void;
   onView: (item: QuejaItem) => void;
   loading?: boolean;
-  // ✅ Props recibidas desde el padre
+  // Props recibidas desde el padre
   claves?: Map<number, string>;
   clavesLoaded?: boolean;
 }
@@ -22,7 +22,7 @@ export default function QuejaTable({
   claves = new Map(),
   clavesLoaded = false,
 }: QuejaTableProps) {
-  // ✅ Función para obtener descripción de clave usando los datos del padre
+  // Función para obtener descripción de clave usando los datos del padre
   const getClaveDescription = (id_clave: number | null | undefined): string => {
     if (!id_clave) return "Sin clave";
     if (!clavesLoaded) return "Cargando...";

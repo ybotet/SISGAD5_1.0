@@ -122,7 +122,7 @@ export default function ClavePage() {
       setError("");
 
       await claveService.deleteClave(itemToDelete);
-      console.log("✅ Eliminación exitosa");
+      console.log("Eliminación exitosa");
 
       // Recargar los datos
       await loadClaves(pagination.page, pagination.limit, searchTerm, estadoFilter);
@@ -156,7 +156,7 @@ export default function ClavePage() {
       setSaving(true);
       setError("");
 
-      // ✅ Ya no necesitas get de FormData, los datos ya vienen en el objeto
+      // Ya no necesitas get de FormData, los datos ya vienen en el objeto
       const itemData: CreateClaveRequest = {
         clave: datosEnvio.clave,
         descripcion: datosEnvio.descripcion,
