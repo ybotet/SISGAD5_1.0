@@ -91,6 +91,16 @@ services:
         reservations:
           memory: 128M
 
+  backend-materiales:
+    build: .
+    depends_on: [postgres]
+    env_file: .env
+    ports:
+      - "5003:5003"
+    restart: unless-stopped
+    networks:
+      - sisgad5-network
+
   api-gateway:
     build: ./api-gateway
     container_name: sisgad5-gateway
