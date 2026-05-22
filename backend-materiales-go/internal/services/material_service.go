@@ -35,21 +35,27 @@ func (s *MaterialService) ListarMateriales() ([]models.Material, error) {
     return s.materialRepo.GetAll()
 }
 
+// material_service.go - ListarMaterialesPaginated
 func (s *MaterialService) ListarMaterialesPaginated(page, limit int, search string) (*MaterialesPageResult, error) {
     if page <= 0 {
         page = 1
     }
-    if limit <= 0 || limit > 100 {
+    if limit <= 0 {
         limit = 10
+    } else if limit > 1000 {
+        limit = 1000
     }
 
-    total, err := s.materialRepo.Count(search)
+    // Asegurar que search sea string
+    searchStr := fmt.Sprintf("%v", search)
+
+    total, err := s.materialRepo.Count(searchStr)
     if err != nil {
         return nil, err
     }
 
     offset := (page - 1) * limit
-    materiales, err := s.materialRepo.GetPaginated(search, limit, offset)
+    materiales, err := s.materialRepo.GetPaginated(searchStr, limit, offset)
     if err != nil {
         return nil, err
     }

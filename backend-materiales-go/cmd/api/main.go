@@ -132,6 +132,7 @@ func main() {
     api.HandleFunc("/materiales", materialHandler.Crear).Methods("POST")
     api.HandleFunc("/materiales/{id:[0-9]+}", materialHandler.Actualizar).Methods("PUT")
     api.HandleFunc("/materiales/{id:[0-9]+}", materialHandler.Eliminar).Methods("DELETE")
+    api.HandleFunc("/materiales/todos", materialHandler.ListarTodos).Methods("GET")
 
     // --- Rutas de asignaciones ---
     api.HandleFunc("/asignaciones", asignacionHandler.ListarAsignaciones).Methods("GET")

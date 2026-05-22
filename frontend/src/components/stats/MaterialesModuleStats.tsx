@@ -17,25 +17,13 @@ import {
   AreaChart,
   Area,
 } from "recharts";
+import { materialService } from "../../services/materialService";
+import type { MaterialItem } from "../../services/materialService";
 
 // ============================================================
 // TIPOS
 // ============================================================
 type KpiColor = "blue" | "green" | "orange" | "purple" | "emerald" | "red";
-
-interface MaterialItem {
-  id: number;
-  codigo: string;
-  nombre: string;
-  descripcion: string;
-  categoria: string;
-  unidad: string;
-  precio: number;
-  stock_actual?: number;
-  stock_minimo?: number;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface MaterialesModuleStatsProps {
   fechaDesde?: string;
@@ -300,10 +288,15 @@ function HorizontalBarChart({
 const filtrarPorFecha = (items: MaterialItem[], desde?: string, hasta?: string): MaterialItem[] => {
   if (!desde && !hasta) return items;
 
+  const desdeDate = desde ? new Date(desde) : null;
+  const hastaDate = hasta ? new Date(hasta) : null;
+
   return items.filter((item) => {
-    const fecha = new Date(item.createdAt);
-    if (desde && fecha < new Date(desde)) return false;
-    if (hasta && fecha > new Date(hasta)) return false;
+    const created = (item as any).createdAt || (item as any).created_at;
+    if (!created) return false;
+    const fecha = new Date(created);
+    if (desdeDate && fecha < desdeDate) return false;
+    if (hastaDate && fecha > hastaDate) return false;
     return true;
   });
 };
@@ -319,7 +312,8 @@ export default function MaterialesModuleStats({
   const [items, setItems] = useState<MaterialItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [useMock, setUseMock] = useState(true); // Cambiar a false cuando la API esté lista
+  const [useMock, setUseMock] = useState(false); // Use backend by default; checkbox keeps mock as fallback
+  const [resumenBackend, setResumenBackend] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -332,16 +326,33 @@ export default function MaterialesModuleStats({
           await new Promise((resolve) => setTimeout(resolve, 500)); // Simular latencia
           setItems(MOCK_MATERIALES);
         } else {
-          // TODO: Reemplazar con llamada real a tu API de materiales en Go
-          // const response = await fetch('/api/materiales?limit=1000');
-          // const data = await response.json();
-          // setItems(data);
-          setItems(MOCK_MATERIALES); // Fallback a mock mientras tanto
+          // Llamadas al backend: lista y resumen
+          try {
+            const page = await materialService.getMaterials(1, 10000);
+            setItems(page.data || []);
+          } catch (err) {
+            console.error("Error cargando lista de materiales desde backend", err);
+            setError("Error cargando la lista de materiales desde backend");
+            if (useMock) setItems(MOCK_MATERIALES);
+            else setItems([]);
+          }
+
+          try {
+            const r = await materialService.getResumen();
+            setResumenBackend(r || null);
+          } catch (err) {
+            console.error("Error cargando resumen desde backend", err);
+            setResumenBackend(null);
+          }
         }
       } catch (err) {
         console.error("Error cargando materiales", err);
-        setError("Error al cargar los datos");
-        setItems(MOCK_MATERIALES);
+        setError("Error al cargar los datos desde backend");
+        if (useMock) {
+          setItems(MOCK_MATERIALES);
+        } else {
+          setItems([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -359,52 +370,52 @@ export default function MaterialesModuleStats({
   // ============================================================
   // CÁLCULOS ESTADÍSTICOS
   // ============================================================
+  // Total de materiales registrados
+  const totalMateriales = resumenBackend?.total_materiales ?? filteredItems.length;
 
-  // Valor total del inventario
-  const valorTotal = filteredItems.reduce(
-    (sum, item) => sum + item.precio * (item.stock_actual || 0),
-    0,
-  );
+  // Stock total (unidades disponibles)
+  const stockTotal = filteredItems.reduce((sum, item) => sum + (item.stock_actual || 0), 0);
 
   // Materiales con stock crítico (por debajo del mínimo)
   const stockCritico = filteredItems.filter(
     (item) => (item.stock_actual || 0) <= (item.stock_minimo || 0),
   );
-  const valorCritico = stockCritico.reduce(
-    (sum, item) => sum + item.precio * (item.stock_actual || 0),
-    0,
-  );
 
-  // Agrupación por categoría
-  const porCategoria = new Map<string, { cantidad: number; valor: number; stock: number }>();
-  filteredItems.forEach((item) => {
-    const cat = item.categoria;
-    const existente = porCategoria.get(cat) || { cantidad: 0, valor: 0, stock: 0 };
-    existente.cantidad++;
-    existente.valor += item.precio * (item.stock_actual || 0);
-    existente.stock += item.stock_actual || 0;
-    porCategoria.set(cat, existente);
-  });
-
-  const categoriaData = Array.from(porCategoria.entries())
-    .map(([name, data]) => ({
+  // Agrupación por categoría (cantidad de materiales por categoría)
+  let categoriaData: { name: string; cantidad: number; stock?: number }[] = [];
+  if (resumenBackend?.distribucion_categorias) {
+    categoriaData = (resumenBackend.distribucion_categorias || []).map((c: any) => ({
+      name: c.categoria || c.name || "Sin categoría",
+      cantidad: c.count ?? c.cantidad ?? 0,
+      stock: c.stock ?? 0,
+    }));
+  } else {
+    const porCategoria = new Map<string, { cantidad: number; stock: number }>();
+    filteredItems.forEach((item) => {
+      const cat =
+        (item as any).tb_categoria_material?.nombre ||
+        (item as any).categoriaNombre ||
+        (typeof item.categoria === "string" ? item.categoria : "Sin categoría");
+      const existente = porCategoria.get(cat) || { cantidad: 0, stock: 0 };
+      existente.cantidad++;
+      existente.stock += item.stock_actual || 0;
+      porCategoria.set(cat, existente);
+    });
+    categoriaData = Array.from(porCategoria.entries()).map(([name, data]) => ({
       name,
       cantidad: data.cantidad,
-      valor: data.valor,
       stock: data.stock,
-    }))
-    .sort((a, b) => b.valor - a.valor);
+    }));
+  }
+  categoriaData.sort((a, b) => b.cantidad - a.cantidad);
 
-  // Materiales más costosos
-  const masCostosos = [...filteredItems].sort((a, b) => b.precio - a.precio).slice(0, 8);
-
-  // Top stock (materiales con más unidades)
+  // Top por stock (materiales con más unidades)
   const topStock = [...filteredItems]
     .sort((a, b) => (b.stock_actual || 0) - (a.stock_actual || 0))
     .slice(0, 8)
     .map((item) => ({ name: item.nombre, value: item.stock_actual || 0 }));
 
-  // Tendencia por mes (simulada - en producción vendría de la API)
+  // Tendencia por mes (simulada - muestra stock aproximado por mes)
   const meses = [
     "Ene",
     "Feb",
@@ -421,17 +432,30 @@ export default function MaterialesModuleStats({
   ];
   const tendenciaMensual = meses.map((mes, idx) => ({
     mes,
-    ingresos: Math.floor(150 + Math.random() * 100) + idx * 5,
-    valor: Math.floor(8000 + Math.random() * 3000) + idx * 200,
+    stock: Math.max(0, Math.floor(stockTotal / meses.length + (idx - 6) * 10 + Math.random() * 50)),
   }));
 
-  // Distribución por unidad de medida
-  const porUnidad = new Map<string, number>();
-  filteredItems.forEach((item) => {
-    const unidad = item.unidad;
-    porUnidad.set(unidad, (porUnidad.get(unidad) || 0) + (item.stock_actual || 0));
-  });
-  const unidadData = Array.from(porUnidad.entries()).map(([name, value]) => ({ name, value }));
+  // Distribución por unidad de medida (cantidad de materiales por unidad)
+  let unidadData: { name: string; cantidad: number }[] = [];
+  if (resumenBackend?.distribucion_unidades) {
+    unidadData = (resumenBackend.distribucion_unidades || []).map((u: any) => ({
+      name: u.nombre || u.unidad || u.name || "Sin unidad",
+      cantidad: u.count ?? u.cantidad ?? 0,
+    }));
+  } else {
+    const porUnidad = new Map<string, number>();
+    filteredItems.forEach((item) => {
+      const unidad =
+        (item as any).tb_unidad_medida?.nombre ||
+        (item as any).unidadNombre ||
+        (typeof item.unidad === "string" ? item.unidad : "Sin unidad");
+      porUnidad.set(unidad, (porUnidad.get(unidad) || 0) + 1);
+    });
+    unidadData = Array.from(porUnidad.entries()).map(([name, value]) => ({
+      name,
+      cantidad: value,
+    }));
+  }
 
   // Alertas de stock bajo (top 5)
   const alertasStock = [...filteredItems]
@@ -498,22 +522,22 @@ export default function MaterialesModuleStats({
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
-          title="Valor Inventario"
-          value={`$${valorTotal.toLocaleString()}`}
-          subtitle="Total en período"
+          title="Total materiales"
+          value={totalMateriales}
+          subtitle="Registros"
           color="purple"
         />
         <KPICard
-          title="Stock Crítico"
-          value={stockCritico.length}
-          subtitle="Materiales bajo mínimo"
-          color="orange"
+          title="Stock total"
+          value={`${stockTotal.toLocaleString()} uds`}
+          subtitle="Unidades disponibles"
+          color="emerald"
         />
         <KPICard
-          title="Valor Crítico"
-          value={`$${valorCritico.toLocaleString()}`}
-          subtitle="En materiales críticos"
-          color="green"
+          title="Materiales críticos"
+          value={stockCritico.length}
+          subtitle="Bajo mínimo"
+          color="orange"
         />
         <KPICard
           title="Categorías"
@@ -551,14 +575,14 @@ export default function MaterialesModuleStats({
                   innerRadius={45}
                   outerRadius={80}
                   paddingAngle={3}
-                  dataKey="valor"
+                  dataKey="cantidad"
                   nameKey="name"
                 >
                   {categoriaData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => `$${Number(value).toLocaleString()}`} />
+                <Tooltip formatter={(value) => `${Number(value).toLocaleString()} materiales`} />
               </PieChart>
             </ResponsiveContainer>
             <div className="flex flex-wrap justify-center gap-2 mt-2 text-xs">
@@ -584,8 +608,8 @@ export default function MaterialesModuleStats({
               <SimpleBar
                 key={idx}
                 label={item.name}
-                value={item.value}
-                max={Math.max(...unidadData.map((d) => d.value))}
+                value={item.cantidad}
+                max={Math.max(...unidadData.map((d) => d.cantidad))}
               />
             ))}
           </div>
@@ -597,27 +621,27 @@ export default function MaterialesModuleStats({
           <div className="bg-white rounded-xl shadow p-5 border border-gray-100">
             <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-              Tendencia de Valor
+              Tendencia de Stock
             </h3>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={tendenciaMensual}>
                 <defs>
-                  <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="colorStock" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="mes" />
-                <YAxis tickFormatter={(value) => `$${value / 1000}k`} />
-                <Tooltip formatter={(value) => `$${Number(value).toLocaleString()}`} />
+                <YAxis tickFormatter={(value) => `${value}`} />
+                <Tooltip formatter={(value) => `${Number(value).toLocaleString()} uds`} />
                 <Area
                   type="monotone"
-                  dataKey="valor"
+                  dataKey="stock"
                   stroke="#10b981"
-                  fill="url(#colorValor)"
+                  fill="url(#colorStock)"
                   strokeWidth={2}
-                  name="Valor inventario"
+                  name="Stock total"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -627,19 +651,19 @@ export default function MaterialesModuleStats({
           <div className="bg-white rounded-xl shadow p-5 border border-gray-100">
             <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-              Materiales Más Costosos
+              Materiales con Mayor Stock
             </h3>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart
-                data={masCostosos}
+                data={topStock}
                 layout="vertical"
                 margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
               >
-                <XAxis type="number" tickFormatter={(value) => `$${value}`} />
-                <YAxis type="category" dataKey="nombre" width={100} tick={{ fontSize: 11 }} />
+                <XAxis type="number" />
+                <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <Tooltip formatter={(value) => `$${value}`} />
-                <Bar dataKey="precio" fill="#f59e0b" radius={[0, 8, 8, 0]} />
+                <Tooltip formatter={(value) => `${value} uds`} />
+                <Bar dataKey="value" fill="#f59e0b" radius={[0, 8, 8, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -653,35 +677,27 @@ export default function MaterialesModuleStats({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">Total materiales:</span>
-                <span className="font-semibold">{itemsFiltrados}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Stock total:</span>
                 <span className="font-semibold">
-                  {filteredItems
-                    .reduce((sum, i) => sum + (i.stock_actual || 0), 0)
-                    .toLocaleString()}{" "}
-                  uds
+                  {resumenBackend?.total_materiales ?? itemsFiltrados}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Precio promedio:</span>
+                <span className="text-gray-500">Suma precios:</span>
                 <span className="font-semibold">
                   $
                   {(
-                    filteredItems.reduce((sum, i) => sum + i.precio, 0) / (itemsFiltrados || 1)
-                  ).toFixed(2)}
+                    resumenBackend?.total_valor_catalogo ??
+                    filteredItems.reduce((s, i) => s + i.precio, 0)
+                  ).toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Stock promedio:</span>
-                <span className="font-semibold">
-                  {(
-                    filteredItems.reduce((sum, i) => sum + (i.stock_actual || 0), 0) /
-                    (itemsFiltrados || 1)
-                  ).toFixed(0)}{" "}
-                  uds/material
-                </span>
+                <span className="text-gray-500">Categorías distintas:</span>
+                <span className="font-semibold">{categoriaData.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Unidades distintas:</span>
+                <span className="font-semibold">{unidadData.length}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Porcentaje filtrado:</span>
@@ -716,12 +732,14 @@ export default function MaterialesModuleStats({
 
           {/* Top categorías por valor */}
           <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
-            <h3 className="font-semibold text-gray-800 mb-3">💰 Valor por Categoría</h3>
+            <h3 className="font-semibold text-gray-800 mb-3">📦 Materiales por Categoría</h3>
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {categoriaData.slice(0, 6).map((cat, idx) => (
+              {categoriaData.slice(0, 8).map((c, idx) => (
                 <div key={idx} className="flex justify-between text-sm">
-                  <span className="text-gray-600">{cat.name}</span>
-                  <span className="font-semibold text-gray-800">${cat.valor.toLocaleString()}</span>
+                  <span className="text-gray-600">{c.name}</span>
+                  <span className="font-medium">
+                    {(c.cantidad || 0).toLocaleString()} materiales
+                  </span>
                 </div>
               ))}
             </div>

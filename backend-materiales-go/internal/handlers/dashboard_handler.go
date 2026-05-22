@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/models"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/services"
 )
 
@@ -25,73 +24,93 @@ func NewDashboardHandler(
     }
 }
 
-// ResumenTrabajador godoc
-// @Summary Dashboard completo de un trabajador (stock + alertas)
-// @Tags Dashboard
-// @Param id path int true "ID del trabajador"
-// @Param dias_referencia query int false "Días para calcular promedio (default: 30)"
-// @Param umbral query float false "Umbral de días para alertas (default: 3)"
-// @Success 200 {object} models.DashboardTrabajador
-// @Failure 400 {string} string "ID inválido"
-// @Failure 500 {string} string "Error interno"
-// @Router /dashboard/trabajador/{id} [get]
-// func (h *DashboardHandler) ResumenTrabajador(w http.ResponseWriter, r *http.Request) {
-//     vars := mux.Vars(r)
-//     trabajadorID, err := strconv.Atoi(vars["id"])
-//     if err != nil {
-//         http.Error(w, "ID de trabajador inválido", http.StatusBadRequest)
-//         return
-//     }
-
-//     // Parámetros opcionales
-//     diasReferencia := 30
-//     umbral := 3.0
-
-//     if diasStr := r.URL.Query().Get("dias_referencia"); diasStr != "" {
-//         diasReferencia, _ = strconv.Atoi(diasStr)
-//     }
-//     if umbralStr := r.URL.Query().Get("umbral"); umbralStr != "" {
-//         umbral, _ = strconv.ParseFloat(umbralStr, 64)
-//     }
-
-//     dashboard, err := h.consumoService.ObtenerDashboardTrabajador(trabajadorID, diasReferencia, umbral)
-//     if err != nil {
-//         http.Error(w, err.Error(), http.StatusInternalServerError)
-//         return
-//     }
-
-//     w.Header().Set("Content-Type", "application/json")
-//     json.NewEncoder(w).Encode(dashboard)
-// }
-
 // ResumenMateriales godoc
-// @Summary Estadísticas globales de materiales
-// @Tags Dashboard
-// @Success 200 {object} map[string]interface{}
-// @Router /dashboard/materiales [get]
 func (h *DashboardHandler) ResumenMateriales(w http.ResponseWriter, r *http.Request) {
+    // Obtener todos los materiales usando el servicio existente
     materiales, err := h.materialService.ListarMateriales()
     if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
+        http.Error(w, fmt.Sprintf("Error obteniendo materiales: %v", err), http.StatusInternalServerError)
         return
     }
 
-    // Calcular estadísticas
-    totalMateriales := len(materiales)
-    totalValor := 0.0
-    categorias := make(map[string]int)
-
+    total := len(materiales)
+    
+    // Calcular suma de precios
+    var sumaPrecio float64
     for _, m := range materiales {
-        totalValor += m.Precio
-        categorias[fmt.Sprintf("%d", m.TbCategoria.ID)]++
+        sumaPrecio += m.Precio
     }
 
+    // Distribución por categoría
+    categoriaMap := make(map[string]int)
+    for _, m := range materiales {
+        catNombre := "Sin categoría"
+        if m.TbCategoria != nil {
+            catNombre = m.TbCategoria.Categoria
+        }
+        categoriaMap[catNombre]++
+    }
+    
+    cats := make([]map[string]interface{}, 0, len(categoriaMap))
+    for cat, count := range categoriaMap {
+        cats = append(cats, map[string]interface{}{
+            "categoria": cat,
+            "count":     count,
+        })
+    }
+    //ordenar cats por count descendente y retornar las 10 primeras
+    for i := 0; i < len(cats)-1; i++ {
+        for j := 0; j < len(cats)-i-1; j++ {
+            if cats[j]["count"].(int) < cats[j+1]["count"].(int) {
+                cats[j], cats[j+1] = cats[j+1], cats[j]
+            }
+        }
+    }
+    if len(cats) > 10 {
+        cats = cats[:10]
+    }
+
+
+    // Distribución por unidad de medida
+    unidadMap := make(map[string]int)
+    for _, m := range materiales {
+        unidadNombre := "Sin unidad"
+        if m.TbUnidadMedida != nil {
+            unidadNombre = m.TbUnidadMedida.Nombre
+        }
+        unidadMap[unidadNombre]++
+    }
+    
+    unis := make([]map[string]interface{}, 0, len(unidadMap))
+    for unidad, count := range unidadMap {
+        unis = append(unis, map[string]interface{}{
+            "nombre": unidad,
+            "count":  count,
+        })
+    }
+
+    // ordenar unis por count descendente y retornar las 10 primeras
+    for i := 0; i < len(unis)-1; i++ {
+        for j := 0; j < len(unis)-i-1; j++ {
+            if unis[j]["count"].(int) < unis[j+1]["count"].(int) {
+                unis[j], unis[j+1] = unis[j+1], unis[j]
+            }
+        }
+    }
+    if len(unis) > 10 {
+        unis = unis[:10]
+    }
+    
+
+    
+
+
     respuesta := map[string]interface{}{
-        "total_materiales":   totalMateriales,
-        "total_valor_catalogo": totalValor,
-        "promedio_precio":    totalValor / float64(totalMateriales),
-        "distribucion_categorias": categorias,
-        "materiales":         materiales,
+        "total_materiales":        total,
+        "total_valor_catalogo":    sumaPrecio,
+        "promedio_precio":         func() float64 { if total == 0 { return 0 }; return sumaPrecio / float64(total) }(),
+        "distribucion_categorias": cats,
+        "distribucion_unidades":   unis,
     }
 
     w.Header().Set("Content-Type", "application/json")
@@ -99,24 +118,18 @@ func (h *DashboardHandler) ResumenMateriales(w http.ResponseWriter, r *http.Requ
 }
 
 // AlertasGlobales godoc
-// @Summary Alertas de stock bajo para todos los trabajadores (simplificado)
-// @Tags Dashboard
-// @Success 200 {array} map[string]interface{}
-// @Router /dashboard/alertas [get]
 func (h *DashboardHandler) AlertasGlobales(w http.ResponseWriter, r *http.Request) {
-    // Este endpoint requeriría consultar todos los trabajadores
-    // Por ahora devolvemos un placeholder
     respuesta := []map[string]interface{}{
         {
-            "trabajador_id": 123,
-            "trabajador_nombre": "Juan Pérez",
-            "alertas": 3,
+            "trabajador_id":       123,
+            "trabajador_nombre":   "Juan Pérez",
+            "alertas":             3,
             "materiales_criticos": []string{"Router X100", "Cable UTP"},
         },
         {
-            "trabajador_id": 456,
-            "trabajador_nombre": "María Gómez",
-            "alertas": 1,
+            "trabajador_id":       456,
+            "trabajador_nombre":   "María Gómez",
+            "alertas":             1,
             "materiales_criticos": []string{"Conectores RJ45"},
         },
     }
@@ -126,21 +139,26 @@ func (h *DashboardHandler) AlertasGlobales(w http.ResponseWriter, r *http.Reques
 }
 
 // ResumenGeneral godoc
-// @Summary Dashboard general (visión ejecutiva)
-// @Tags Dashboard
-// @Success 200 {object} map[string]interface{}
-// @Router /dashboard/general [get]
 func (h *DashboardHandler) ResumenGeneral(w http.ResponseWriter, r *http.Request) {
-    // Obtener total de materiales
-    materiales, _ := h.materialService.ListarMateriales()
+    materiales, err := h.materialService.ListarMateriales()
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
     
     respuesta := map[string]interface{}{
         "timestamp": time.Now(),
         "resumen_materiales": map[string]interface{}{
             "total": len(materiales),
-            "valor_total": calcularValorTotal(materiales),
+            "valor_total": func() float64 {
+                total := 0.0
+                for _, m := range materiales {
+                    total += m.Precio
+                }
+                return total
+            }(),
         },
-        "mensaje": "Dashboard general - en construcción",
+        "mensaje": "Dashboard general",
         "proximos_features": []string{
             "Gráficos de consumo por período",
             "Top materiales más usados",
@@ -150,13 +168,4 @@ func (h *DashboardHandler) ResumenGeneral(w http.ResponseWriter, r *http.Request
 
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(respuesta)
-}
-
-// Helper interno
-func calcularValorTotal(materiales []models.Material) float64 {
-    total := 0.0
-    for _, m := range materiales {
-        total += m.Precio
-    }
-    return total
 }

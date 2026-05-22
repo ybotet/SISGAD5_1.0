@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -38,12 +39,17 @@ func (h *MaterialHandler) Listar(w http.ResponseWriter, r *http.Request) {
         }
     }
     if query.Get("limit") != "" {
-        if v, err := strconv.Atoi(query.Get("limit")); err == nil && v > 0 && v <= 100 {
+        if v, err := strconv.Atoi(query.Get("limit")); err == nil && v > 0 {
+            if v > 10000 {
+                v = 10000
+            }
             limit = v
         }
     }
     if query.Get("search") != "" {
-        search = query.Get("search")
+        // 🔧 FORZAR A STRING: convertir cualquier valor a string
+        searchRaw := query.Get("search")
+        search = fmt.Sprintf("%v", searchRaw)
     }
 
     result, err := h.service.ListarMaterialesPaginated(page, limit, search)
@@ -56,25 +62,39 @@ func (h *MaterialHandler) Listar(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(result)
 }
 
+// En material_handler.go - agregar nuevo endpoint
+func (h *MaterialHandler) ListarTodos(w http.ResponseWriter, r *http.Request) {
+    materiales, err := h.service.ListarMateriales()
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(materiales)
+}
+
 func (h *MaterialHandler) Obtener(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
-    id, _ := strconv.Atoi(vars["id"])
+    id, err := strconv.Atoi(vars["id"])
+    if err != nil {
+        writeJSONError(w, http.StatusBadRequest, "ID inválido")
+        return
+    }
     
     material, err := h.service.ObtenerMaterialPorID(id)
     if err != nil {
-        // Podríamos distinguir tipos de error
         status := http.StatusInternalServerError
         if err.Error() == "Material no encontrado" {
             status = http.StatusNotFound
         }
-        http.Error(w, err.Error(), status)
+        writeJSONError(w, status, err.Error())
         return
     }
     
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(material)
 }
-
 
 // Crear godoc
 // @Summary Crea un nuevo material
@@ -107,7 +127,11 @@ func (h *MaterialHandler) Crear(w http.ResponseWriter, r *http.Request) {
 
 func (h *MaterialHandler) Actualizar(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
-    id, _ := strconv.Atoi(vars["id"])
+    id, err := strconv.Atoi(vars["id"])
+    if err != nil {
+        writeJSONError(w, http.StatusBadRequest, "ID inválido")
+        return
+    }
     
     var material models.Material
     if err := json.NewDecoder(r.Body).Decode(&material); err != nil {
@@ -134,7 +158,11 @@ func (h *MaterialHandler) Actualizar(w http.ResponseWriter, r *http.Request) {
 
 func (h *MaterialHandler) Eliminar(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
-    id, _ := strconv.Atoi(vars["id"])
+    id, err := strconv.Atoi(vars["id"])
+    if err != nil {
+        writeJSONError(w, http.StatusBadRequest, "ID inválido")
+        return
+    }
     
     if err := h.service.EliminarMaterial(id); err != nil {
         status := http.StatusInternalServerError
