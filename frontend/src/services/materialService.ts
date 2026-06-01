@@ -51,6 +51,22 @@ export interface MaterialesPageResponse {
   total_pages: number;
 }
 
+export interface StockMaterialTrabajador {
+  material_id: number;
+  codigo: string;
+  nombre: string;
+  cantidad_asignada: number;
+  cantidad_consumida: number;
+  stock: number;
+}
+
+export interface StockTrabajadorItem {
+  trabajador_id: number;
+  total_stock: number;
+  materiales_count: number;
+  materiales: StockMaterialTrabajador[];
+}
+
 export const materialService = {
   async getMaterials(
     page: number = 1,
@@ -177,5 +193,14 @@ export const materialService = {
   async getResumen(): Promise<any> {
     const response = await api.get(`/dashboard/materiales`);
     return response.data;
+  },
+
+  async getStockTrabajadores(): Promise<StockTrabajadorItem[]> {
+    const response = await api.get<{ success?: boolean; data?: StockTrabajadorItem[] }>(
+      `/dashboard/stock-trabajadores`,
+    );
+    const payload = response.data;
+    if (Array.isArray(payload)) return payload;
+    return payload?.data ?? [];
   },
 };

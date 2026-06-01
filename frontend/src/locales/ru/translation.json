@@ -31,7 +31,8 @@
     "asignacion": "Назначения материалов",
     "unidad_medida": "Единицы измерения",
     "categoria_material": "Категории материала",
-    "consumos": "Потребление материалов"
+    "consumos": "Потребление материалов",
+    "stock_trabajador": "Запас по работнику"
   },
   "actions": {
     "close_session": "Выйти"

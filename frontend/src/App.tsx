@@ -46,6 +46,7 @@ import CategoriaMaterialPage from "./pages/nomencladores/CategoriaMaterial";
 import AsignacionPage from "./pages/materiales/Asignacion";
 import MaterialesPage from "./pages/materiales/MaterialesPage";
 import ConsumoPage from "./pages/materiales/Consumo";
+import StockTrabajadorPage from "./pages/materiales/StockTrabajadorPage";
 
 //404
 import NotFoundPage from "./pages/NotFoundPage";
@@ -305,6 +306,14 @@ export default function App() {
           element={
             <ProtectedRoute permission="materiales.gestionar">
               <ConsumoPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="materiales/stock-trabajador"
+          element={
+            <ProtectedRoute permission="materiales.gestionar">
+              <StockTrabajadorPage />
             </ProtectedRoute>
           }
         />

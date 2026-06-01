@@ -69,6 +69,7 @@ func main() {
     materialService := services.NewMaterialService(materialRepo)
     asignacionService := services.NewAsignacionService(asignacionRepo, materialRepo)
     consumoService := services.NewConsumoService(consumoRepo, materialRepo, asignacionRepo)
+    stockService := services.NewStockService(asignacionService, consumoService, materialService)
     unidadMedidaService := services.NewUnidadMedidaService(unidadMedidaRepo)
     categoriaMaterialService := services.NewCategoriaMaterialService(categoriaMaterialRepo) 
     
@@ -78,7 +79,7 @@ func main() {
     materialHandler := handlers.NewMaterialHandler(materialService)
     asignacionHandler := handlers.NewAsignacionHandler(asignacionService)
     consumoHandler := handlers.NewConsumoHandler(consumoService)
-    dashboardHandler := handlers.NewDashboardHandler(consumoService, materialService)
+    dashboardHandler := handlers.NewDashboardHandler(consumoService, materialService, asignacionService, stockService)
     unidadMedidaHandler := handlers.NewUnidadMedidaHandler(unidadMedidaService)
     categoriaMaterialHandler := handlers.NewCategoriaMaterialHandler(categoriaMaterialService)
 
@@ -156,6 +157,7 @@ func main() {
     api.HandleFunc("/dashboard/materiales", dashboardHandler.ResumenMateriales).Methods("GET")
     api.HandleFunc("/dashboard/alertas", dashboardHandler.AlertasGlobales).Methods("GET")
     api.HandleFunc("/dashboard/general", dashboardHandler.ResumenGeneral).Methods("GET")
+    api.HandleFunc("/dashboard/stock-trabajadores", dashboardHandler.StockTrabajadores).Methods("GET")
 
     // --- Rutas de nomencladores (unidades de medida) ---
     // Aquí podríamos agregar rutas para gestionar unidades de medida, tipos de materiales, etc.

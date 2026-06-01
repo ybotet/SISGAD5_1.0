@@ -10,17 +10,23 @@ import (
 )
 
 type DashboardHandler struct {
-    consumoService *services.ConsumoService
-    materialService *services.MaterialService
+    consumoService    *services.ConsumoService
+    materialService   *services.MaterialService
+    asignacionService *services.AsignacionService
+    stockService      *services.StockService
 }
 
 func NewDashboardHandler(
     consumoService *services.ConsumoService,
     materialService *services.MaterialService,
+    asignacionService *services.AsignacionService,
+    stockService *services.StockService,
 ) *DashboardHandler {
     return &DashboardHandler{
-        consumoService: consumoService,
-        materialService: materialService,
+        consumoService:    consumoService,
+        materialService:   materialService,
+        asignacionService: asignacionService,
+        stockService:      stockService,
     }
 }
 
@@ -168,4 +174,23 @@ func (h *DashboardHandler) ResumenGeneral(w http.ResponseWriter, r *http.Request
 
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(respuesta)
+}
+
+// StockTrabajadores devuelve el stock actual por trabajador (asignado - consumido)
+func (h *DashboardHandler) StockTrabajadores(w http.ResponseWriter, r *http.Request) {
+    data, err := h.stockService.CalcularStockPorTrabajador()
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    if data == nil {
+        data = []services.StockTrabajadorItem{}
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "success": true,
+        "data":    data,
+    })
 }

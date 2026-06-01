@@ -86,6 +86,12 @@ export default function Sidebar() {
           icon: "ri-inbox-unarchive-line",
           permission: "nomencladores.gestionar",
         },
+        {
+          id: "stock-trabajador",
+          name: t("menu.stock_trabajador"),
+          icon: "ri-stack-line",
+          permission: "materiales.gestionar",
+        },
       ],
     },
     {
