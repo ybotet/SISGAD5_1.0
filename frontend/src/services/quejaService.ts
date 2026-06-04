@@ -252,8 +252,7 @@ export const quejaService = {
 
     if (search) params.append("search", search);
     if (estado) {
-      if (estado === "Abierta") params.append("Abierta", "true");
-      else if (estado === "Resuelta") params.append("Resuelta", "true");
+      if (estado === "Cerrada") params.append("Cerrada", "true");
     }
 
     const response = await api.get<PaginatedResponse<QuejaItem>>(`/queja?${params.toString()}`);
