@@ -1,0 +1,37 @@
+name: Go tests (backend-materiales-go)
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test-backend-materiales:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-materiales-go
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.25"
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            /home/runner/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install deps
+        run: go mod download
+
+      - name: Run tests
+        run: go test ./... -v

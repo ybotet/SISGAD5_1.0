@@ -1,0 +1,39 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: api-gateway-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: api-gateway
+          service: gateway
+          log_type: application
+          __path__: /var/log/api-gateway/*.log # Coincide con el volumen montado
+
+  # Si tienes diferentes tipos de logs (access, error, app)
+  - job_name: api-gateway-access
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: api-gateway
+          type: access
+          __path__: /var/log/api-gateway/access*.log
+
+  - job_name: api-gateway-error
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: api-gateway
+          type: error
+          __path__: /var/log/api-gateway/error*.log

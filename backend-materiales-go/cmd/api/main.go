@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -175,13 +176,37 @@ func main() {
     api.HandleFunc("/categorias-material/{id:[0-9]+}", categoriaMaterialHandler.Actualizar).Methods("PUT")
     api.HandleFunc("/categorias-material/{id:[0-9]+}", categoriaMaterialHandler.Eliminar).Methods("DELETE")
 
+    // ========================================
+    // 7.1 SERVIR DOCUMENTACIÓN (Swagger UI estática)
+    // ========================================
+    // Sirve ./docs/index.html en /docs y archivos estáticos en /docs/*
+    r.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
+        http.ServeFile(w, r, "./docs/index.html")
+    }).Methods("GET")
+    r.PathPrefix("/docs/").Handler(http.StripPrefix("/docs/", http.FileServer(http.Dir("./docs"))))
+    slog.Informacion("📘 Documentación disponible en /docs")
+
 
     // ========================================
     // 8. CONFIGURAR CORS (para que React pueda llamar)
     // ========================================
     slog.Informacion("🌐 Configurando CORS...")
+    frontURL := os.Getenv("FRONTEND_URL")
+    var allowedOrigins []string
+    if frontURL != "" {
+        for _, o := range strings.Split(frontURL, ",") {
+            o = strings.TrimSpace(o)
+            if o != "" {
+                allowedOrigins = append(allowedOrigins, o)
+            }
+        }
+    }
+    if len(allowedOrigins) == 0 {
+        allowedOrigins = []string{"http://localhost:5004", "http://localhost:5000"}
+    }
+
     c := cors.New(cors.Options{
-        AllowedOrigins:   []string{"http://localhost:5004", "http://localhost:5000"},
+        AllowedOrigins:   allowedOrigins,
         AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowedHeaders:   []string{"Content-Type", "Authorization"},
         AllowCredentials: true,

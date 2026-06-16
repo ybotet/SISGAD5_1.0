@@ -1,0 +1,384 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SISGAD5 - Servicio Materiales",
+    "version": "1.0.0",
+    "description": "Documentación OpenAPI mínima para el microservicio de materiales"
+  },
+  "servers": [{ "url": "http://localhost:5003", "description": "Desarrollo local" }],
+  "paths": {
+    "/api/materiales/materiales": {
+      "get": {
+        "summary": "Listar materiales",
+        "tags": ["Materiales"],
+        "responses": {
+          "200": {
+            "description": "Listado de materiales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Material" }
+                    }
+                  },
+                  "/api/materiales/asignaciones": {
+                    "get": {
+                      "summary": "Listar asignaciones",
+                      "tags": ["Asignaciones"],
+                      "parameters": [
+                        {
+                          "name": "page",
+                          "in": "query",
+                          "schema": { "type": "integer", "default": 1 }
+                        },
+                        {
+                          "name": "limit",
+                          "in": "query",
+                          "schema": { "type": "integer", "default": 20 }
+                        }
+                      ],
+                      "responses": {
+                        "200": {
+                          "description": "Listado de asignaciones",
+                          "content": {
+                            "application/json": {
+                              "schema": {
+                                "type": "object",
+                                "properties": {
+                                  "success": { "type": "boolean" },
+                                  "data": {
+                                    "type": "array",
+                                    "items": { "$ref": "#/components/schemas/Asignacion" }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "post": {
+                      "summary": "Crear asignación",
+                      "tags": ["Asignaciones"],
+                      "requestBody": {
+                        "required": true,
+                        "content": {
+                          "application/json": {
+                            "schema": { "$ref": "#/components/schemas/AsignacionCreate" }
+                          }
+                        }
+                      },
+                      "responses": { "201": { "description": "Asignación creada" } }
+                    }
+                  },
+                  "/api/materiales/asignaciones/{id}": {
+                    "get": {
+                      "summary": "Obtener asignación por ID",
+                      "tags": ["Asignaciones"],
+                      "parameters": [
+                        {
+                          "name": "id",
+                          "in": "path",
+                          "required": true,
+                          "schema": { "type": "integer" }
+                        }
+                      ],
+                      "responses": {
+                        "200": {
+                          "description": "Asignación",
+                          "content": {
+                            "application/json": {
+                              "schema": {
+                                "type": "object",
+                                "properties": {
+                                  "success": { "type": "boolean" },
+                                  "data": { "$ref": "#/components/schemas/Asignacion" }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "404": { "description": "No encontrado" }
+                      }
+                    },
+                    "put": {
+                      "summary": "Actualizar asignación",
+                      "tags": ["Asignaciones"],
+                      "parameters": [
+                        {
+                          "name": "id",
+                          "in": "path",
+                          "required": true,
+                          "schema": { "type": "integer" }
+                        }
+                      ],
+                      "requestBody": {
+                        "content": {
+                          "application/json": {
+                            "schema": { "$ref": "#/components/schemas/AsignacionUpdate" }
+                          }
+                        }
+                      },
+                      "responses": { "200": { "description": "Asignación actualizada" } }
+                    },
+                    "delete": {
+                      "summary": "Eliminar asignación",
+                      "tags": ["Asignaciones"],
+                      "parameters": [
+                        {
+                          "name": "id",
+                          "in": "path",
+                          "required": true,
+                          "schema": { "type": "integer" }
+                        }
+                      ],
+                      "responses": { "200": { "description": "Eliminado" } }
+                    }
+                  },
+                  "/api/materiales/consumos": {
+                    "get": {
+                      "summary": "Listar consumos",
+                      "tags": ["Consumos"],
+                      "parameters": [
+                        {
+                          "name": "page",
+                          "in": "query",
+                          "schema": { "type": "integer", "default": 1 }
+                        },
+                        {
+                          "name": "limit",
+                          "in": "query",
+                          "schema": { "type": "integer", "default": 20 }
+                        }
+                      ],
+                      "responses": {
+                        "200": {
+                          "description": "Listado de consumos",
+                          "content": {
+                            "application/json": {
+                              "schema": {
+                                "type": "object",
+                                "properties": {
+                                  "success": { "type": "boolean" },
+                                  "data": {
+                                    "type": "array",
+                                    "items": { "$ref": "#/components/schemas/Consumo" }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "post": {
+                      "summary": "Crear consumo",
+                      "tags": ["Consumos"],
+                      "requestBody": {
+                        "required": true,
+                        "content": {
+                          "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ConsumoCreate" }
+                          }
+                        }
+                      },
+                      "responses": { "201": { "description": "Consumo creado" } }
+                    }
+                  },
+                  "/api/materiales/consumos/{id}": {
+                    "get": {
+                      "summary": "Obtener consumo por ID",
+                      "tags": ["Consumos"],
+                      "parameters": [
+                        {
+                          "name": "id",
+                          "in": "path",
+                          "required": true,
+                          "schema": { "type": "integer" }
+                        }
+                      ],
+                      "responses": {
+                        "200": {
+                          "description": "Consumo",
+                          "content": {
+                            "application/json": {
+                              "schema": {
+                                "type": "object",
+                                "properties": {
+                                  "success": { "type": "boolean" },
+                                  "data": { "$ref": "#/components/schemas/Consumo" }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "404": { "description": "No encontrado" }
+                      }
+                    },
+                    "put": {
+                      "summary": "Actualizar consumo",
+                      "tags": ["Consumos"],
+                      "parameters": [
+                        {
+                          "name": "id",
+                          "in": "path",
+                          "required": true,
+                          "schema": { "type": "integer" }
+                        }
+                      ],
+                      "requestBody": {
+                        "content": {
+                          "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ConsumoUpdate" }
+                          }
+                        }
+                      },
+                      "responses": { "200": { "description": "Consumo actualizado" } }
+                    },
+                    "delete": {
+                      "summary": "Eliminar consumo",
+                      "tags": ["Consumos"],
+                      "parameters": [
+                        {
+                          "name": "id",
+                          "in": "path",
+                          "required": true,
+                          "schema": { "type": "integer" }
+                        }
+                      ],
+                      "responses": { "200": { "description": "Eliminado" } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/materiales/materiales/{id}": {
+      "get": {
+        "summary": "Obtener material por ID",
+        "tags": ["Materiales"],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle del material",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": { "$ref": "#/components/schemas/Material" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "No encontrado" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Material": {
+        "type": "object",
+        "properties": {
+          "id_material": { "type": "integer", "example": 1 },
+          "nombre": { "type": "string", "example": "Cable coaxial" },
+          "descripcion": { "type": "string" },
+          "stock": { "type": "integer", "example": 100 },
+          "unidad_medida_id": { "type": "integer" },
+          "categoria_id": { "type": "integer" }
+        }
+      },
+      "Asignacion": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "id_trabajador": { "type": "integer" },
+          "fecha_asignacion": { "type": "string", "format": "date-time" },
+          "id_trabajo": { "type": "integer", "nullable": true },
+          "observaciones": { "type": "string" },
+          "detalles": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AsignacionDetalle" }
+          }
+        }
+      },
+      "AsignacionDetalle": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "id_material": { "type": "integer" },
+          "cantidad": { "type": "integer" },
+          "costo_unitario": { "type": "number", "format": "float" }
+        }
+      },
+      "AsignacionCreate": {
+        "type": "object",
+        "required": ["id_trabajador", "detalles"],
+        "properties": {
+          "id_trabajador": { "type": "integer" },
+          "fecha_asignacion": { "type": "string", "format": "date-time" },
+          "id_trabajo": { "type": "integer" },
+          "observaciones": { "type": "string" },
+          "detalles": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AsignacionDetalle" }
+          }
+        }
+      },
+      "AsignacionUpdate": {
+        "type": "object",
+        "properties": { "observaciones": { "type": "string" } }
+      },
+      "Consumo": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "id_trabajo": { "type": "integer" },
+          "id_trabajador": { "type": "integer" },
+          "fecha_consumo": { "type": "string", "format": "date-time" },
+          "observaciones": { "type": "string" },
+          "detalles": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ConsumoDetalle" }
+          }
+        }
+      },
+      "ConsumoDetalle": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "id_material": { "type": "integer" },
+          "cantidad": { "type": "integer" },
+          "costo_unitario": { "type": "number", "format": "float" }
+        }
+      },
+      "ConsumoCreate": {
+        "type": "object",
+        "required": ["id_trabajo", "id_trabajador", "detalles"],
+        "properties": {
+          "id_trabajo": { "type": "integer" },
+          "id_trabajador": { "type": "integer" },
+          "fecha_consumo": { "type": "string", "format": "date-time" },
+          "observaciones": { "type": "string" },
+          "detalles": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ConsumoDetalle" }
+          }
+        }
+      },
+      "ConsumoUpdate": { "type": "object", "properties": { "observaciones": { "type": "string" } } }
+    }
+  }
+}
