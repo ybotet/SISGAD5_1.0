@@ -3,8 +3,6 @@ Perfecto. A continuación te presento el archivo **`SPEC.md`** (Especificación 
 Está diseñado para colocarse en la raíz del repositorio (`SISGAD5_1.0/SPEC.md`).
 
 ---
-
-```markdown
 # 📐 SPEC.md — Especificación Técnica del Proyecto SISGAD5
 
 > **Versión:** 1.0
@@ -54,15 +52,15 @@ El sistema reemplaza el sistema heredado **"Mesa de Quejas"** (Microsoft Access,
 
 ### 1.3. Problema que Resuelve
 
-| Problema Actual | Solución SISGAD5 |
-|---|---|
-| Sistema monolítico en Access, obsoleto | Arquitectura de microservicios moderna |
-| Sin trazabilidad ni auditoría | Historial completo + logs estructurados |
-| Sin control de acceso por roles | RBAC + JWT |
-| Concurrencia insegura | Transacciones ACID + bloqueo a nivel de fila |
-| Sin integración con sistemas externos | API REST + exportación a SAP |
-| Sin analítica en tiempo real | Dashboards + métricas agregadas |
-| Gestión de materiales manual | Microservicio dedicado con validación transaccional |
+| Problema Actual                        | Solución SISGAD5                                    |
+| -------------------------------------- | --------------------------------------------------- |
+| Sistema monolítico en Access, obsoleto | Arquitectura de microservicios moderna              |
+| Sin trazabilidad ni auditoría          | Historial completo + logs estructurados             |
+| Sin control de acceso por roles        | RBAC + JWT                                          |
+| Concurrencia insegura                  | Transacciones ACID + bloqueo a nivel de fila        |
+| Sin integración con sistemas externos  | API REST + exportación a SAP                        |
+| Sin analítica en tiempo real           | Dashboards + métricas agregadas                     |
+| Gestión de materiales manual           | Microservicio dedicado con validación transaccional |
 
 ---
 
@@ -117,7 +115,7 @@ Desarrollar una plataforma de microservicios que automatice la gestión operativ
 ### 3.2. Diagrama de Componentes
 
 ```mermaid
-graph TD
+graph TB
     %% Cliente
     subgraph CLIENTE["🖥️ CLIENTE (Navegador Web)"]
         FE["Frontend<br/>React 18 + Vite + TypeScript<br/>Tailwind CSS"]
@@ -210,16 +208,16 @@ graph TD
 
 ### 3.3. Reglas Arquitectónicas
 
-| # | Regla | Justificación |
-|---|---|---|
-| R1 | El frontend solo se comunica con el API Gateway | Seguridad y punto único de entrada |
-| R2 | Cada microservicio tiene su propia BD | Desacoplamiento y escalabilidad independiente |
-| R3 | No hay acceso directo a BD de otro servicio | Integridad y autonomía |
-| R4 | La autenticación se centraliza en el Gateway | Consistencia y seguridad |
-| R5 | El MP Service NO gestiona materiales | Separación de responsabilidades |
-| R6 | Materials Service usa transacciones ACID | Integridad de inventario |
-| R7 | Comunicación vía REST/JSON | Simplicidad e interoperabilidad |
-| R8 | Servicios stateless | Escalabilidad horizontal |
+| #   | Regla                                           | Justificación                                 |
+| --- | ----------------------------------------------- | --------------------------------------------- |
+| R1  | El frontend solo se comunica con el API Gateway | Seguridad y punto único de entrada            |
+| R2  | Cada microservicio tiene su propia BD           | Desacoplamiento y escalabilidad independiente |
+| R3  | No hay acceso directo a BD de otro servicio     | Integridad y autonomía                        |
+| R4  | La autenticación se centraliza en el Gateway    | Consistencia y seguridad                      |
+| R5  | El MP Service NO gestiona materiales            | Separación de responsabilidades               |
+| R6  | Materials Service usa transacciones ACID        | Integridad de inventario                      |
+| R7  | Comunicación vía REST/JSON                      | Simplicidad e interoperabilidad               |
+| R8  | Servicios stateless                             | Escalabilidad horizontal                      |
 
 ---
 
@@ -227,32 +225,32 @@ graph TD
 
 ### 4.1. Backend
 
-| Componente | Tecnología | Versión | Justificación |
-|---|---|---|---|
-| API Gateway | Node.js + Express + http-proxy-middleware | 22.x | Madurez, ecosistema |
-| Users Service | Node.js + Express + Sequelize | 22.x | CRUD rápido |
-| MP Service | Node.js + Express + Sequelize + Zod | 22.x | Validación de esquemas |
-| Materials Service | Go + Gin + GORM | 1.25+ | Concurrencia nativa, ACID, rendimiento |
+| Componente        | Tecnología                                | Versión | Justificación                          |
+| ----------------- | ----------------------------------------- | ------- | -------------------------------------- |
+| API Gateway       | Node.js + Express + http-proxy-middleware | 22.x    | Madurez, ecosistema                    |
+| Users Service     | Node.js + Express + Sequelize             | 22.x    | CRUD rápido                            |
+| MP Service        | Node.js + Express + Sequelize + Zod       | 22.x    | Validación de esquemas                 |
+| Materials Service | Go + Gin + GORM                           | 1.25+   | Concurrencia nativa, ACID, rendimiento |
 
 ### 4.2. Frontend
 
-| Componente | Tecnología | Versión |
-|---|---|---|
-| Framework | React | 18 |
-| Build Tool | Vite | 5+ |
-| Lenguaje | TypeScript | 5+ |
-| Estilos | Tailwind CSS | 3+ |
-| HTTP Client | Axios | 1+ |
-| Estado | Context API / Zustand | — |
-| Gráficos | Recharts / Chart.js | — |
+| Componente  | Tecnología            | Versión |
+| ----------- | --------------------- | ------- |
+| Framework   | React                 | 18      |
+| Build Tool  | Vite                  | 5+      |
+| Lenguaje    | TypeScript            | 5+      |
+| Estilos     | Tailwind CSS          | 3+      |
+| HTTP Client | Axios                 | 1+      |
+| Estado      | Context API / Zustand | —       |
+| Gráficos    | Recharts / Chart.js   | —       |
 
 ### 4.3. Bases de Datos
 
-| BD | Motor | Versión | Dueño |
-|---|---|---|---|
-| bd_users | PostgreSQL | 17+ | Users Service |
-| bd_mp | PostgreSQL | 17+ | MP Service |
-| bd_materiales | PostgreSQL | 17+ | Materials Service |
+| BD            | Motor      | Versión | Dueño             |
+| ------------- | ---------- | ------- | ----------------- |
+| bd_users      | PostgreSQL | 17+     | Users Service     |
+| bd_mp         | PostgreSQL | 17+     | MP Service        |
+| bd_materiales | PostgreSQL | 17+     | Materials Service |
 
 **Extensiones PostgreSQL requeridas:**
 - `pg_stat_statements` — Monitoreo de consultas
@@ -260,13 +258,13 @@ graph TD
 
 ### 4.4. Infraestructura
 
-| Componente | Tecnología | Versión |
-|---|---|---|
-| Contenerización | Docker | 24+ |
-| Orquestación (dev/prod) | Docker Compose | v2.20+ |
-| Caché | Redis | 7+ |
-| CI/CD | GitHub Actions | — |
-| Monitoreo | Prometheus + Grafana | — |
+| Componente              | Tecnología           | Versión |
+| ----------------------- | -------------------- | ------- |
+| Contenerización         | Docker               | 24+     |
+| Orquestación (dev/prod) | Docker Compose       | v2.20+  |
+| Caché                   | Redis                | 7+      |
+| CI/CD                   | GitHub Actions       | —       |
+| Monitoreo               | Prometheus + Grafana | —       |
 
 ---
 
@@ -276,49 +274,49 @@ graph TD
 
 **Entidades principales:**
 
-| Tabla | Descripción |
-|---|---|
-| `usuarios` | Usuarios del sistema (email, password hash, nombre) |
-| `roles` | Roles disponibles (admin, probador, editor, visor, admin_materiales) |
-| `usuario_rol` | Relación N:M entre usuarios y roles |
-| `refresh_tokens` | Tokens de refresco para sesiones prolongadas |
-| `sesiones` | Historial de sesiones (opcional) |
+| Tabla            | Descripción                                                          |
+| ---------------- | -------------------------------------------------------------------- |
+| `usuarios`       | Usuarios del sistema (email, password hash, nombre)                  |
+| `roles`          | Roles disponibles (admin, probador, editor, visor, admin_materiales) |
+| `usuario_rol`    | Relación N:M entre usuarios y roles                                  |
+| `refresh_tokens` | Tokens de refresco para sesiones prolongadas                         |
+| `sesiones`       | Historial de sesiones (opcional)                                     |
 
 ### 5.2. Base de Datos: `bd_mp`
 
 **Entidades principales:**
 
-| Tabla | Descripción |
-|---|---|
-| `telefonos` | Teléfonos con datos del cliente incluidos |
-| `lineas` | Líneas telefónicas |
-| `pizarras` | Pizarras de distribución |
-| `quejas` | Quejas de abonados |
-| `pruebas` | Pruebas técnicas realizadas |
-| `trabajos` | Órdenes de trabajo |
-| `historial_*` | Historial de cada entidad |
+| Tabla         | Descripción                               |
+| ------------- | ----------------------------------------- |
+| `telefonos`   | Teléfonos con datos del cliente incluidos |
+| `lineas`      | Líneas telefónicas                        |
+| `pizarras`    | Pizarras de distribución                  |
+| `quejas`      | Quejas de abonados                        |
+| `pruebas`     | Pruebas técnicas realizadas               |
+| `trabajos`    | Órdenes de trabajo                        |
+| `historial_*` | Historial de cada entidad                 |
 
 **Estados definidos:**
 
-| Entidad | Estados |
-|---|---|
-| Teléfono | `activo`, `baja` |
-| Línea | `activo`, `baja` |
-| Queja | `Abierta` → `Probada` → `Asignada` → `Pendiente` → `Resuelta` → `Cerrada` |
+| Entidad  | Estados                                                                   |
+| -------- | ------------------------------------------------------------------------- |
+| Teléfono | `activo`, `baja`                                                          |
+| Línea    | `activo`, `baja`                                                          |
+| Queja    | `Abierta` → `Probada` → `Asignada` → `Pendiente` → `Resuelta` → `Cerrada` |
 
 ### 5.3. Base de Datos: `bd_materiales`
 
 **Entidades principales:**
 
-| Tabla | Descripción |
-|---|---|
-| `tb_categorias` | Categorías de materiales |
-| `tb_unidades_medida` | Unidades de medida |
-| `tb_materiales` | Catálogo de materiales (sin campo "stock" físico) |
-| `tb_asignaciones` | Cabeceras de asignaciones a trabajadores |
+| Tabla                   | Descripción                                             |
+| ----------------------- | ------------------------------------------------------- |
+| `tb_categorias`         | Categorías de materiales                                |
+| `tb_unidades_medida`    | Unidades de medida                                      |
+| `tb_materiales`         | Catálogo de materiales (sin campo "stock" físico)       |
+| `tb_asignaciones`       | Cabeceras de asignaciones a trabajadores                |
 | `tb_asignacion_detalle` | Detalles de asignaciones (con `costo_unitario_momento`) |
-| `tb_consumos` | Cabeceras de consumos reales |
-| `tb_consumo_detalle` | Detalles de consumos (con `costo_unitario_real`) |
+| `tb_consumos`           | Cabeceras de consumos reales                            |
+| `tb_consumo_detalle`    | Detalles de consumos (con `costo_unitario_real`)        |
 
 **Características clave:**
 - **Sin campo `stock` físico:** Delegado a SAP.
@@ -344,13 +342,13 @@ graph TD
 - Endpoint `/health`
 
 **Roles del sistema:**
-| Rol | Permisos |
-|---|---|
-| `admin` | Acceso total |
-| `probador` | Crear/ver quejas y pruebas |
-| `editor` | Editar quejas, pruebas, trabajos |
-| `visor` | Solo lectura |
-| `admin_materiales` | Gestión completa de materiales |
+| Rol                | Permisos                         |
+| ------------------ | -------------------------------- |
+| `admin`            | Acceso total                     |
+| `probador`         | Crear/ver quejas y pruebas       |
+| `editor`           | Editar quejas, pruebas, trabajos |
+| `visor`            | Solo lectura                     |
+| `admin_materiales` | Gestión completa de materiales   |
 
 ### 6.2. Módulo 2 — MP Service
 
@@ -519,25 +517,25 @@ graph TD
 
 ### 7.2. Endpoints Principales
 
-| Endpoint | Método | Servicio | Descripción |
-|---|---|---|---|
-| `/api/auth/login` | POST | Users | Login |
-| `/api/auth/refresh` | POST | Users | Refrescar token |
-| `/api/auth/logout` | POST | Users | Logout |
-| `/api/users/*` | CRUD | Users | Gestión de usuarios |
-| `/api/mp/telefonos/*` | CRUD | MP | Teléfonos |
-| `/api/mp/lineas/*` | CRUD | MP | Líneas |
-| `/api/mp/pizarras/*` | CRUD | MP | Pizarras |
-| `/api/mp/quejas/*` | CRUD | MP | Quejas |
-| `/api/mp/pruebas/*` | CRUD | MP | Pruebas |
-| `/api/mp/trabajos/*` | CRUD | MP | Trabajos |
-| `/api/materials/materiales/*` | CRUD | Materials | Materiales |
-| `/api/materials/categorias/*` | CRUD | Materials | Categorías |
-| `/api/materials/unidades/*` | CRUD | Materials | Unidades |
-| `/api/materials/asignaciones/*` | CRUD | Materials | Asignaciones |
-| `/api/materials/consumos/*` | CRUD | Materials | Consumos |
-| `/api/materials/dashboard/*` | GET | Materials | Analítica |
-| `/health` | GET | Todos | Health check |
+| Endpoint                        | Método | Servicio  | Descripción         |
+| ------------------------------- | ------ | --------- | ------------------- |
+| `/api/auth/login`               | POST   | Users     | Login               |
+| `/api/auth/refresh`             | POST   | Users     | Refrescar token     |
+| `/api/auth/logout`              | POST   | Users     | Logout              |
+| `/api/users/*`                  | CRUD   | Users     | Gestión de usuarios |
+| `/api/mp/telefonos/*`           | CRUD   | MP        | Teléfonos           |
+| `/api/mp/lineas/*`              | CRUD   | MP        | Líneas              |
+| `/api/mp/pizarras/*`            | CRUD   | MP        | Pizarras            |
+| `/api/mp/quejas/*`              | CRUD   | MP        | Quejas              |
+| `/api/mp/pruebas/*`             | CRUD   | MP        | Pruebas             |
+| `/api/mp/trabajos/*`            | CRUD   | MP        | Trabajos            |
+| `/api/materials/materiales/*`   | CRUD   | Materials | Materiales          |
+| `/api/materials/categorias/*`   | CRUD   | Materials | Categorías          |
+| `/api/materials/unidades/*`     | CRUD   | Materials | Unidades            |
+| `/api/materials/asignaciones/*` | CRUD   | Materials | Asignaciones        |
+| `/api/materials/consumos/*`     | CRUD   | Materials | Consumos            |
+| `/api/materials/dashboard/*`    | GET    | Materials | Analítica           |
+| `/health`                       | GET    | Todos     | Health check        |
 
 ### 7.3. Ejemplo de Contrato (Materials — Crear Asignación)
 
@@ -604,15 +602,15 @@ Content-Type: application/json
 
 ### 8.3. Protecciones
 
-| Amenaza | Mitigación |
-|---|---|
-| Fuerza bruta | Rate limiting + bloqueo por intentos fallidos |
-| Inyección SQL | ORM (Sequelize/GORM) + consultas parametrizadas |
-| XSS | Sanitización + Content Security Policy |
-| CSRF | Tokens CSRF + SameSite cookies |
-| Inyección de dependencias | `npm audit` + Dependabot |
-| Exposición de secretos | Variables de entorno + `.gitignore` |
-| Headers inseguros | Helmet.js |
+| Amenaza                   | Mitigación                                      |
+| ------------------------- | ----------------------------------------------- |
+| Fuerza bruta              | Rate limiting + bloqueo por intentos fallidos   |
+| Inyección SQL             | ORM (Sequelize/GORM) + consultas parametrizadas |
+| XSS                       | Sanitización + Content Security Policy          |
+| CSRF                      | Tokens CSRF + SameSite cookies                  |
+| Inyección de dependencias | `npm audit` + Dependabot                        |
+| Exposición de secretos    | Variables de entorno + `.gitignore`             |
+| Headers inseguros         | Helmet.js                                       |
 
 ### 8.4. Auditoría
 
@@ -625,20 +623,20 @@ Content-Type: application/json
 
 ## 9. Requisitos No Funcionales
 
-| ID | Categoría | Requisito | Métrica |
-|---|---|---|---|
-| RNF-01 | Rendimiento | Tiempo de respuesta en lecturas | < 300 ms (p95) |
-| RNF-02 | Rendimiento | Tiempo de respuesta en transacciones | < 800 ms (p95) |
-| RNF-03 | Disponibilidad | Uptime en horario laboral | 99.5% (8:00–18:00, L–V) |
-| RNF-04 | Concurrencia | Usuarios simultáneos | ≥ 20 sin degradación |
-| RNF-05 | Integridad | Transacciones ACID | 100% en operaciones críticas |
-| RNF-06 | Seguridad | Validación de entrada | 100% de endpoints |
-| RNF-07 | Escalabilidad | Arquitectura stateless | Réplicas horizontales |
-| RNF-08 | Mantenibilidad | Cobertura de tests | ≥ 70% |
-| RNF-09 | Usabilidad | Responsive design | Móvil, tablet, desktop |
-| RNF-10 | Internacionalización | Idiomas soportados | ES, RU |
-| RNF-11 | Observabilidad | Health checks | Todos los servicios |
-| RNF-12 | Recuperación | RTO / RPO | < 1 h / < 15 min |
+| ID     | Categoría            | Requisito                            | Métrica                      |
+| ------ | -------------------- | ------------------------------------ | ---------------------------- |
+| RNF-01 | Rendimiento          | Tiempo de respuesta en lecturas      | < 300 ms (p95)               |
+| RNF-02 | Rendimiento          | Tiempo de respuesta en transacciones | < 800 ms (p95)               |
+| RNF-03 | Disponibilidad       | Uptime en horario laboral            | 99.5% (8:00–18:00, L–V)      |
+| RNF-04 | Concurrencia         | Usuarios simultáneos                 | ≥ 20 sin degradación         |
+| RNF-05 | Integridad           | Transacciones ACID                   | 100% en operaciones críticas |
+| RNF-06 | Seguridad            | Validación de entrada                | 100% de endpoints            |
+| RNF-07 | Escalabilidad        | Arquitectura stateless               | Réplicas horizontales        |
+| RNF-08 | Mantenibilidad       | Cobertura de tests                   | ≥ 70%                        |
+| RNF-09 | Usabilidad           | Responsive design                    | Móvil, tablet, desktop       |
+| RNF-10 | Internacionalización | Idiomas soportados                   | ES, RU                       |
+| RNF-11 | Observabilidad       | Health checks                        | Todos los servicios          |
+| RNF-12 | Recuperación         | RTO / RPO                            | < 1 h / < 15 min             |
 
 ---
 
@@ -646,12 +644,12 @@ Content-Type: application/json
 
 ### 10.1. Requisitos de Hardware
 
-| Recurso | Mínimo | Recomendado |
-|---|---|---|
-| CPU | 2 núcleos @ 2.5 GHz | 4 núcleos @ 3.5 GHz |
-| RAM | 4 GB | 8 GB |
-| Disco | 20 GB SSD | 50 GB NVMe |
-| Red | 10 Mbps | 100 Mbps |
+| Recurso | Mínimo              | Recomendado         |
+| ------- | ------------------- | ------------------- |
+| CPU     | 2 núcleos @ 2.5 GHz | 4 núcleos @ 3.5 GHz |
+| RAM     | 4 GB                | 8 GB                |
+| Disco   | 20 GB SSD           | 50 GB NVMe          |
+| Red     | 10 Mbps             | 100 Mbps            |
 
 ### 10.2. Requisitos de Software
 
@@ -702,13 +700,13 @@ docker compose down
 
 ### 10.5. Operaciones Administrativas
 
-| Acción | Comando |
-|---|---|
-| Backup BD | `pg_dump -U postgres bd_materiales > backup_$(date +%F).sql` |
-| Restaurar BD | `psql -U postgres bd_materiales < backup.sql` |
-| Ver logs | `docker compose logs -f <servicio>` |
-| Reiniciar servicio | `docker compose restart <servicio>` |
-| Actualizar imágenes | `docker compose pull && docker compose up -d` |
+| Acción              | Comando                                                      |
+| ------------------- | ------------------------------------------------------------ |
+| Backup BD           | `pg_dump -U postgres bd_materiales > backup_$(date +%F).sql` |
+| Restaurar BD        | `psql -U postgres bd_materiales < backup.sql`                |
+| Ver logs            | `docker compose logs -f <servicio>`                          |
+| Reiniciar servicio  | `docker compose restart <servicio>`                          |
+| Actualizar imágenes | `docker compose pull && docker compose up -d`                |
 
 ### 10.6. Monitoreo
 
@@ -724,14 +722,14 @@ docker compose down
 
 ### 11.1. Estrategia de Testing
 
-| Nivel | Herramienta | Cobertura Objetivo |
-|---|---|---|
-| Unitario (Node.js) | Jest | 70%+ |
-| Unitario (Go) | `testing` + `testify` | 70%+ |
-| Integración API | Supertest / Insomnia | Endpoints críticos |
-| E2E | Playwright / Cypress | Flujos principales |
-| Carga | k6 | Endpoints críticos |
-| Seguridad | `npm audit`, OWASP ZAP | — |
+| Nivel              | Herramienta            | Cobertura Objetivo |
+| ------------------ | ---------------------- | ------------------ |
+| Unitario (Node.js) | Jest                   | 70%+               |
+| Unitario (Go)      | `testing` + `testify`  | 70%+               |
+| Integración API    | Supertest / Insomnia   | Endpoints críticos |
+| E2E                | Playwright / Cypress   | Flujos principales |
+| Carga              | k6                     | Endpoints críticos |
+| Seguridad          | `npm audit`, OWASP ZAP | —                  |
 
 ### 11.2. CI/CD
 
@@ -786,19 +784,19 @@ docker compose down
 
 ## 13. Glosario
 
-| Término | Definición |
-|---|---|
-| **ACID** | Atomicidad, Consistencia, Aislamiento, Durabilidad |
-| **API Gateway** | Punto único de entrada al sistema |
-| **DAG5** | Dirección No. 5 (cliente) |
-| **ETECSA** | Empresa de Telecomunicaciones de Cuba S.A. |
-| **GORM** | ORM para Go |
-| **JWT** | JSON Web Token |
-| **KPI** | Key Performance Indicator |
-| **MP** | Módulo Principal (operaciones) |
-| **RBAC** | Role-Based Access Control |
-| **SISGAD5** | Sistema de Información para la Gestión y Soporte de la Dirección No. 5 |
-| **Stub** | Función placeholder sin implementación completa |
+| Término         | Definición                                                             |
+| --------------- | ---------------------------------------------------------------------- |
+| **ACID**        | Atomicidad, Consistencia, Aislamiento, Durabilidad                     |
+| **API Gateway** | Punto único de entrada al sistema                                      |
+| **DAG5**        | Dirección No. 5 (cliente)                                              |
+| **ETECSA**      | Empresa de Telecomunicaciones de Cuba S.A.                             |
+| **GORM**        | ORM para Go                                                            |
+| **JWT**         | JSON Web Token                                                         |
+| **KPI**         | Key Performance Indicator                                              |
+| **MP**          | Módulo Principal (operaciones)                                         |
+| **RBAC**        | Role-Based Access Control                                              |
+| **SISGAD5**     | Sistema de Información para la Gestión y Soporte de la Dirección No. 5 |
+| **Stub**        | Función placeholder sin implementación completa                        |
 
 ---
 
