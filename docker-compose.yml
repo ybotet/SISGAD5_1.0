@@ -117,6 +117,9 @@ services:
       - USERS_SERVICE_URL=http://backend-users:5001
       - MP_SERVICE_URL=http://backend-mp:5002
       - FRONTEND_URL=${FRONTEND_URL}
+      - CORS_ORIGIN=${FRONTEND_URL}
+    # En desarrollo, instala dependencias al arrancar para evitar módulos faltantes
+    command: sh -c "npm install --silent && npm run dev"
     volumes:
       - ./api-gateway:/app
       - /app/node_modules
