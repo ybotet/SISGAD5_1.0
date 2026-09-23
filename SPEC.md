@@ -117,7 +117,7 @@ Desarrollar una plataforma de microservicios que automatice la gestión operativ
 ### 3.2. Diagrama de Componentes
 
 ```mermaid
-graph TB
+graph TD
     %% Cliente
     subgraph CLIENTE["🖥️ CLIENTE (Navegador Web)"]
         FE["Frontend<br/>React 18 + Vite + TypeScript<br/>Tailwind CSS"]
