@@ -1,8 +1,4 @@
-Perfecto. A continuación te presento el archivo **`SPEC.md`** (Especificación Técnica del Proyecto SISGAD5). Este documento consolida la especificación funcional, técnica y arquitectónica del sistema, sirviendo como referencia única para desarrolladores, agentes de IA y para la defensa de la tesis.
 
-Está diseñado para colocarse en la raíz del repositorio (`SISGAD5_1.0/SPEC.md`).
-
----
 # 📐 SPEC.md — Especificación Técnica del Proyecto SISGAD5
 
 > **Versión:** 1.0
