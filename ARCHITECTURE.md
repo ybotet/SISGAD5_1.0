@@ -135,30 +135,30 @@ graph TB
         direction TB
 
         subgraph "Frontend"
-            FE_C[frontend:5004]
+            FE_C[frontend:5004]:::container
         end
 
         subgraph "Services Layer"
-            GW_C[api-gateway:5000]
-            US_C[backend-users:5001]
-            MP_C[backend-mp:5002]
-            MS_C[backend-materiales-go:5003]
+            GW_C[api-gateway:5000]:::container
+            US_C[backend-users:5001]:::container
+            MP_C[backend-mp:5002]:::container
+            MS_C[backend-materiales-go:5003]:::container
         end
 
         subgraph "Data Layer"
-            PG_C[postgres:5432]
-            RD_C[redis:6379]
+            PG_C[postgres:5432]:::db
+            RD_C[redis:6379]:::db
         end
 
         subgraph "Observability Stack"
-            PR_C[prometheus:9090]
-            GF_C[grafana:3000]
-            LK_C[loki:3100]
+            PR_C[prometheus:9090]:::obs
+            GF_C[grafana:3000]:::obs
+            LK_C[loki:3100]:::obs
         end
     end
 
     %% Network connections
-    FE_C -->|"HTTP /api/*"| GW_C
+    FE_C -->|"HTTP API"| GW_C
     GW_C -->|"REST/JSON"| US_C
     GW_C -->|"REST/JSON"| MP_C
     GW_C -->|"REST/JSON"| MS_C
@@ -166,9 +166,9 @@ graph TB
     US_C -->|"SQL"| PG_C
     MP_C -->|"SQL"| PG_C
     MS_C -->|"SQL"| PG_C
-    US_C -->|"Redis" | RD_C
-    MP_C -->|"Redis" | RD_C
-    MS_C -->|"Redis" | RD_C
+    US_C -->|"Redis"| RD_C
+    MP_C -->|"Redis"| RD_C
+    MS_C -->|"Redis"| RD_C
 
     PR_C -->|"Scrape"| US_C
     PR_C -->|"Scrape"| MP_C
@@ -177,21 +177,16 @@ graph TB
     GF_C -->|"Query"| LK_C
 
     %% Volumes
-    PG_C -.->|"/var/lib/postgresql/data"| PG_V[pg_data_volume]
-    RD_C -.->|"/data"| RD_V[redis_data_volume]
-    GF_C -.->|"/var/lib/grafana"| GF_V[grafana_volume]
-    PR_C -.->|"/prometheus"| PR_V[prometheus_volume]
-    LK_C -.->|"/loki"| LK_V[loki_volume]
+    PG_C -. "/var/lib/postgresql/data" .-> PG_V[pg_data_volume]:::volume
+    RD_C -. "/data" .-> RD_V[redis_data_volume]:::volume
+    GF_C -. "/var/lib/grafana" .-> GF_V[grafana_volume]:::volume
+    PR_C -. "/prometheus" .-> PR_V[prometheus_volume]:::volume
+    LK_C -. "/loki" .-> LK_V[loki_volume]:::volume
 
     classDef container fill:#667eea,stroke:#3d4a9e,stroke-width:2px,color:#fff
     classDef db fill:#fdcb6e,stroke:#b8860b,stroke-width:2px,color:#000
     classDef obs fill:#00b893,stroke:#00875a,stroke-width:2px,color:#fff
     classDef volume fill:#ffeaa7,stroke:#d4a50a,stroke-width:2px,stroke-dasharray:5,5,color:#000
-
-    class FE_C,GW_C,US_C,MP_C,MS_C container
-    class PG_C,RD_C db
-    class PR_C,GF_C,LK_C obs
-    class PG_V,RD_V,GF_V,PR_V,LK_V volume
 ```
 
 ---
