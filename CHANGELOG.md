@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### 📚 Documentación
+- Reorganización de la estructura del repositorio según `ESTRUCTURA.md`
+- Migración de documentación del repositorio SISGAD5_doc al repositorio principal
+- Creación de `AGENT.md`, `SPEC.md`, `ARCHITECTURE.md` y `TASKLIST.md`
+- Documentación de APIs en `docs/api/` (OpenAPI 3.0 YAML specs)
+
+### 🐛 Bug Fix
+- Corregido `setupPostgresTimezone` function missing en `backend-mp/src/config/database.js`
+- Corregido path de `.env.local` en `backend-mp/src/config/database.js` (de `../../` a `../../../`)
+- Corregido `DB_PASSWORD` incorrecto en `backend-materiales-go/.env` (`password` → `postgres`)
+
+### 🔒 Seguridad
+- Archivos `.env.docker` y `.env.production` removidos de git
+- Añadida excepción `!.env.example` en `.gitignore`
+
+---
+
 ## [1.0.0] - 2026-09-20
 
 ### Added

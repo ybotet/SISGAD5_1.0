@@ -255,7 +255,7 @@ Servicio: [Servicio]
 Archivo(s) a modificar: [Archivo]
 
 [3. TAREA EXACTA]
-Implementa la Tarea #[N]: [Nombre de la Tarea].
+Implementa la Tarea #[N]: [Nombre de la Tarea] del archivo @TASKLIST.md
 
 Descripción: [Descripción de la tarea]
 Criterio de aceptación: [Criterio de aceptación]
@@ -289,7 +289,7 @@ Servicio: backend-materiales-go
 Archivo(s) a modificar: [Archivo]
 
 [3. TAREA EXACTA]
-Implementa la Tarea #[N]: [Nombre de la Tarea].
+Implementa la Tarea #[N]: [Nombre de la Tarea] del archivo @TASKLIST.md
 
 Descripción: [Descripción de la tarea]
 Criterio de aceptación: [Criterio de aceptación]
@@ -323,7 +323,7 @@ Servicio: frontend
 Archivo(s) a modificar: [Archivo]
 
 [3. TAREA EXACTA]
-Implementa la Tarea #[N]: [Nombre de la Tarea].
+Implementa la Tarea #[N]: [Nombre de la Tarea] del archivo @TASKLIST.md
 
 Descripción: [Descripción de la tarea]
 Criterio de aceptación: [Criterio de aceptación]

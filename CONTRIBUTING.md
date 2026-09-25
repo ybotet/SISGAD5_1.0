@@ -38,7 +38,7 @@ See [ESTRUCTURA.md](./ESTRUCTURA.md) for the full project structure.
 | API Gateway | `./api-gateway/` | Node.js + Express |
 | Users Service | `./backend-users/` | Node.js + Sequelize |
 | MP Service | `./backend-mp/` | Node.js + Sequelize + Zod |
-| Materials Service | `./backend-materiales-go/` | Go + Gin + GORM |
+| Materials Service | `./backend-materiales-go/` | Go + gorilla/mux + GORM |
 | Monitoring | `./monitoring/` | Prometheus, Grafana, Loki |
 | Scripts | `./scripts/` | Automation utilities |
 | E2E Tests | `./tests/e2e/` | Integration tests |
@@ -46,8 +46,15 @@ See [ESTRUCTURA.md](./ESTRUCTURA.md) for the full project structure.
 ## Development Workflow
 
 1. Create a branch from `main`:
+   - **Branch naming convention:**
+     - `feature/TASK-XXX-YY_short-description` — New features
+     - `fix/TASK-XXX-YY_short-description` — Bug fixes
+     - `docs/TASK-XXX-YY_short-description` — Documentation changes
+     - `chore/TASK-XXX-YY_short-description` — Maintenance tasks
+     - `refactor/TASK-XXX-YY_short-description` — Code refactoring
+     - `test/TASK-XXX-YY_short-description` — Test additions/changes
    ```bash
-   git checkout -b feature/descriptive-name
+   git checkout -b feature/TASK-500-01_material-pagination
    ```
 
 2. Make your changes following the coding standards below.
@@ -58,10 +65,14 @@ See [ESTRUCTURA.md](./ESTRUCTURA.md) for the full project structure.
    ```
 
 4. Commit using Conventional Commits:
-   ```
-   feat: add user role management
-   fix: resolve deadlock in stock validation
-   docs: update API reference
+   - `feat(TASK-XXX-YY): add user role management`
+   - `fix(TASK-XXX-YY): resolve deadlock in stock validation`
+   - `docs(TASK-XXX-YY): update API reference`
+   - `chore(TASK-XXX-YY): add dependency`
+   - `refactor(TASK-XXX-YY): simplify query logic`
+   - `test(TASK-XXX-YY): add materials service unit tests`
+   ```bash
+   git commit -m "feat(TASK-500-01): implement material catalog pagination"
    ```
 
 5. Push and create a Pull Request.
