@@ -39,60 +39,58 @@ SISGAD5 utiliza una **arquitectura de microservicios** con los siguientes princi
 
 ```mermaid
 graph LR
-    subgraph "Cliente"
-        FE[Frontend<br/>React 18 + Vite]
+    subgraph CLIENT["Cliente"]
+        FE["Frontend<br/>React 18 + Vite"]
     end
 
-    subgraph "Edge"
-        GW[API Gateway<br/>Node.js + Express]
+    subgraph EDGE["Edge"]
+        GW["API Gateway<br/>Node.js + Express"]
     end
 
-    subgraph "Servicios"
-        US[Users Service<br/>Node.js + Sequelize]
-        MPS[MP Service<br/>Node.js + Sequelize + Zod]
-        MS[Materials Service<br/>Go + gorilla/mux + GORM]
+    subgraph SERVICES["Servicios"]
+        US["Users Service<br/>Node.js + Sequelize"]
+        MPS["MP Service<br/>Node.js + Sequelize + Zod"]
+        MS["Materials Service<br/>Go + gorilla/mux + GORM"]
     end
 
-    subgraph "Datos"
-        UBD[(Users DB<br/>bd_users)]
-        MPDB[(MP DB<br/>bd_mp)]
-        MADB[(Materials DB<br/>bd_materiales)]
-        RDX[(Redis<br/>Cache/Sessions)]
+    subgraph DATA["Datos"]
+        UBD["(Users DB<br/>bd_users)"]
+        MPDB["(MP DB<br/>bd_mp)"]
+        MADB["(Materials DB<br/>bd_materiales)"]
+        RDX["(Redis<br/>Cache/Sessions)"]
     end
 
-    %% Communication paths
-    FE -- HTTPS | --> GW
-    GW -- REST/JSON |/api/users/** --> US
-    GW -- REST/JSON |/api/mp/** --> MPS
-    GW -- REST/JSON |/api/materiales/** --> MS
-    US -- SQL | --> UBD
-    MPS -- SQL | --> MPDB
-    MS -- SQL | --> MADB
-    US -- Redis | --> RDX
-    MPS -- Redis | --> RDX
-    MS -- Redis | --> RDX
+    %% Communication paths (allowed - solid lines with labels)
+    FE == "HTTPS" ==> GW
+    GW == "REST/JSON" ==> US
+    GW == "REST/JSON" ==> MPS
+    GW == "REST/JSON" ==> MS
+    US == "SQL" ==> UBD
+    MPS == "SQL" ==> MPDB
+    MS == "SQL" ==> MADB
+    US == "Redis" ==> RDX
+    MPS == "Redis" ==> RDX
+    MS == "Redis" ==> RDX
 
-    %% Forbidden (visual cross)
-    US -.->|❌ Prohibido| MPDB
-    US -.->|❌ Prohibido| MADB
-    MPS -.->|❌ Prohibido| UBD
-    MPS -.->|❌ Prohibido| MADB
-    MS -.->|❌ Prohibido| UBD
-    MS -.->|❌ Prohibido| MPDB
+    %% Forbidden cross-BD access (dashed red lines)
+    US -. "❌ Prohibido" .-> MPDB
+    US -. "❌ Prohibido" .-> MADB
+    MPS -. "❌ Prohibido" .-> UBD
+    MPS -. "❌ Prohibido" .-> MADB
+    MS -. "❌ Prohibido" .-> UBD
+    MS -. "❌ Prohibido" .-> MPDB
 
-    classDef service fill:#4a90d9,stroke:#2c5f8a,stroke-width:2px,color:#fff;
-    classDef gateway fill:#ff9f43,stroke:#e67e22,stroke-width:2px,color:#fff;
-    classDef frontend fill:#54a0ff,stroke:#2d5a9e,stroke-width:2px,color:#fff;
-    classDef database fill:#5f27cd,stroke:#3a0d7a,stroke-width:2px,color:#fff;
-    classDef cache fill:#00b893,stroke:#00875a,stroke-width:2px,color:#fff;
-    classDef forbidden stroke-dasharray:5,5,stroke:#e74c3c;
+    classDef service fill:#4a90d9,stroke:#2c5f8a,stroke-width:2px,color:#fff
+    classDef gateway fill:#ff9f43,stroke:#e67e22,stroke-width:2px,color:#fff
+    classDef frontend fill:#54a0ff,stroke:#2d5a9e,stroke-width:2px,color:#fff
+    classDef database fill:#5f27cd,stroke:#3a0d7a,stroke-width:2px,color:#fff
+    classDef cache fill:#00b893,stroke:#00875a,stroke-width:2px,color:#fff
 
     class FE,frontend
     class GW,gateway
     class US,MPS,MS,service
     class UBD,MPDB,MADB,database
     class RDX,cache
-    class US-.->|❌ Prohibido| MPDB for,forbidden
 ```
 
 ---
@@ -120,7 +118,7 @@ sequenceDiagram
     alt Estado válido para cierre
         MPS->>MPDB: UPDATE queja SET estado='Cerrada', fechaok=NOW()
         MPDB-->>MPS: OK
-        MPS->>MS: POST /api/materiales/consumo<br/>(materiales usados en reparación)
+        MPS->>MS: POST /api/materiales/consumo
         MS->>MADB: BEGIN TRANSACTION
         MS->>MADB: INSERT consumo + UPDATE stock
         MADB-->>MS: COMMIT
@@ -191,10 +189,10 @@ graph TB
     PR_C -.->|"/prometheus"| PR_V[prometheus_volume]
     LK_C -.->|"/loki"| LK_V[loki_volume]
 
-    classDef container fill:#667eea,stroke:#3d4a9e,stroke-width:2px,color:#fff;
-    classDef db fill:#fdcb6e,stroke:#b8860b,stroke-width:2px,color:#000;
-    classDef obs fill:#00b893,stroke:#00875a,stroke-width:2px,color:#fff;
-    classDef volume stroke-dasharray:5,5,stroke:#e74c3c;
+    classDef container fill:#667eea,stroke:#3d4a9e,stroke-width:2px,color:#fff
+    classDef db fill:#fdcb6e,stroke:#b8860b,stroke-width:2px,color:#000
+    classDef obs fill:#00b893,stroke:#00875a,stroke-width:2px,color:#fff
+    classDef volume fill:#ffeaa7,stroke:#d4a50a,stroke-width:2px,stroke-dasharray:5,5,color:#000
 
     class FE_C,GW_C,US_C,MP_C,MS_C container
     class PG_C,RD_C db
