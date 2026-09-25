@@ -40,24 +40,24 @@ SISGAD5 utiliza una **arquitectura de microservicios** con los siguientes princi
 ```mermaid
 graph LR
     subgraph CLIENT["Cliente"]
-        FE["Frontend<br/>React 18 + Vite"]
+        FE["Frontend - React 18 + Vite"]:::frontend
     end
 
     subgraph EDGE["Edge"]
-        GW["API Gateway<br/>Node.js + Express"]
+        GW["API Gateway - Node.js + Express"]:::gateway
     end
 
     subgraph SERVICES["Servicios"]
-        US["Users Service<br/>Node.js + Sequelize"]
-        MPS["MP Service<br/>Node.js + Sequelize + Zod"]
-        MS["Materials Service<br/>Go + gorilla/mux + GORM"]
+        US["Users Service - Node.js + Sequelize"]:::service
+        MPS["MP Service - Node.js + Sequelize + Zod"]:::service
+        MS["Materials Service - Go + gorilla/mux + GORM"]:::service
     end
 
     subgraph DATA["Datos"]
-        UBD["(Users DB<br/>bd_users)"]
-        MPDB["(MP DB<br/>bd_mp)"]
-        MADB["(Materials DB<br/>bd_materiales)"]
-        RDX["(Redis<br/>Cache/Sessions)"]
+        UBD["Users DB - bd_users"]:::database
+        MPDB["MP DB - bd_mp"]:::database
+        MADB["Materials DB - bd_materiales"]:::database
+        RDX["Redis - Cache/Sessions"]:::cache
     end
 
     %% Communication paths (allowed - solid lines with labels)
@@ -73,24 +73,18 @@ graph LR
     MS == "Redis" ==> RDX
 
     %% Forbidden cross-BD access (dashed red lines)
-    US -. "❌ Prohibido" .-> MPDB
-    US -. "❌ Prohibido" .-> MADB
-    MPS -. "❌ Prohibido" .-> UBD
-    MPS -. "❌ Prohibido" .-> MADB
-    MS -. "❌ Prohibido" .-> UBD
-    MS -. "❌ Prohibido" .-> MPDB
+    US -. "Prohibido" .-> MPDB
+    US -. "Prohibido" .-> MADB
+    MPS -. "Prohibido" .-> UBD
+    MPS -. "Prohibido" .-> MADB
+    MS -. "Prohibido" .-> UBD
+    MS -. "Prohibido" .-> MPDB
 
     classDef service fill:#4a90d9,stroke:#2c5f8a,stroke-width:2px,color:#fff
     classDef gateway fill:#ff9f43,stroke:#e67e22,stroke-width:2px,color:#fff
     classDef frontend fill:#54a0ff,stroke:#2d5a9e,stroke-width:2px,color:#fff
     classDef database fill:#5f27cd,stroke:#3a0d7a,stroke-width:2px,color:#fff
     classDef cache fill:#00b893,stroke:#00875a,stroke-width:2px,color:#fff
-
-    class FE,frontend
-    class GW,gateway
-    class US,MPS,MS,service
-    class UBD,MPDB,MADB,database
-    class RDX,cache
 ```
 
 ---
