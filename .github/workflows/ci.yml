@@ -116,7 +116,7 @@ jobs:
         run: go test ./... -v -coverprofile=coverage.out -covermode=atomic
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: go-coverage
           path: backend-materiales-go/coverage.out
