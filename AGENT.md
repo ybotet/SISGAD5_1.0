@@ -19,7 +19,7 @@ SISGAD5 es una **arquitectura de microservicios** para la gestión operativa de 
 | **API Gateway**       | Node.js + Express + http-proxy-middleware | 5000   | Puerta de entrada única                    |
 | **Users Service**     | Node.js + Express + Sequelize             | 5001   | Autenticación y usuarios                   |
 | **MP Service**        | Node.js + Express + Sequelize + Zod       | 5002   | Operaciones (quejas, trabajos, pruebas)    |
-| **Materials Service** | Go + Gin + GORM                           | 5003   | Gestión de materiales (ACID, concurrencia) |
+| **Materials Service** | Go + gorilla/mux + GORM                   | 5003   | Gestión de materiales (ACID, concurrencia) |
 | **PostgreSQL**        | PostgreSQL 17+                            | 5432   | Persistencia (3 BD separadas)              |
 | **Redis**             | Redis                                     | 6379   | Caché / sesiones                           |
 
@@ -34,6 +34,12 @@ SISGAD5 es una **arquitectura de microservicios** para la gestión operativa de 
 3. **La comunicación entre servicios es vía REST (JSON).** No hay llamadas directas entre servicios.
 4. **La autenticación se centraliza en el API Gateway** (verificación de JWT). El login lo gestiona Users Service.
 5. **El MP Service NO gestiona materiales.** Solo referencia IDs de materiales; la lógica de materiales vive en Materials Service.
+
+### Reglas de Oro
+1. **Prohibido acceder directamente a la BD de otro microservicio.**
+2. **Prohibido subir secretos o credenciales al código.** Usar siempre variables de entorno (`.env.local`, no versionar).
+3. **Prohibido mezclar lógica de negocio entre microservicios.**
+4. **Priorizar siempre transacciones ACID** en operaciones críticas (asignaciones, consumos, cierres).
 
 ---
 
@@ -82,6 +88,8 @@ Para cada módulo del sistema, el agente debe seguir este flujo:
 - Modificar contratos de API existentes sin versionado.
 - Acceder a la BD de otro microservicio directamente.
 - Mezclar lógica de negocio entre microservicios.
+- **Subir secretos o credenciales al código** (usar variables de entorno).
+- Ignorar transacciones ACID en operaciones críticas.
 - Ignorar las reglas arquitectónicas (sección 1).
 
 ### 3.3 Convenciones de Código
@@ -205,7 +213,7 @@ Para cada módulo del sistema, el agente debe seguir este flujo:
 ---
 
 ### 📦 MÓDULO 3 — Materials Service (Gestión de Materiales)
-**Servicio:** `backend-materiales-go` (Go + Gin + GORM)
+**Servicio:** `backend-materiales-go` (Go + gorilla/mux + GORM)
 
 #### 3.1 Gestión de Materiales
 
@@ -394,7 +402,6 @@ Para cada módulo del sistema, el agente debe seguir este flujo:
 
 Cada vez que el agente complete una tarea, debe reportar usando este formato:
 
-```markdown
 ## 📌 Reporte de Tarea
 
 **Módulo:** [Nombre del módulo]
@@ -428,11 +435,13 @@ Cada vez que el agente complete una tarea, debe reportar usando este formato:
 1. **NUNCA** modificar la arquitectura sin consultar al autor.
 2. **NUNCA** introducir dependencias que rompan la compatibilidad.
 3. **NUNCA** acceder a BD de otro microservicio.
-4. **SIEMPRE** respetar los contratos de API existentes.
-5. **SIEMPRE** documentar los cambios en el CHANGELOG.
-6. **SIEMPRE** ejecutar los tests antes de commitear.
-7. **SIEMPRE** usar Conventional Commits.
-8. **SIEMPRE** preguntar al autor si hay ambigüedad.
+4. **NUNCA** subir secretos o credenciales al código (usar variables de entorno).
+5. **SIEMPRE** respetar los contratos de API existentes.
+6. **SIEMPRE** priorizar transacciones ACID en operaciones críticas.
+7. **SIEMPRE** documentar los cambios en el CHANGELOG.
+8. **SIEMPRE** ejecutar los tests antes de commitear.
+9. **SIEMPRE** usar Conventional Commits.
+10. **SIEMPRE** preguntar al autor si hay ambigüedad.
 
 ---
 
