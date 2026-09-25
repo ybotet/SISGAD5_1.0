@@ -20,13 +20,17 @@ coverage/
 .env
 .env.local
 .env.*
+!.env.example
 
+# Backend service docs (auto-generated swagger)
+backend-*/docs/swagger.json
+backend-*/docs/index.html
 
-# Archivos del sistema
-.DS_Store
-Thumbs.db
+# Backend service node_modules
+**/node_modules/
 
 # IDE
+
 .vscode/
 .idea/
 

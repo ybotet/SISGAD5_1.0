@@ -1,0 +1,101 @@
+openapi: 3.0.3
+info:
+  title: SISGAD5 - API Gateway
+  description: |
+    Punto de entrada única al sistema SISGAD5.
+    
+    El API Gateway enruta las solicitudes a los tres microservicios:
+    - /api/auth/* → backend-users
+    - /api/mp/* → backend-mp
+    - /api/materials/* → backend-materiales-go
+    
+    **Tecnologías:** Node.js + Express + http-proxy-middleware  
+    **Seguridad:** JWT validation, rate limiting, CORS
+  version: 1.0.0
+  contact:
+    name: SISGAD5 Team
+    url: https://github.com/ybotet/SISGAD5_1.0
+
+servers:
+  - url: http://localhost:5000
+    description: Local
+  - url: https://api.sisgad5.com
+    description: Producción
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /health:
+    get:
+      summary: Health check agregado
+      description: Verifica la salud de todos los servicios
+      responses:
+        '200':
+          description: Todos los servicios saludables
+          content:
+            application/json:
+              example: |
+                {
+                  "status": "ok",
+                  "services": {
+                    "users": "healthy",
+                    "mp": "healthy",
+                    "materials": "healthy"
+                  }
+                }
+  /api/auth/{proxy+}:
+    path:
+      summary: Proxy a Users Service
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: (GET) Auth routes
+    post:
+      summary: (POST) Auth routes (login, register, refresh, logout)
+  /api/mp/{proxy+}:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: (GET) MP routes (quejas, trabajos, pruebas, infra)
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: (POST) MP routes
+    patch:
+      security: [{ bearerAuth: [] }]
+      summary: (PATCH) MP routes (estado, asignación)
+  /api/materials/{proxy+}:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: (GET) Materials routes
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: (POST) Materials routes (asignaciones, consumos)
+    put:
+      security: [{ bearerAuth: [] }]
+      summary: (PUT) Materials routes
+    delete:
+      security: [{ bearerAuth: [] }]
+      summary: (DELETE) Materials routes
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error: { type: string }
+        message: { type: string }
+        code: { type: integer }
+    HealthResponse:
+      type: object
+      properties:
+        status: { type: string }
+        timestamp: { type: string, format: date-time }
+        services:
+          type: object
+          properties:
+            users: { type: string, enum: [healthy, unhealthy] }
+            mp: { type: string, enum: [healthy, unhealthy] }
+            materials: { type: string, enum: [healthy, unhealthy] }

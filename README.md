@@ -8,7 +8,7 @@
 
 > Система управления жалобами и услугами телекоммуникаций, разработанная в рамках магистерской диссертации по направлению «Индустриальное программирование».
 
-[Полная документация](./docs/) • [API Reference](./docs/API_REFERENCE.md) • [Health Checks](#-health-checks)
+[Полная документация](./docs/00_index.md) • [API Reference](./docs/api/) • [Health Checks](#-health-checks)
 
 > 🇪🇸 [Versión en español](README.es.md) | 🇷🇺 Версия на русском языке
 

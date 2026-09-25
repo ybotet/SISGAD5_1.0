@@ -159,7 +159,7 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      - ./monitoring/loki-config.yaml:/etc/loki/loki-config.yaml
+      - ./monitoring/loki/loki-config.yaml:/etc/loki/loki-config.yaml
       - loki-data:/loki
     command: -config.file=/etc/loki/loki-config.yaml
     networks:
@@ -177,7 +177,7 @@ services:
       # Monta los logs de todos tus servicios
       - ./logs:/var/log/apps:ro
       - /var/lib/docker/containers:/var/log/containers:ro # Logs de contenedores
-      - ./monitoring/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - ./monitoring/loki/promtail-config.yaml:/etc/promtail/promtail-config.yaml
     command: -config.file=/etc/promtail/promtail-config.yaml
     networks:
       - sisgad5-network
@@ -199,7 +199,7 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./monitoring/grafana-provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     networks:
       - sisgad5-network
     restart: unless-stopped

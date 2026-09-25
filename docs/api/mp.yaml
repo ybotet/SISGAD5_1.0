@@ -1,0 +1,211 @@
+openapi: 3.0.3
+info:
+  title: SISGAD5 - MP Service API
+  description: |
+    API para la gestión de infraestructura (teléfonos, líneas, pizarras), quejas, pruebas y trabajos.
+    
+    **Servicio:** backend-mp (Node.js + Express + Sequelize + Zod)  
+    **Base de datos:** bd_mp (PostgreSQL)
+    
+    Ver documentación completa en [docs/03_use_cases.md](./docs/03_use_cases.md)  
+    Swagger UI: [mp_swagger.json](./mp_swagger.json)
+  version: 1.0.0
+  contact:
+    name: SISGAD5 Team
+    url: https://github.com/ybotet/SISGAD5_1.0
+
+servers:
+  - url: http://localhost:5000/api/mp
+    description: API Gateway (local)
+  - url: https://api.sisgad5.com/api/mp
+    description: Producción
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Queja:
+      type: object
+      properties:
+        id: { type: integer }
+        num_reporte: { type: integer }
+        tipo_queja_id: { type: integer }
+        servicio_id: { type: integer }
+        prioridad: { type: integer, minimum: 1, maximum: 4 }
+        estado: { type: string, enum: [Abierta, Probada, Asignada, Pendiente, Resuelta, Cerrada] }
+        tecnico_asignado_id: { type: string, format: uuid, nullable: true }
+        fecha: { type: string, format: date-time }
+    Telefono:
+      type: object
+      properties:
+        id: { type: integer }
+        numero: { type: string }
+        cliente_id: { type: integer }
+        estado: { type: string, enum: [activo, baja] }
+        ubicacion: { type: string }
+        observaciones: { type: string, nullable: true }
+    Linea:
+      type: object
+      properties:
+        id: { type: integer }
+        numero: { type: string }
+        cliente_id: { type: integer }
+        estado: { type: string, enum: [activo, baja] }
+        tipo_linea_id: { type: integer, nullable: true }
+    Pizarra:
+      type: object
+      properties:
+        id: { type: integer }
+        nombre: { type: string }
+        tipo_pizarra_id: { type: integer }
+        ubicacion_fisica: { type: string }
+        latitud: { type: number, format: float, nullable: true }
+        longitud: { type: number, format: float, nullable: true }
+        estado: { type: string, enum: [activo, baja] }
+    Trabajo:
+      type: object
+      properties:
+        id: { type: integer }
+        queja_id: { type: integer, nullable: true }
+        descripcion: { type: string }
+        tecnico_asignado_id: { type: string, format: uuid, nullable: true }
+        tiempo_estimado: { type: number, format: float }
+        tiempo_real: { type: number, format: float, nullable: true }
+        estado: { type: string, enum: [Creada, Asignada, EnProgreso, Cerrada, Cancelada] }
+    Prueba:
+      type: object
+      properties:
+        id: { type: integer }
+        queja_id: { type: integer, nullable: true }
+        trabajo_id: { type: integer, nullable: true }
+        tecnico_id: { type: string, format: uuid }
+        fecha: { type: string, format: date-time }
+        exitoso: { type: boolean }
+        mediciones: { type: object }
+        observaciones: { type: string, nullable: true }
+
+paths:
+  /mp/quejas:
+    get:
+      summary: Listar quejas
+      parameters:
+        - in: query, name: estado, schema: { type: string, enum: [Abierta, Probada, Asignada, Pendiente, Resuelta, Cerrada] }
+        - in: query, name: prioridad, schema: { type: integer, minimum: 1, maximum: 4 }
+        - in: query, name: servicio_id, schema: { type: integer }
+        - in: query, name: fecha_desde, schema: { type: string, format: date }
+        - in: query, name: fecha_hasta, schema: { type: string, format: date }
+        - in: query, name: page, schema: { type: integer, default: 1 }
+        - in: query, name: limit, schema: { type: integer, default: 20 }
+      responses: { '200': { description: Lista paginada de quejas } }
+    post:
+      summary: Reportar nueva queja
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Queja' } } }
+      responses: { '201': { description: Queja creada } }
+
+  /mp/quejas/{id}:
+    get:
+      summary: Ver detalle de queja
+      responses: { '200': { description: Queja } }
+  /mp/quejas/{id}/estado:
+    patch:
+      summary: Cambiar estado (FSM validado)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nuevo_estado: { type: string }
+                observaciones: { type: string, nullable: true }
+      responses:
+        '200': { description: Estado actualizado }
+        '400': { description: Transición de estado inválida (FSM) }
+
+  /mp/quejas/{id}/asignar:
+    patch:
+      summary: Asignar técnico
+      responses: { '200': { description: Técnico asignado } }
+
+  /mp/pruebas:
+    post:
+      summary: Registrar prueba técnica
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Prueba' } } }
+      responses: { '201': { description: Prueba registrada } }
+
+  /mp/trabajos:
+    get:
+      summary: Listar órdenes de trabajo
+      responses: { '200': { description: Lista paginada } }
+    post:
+      summary: Crear orden de trabajo
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Trabajo' } } }
+      responses: { '201': { description: Trabajo creado } }
+
+  /mp/trabajos/{id}/iniciar:
+    patch:
+      summary: Iniciar trabajo en campo
+      responses: { '200': { description: Trabajo iniciado } }
+  /mp/trabajos/{id}/cerrar:
+    patch:
+      summary: Cerrar trabajo (requiere tiempo real)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { tiempo_real: { type: number, format: float } }
+      responses: { '200': { description: Trabajo cerrado } }
+
+  /mp/telefonos:
+    get: { summary: Listar teléfonos, responses: { '200': { description: Lista } } }
+    post: { summary: Crear teléfono, responses: { '201': { description: Teléfono creado } } }
+  /mp/lineas:
+    get: { summary: Listar líneas, responses: { '200': { description: Lista } } }
+    post: { summary: Crear línea, responses: { '201': { description: Línea creada } } }
+  /mp/pizarras:
+    get: { summary: Listar pizarras, responses: { '200': { description: Lista } } }
+    post: { summary: Crear pizarra, responses: { '201': { description: Pizarra creada } } }
+  /mp/pizarras/{id}/puertos:
+    post: { summary: Crear puerto en pizarra, responses: { '201': { description: Puerto creado } } }
+  /mp/pizarras/{id}/puertos/{puerto_id}/conexion:
+    put: { summary: Registrar conexión de puerto, responses: { '200': { description: Conexión registrada } } }
+
+  /mp/catalogos/tipos-queja:
+    get: { summary: Listar tipos de queja, responses: { '200': { description: Lista } } }
+  /mp/catalogos/servicios:
+    get: { summary: Listar servicios, responses: { '200': { description: Lista } } }
+  /mp/catalogos/ubicaciones:
+    get: { summary: Listar ubicaciones, responses: { '200': { description: Lista } } }
+
+  /mp/dashboard:
+    get:
+      summary: KPIs de MP
+      parameters:
+        - in: query, name: fecha_desde, schema: { type: string, format: date }
+        - in: query, name: fecha_hasta, schema: { type: string, format: date }
+        - in: query, name: servicio_id, schema: { type: integer }
+      responses: { '200': { description: Métricas agregadas } }
+
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Servicio saludable
+          content:
+            application/json:
+              example: { status: "ok", service: "backend-mp" }

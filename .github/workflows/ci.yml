@@ -1,0 +1,176 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api-gateway, backend-users, backend-mp, frontend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (JS/TS)
+        run: npm run lint
+
+  test-js:
+    name: Test (JS/TS)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [backend-users, backend-mp]
+    defaults:
+      run:
+        working-directory: ${{ matrix.service }}
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup environment
+        run: cp .env.example .env
+
+      - name: Run tests
+        run: npm test
+
+  test-go:
+    name: Test (Go)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-materiales-go
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: true
+          cache-dependency-path: backend-materiales-go/go.sum
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: go test ./... -v -coverprofile=coverage.out -covermode=atomic
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-coverage
+          path: backend-materiales-go/coverage.out
+
+  test-e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [lint, test-js, test-go]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Start services
+        run: docker compose up -d --build
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for services..."
+          sleep 30
+          curl -f http://localhost:5000/health || exit 1
+          curl -f http://localhost:5001/health || exit 1
+          curl -f http://localhost:5002/health || exit 1
+          curl -f http://localhost:5003/health || exit 1
+
+      - name: Run E2E tests
+        run: |
+          npm run test:e2e
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down
+
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [test-e2e]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Images
+        run: |
+          docker build -t api-gateway:${{ github.sha }} ./api-gateway
+          docker build -t backend-users:${{ github.sha }} ./backend-users
+          docker build -t backend-mp:${{ github.sha }} ./backend-mp
+          docker build -t backend-materiales:${{ github.sha }} ./backend-materiales-go
+          docker build -t frontend:${{ github.sha }} ./frontend

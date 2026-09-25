@@ -1,0 +1,198 @@
+openapi: 3.0.3
+info:
+  title: SISGAD5 - Materials Service API
+  description: |
+    API para la gestión transaccional de materiales: catálogo, asignaciones, consumos y stock.
+    
+    **Servicio:** backend-materiales-go (Go + Gin + GORM)  
+    **Base de datos:** bd_materiales (PostgreSQL)  
+    **Concurrencia:** Goroutines + Redis locks
+    
+    Ver documentación completa en [docs/thesis/04_implementation.md](./docs/thesis/04_implementation.md)  
+    Swagger UI: [materiales_swagger.json](./materiales_swagger.json)
+  version: 1.0.0
+  contact:
+    name: SISGAD5 Team
+    url: https://github.com/ybotet/SISGAD5_1.0
+
+servers:
+  - url: http://localhost:5000/api/materials
+    description: API Gateway (local)
+  - url: https://api.sisgad5.com/api/materials
+    description: Producción
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Material:
+      type: object
+      properties:
+        id: { type: integer }
+        codigo: { type: string }
+        nombre: { type: string }
+        descripcion: { type: string, nullable: true }
+        precio_unitario: { type: number, format: float }
+        categoria_id: { type: integer }
+        unidad_id: { type: integer }
+        stock_minimo: { type: integer, default: 0 }
+        activo: { type: boolean, default: true }
+    Categoria:
+      type: object
+      properties:
+        id: { type: integer }
+        nombre: { type: string }
+        descripcion: { type: string, nullable: true }
+    UnidadMedida:
+      type: object
+      properties:
+        id: { type: integer }
+        nombre: { type: string }
+        simbolo: { type: string }
+    Asignacion:
+      type: object
+      properties:
+        id: { type: integer }
+        id_trabajador: { type: integer }
+        trabajo_id: { type: integer, nullable: true }
+        fecha_asignacion: { type: string, format: date-time }
+        observaciones: { type: string, nullable: true }
+        estado: { type: string, enum: [Pendiente, Aprobada, Entregada, Cancelada] }
+        detalles:
+          type: array
+          items:
+            type: object
+            properties:
+              id_material: { type: integer }
+              cantidad: { type: integer, minimum: 1 }
+    Consumo:
+      type: object
+      properties:
+        id: { type: integer }
+        id_trabajador: { type: integer }
+        trabajo_id: { type: integer, nullable: true }
+        asignacion_id: { type: integer, nullable: true }
+        fecha: { type: string, format: date-time }
+        observaciones: { type: string, nullable: true }
+        detalles:
+          type: array
+          items:
+            type: object
+            properties:
+              id_material: { type: integer }
+              cantidad: { type: integer, minimum: 1 }
+
+paths:
+  /materiales:
+    get:
+      summary: Listar materiales
+      parameters:
+        - in: query, name: page, schema: { type: integer, default: 1 }
+        - in: query, name: limit, schema: { type: integer, default: 20 }
+        - in: query, name: search, schema: { type: string }
+        - in: query, name: categoria_id, schema: { type: integer }
+        - in: query, name: unidad_id, schema: { type: integer }
+      responses: { '200': { description: Lista paginada de materiales } }
+    post:
+      summary: Crear material (RF-MAT-01)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Material' } } }
+      responses: { '201': { description: Material creado } }
+  /materiales/{id}:
+    get: { summary: Ver material, responses: { '200': { description: Material } } }
+    put: { summary: Actualizar material, responses: { '200': { description: Material actualizado } } }
+    delete: { summary: Desactivar material, responses: { '204': { description: Material eliminado } } }
+  /materiales/search:
+    get:
+      summary: Búsqueda textual (RF-MAT-07)
+      parameters:
+        - in: query, name: q, required: true, schema: { type: string }
+      responses: { '200': { description: Resultados de búsqueda } }
+  /categorias:
+    get: { summary: Listar categorías, responses: { '200': { description: Lista } } }
+    post: { summary: Crear categoría, responses: { '201': { description: Categoría creada } } }
+  /unidades:
+    get: { summary: Listar unidades, responses: { '200': { description: Lista } } }
+    post: { summary: Crear unidad, responses: { '201': { description: Unidad creada } } }
+  /asignaciones:
+    get:
+      summary: Listar asignaciones
+      responses: { '200': { description: Lista paginada } }
+    post:
+      summary: Crear asignación (RF-MAT-03)
+      description: |
+        Transaccional (ACID). Valida stock con lock distribuido (Redis).
+        BR-08, BR-09 aplicables.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Asignacion' } } }
+      responses: { '201': { description: Asignación creada } }
+  /asignaciones/{id}:
+    get: { summary: Ver detalle de asignación, responses: { '200': { description: Asignación } } }
+    patch:
+      summary: Cambiar estado de asignación
+      responses: { '200': { description: Estado actualizado } }
+  /consumos:
+    get:
+      summary: Listar consumos
+      responses: { '200': { description: Lista paginada } }
+    post:
+      summary: Registrar consumo (RF-MAT-04)
+      description: |
+        Transaccional (ACID). Valida consumo ≤ asignación pendiente (BR-08, BR-10).
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Consumo' } } }
+      responses: { '201': { description: Consumo registrado } }
+  /consumos/{id}:
+    get: { summary: Ver detalle de consumo, responses: { '200': { description: Consumo } } }
+  /dashboard:
+    get:
+      summary: KPIs materiales
+      description: |
+        - Asignaciones/consumos por período
+        - Distribución por categorías/unidades
+        - Saldo lógico por trabajador
+        - Alertas de stock bajo
+      parameters:
+        - in: query, name: fecha_desde, schema: { type: string, format: date }
+        - in: query, name: fecha_hasta, schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Métricas agregadas
+          content:
+            application/json:
+              example:
+                asignaciones_mes: 150
+                consumos_mes: 42
+                costo_total: 350000.00
+                stock_bajo_count: 3
+  /saldos:
+    get:
+      summary: Saldo lógico por trabajador/material
+      description: "Fórmula: Σ(asignado) - Σ(consumido)"
+      parameters:
+        - in: query, name: trabajador_id, schema: { type: integer }
+        - in: query, name: material_id, schema: { type: integer }
+      responses: { '200': { description: Saldos calculados } }
+  /alertas-stock:
+    get:
+      summary: Materiales con stock bajo
+      responses: { '200': { description: Lista de materiales con stock bajo } }
+
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Servicio saludable
+          content:
+            application/json:
+              example: { status: "ok", service: "backend-materiales-go" }

@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: SISGAD5 - Users Service API
+  description: |
+    API para la gestión de usuarios, autenticación y autorización (RBAC).
+    
+    **Servicio:** backend-users (Node.js + Express + Sequelize)  
+    **Base de datos:** bd_users (PostgreSQL)
+    
+    Ver documentación completa en [docs/01_introduction.md](../thesis/01_introduction.md)
+  version: 1.0.0
+  contact:
+    name: SISGAD5 Team
+    url: https://github.com/ybotet/SISGAD5_1.0
+
+servers:
+  - url: http://localhost:5000/api
+    description: API Gateway (local)
+  - url: https://api.sisgad5.com/api
+    description: Producción
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+    LoginResponse:
+      type: object
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        user: { $ref: '#/components/schemas/User' }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        nombre: { type: string }
+        apellido: { type: string }
+        activo: { type: boolean }
+        roles: { type: array, items: { type: string } }
+
+paths:
+  /auth/login:
+    post:
+      summary: Login de usuario
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LoginRequest' } } }
+      responses:
+        '200': { description: Login exitoso, content: { application/json: { schema: { $ref: '#/components/schemas/LoginResponse' } } } }
+        '429': { description: Rate limit exceeded }
+        '423': { description: Account locked }
+
+  /auth/refresh:
+    post:
+      summary: Renovar access token
+      responses:
+        '200': { description: Token renovado }
+
+  /auth/logout:
+    post:
+      summary: Logout y revocación de sesión
+      responses:
+        '200': { description: Sesión revocada }
+
+  /auth/me:
+    get:
+      summary: Perfil del usuario actual
+      responses:
+        '200': { description: Usuario autenticado }
+
+  /users:
+    get:
+      summary: Listar usuarios
+      parameters:
+        - in: query, name: page, schema: { type: integer }
+        - in: query, name: limit, schema: { type: integer }
+      responses: { '200': { description: Lista paginada de usuarios } }
+    post:
+      summary: Crear usuario
+      responses: { '201': { description: Usuario creado } }
+
+  /users/{id}:
+    get:
+      summary: Ver usuario
+      responses: { '200': { description: Usuario } }
+    put:
+      summary: Actualizar usuario
+      responses: { '200': { description: Usuario actualizado } }
+
+  /roles:
+    get:
+      summary: Listar roles
+      responses: { '200': { description: Lista de roles } }
+    post:
+      summary: Crear rol
+      responses: { '201': { description: Rol creado } }
+
+  /health:
+    get:
+      summary: Health check
+      description: Verifica disponibilidad del servicio
+      responses:
+        '200':
+          description: Servicio saludable
+          content:
+            application/json:
+              example: { status: "ok", service: "backend-users" }
