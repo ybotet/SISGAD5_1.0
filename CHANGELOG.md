@@ -13,7 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reorganización de la estructura del repositorio según `ESTRUCTURA.md`
 - Migración de documentación del repositorio SISGAD5_doc al repositorio principal
 - Creación de `AGENT.md`, `SPEC.md`, `ARCHITECTURE.md` y `TASKLIST.md`
+- Creación de `CHANGELOG.md` (Keep a Changelog + SemVer)
+- Creación de `CONTRIBUTING.md` con convenciones de ramas, commits y PRs
 - Documentación de APIs en `docs/api/` (OpenAPI 3.0 YAML specs)
+- Creación de `docs/requirements.md` consolidando todos los requisitos del sistema
+- Creación de `docs/architecture.md` con diagramas Mermaid y decisiones arquitectónicas (ADRs)
 
 ### 🐛 Bug Fix
 - Corregido `setupPostgresTimezone` function missing en `backend-mp/src/config/database.js`

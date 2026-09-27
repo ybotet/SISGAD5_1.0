@@ -80,8 +80,8 @@
 | ✅ Completada | Alta      | 1–4 horas | TASK-000-03 | Crear SPEC.md con especificación técnica completa   | Documentación | Humano + IA |              | SPEC con arquitectura, módulos, contratos y roadmap     | `SPEC.md`                   |
 | ✅ Completada | Alta      | 1–4 horas | TASK-000-04 | Crear CHANGELOG.md                                  | Documentación | Agente      |              | Formato Keep a Changelog + SemVer                       | `CHANGELOG.md`            |
 | ✅ Completada | Alta      | 1–4 horas | TASK-000-05 | Crear CONTRIBUTING.md con convenciones              | Documentación | Agente      |              | Convenciones de ramas, commits, PRs                     | `CONTRIBUTING.md`        |
-| ⏳ Pendiente  | Media     | 1–4 horas | TASK-000-06 | Documentar requisitos en `/docs/requirements.md`    | Documentación | Agente      |              | Requisitos funcionales y no funcionales consolidados    | `docs/requirements.md`      |
-| ⏳ Pendiente  | Media     | 1–4 horas | TASK-000-07 | Documentar arquitectura en `/docs/architecture.md`  | Documentación | Agente      |              | Diagramas Mermaid + decisiones arquitectónicas          | `docs/architecture.md`      |
+| ✅ Completada | Media     | 1–4 horas | TASK-000-06 | Documentar requisitos en `/docs/requirements.md`    | Documentación | Agente      |              | Requisitos funcionales y no funcionales consolidados    | `docs/requirements.md`      |
+| ✅ Completada | Media     | 1–4 horas | TASK-000-07 | Documentar arquitectura en `/docs/architecture.md`  | Documentación | Agente      |              | Diagramas Mermaid + decisiones arquitectónicas          | `docs/architecture.md`    |
 | ⏳ Pendiente  | Alta      | 1–4 horas | TASK-000-08 | Crear roadmap de desarrollo en GitHub Projects      | Gestión       | Humano      |              | Tablero con columnas Backlog, In Progress, Review, Done | GitHub Projects             |
 
 ---
