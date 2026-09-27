@@ -28,6 +28,27 @@ Desarrollar una plataforma de microservicios que permita digitalizar desde el re
 | D-06 | Redis para locks y rate limit | Atomicidad, rendimiento | ✅ Adoptada |
 | D-07 | No usar colas (RabbitMQ) aún | MVP, simplificación; migrar en v2.0 | 🔄 Pendiente |
 | D-08 | Swagger generado automáticamente | Autodoc en tiempo de build | ✅ Adoptada |
+| D-09 | Python para Prediction Service | Ecosistema ML maduro (scikit-learn, XGBoost, Prophet, MLflow) | ✅ Adoptada |
+
+## 2.1. ADR-004: Prediction Service (Python + FastAPI)
+
+**Contexto:** El sistema necesita capacidades predictivas para optimizar la gestión de materiales, tiempos de resolución y priorización de quejas. 
+
+**Decisiones:**
+1. **Lenguaje:** Python 3.11+ — ecosistema ML/MLOps maduro
+2. **Framework API:** FastAPI — async, tipado, generación automática de OpenAPI docs
+3. **Librerías ML:** scikit-learn (base), XGBoost (gradient boosting), Prophet (series temporales)
+4. **Model Registry:** MLflow — versionamiento, tracking y despliegue de modelos
+5. **Orquestación:** Apache Airflow — pipelines de entrenamiento y reentrenamiento
+6. **Base de datos:** `bd_predictions` (PostgreSQL) — datos derivados de otras BDs vía ETL read-only
+7. **Arquitectura:** Servicio read-only — consume APIs de Users/MP/Materials, no escribe en sus BDs
+8. **Puerto:** 5005
+
+**Consecuencias:**
+- Nueva dependencia: Python + pip + venv
+- Nueva BD: `bd_predictions`
+- Nuevos componentes: MLflow server, Airflow scheduler, Airflow webserver
+- Impacto en CI/CD: tests con pytest, build de imágenes Docker para Python
 
 ## 3. Reglas de Negocio Críticas
 
@@ -73,6 +94,12 @@ JWT_SECRET=dev-secret-key-change-in-prod
 | POST /api/materials/consumos | Materials | Validation against assignment (BR-08) |
 | POST /api/mp/quejas | MP | Priority calculation + classification |
 | PATCH /api/mp/quejas/{id}/estado | MP | FSM validation |
+| POST /api/predictions/demanda | Prediction | Demand forecasting |
+| POST /api/predictions/tiempo | Prediction | Resolution time prediction |
+| POST /api/predictions/anomalias | Prediction | Anomaly detection |
+| POST /api/predictions/prioridad | Prediction | Complaint priority classification |
+| POST /api/predictions/fallos | Prediction | Infrastructure failure prediction |
+| POST /api/predictions/asignacion | Prediction | Technician assignment optimization |
 
 ## 6. Testing
 
@@ -80,6 +107,7 @@ JWT_SECRET=dev-secret-key-change-in-prod
 |-------------|-----|-------------------|
 | Jest + Supertest | Unit + API integration | 70% |
 | Go testing + Testify | Unit + integration | 85% |
+| pytest + pytest-cov | Unit + integration (Python) | 100% (endpoints) |
 | Testcontainers | Integration con DB real | - |
 | k6 | Load testing | Endpoints críticos |
 | GitHub Actions | CI (on PR), CD (on merge) | 100% PRs |
@@ -108,7 +136,7 @@ JWT_SECRET=dev-secret-key-change-in-prod
 - [ ] Migrar a RabbitMQ para eventos async
 - [ ] Kubernetes deployment
 - [ ] Mobile app (React Native)
-- [ ] Análitica predictiva (ML)
+- [ ] Análitica predictiva (ML) — En FASE 9 (Prediction Service)
 
 ## 10. Referencias
 
@@ -116,6 +144,11 @@ JWT_SECRET=dev-secret-key-change-in-prod
 - [TASKLIST.md](./TASKLIST.md)
 - [CHANGELOG.md](./CHANGELOG.md)
 - [SPEC.md](./SPEC.md)
+- [PROMPTS.md](./PROMPTS.md)
+- [AGENT.md](./AGENT.md)
+- [docs/requirements.md](./docs/requirements.md)
+- [docs/architecture.md](./docs/architecture.md)
+- [docs/roadmap.md](./docs/roadmap.md)
 - [Tesis completa](./docs/thesis/)
 
 ---
@@ -132,4 +165,18 @@ JWT_SECRET=dev-secret-key-change-in-prod
 | Remoción .env sensibles | `.env.docker`, `.env.production` untracked de git por seguridad |
 | Actualización .gitignore | Añadido `!.env.example` para preservar template en versionamiento |
 | Actualización docker-compose | Rutas de monitoring/ actualizadas tras reorganización |
-| Actualización enlaces | README.md, AGENT.md, SPEC.md, TASKLIST.md referencias actualizadas
+| Actualización enlaces | README.md, AGENT.md, SPEC.md, PROMPTS.md referencias actualizadas |
+
+---
+
+## 12. Registro de Cambios de Estructura (Prediction Service — 2026-09-27)
+
+| Cambio | Detalle |
+|--------|---------|
+| Agregado Prediction Service | Microservicio Python + FastAPI + scikit-learn + XGBoost + Prophet en `prediction-service/` |
+| Nueva base de datos | `bd_predictions` (PostgreSQL) para datos predictivos |
+| MLOps Stack | MLflow (Model Registry), Apache Airflow (pipelines) |
+| Nuevos endpoints | `/api/predictions/*` para 6 casos de uso predictivos |
+| Nueva FASE 9 | MLOps y Prediction Service en PROMPTS.md |
+| Nueva ADR-004 | Decisiones arquitectónicas del Prediction Service |
+| Actualización testing | Añadido pytest + pytest-cov al stack (100% endpoints) |

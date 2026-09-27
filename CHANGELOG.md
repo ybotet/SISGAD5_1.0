@@ -18,15 +18,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentación de APIs en `docs/api/` (OpenAPI 3.0 YAML specs)
 - Creación de `docs/requirements.md` consolidando todos los requisitos del sistema
 - Creación de `docs/architecture.md` con diagramas Mermaid y decisiones arquitectónicas (ADRs)
+- Creación de `docs/roadmap.md` con roadmap de desarrollo detallado
+- Añadida sección 6.7 (Prediction Service) en `SPEC.md`
+- Actualizada `PROMPTS.md` con FASE 9 (MLOps y Prediction Service)
+- Actualizada `memory.md` con ADR-004 (Prediction Service)
+
+### 🌟 Features (Prediction Service)
+- Agregado módulo Prediction Service (Python 3.11+ + FastAPI + scikit-learn + XGBoost + Prophet)
+- Nueva base de datos `bd_predictions` (PostgreSQL) para datos predictivos
+- MLflow (Model Registry) y Apache Airflow (pipelines) como stack MLOps
+- 6 endpoints predictivos: `/api/predictions/{demanda,tiempo,anomalias,prioridad,fallos,asignacion}`
+- Nuevas ADRs: ADR-004 (Arquitectura ML), ADR-005 (FastAPI), ADR-006 (MLflow + Airflow)
+- Añadido `pytest + pytest-cov` al stack de testing
 
 ### 🐛 Bug Fix
 - Corregido `setupPostgresTimezone` function missing en `backend-mp/src/config/database.js`
 - Corregido path de `.env.local` en `backend-mp/src/config/database.js` (de `../../` a `../../../`)
 - Corregido `DB_PASSWORD` incorrecto en `backend-materiales-go/.env` (`password` → `postgres`)
+- Corregido referencia incorrecta a "Gin" → "gorilla/mux" en archivos de documentación
 
 ### 🔒 Seguridad
 - Archivos `.env.docker` y `.env.production` removidos de git
 - Añadida excepción `!.env.example` en `.gitignore`
+
+### 🚀 Infraestructura
+- Creación de `.github/projects/sisgad5-roadmap.yml` con configuración del tablero
+- Creación de `scripts/setup-github-project.sh` para configurar GitHub Projects
 
 ---
 

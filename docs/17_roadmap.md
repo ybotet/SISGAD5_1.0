@@ -32,7 +32,7 @@
 
 ---
 
-### Q1 2027 - Consolidación y Calidad
+### Q1 2027 - Consolidación, Calidad y MLOps
 
 | ID | Iniciativa | Descripción | Esfuerzo | Prioridad |
 |----|------------|-------------|----------|-----------|
@@ -43,6 +43,8 @@
 | R-05 | **Backup/DR Automatizado** | Restore probado mensual, RPO < 1h, RTO < 4h | 🏗️ 1-3 días | 🔴 Crítica |
 | R-06 | **Accesibilidad WCAG 2.1 AA** | Auditoría y corrección frontend | 🏗️ 1-3 días | 🟡 Alta |
 | R-07 | **Internacionalización Completa** | ES/RU en todos los módulos, fechas/monedas locales | 🏗️ 1-3 días | 🟡 Alta |
+| R-07b | **Prediction Service Foundation** | Python + FastAPI + MLflow + Airflow stack setup, bd_predictions | 🏛️ > 3 días | 🔴 Crítica |
+| R-07c | **ML Model Development** | 6 modelos predictivos (demanda, tiempo, anomalías, prioridad, fallos, asignación) | 🏛️ > 3 días | 🔴 Crítica |
 
 ---
 
@@ -53,9 +55,11 @@
 | R-08 | **Motor de Reglas (Drools/JSON Logic)** | Externalizar reglas de negocio (prioridad, flujo estados) | 🏛️ > 3 días | 🟡 Alta |
 | R-09 | **Notificaciones Push/Real-time** | WebSockets + Service Workers para alertas instantáneas | 🏗️ 1-3 días | 🟡 Alta |
 | R-10 | **Asignación Automática Técnicos** | Algoritmo: cercanía + carga + especialidad + disponibilidad | 🏛️ > 3 días | 🟢 Media |
-| R-11 | **Predicción Stock Materiales** | ML simple: serie temporal → alerta reposición anticipada | 🏛️ > 3 días | 🟢 Media |
-| R-12 | **Detección Anomalías Quejas** | Patrones: repeticiones, clustering geográfico, estacionalidad | 🏛️ > 3 días | 🟢 Media |
+| R-11 | **Predicción Stock Materiales** | Prediction Service ML: serie temporal → alerta reposición anticipada | 🏛️ > 3 días | 🔴 Crítica |
+| R-12 | **Detección Anomalías Quejas** | Prediction Service ML: patrones, clustering, estacionalidad | 🏛️ > 3 días | 🔴 Crítica |
 | R-13 | **Chatbot Soporte Nivel 1** | FAQ automático, creación queja guiada, estado consulta | 🏗️ 1-3 días | 🟢 Media |
+| R-13b | **Prediction API Endpoints** | REST API /api/predictions/* con 6 endpoints | 🏗️ 1-3 días | 🔴 Crítica |
+| R-13c | **MLOps Pipelines (Airflow)** | Entrenamiento y reentrenamiento programado | 🏛️ > 3 días | 🔴 Crítica |
 
 ---
 
@@ -68,6 +72,7 @@
 | R-16 | **Multi-tenancy** | Aislamiento lógico para múltiples direcciones/empresas | 🏛️ > 3 días | 🟢 Media |
 | R-17 | **API Pública Documentada** | Portal desarrolladores, rate limiting por cliente, OAuth2 | 🏗️ 1-3 días | 🟢 Media |
 | R-18 | **Event Sourcing + CQRS** | Auditoría completa, replay, proyecciones read-optimized | 🏛️ > 3 días | ⚪ Baja |
+| R-18b | **Model Explainability (SHAP/LIME)** | Interpretación de predicciones ML para usuarios | 🏛️ > 3 días | 🟢 Media |
 
 ---
 
@@ -90,6 +95,7 @@
 | **Backend Users** | Migrar a TypeScript, OpenAPI first, GraphQL gateway |
 | **Backend MP** | Separar dominio quejas/trabajos en microservicios, event-driven |
 | **Backend Materials** | gRPC interno, cache Redis, background jobs (Asynq) |
+| **Prediction Service** | Model drift monitoring, automated retraining, model explainability |
 | **Frontend** | Micro-frontends, Storybook, visual regression tests, PWA |
 | **Infraestructura** | IaC completo (Terraform/Pulumi), policy as code |
 | **Datos** | Data lake (Parquet), ELT (dbt), ML platform (MLflow) |

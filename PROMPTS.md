@@ -20,8 +20,9 @@
 8. [FASE 6 — Cierre y Memoria (Archiver)](#8-fase-6--cierre-y-memoria-archiver)
 9. [FASE 7 — Manual de Explotación](#9-fase-7--manual-de-explotación)
 10. [FASE 8 — Documentación Final y Defensa](#10-fase-8--documentación-final-y-defensa)
-11. [Flujo de Trabajo Completo](#11-flujo-de-trabajo-completo)
-12. [Plantilla de memory.md](#12-plantilla-de-memorymd)
+11. [FASE 9 — MLOps y Prediction Service](#11-fase-9--mlops-y-prediction-service)
+14. [Flujo de Trabajo Completo](#12-flujo-de-trabajo-completo)
+15. [Plantilla de memory.md](#13-plantilla-de-memorymd)
 
 ---
 
@@ -79,8 +80,9 @@ Estamos construyendo SISGAD5, un sistema de microservicios para la gestión oper
 - API Gateway: Node.js + Express + http-proxy-middleware
 - Users Service: Node.js + Express + Sequelize (autenticación, usuarios, RBAC)
 - MP Service: Node.js + Express + Sequelize + Zod (operaciones: teléfonos, líneas, pizarras, quejas, pruebas, trabajos)
-- Materials Service: Go + Gin + GORM (gestión de materiales con transacciones ACID y concurrencia)
-- PostgreSQL 17+ (3 bases de datos separadas)
+- Materials Service: Go + gorilla/mux + GORM (gestión de materiales con transacciones ACID y concurrencia)
+- Prediction Service: Python 3.11+ + FastAPI + scikit-learn + XGBoost + Prophet (analítica predictiva)
+- PostgreSQL 17+ (4 bases de datos separadas)
 - Redis 7+ (caché)
 
 [3. TAREA EXACTA]
@@ -275,11 +277,11 @@ Realiza las ediciones multi-archivo necesarias y asegúrate de que el código co
 Aplica los cambios directamente en los archivos o devuélveme los bloques de código indicando la ruta del archivo.
 ```
 
-### 6.2. Prompt (Go / Gin / GORM)
+### 6.2. Prompt (Go / gorilla/mux / GORM)
 
 ```
 [1. ROL]
-Actúa como un Senior Software Engineer experto en Go, Gin, GORM y PostgreSQL.
+Actúa como un Senior Software Engineer experto en Go, gorilla/mux, GORM y PostgreSQL.
 
 [2. CONTEXTO]
 Estamos en la Fase de Implementación de SISGAD5. Lee el @AGENT.md, @SPEC.md, @ARCHITECTURE.md y @memory.md antes de comenzar.
@@ -481,9 +483,50 @@ Devuélveme el contenido en Markdown listo para guardarse como `docs/thesis/FINA
 
 ---
 
-## 11. Flujo de Trabajo Completo
+## 11. FASE 9 — MLOps y Prediction Service
 
-### 11.1. Diagrama de Flujo
+### 11.1. Prompt
+
+```
+[1. ROL]
+Actúa como un Ingeniero de MLOps y Científico de Datos Senior especializado en despliegue de modelos predictivos en entornios de microservicios con Python, FastAPI, MLflow y Airflow.
+
+[2. CONTEXTO]
+Estamos construyendo el Prediction Service de SISGAD5, un microservicio Python (FastAPI + scikit-learn + XGBoost + Prophet) que expone endpoints REST para predicciones. Se comunica con los demás servicios (Users, MP, Materials) vía API REST en modo read-only. Utiliza:
+- MLflow para Model Registry
+- Apache Airflow para pipelines de entrenamiento/reentrenamiento
+- PostgreSQL (bd_predictions) como base de datos local
+- Docker + Docker Compose para despliegue
+
+[3. OBJETIVO]
+[Describe aquí qué funcionalidad se va a implementar]
+
+[4. INSTRUCCIONES]
+- Sigue las convenciones de código definidas en AGENT.md (sección 4.3)
+- Usa pytest + pytest-cov para testing (100% cobertura en endpoints)
+- Documenta con docstrings en formato Google
+- Mantén los modelos versionados en MLflow
+- Respeta el puerto 5005 para el servicio
+- Usa .env.local para secrets (NO en código)
+- Endpoints bajo /api/predictions/*
+
+[5. ENTREGABLES ESPERADOS]
+- Código Python en src/ (api/, models/, services/, utils/)
+- Tests en tests/unit/ y tests/integration/
+- Dockerfiles y configuración en docker/
+- Documentación en docs/api/
+
+Formato de respuesta:
+- Código completo de cada archivo modificado/creado
+- Comandos para ejecutar tests y validar el endpoint
+- Justificación técnica de decisiones de modelado
+```
+
+---
+
+## 12. Flujo de Trabajo Completo
+
+### 12.1. Diagrama de Flujo
 
 ```mermaid
 graph TD
@@ -503,10 +546,11 @@ graph TD
     M --> F
     F -->|No| N[FASE 7: Generar Manual de Explotación]
     N --> O[FASE 8: Documentación Final]
-    O --> P[Fin]
+    O --> Q[FASE 9: MLOps (Prediction Service)]
+    Q --> P[Fin]
 ```
 
-### 11.2. Ejemplo de Ejecución Completa
+### 12.2. Ejemplo de Ejecución Completa
 
 ```
 1. FASE 4: Implementer → TASK-520-05 (Validación de stock real)
@@ -531,7 +575,7 @@ graph TD
 
 ---
 
-## 12. Plantilla de memory.md
+## 13. Plantilla de memory.md
 
 ```markdown
 # 🧠 memory.md — Memoria Persistente del Proyecto SISGAD5

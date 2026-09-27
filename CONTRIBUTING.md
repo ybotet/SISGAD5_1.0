@@ -25,6 +25,7 @@ cd SISGAD5_1.0
 cp backend-users/.env.example backend-users/.env
 cp backend-mp/.env.example backend-mp/.env
 cp backend-materiales-go/.env.example backend-materiales-go/.env
+cp prediction-service/.env.example prediction-service/.env
 docker compose up -d
 ```
 
@@ -39,7 +40,7 @@ See [ESTRUCTURA.md](./ESTRUCTURA.md) for the full project structure.
 | Users Service | `./backend-users/` | Node.js + Sequelize |
 | MP Service | `./backend-mp/` | Node.js + Sequelize + Zod |
 | Materials Service | `./backend-materiales-go/` | Go + gorilla/mux + GORM |
-| Monitoring | `./monitoring/` | Prometheus, Grafana, Loki |
+| Prediction Service | `./prediction-service/` | Python + FastAPI + scikit-learn |
 | Scripts | `./scripts/` | Automation utilities |
 | E2E Tests | `./tests/e2e/` | Integration tests |
 
@@ -85,6 +86,14 @@ See [ESTRUCTURA.md](./ESTRUCTURA.md) for the full project structure.
 - **Validation:** Zod schemas for all request bodies
 - **Structure:** `controllers → services → repositories → models`
 
+### Python Service (Prediction Service)
+- **Linting:** ruff (fast Python linter)
+- **Style:** snake_case for modules, PascalCase for classes, Google docstrings
+- **Validation:** Pydantic models for all request/response schemas
+- **Type hints:** Required for all functions
+- **Virtual env:** Use `.venv/` (gitignored)
+- **Dependencies:** `requirements.txt` + `pyproject.toml`
+
 ### Go Service
 - **Linting:** golangci-lint
 - **Style:** snake_case for variables, PascalCase for exported
@@ -103,6 +112,7 @@ See [ESTRUCTURA.md](./ESTRUCTURA.md) for the full project structure.
 |------|---------|-----------------|
 | Unit (JS) | `npm test` | 70% |
 | Unit (Go) | `go test ./...` | 85% |
+| Unit (Python) | `pytest --cov=src tests/` | 100% (endpoints) |
 | Integration | `make test-integration` | - |
 | E2E | `npm run test:e2e` | - |
 | Load | `make test-load` | - |

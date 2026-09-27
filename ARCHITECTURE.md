@@ -27,7 +27,11 @@ SISGAD5 utiliza una **arquitectura de microservicios** con los siguientes princi
 | **Users Service**     | Node.js + Express + Sequelize             | 5001   | Auth, usuarios, RBAC                         |
 | **MP Service**        | Node.js + Express + Sequelize + Zod       | 5002   | Quejas, pruebas, trabajos, infraestructura   |
 | **Materials Service** | Go + gorilla/mux + GORM                   | 5003   | Materiales, asignaciones, consumos (ACID)    |
-| **PostgreSQL**        | PostgreSQL 17                             | 5432   | Persistencia (3 BDs)                         |
+| **Prediction Service** | Python 3.11 + FastAPI + scikit-learn      | 5005   | Modelado predictivo, MLOps                   |
+| **Predictions DB**     | PostgreSQL                               | 5432   | Almacen de predicciones y metadatos          |
+| **MLflow**             | MLflow                                    | 5006   | Model Registry y tracking                    |
+| **Airflow**            | Apache Airflow                            | 5007   | Pipelines de entrenamiento                   |
+| **PostgreSQL**        | PostgreSQL 17                             | 5432   | Persistencia (4 BDs)                         |
 | **Redis**             | Redis 7                                   | 6379   | Caché, sesiones, locks distribuidos          |
 | **Prometheus**        | Prometheus                                | 9090   | Métricas                                     |
 | **Grafana**           | Grafana                                   | 3000   | Dashboards                                   |
@@ -72,6 +76,18 @@ graph LR
     MPS == "Redis" ==> RDX
     MS == "Redis" ==> RDX
 
+    %% Prediction Service (only reads from other services' data)
+    PST["Prediction Service<br/>Python + FastAPI"]:::service
+    PST == "REST/JSON (read-only)" ==> US
+    PST == "REST/JSON (read-only)" ==> MPS
+    PST == "REST/JSON (read-only)" ==> MS
+    PDB[("bd_predictions")]:::database
+    PST == "SQL" ==> PDB
+
+     MLFLOW["MLflow Server"]:::obs
+     AIRFLOW["Airflow Scheduler"]:::obs
+     OBS_STK["Prediction DB"]:::obs
+
     %% Forbidden cross-BD access (dashed red lines)
     US -. "Prohibido" .-> MPDB
     US -. "Prohibido" .-> MADB
@@ -79,6 +95,11 @@ graph LR
     MPS -. "Prohibido" .-> MADB
     MS -. "Prohibido" .-> UBD
     MS -. "Prohibido" .-> MPDB
+
+    %% Prediction Service cannot access other BDs directly
+    PST -. "Prohibido" .-> UBD
+    PST -. "Prohibido" .-> MPDB
+    PST -. "Prohibido" .-> MADB
 
     classDef service fill:#4a90d9,stroke:#2c5f8a,stroke-width:2px,color:#fff
     classDef gateway fill:#ff9f43,stroke:#e67e22,stroke-width:2px,color:#fff
@@ -125,6 +146,33 @@ sequenceDiagram
     end
 ```
 
+### Flujo: Predicción de demanda de materiales
+
+```mermaid
+sequenceDiagram
+    participant FE as Frontend
+    participant GW as API Gateway
+    participant PST as Prediction Service
+    participant MS as Materials Service
+    participant MPS as MP Service
+    participant MADB as Materials DB
+    participant MPDB as MP DB
+
+    FE->>GW: GET /api/predictions/demanda-materiales
+    GW->>PST: GET /api/predictions/demanda-materiales (JWT validado)
+    PST->>MS: GET /api/materials/asignaciones?historial=true (read-only)
+    MS-->>PST: Datos históricos de asignaciones
+    PST->>MPS: GET /api/mp/trabajos?historial=true (read-only)
+    MPS-->>PST: Datos históricos de trabajos
+    PST->>MADB: SELECT historial de consumos y asignaciones
+    MADB-->>PST: Datos históricos
+    PST->>MPDB: SELECT historial de trabajos
+    MPDB-->>PST: Datos históricos
+    PST->>PST: Procesar features + inferencia modelo
+    PST-->>GW: 200 OK (predicción + métricas)
+    GW-->>FE: 200 OK (predicción visualizada)
+```
+
 ---
 
 ## 5. Diagrama de Despliegue
@@ -138,12 +186,18 @@ graph TB
             FE_C[frontend:5004]:::container
         end
 
-        subgraph "Services Layer"
-            GW_C[api-gateway:5000]:::container
-            US_C[backend-users:5001]:::container
-            MP_C[backend-mp:5002]:::container
-            MS_C[backend-materiales-go:5003]:::container
-        end
+         subgraph "Services Layer"
+             GW_C[api-gateway:5000]:::container
+             US_C[backend-users:5001]:::container
+             MP_C[backend-mp:5002]:::container
+             MS_C[backend-materiales-go:5003]:::container
+             PS_C[prediction-service:5005]:::container
+         end
+
+         subgraph "MLOps Stack"
+             ML_C[mlflow:5006]:::container
+             AW_C[airflow:5007]:::container
+         end
 
         subgraph "Data Layer"
             PG_C[postgres:5432]:::db
@@ -161,19 +215,28 @@ graph TB
     FE_C -->|"HTTP API"| GW_C
     GW_C -->|"REST/JSON"| US_C
     GW_C -->|"REST/JSON"| MP_C
-    GW_C -->|"REST/JSON"| MS_C
+     GW_C -->|"REST/JSON"| MS_C
+     GW_C -->|"REST/JSON"| PS_C
 
-    US_C -->|"SQL"| PG_C
-    MP_C -->|"SQL"| PG_C
-    MS_C -->|"SQL"| PG_C
-    US_C -->|"Redis"| RD_C
-    MP_C -->|"Redis"| RD_C
-    MS_C -->|"Redis"| RD_C
+     US_C -->|"SQL"| PG_C
+     MP_C -->|"SQL"| PG_C
+     MS_C -->|"SQL"| PG_C
+     PS_C -->|"SQL"| PDB_C[("bd_predictions")]:::db
 
-    PR_C -->|"Scrape"| US_C
-    PR_C -->|"Scrape"| MP_C
-    PR_C -->|"Scrape"| MS_C
-    GF_C -->|"Query"| PR_C
+     US_C -->|"Redis"| RD_C
+     MP_C -->|"Redis"| RD_C
+     MS_C -->|"Redis"| RD_C
+
+     %% MLOps connections
+     ML_C -->|"Track"| PS_C
+     AW_C -->|"Schedule"| PS_C
+     ML_C -->|"SQL"| PDB_C
+     AW_C -->|"SQL"| PDB_C
+
+     PR_C -->|"Scrape"| PS_C
+     PR_C -->|"Scrape"| ML_C
+     PR_C -->|"Scrape"| AW_C
+     GF_C -->|"Query"| PR_C
     GF_C -->|"Query"| LK_C
 
     %% Volumes
@@ -203,6 +266,7 @@ graph TB
 | **Autorización (RBAC)** | El Gateway verifica el rol del usuario (via JWT claims) y restringe endpoints. Cada servicio también valida permisos de forma redundante. |
 | **Rate limiting** | El Gateway aplica rate limiting por IP y por usuario usando Redis como backend. |
 | **Headers estandarizados** | `Authorization: Bearer <jwt>`, `Content-Type: application/json`, `X-Request-Id` para trazabilidad. |
+| **Prediction Service (read-only)** | El Prediction Service consume datos de otros servicios **solo vía API REST en modo read-only**. No escribe en `bd_mp`, `bd_materiales` o `bd_users`. |
 
 ---
 
@@ -217,7 +281,10 @@ Todos los microservicios son **stateless**:
 
 ### 7.2. Réplicas Horizontales
 
-- **Users Service, MP Service, Materials Service**: Se pueden escalar horizontalmente detrás del API Gateway (load balancing via Docker Compose o Kubernetes).
+- **Users Service, MP Service, Materials Service, Prediction Service**: Se pueden escalar horizontalmente detrás del API Gateway (load balancing via Docker Compose o Kubernetes).
+- **API Gateway**: Múltiples réplicas con sticky sessions opcionales (solo si se usa WebSocket; con JWT no es necesario).
+- **Frontend**: Servido como archivos estáticos (puede ir a un CDN).
+- **Prediction Service**: Escala por demanda de inferencia; puede usar GPU para entrenamiento.
 - **API Gateway**: Múltiples réplicas con sticky sessions opcionales (solo si se usa WebSocket; con JWT no es necesario).
 - **Frontend**: Servido como archivos estáticos (puede ir a un CDN).
 
@@ -285,6 +352,15 @@ Todos los microservicios son **stateless**:
 | **Decisión** | Usar JWT (HS256) con expiración corta (15 min). Refresh tokens almacenados en Redis. |
 | **Consecuencias** | Los tokens son auto-contenidos. El Gateway valida sin llamar al Users Service. Los refresh tokens permiten revocación. |
 
+### ADR-006: Python para Prediction Service
+
+| Campo | Valor |
+|-------|-------|
+| **Estado** | Aceptada |
+| **Contexto** | El sistema requiere modelado predictivo (demanda de materiales, tiempo de resolución, detección de anomalías). El ecosistema ML en Python es maduro (scikit-learn, XGBoost, Prophet, MLflow). |
+| **Decisión** | Crear un nuevo microservicio `prediction-service/` en Python 3.11+ con FastAPI como framework web. Incluye MLflow para Model Registry y Airflow para pipelines de entrenamiento. |
+| **Consecuencias** | Nuevo lenguaje (Python) en el stack. Nueva BD (`bd_predictions`). Comunicación read-only vía REST/JSON. El Prediction Service no escribe en las BDs de otros servicios. |
+
 ---
 
 ## 9. Arquitectura de Código (por microservicio)
@@ -312,7 +388,6 @@ backend-[service]/
 ```
 
 ### 9.2. Go Service (Materials)
-
 ```
 backend-materiales-go/
 ├── cmd/
@@ -334,6 +409,29 @@ backend-materiales-go/
 └── go.sum
 ```
 
+### 9.3. Python Service (Prediction)
+
+```
+prediction-service/
+├── app/
+│   ├── api/             # FastAPI routers (presentation)
+│   ├── core/            # Configuración y env vars
+│   ├── features/        # Feature engineering pipelines
+│   ├── models/          # Modelos entrenados (serializados)
+│   ├── services/        # Lógica de negocio + inferencia
+│   └── schemas/         # Pydantic models (input/output validation)
+├── training/            # Scripts de entrenamiento
+├── mlflow/              # Model registry configuración
+├── airflow/             # DAGs de pipelines
+├── migrations/          # Database migrations
+├── tests/
+│   ├── unit/
+│   └── integration/
+├── pyproject.toml       # Poetry dependencies
+├── Dockerfile
+└── README.md
+```
+
 ---
 
 ## 10. Principios de Diseño
@@ -345,6 +443,7 @@ backend-materiales-go/
 5. **Health Checks**: Cada servicio expone `/health`.
 6. **Centralized Logging**: Structured JSON logs (Pino/Zap/Winston).
 7. **Observability**: Métricas Prometheus + dashboards Grafana.
+8. **MLOps Integration**: Prediction Service con MLflow + Airflow para el ciclo de vida de modelos.
 
 ---
 
@@ -359,6 +458,9 @@ backend-materiales-go/
 | Strategy | MP (prioridad) | Cálculo configurable de prioridad |
 | Lock Distribuido | Materials | Validación de stock concurrente |
 | Circuit Breaker | Services | Resiliencia ante fallos externos |
+| ML Pipeline | Prediction | Feature engineering → training → evaluation → deploy |
+| Model Registry | Prediction | Versionamiento y despliegue de modelos |
+| Drift Detection | Prediction | Monitoreo de degradación de modelos |
 
 ---
 
@@ -368,6 +470,7 @@ backend-materiales-go/
 - **bd_users**: Autenticación, usuarios, roles, sesiones
 - **bd_mp**: Teléfonos, líneas, pizarras, quejas, pruebas, trabajos
 - **bd_materiales**: Materiales, categorías, unidades, asignaciones, consumos
+- **bd_predictions**: Predicciones, metadatos de modelos, métricas de modelo, features
 
 ### 12.2. Compartición de Referencias
 - `User.id` compartido como FK en MP y Materials (referencial integrity)
@@ -387,7 +490,7 @@ backend-materiales-go/
 | Transporte | HTTPS (TLS) en producción |
 | Autenticación | JWT (HS256) con expiración corta |
 | Autorización | RBAC por endpoint (middleware) |
-| Validación | Zod (Node), custom validators (Go) |
+| Validación | Zod (Node), custom validators (Go), Pydantic (Python) |
 | Rate Limiting | Redis-based (por IP y user) |
 | Input Sanitización | express-validator, Helmet.js |
 | Secrets | Variables de entorno (.env, gitignored) |
@@ -401,3 +504,5 @@ backend-materiales-go/
 - [Tesis 03 - Diseño](./docs/thesis/03_methodology.md)
 - [Tesis 02 - Fundamentos](./docs/thesis/02_state_of_art.md)
 - [UML Estático](./docs/practices/practice_05_uml_static.md)
+- [Roadmap de Desarrollo](./docs/roadmap.md)
+- [Requisitos del Sistema](./docs/requirements.md)

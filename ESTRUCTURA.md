@@ -160,7 +160,7 @@ SISGAD5_1.0/
 │       ├── unit/
 │       └── integration/
 │
-├── backend-materiales-go/                 # 📦 Materials Service (Go + Gin + GORM)
+├── backend-materiales-go/                 # 📦 Materials Service (Go + gorilla/mux + GORM)
 │   ├── Dockerfile
 │   ├── go.mod
 │   ├── go.sum
@@ -221,6 +221,40 @@ SISGAD5_1.0/
 │       ├── types/
 │       └── utils/
 │
+├── prediction-service/                    # 🔮 Prediction Service (Python + FastAPI)
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── requirements.txt
+│   ├── pyproject.toml
+│   ├── .env.example
+│   ├── src/
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   ├── routes.py              # Endpoints /api/predictions/*
+│   │   │   └── dependencies.py        # Fast API dependencies
+│   │   ├── models/                    # Modelos de datos (Pydantic)
+│   │   ├── services/                  # Lógica de predicción
+│   │   │   ├── demanda_service.py
+│   │   │   ├── tiempo_service.py
+│   │   │   ├── anomalias_service.py
+│   │   │   ├── prioridad_service.py
+│   │   │   ├── fallos_service.py
+│   │   │   └── asignacion_service.py
+│   │   ├── ml/                        # Modelos ML entrenados
+│   │   │   ├── models/
+│   │   │   ├── features/
+│   │   │   └── pipelines/
+│   │   ├── utils/                     # Utilidades comunes
+│   │   └── main.py                    # Punto de entrada
+│   ├── tests/
+│   │   ├── unit/
+│   │   └── integration/
+│   ├── docker/
+│   │   ├── mlflow/
+│   │   └── airflow/
+│   └── docs/                            # Documentación específica
+│       └── api/predictions.yaml
+
 ├── monitoring/                            # 📊 Observabilidad
 │   ├── prometheus/
 │   │   └── prometheus.yml
@@ -270,3 +304,7 @@ SISGAD5_1.0/
 | Archivos de código Go     | snake_case                      | `asignacion_service.go`         |
 | Archivos de configuración | kebab-case                      | `docker-compose.yml`            |
 | Tests                     | `*.test.js` / `*_test.go`       | `auth.test.js` / `auth_test.go` |
+| Archivos de código Python | snake_case + `snake_case.py`    | `prediction_service.py`         |
+| Tests Python              | `test_*.py`                     | `test_demanda.py`               |
+| Entornos virtuales        | `.venv/` (gitignored)           | `.venv/`                        |
+| Dependencias Python       | `requirements.txt`              | `scikit-learn`, `fastapi`, etc. |

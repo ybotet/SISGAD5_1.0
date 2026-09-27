@@ -20,13 +20,15 @@ SISGAD5 es una **arquitectura de microservicios** para la gestión operativa de 
 | **Users Service**     | Node.js + Express + Sequelize             | 5001   | Autenticación y usuarios                   |
 | **MP Service**        | Node.js + Express + Sequelize + Zod       | 5002   | Operaciones (quejas, trabajos, pruebas)    |
 | **Materials Service** | Go + gorilla/mux + GORM                   | 5003   | Gestión de materiales (ACID, concurrencia) |
-| **PostgreSQL**        | PostgreSQL 17+                            | 5432   | Persistencia (3 BD separadas)              |
+| **Prediction Service** | Python 3.11 + FastAPI + scikit-learn      | 5005   | Modelado predictivo, MLOps                 |
+| **PostgreSQL**        | PostgreSQL 17+                            | 5432   | Persistencia (4 BD separadas)              |
 | **Redis**             | Redis                                     | 6379   | Caché / sesiones                           |
 
 ### Bases de Datos
 - `bd_users` → Users Service
 - `bd_mp` → MP Service
 - `bd_materiales` → Materials Service
+- `bd_predictions` → Prediction Service
 
 ### Reglas Arquitectónicas Fundamentales
 1. **El frontend NUNCA se comunica directamente con los microservicios.** Solo con el API Gateway.
@@ -34,16 +36,41 @@ SISGAD5 es una **arquitectura de microservicios** para la gestión operativa de 
 3. **La comunicación entre servicios es vía REST (JSON).** No hay llamadas directas entre servicios.
 4. **La autenticación se centraliza en el API Gateway** (verificación de JWT). El login lo gestiona Users Service.
 5. **El MP Service NO gestiona materiales.** Solo referencia IDs de materiales; la lógica de materiales vive en Materials Service.
+6. **El Prediction Service NO escribe en BD de otros servicios.** Consume datos vía API REST en modo read-only.
 
 ### Reglas de Oro
 1. **Prohibido acceder directamente a la BD de otro microservicio.**
 2. **Prohibido subir secretos o credenciales al código.** Usar siempre variables de entorno (`.env.local`, no versionar).
 3. **Prohibido mezclar lógica de negocio entre microservicios.**
 4. **Priorizar siempre transacciones ACID** en operaciones críticas (asignaciones, consumos, cierres).
+5. **Prohibido subir modelos entrenados al repositorio.** Usar MLflow o DVC para versionamiento.
+6. **Prohibido usar datos reales de producción para entrenamiento.** Usar datos anonimizados o de test.
+7. **Prohibido desplegar un modelo sin validación previa.** Tests de validación de modelos obligatorios.
 
 ---
 
-## 📋 2. Objetivo del Agente de IA
+## 📊 2. Stack Tecnológico (Actualizado)
+
+| Capa | Tecnologías |
+|------|-------------|
+| **Frontend** | React 18 + Vite + TypeScript + Tailwind CSS |
+| **API Gateway** | Node.js + Express + http-proxy-middleware |
+| **Users Service** | Node.js + Express + Sequelize |
+| **MP Service** | Node.js + Express + Sequelize + Zod |
+| **Materials Service** | Go + gorilla/mux + GORM |
+| **Prediction Service** | Python 3.11+ + FastAPI + scikit-learn + XGBoost + Prophet |
+| **MLOps** | MLflow (Model Registry), Apache Airflow (Pipelines) |
+| **Base de Datos** | PostgreSQL 17+ (4 BDs separadas) |
+| **Caché** | Redis 7+ |
+| **Tests Node.js** | Jest + Supertest |
+| **Tests Go** | testing + testify |
+| **Tests Python** | pytest + pytest-cov |
+| **CI/CD** | GitHub Actions |
+| **Monitoreo** | Prometheus + Grafana + Loki |
+
+---
+
+## 🤖 3. Objetivo del Agente de IA
 
 El agente debe **auditar, mejorar y completar** las funcionalidades del sistema SISGAD5, siguiendo el **inventario funcional** definido en la sección 4 de este documento.
 
@@ -56,9 +83,9 @@ El agente debe **auditar, mejorar y completar** las funcionalidades del sistema 
 
 ---
 
-## 🚦 3. Metodología de Trabajo
+## 🚦 4. Metodología de Trabajo
 
-### 3.1 Flujo de Trabajo por Módulo
+### 4.1 Flujo de Trabajo por Módulo
 Para cada módulo del sistema, el agente debe seguir este flujo:
 
 ```
@@ -72,7 +99,7 @@ Para cada módulo del sistema, el agente debe seguir este flujo:
 8. REPORTAR el estado final
 ```
 
-### 3.2 Reglas de Implementación
+### 4.2 Reglas de Implementación
 
 #### ✅ Permitido
 - Refactorizar código para mejorar legibilidad y rendimiento.
@@ -92,7 +119,7 @@ Para cada módulo del sistema, el agente debe seguir este flujo:
 - Ignorar transacciones ACID en operaciones críticas.
 - Ignorar las reglas arquitectónicas (sección 1).
 
-### 3.3 Convenciones de Código
+### 4.3 Convenciones de Código
 - **Commits:** Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`).
 - **Ramas:** `feature/nombre-descriptivo`, `fix/nombre-descriptivo`, `refactor/nombre-descriptivo`.
 - **Nombres:** camelCase (JS/TS), snake_case (Go, BD).
@@ -100,7 +127,7 @@ Para cada módulo del sistema, el agente debe seguir este flujo:
 
 ---
 
-## 📊 4. Inventario Funcional (Checklist Maestro)
+## 📊 5. Inventario Funcional (Checklist Maestro)
 
 > **Leyenda de estados:**
 > - ✅ **Implementada:** Existe y funciona correctamente.
@@ -314,13 +341,14 @@ Para cada módulo del sistema, el agente debe seguir este flujo:
 | 5.1  | Enrutamiento a Users Service     | ✅     | Implementado  |
 | 5.2  | Enrutamiento a MP Service        | ✅     | Implementado  |
 | 5.3  | Enrutamiento a Materials Service | ✅     | Implementado  |
-| 5.4  | Verificación de JWT              | ⚠️   | Verificar     |
-| 5.5  | Rate limiting                    | ⚠️   | Mencionado    |
-| 5.6  | CORS                             | ⚠️   | Mencionado    |
-| 5.7  | Logging centralizado             | ⚠️   | Mencionado    |
-| 5.8  | Health checks agregados          | ⚠️   | Verificar     |
-| 5.9  | Manejo de errores unificado      | ⚠️   | Verificar     |
-| 5.10 | Documentación de rutas           | ❌     | No mencionado |
+| 5.4  | Enrutamiento a Prediction Service | ❌   | Planificado |
+| 5.5  | Verificación de JWT              | ⚠️   | Verificar     |
+| 5.6  | Rate limiting                    | ⚠️   | Mencionado    |
+| 5.7  | CORS                             | ⚠️   | Mencionado    |
+| 5.8  | Logging centralizado             | ⚠️   | Mencionado    |
+| 5.9  | Health checks agregados          | ⚠️   | Verificar     |
+| 5.10 | Manejo de errores unificado      | ⚠️   | Verificar     |
+| 5.11 | Documentación de rutas           | ❌     | No mencionado |
 
 ---
 
@@ -339,7 +367,26 @@ Para cada módulo del sistema, el agente debe seguir este flujo:
 
 ---
 
-### 🧪 MÓDULO 7 — Testing y QA
+### 🔮 MÓDULO 7 — Prediction Service (MLOps)
+**Servicio:** `prediction-service` (Python 3.11 + FastAPI + scikit-learn + XGBoost + Prophet + MLflow + Airflow)
+
+| #    | Funcionalidad                          | Estado | Observaciones                     |
+| ---- | -------------------------------------- | ------ | --------------------------------- |
+| 7.1  | Predicción de demanda de materiales    | ❌     | Modelo a entrenar                 |
+| 7.2  | Predicción de tiempo de resolución     | ❌     | Modelo a entrenar                 |
+| 7.3  | Detección de anomalías en consumo      | ❌     | Modelo a entrenar                 |
+| 7.4  | Clasificación de prioridad de quejas   | ❌     | Modelo a entrenar                 |
+| 7.5  | Predicción de fallos en infraestructura| ❌     | Modelo a entrenar                 |
+| 7.6  | Optimización de asignación de técnicos | ❌     | Modelo a entrenar                 |
+| 7.7  | API REST de predicciones               | ❌     | Endpoints bajo `/api/predictions/`|
+| 7.8  | Model Registry (MLflow)                | ❌     | Versionamiento de modelos         |
+| 7.9  | Pipelines de entrenamiento (Airflow)   | ❌     | Reentrenamiento programado        |
+| 7.10 | Dashboard de predicciones (Frontend)   | ❌     | Gráficos con Recharts             |
+| 7.11 | Monitoreo de modelos (drift)           | ❌     | Detección de degradación          |
+
+---
+
+### 🧪 MÓDULO 8 — Testing y QA
 
 | #   | Funcionalidad               | Estado | Observaciones                    |
 | --- | --------------------------- | ------ | -------------------------------- |
@@ -352,10 +399,12 @@ Para cada módulo del sistema, el agente debe seguir este flujo:
 | 7.7 | Tests de carga (k6)         | ❌     | Planificado                      |
 | 7.8 | Auditoría de seguridad      | ⚠️   | `npm audit`, Helmet              |
 | 7.9 | CI con GitHub Actions       | ✅     | Implementado                     |
+| 8.0 | Tests unitarios (Python)    | ❌     | Planificado (pytest)             |
+| 8.1 | Tests de validación modelos | ❌     | Planificado                      |
 
 ---
 
-### 🚀 MÓDULO 8 — Despliegue y Mantenimiento
+### 🚀 MÓDULO 9 — Despliegue y Mantenimiento
 
 | #   | Funcionalidad                              | Estado | Observaciones         |
 | --- | ------------------------------------------ | ------ | --------------------- |
@@ -371,7 +420,7 @@ Para cada módulo del sistema, el agente debe seguir este flujo:
 
 ---
 
-## 🎯 5. Prioridades de Trabajo
+## 🎯 6. Prioridades de Trabajo
 
 ### 🔴 Alta Prioridad (Bloqueantes para "Puerto Seguro")
 1. Completar tests en Users y MP Service (unitarios + integración).
@@ -380,6 +429,8 @@ Para cada módulo del sistema, el agente debe seguir este flujo:
 4. Completar frontend de todos los módulos (verificar integración).
 5. Consolidar documentación (CHANGELOG, CONTRIBUTING, API docs).
 6. Mapear permisos RBAC por endpoint.
+7. Configurar entorno Python + FastAPI para Prediction Service (TASK-1300-03).
+8. Implementar API REST de predicciones (TASK-1300-13).
 
 ### 🟡 Media Prioridad (Mejoras)
 1. Implementar notificaciones por email.
@@ -398,7 +449,7 @@ Para cada módulo del sistema, el agente debe seguir este flujo:
 
 ---
 
-## 📝 6. Formato de Reporte del Agente
+## 📝 7. Formato de Reporte del Agente
 
 Cada vez que el agente complete una tarea, debe reportar usando este formato:
 
@@ -430,7 +481,7 @@ Cada vez que el agente complete una tarea, debe reportar usando este formato:
 
 ---
 
-## 🚫 7. Restricciones y Advertencias
+## 🚫 8. Restricciones y Advertencias
 
 1. **NUNCA** modificar la arquitectura sin consultar al autor.
 2. **NUNCA** introducir dependencias que rompan la compatibilidad.
@@ -445,7 +496,7 @@ Cada vez que el agente complete una tarea, debe reportar usando este formato:
 
 ---
 
-## 📞 8. Contacto y Escalación
+## 📞 9. Contacto y Escalación
 
 Si el agente encuentra un bloqueo o ambigüedad:
 1. Documentar el problema en el reporte.
@@ -454,11 +505,22 @@ Si el agente encuentra un bloqueo o ambigüedad:
 
 ---
 
-## 📚 9. Referencias
+## 📚 10. Referencias
 
 - **Repositorio:** https://github.com/ybotet/SISGAD5_1.0
+- **SPEC.md:** Especificación técnica completa
+- **ARCHITECTURE.md:** Arquitectura técnica del sistema
+- **TASKLIST.md:** Lista de tareas del proyecto
+- **PROMPTS.md:** Sistema de prompts para agentes de IA
+- **memory.md:** Memoria persistente del proyecto
+- **docs/requirements.md:** Requisitos funcionales y no funcionales
+- **docs/architecture.md:** Arquitectura documentada
+- **docs/roadmap.md:** Roadmap de desarrollo
 - **Informe de curso (Materials Service):** `ТИП_2_КР_ЭФМО-01-25_Ботет С.Я._Отчет.pdf`
-- **Checklist del Ciclo de Vida del Software:** (documento base proporcionado por el autor)
+- **Documentación FastAPI:** https://fastapi.tiangolo.com/
+- **Documentación scikit-learn:** https://scikit-learn.org/stable/
+- **Documentación MLflow:** https://mlflow.org/docs/
+- **Documentación Apache Airflow:** https://airflow.apache.org/docs/
 - **Documentación Go:** https://go.dev/doc/
 - **Documentación GORM:** https://gorm.io/docs/
 - **Documentación PostgreSQL:** https://www.postgresql.org/docs/17/

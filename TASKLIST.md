@@ -26,7 +26,8 @@
 12. [FASE 10 — Analítica y Reportes](#12-fase-10--analítica-y-reportes)
 13. [FASE 11 — Documentación Final y Defensa](#13-fase-11--documentación-final-y-defensa)
 14. [FASE 12 — Mantenimiento y Evolución](#14-fase-12--mantenimiento-y-evolución)
-15. [Resumen de Progreso](#15-resumen-de-progreso)
+15. [FASE 13 — Módulo Predictivo (MLOps)](#15-fase-13--módulo-predictivo-mlops)
+16. [Resumen de Progreso](#16-resumen-de-progreso)
 
 ---
 
@@ -82,7 +83,7 @@
 | ✅ Completada | Alta      | 1–4 horas | TASK-000-05 | Crear CONTRIBUTING.md con convenciones              | Documentación | Agente      |              | Convenciones de ramas, commits, PRs                     | `CONTRIBUTING.md`        |
 | ✅ Completada | Media     | 1–4 horas | TASK-000-06 | Documentar requisitos en `/docs/requirements.md`    | Documentación | Agente      |              | Requisitos funcionales y no funcionales consolidados    | `docs/requirements.md`      |
 | ✅ Completada | Media     | 1–4 horas | TASK-000-07 | Documentar arquitectura en `/docs/architecture.md`  | Documentación | Agente      |              | Diagramas Mermaid + decisiones arquitectónicas          | `docs/architecture.md`    |
-| ⏳ Pendiente  | Alta      | 1–4 horas | TASK-000-08 | Crear roadmap de desarrollo en GitHub Projects      | Gestión       | Humano      |              | Tablero con columnas Backlog, In Progress, Review, Done | GitHub Projects             |
+| ✅ Completada | Alta      | 1–4 horas | TASK-000-08 | Crear roadmap de desarrollo en GitHub Projects      | Gestión       | Humano      |              | Tablero con columnas Backlog, In Progress, Review, Done | GitHub Projects             |
 
 ---
 
@@ -458,7 +459,63 @@
 
 ---
 
-## 15. Resumen de Progreso
+## 15. FASE 13 — Módulo Predictivo (MLOps)
+
+### 13.1. Definición y Diseño
+
+| Estado     | Prioridad            | Esfuerzo  | ID de Tarea  | Descripción                                              | Módulo      | Responsable | Dependencias | Criterio de Aceptación                                  | Archivos Afectados                   |
+| ---------- | -------------------- | --------- | ------------ | -------------------------------------------------------- | ----------- | ----------- | ------------ | ------------------------------------------------------- | ------------------------------------ |
+| ⏳ Pendiente | Crítica (bloqueante) | 1–4 horas | TASK-1300-01 | Definir casos de uso predictivos prioritarios            | Predictivo  | Agente      |              | Lista de 6 casos de uso con prioridad                   | `docs/predictions/`                  |
+| ⏳ Pendiente | Crítica (bloqueante) | 1–4 horas | TASK-1300-02 | Diseñar arquitectura del módulo predictivo               | Predictivo  | Agente      | TASK-1300-01 | Diagrama Mermaid + ADR                                  | `docs/architecture.md`               |
+| ⏳ Pendiente | Crítica (bloqueante) | 1–4 horas | TASK-1300-03 | Configurar entorno Python + FastAPI                      | Predictivo  | Agente      | TASK-1300-02 | `poetry init` + FastAPI funcional                       | `prediction-service/pyproject.toml`  |
+| ⏳ Pendiente | Crítica (bloqueante) | 1–4 horas | TASK-1300-04 | Configurar BD de predicciones (`bd_predictions`)         | Predictivo  | Agente      | TASK-1300-03 | Docker Compose funcional                                | `docker-compose.yml`                 |
+
+### 13.2. Feature Engineering
+
+| Estado     | Prioridad | Esfuerzo  | ID de Tarea  | Descripción                                          | Módulo      | Responsable | Dependencias | Criterio de Aceptación                          | Archivos Afectados                             |
+| ---------- | --------- | --------- | ------------ | ---------------------------------------------------- | ----------- | ----------- | ------------ | ----------------------------------------------- | ---------------------------------------------- |
+| ⏳ Pendiente  | Alta      | 🏗️ 1-3 días | TASK-1300-05 | Implementar Feature Engineering (quejas)             | Predictivo  | Agente      | TASK-1300-04 | Features: prioridad, estado, técnico, ubicación | `prediction-service/features/quejas.py`          |
+| ⏳ Pendiente  | Alta      | 🏗️ 1-3 días | TASK-1300-06 | Implementar Feature Engineering (materiales)         | Predictivo  | Agente      | TASK-1300-04 | Features: categoría, costo, consumo histórico   | `prediction-service/features/materiales.py`      |
+| ⏳ Pendiente  | Alta      | 🏗️ 1-3 días | TASK-1300-07 | Implementar Feature Engineering (trabajos)           | Predictivo  | Agente      | TASK-1300-04 | Features: duración, técnico, tipo de falla      | `prediction-service/features/trabajos.py`        |
+
+### 13.3. Modelos Predictivos
+
+| Estado     | Prioridad | Esfuerzo  | ID de Tarea  | Descripción                                      | Módulo      | Responsable | Dependencias | Criterio de Aceptación                           | Archivos Afectados                          |
+| ---------- | --------- | --------- | ------------ | ------------------------------------------------ | ----------- | ----------- | ------------ | ------------------------------------------------ | ------------------------------------------- |
+| ⏳ Pendiente  | Crítica (bloqueante) | 🏛️ > 3 días | TASK-1300-08 | Modelo: Predicción de demanda de materiales      | Predictivo  | Agente      | TASK-1300-06 | MAE < 15%, serializado en MLflow                 | `prediction-service/models/demanda_materiales/` |
+| ⏳ Pendiente  | Alta      | 🏛️ > 3 días | TASK-1300-09 | Modelo: Predicción de tiempo de resolución       | Predictivo  | Agente      | TASK-1300-05 | MAE < 20%, serializado en MLflow                 | `prediction-service/models/tiempo_resolucion/`  |
+| ⏳ Pendiente  | Alta      | 🏛️ > 3 días | TASK-1300-10 | Modelo: Detección de anomalías en consumo        | Predictivo  | Agente      | TASK-1300-06 | Precision > 85%, serializado en MLflow           | `prediction-service/models/anomalias_consumo/`  |
+| ⏳ Pendiente  | Media     | 🏛️ > 3 días | TASK-1300-11 | Modelo: Clasificación de prioridad de quejas      | Predictivo  | Agente      | TASK-1300-05 | Accuracy > 80%, serializado en MLflow            | `prediction-service/models/prioridad_queja/`    |
+| ⏳ Pendiente  | Media     | 🏛️ > 3 días | TASK-1300-12 | Modelo: Predicción de fallos en infraestructura   | Predictivo  | Agente      | TASK-1300-07 | Recall > 75%, serializado en MLflow              | `prediction-service/models/fallos_infraestructura/` |
+
+### 13.4. API y Integración
+
+| Estado     | Prioridad            | Esfuerzo  | ID de Tarea  | Descripción                          | Módulo      | Responsable | Dependencias | Criterio de Aceptación                          | Archivos Afectados                |
+| ---------- | -------------------- | --------- | ------------ | ------------------------------------ | ----------- | ----------- | ------------ | ----------------------------------------------- | --------------------------------- |
+| ⏳ Pendiente  | Crítica (bloqueante) | 🏗️ 1-3 días | TASK-1300-13 | Implementar API REST de predicciones | Predictivo  | Agente      | TASK-1300-08 a TASK-1300-12 | Endpoints funcionales con Pydantic validation   | `prediction-service/app/api/`     |
+| ⏳ Pendiente  | Crítica (bloqueante) | 1–4 horas | TASK-1300-14 | Integrar con API Gateway             | Predictivo  | Agente      | TASK-1300-13 | Proxy funcional bajo `/api/predictions/*`       | `api-gateway/src/routes/`         |
+
+### 13.5. MLOps y Monitoreo
+
+| Estado     | Prioridad | Esfuerzo  | ID de Tarea  | Descripción                                      | Módulo      | Responsable | Dependencias | Criterio de Aceptación                         | Archivos Afectados                    |
+| ---------- | --------- | --------- | ------------ | ------------------------------------------------ | ----------- | ----------- | ------------ | ---------------------------------------------- | ------------------------------------- |
+| ⏳ Pendiente  | Alta      | 🏗️ 1-3 días | TASK-1300-15 | Implementar Model Registry (MLflow)                | Predictivo  | Agente      | TASK-1300-13 | MLflow server + modelo registrado               | `prediction-service/mlflow/`          |
+| ⏳ Pendiente  | Alta      | 🏛️ > 3 días | TASK-1300-16 | Implementar pipelines de entrenamiento (Airflow) | Predictivo  | Agente      | TASK-1300-15 | DAG funcional con reentrenamiento programado    | `prediction-service/airflow/dags/`    |
+| ⏳ Pendiente  | Crítica (bloqueante) | 🏗️ 1-3 días | TASK-1300-17 | Implementar dashboard de predicciones (Frontend) | Predictivo  | Agente      | TASK-1300-14 | Gráficos con Recharts funcionando               | `frontend/src/pages/Predictions/`      |
+| ⏳ Pendiente  | Alta      | 🏗️ 1-3 días | TASK-1300-18 | Implementar monitoreo de modelos (drift, métricas) | Predictivo  | Agente      | TASK-1300-15 | Dashboard de drift + alertas configuradas       | `prediction-service/monitoring/`       |
+
+### 13.6. Testing y Documentación
+
+| Estado     | Prioridad            | Esfuerzo  | ID de Tarea  | Descripción                            | Módulo      | Responsable | Dependencias | Criterio de Aceptación                        | Archivos Afectados              |
+| ---------- | -------------------- | --------- | ------------ | -------------------------------------- | ----------- | ----------- | ------------ | --------------------------------------------- | ------------------------------- |
+| ⏳ Pendiente  | Crítica (bloqueante) | 🏗️ 1-3 días | TASK-1300-19 | Tests unitarios del módulo predictivo  | Predictivo  | Agente      | TASK-1300-13 | Cobertura ≥ 80% con pytest                      | `prediction-service/tests/`     |
+| ⏳ Pendiente  | Alta      | 🏗️ 1-3 días | TASK-1300-20 | Tests de validación de modelos         | Predictivo  | Agente      | TASK-1300-19 | Tests de precisión/accuracy pasados             | `prediction-service/tests/`     |
+| ⏳ Pendiente  | Alta      | 1–4 horas | TASK-1300-21 | Documentar módulo predictivo (SPEC + API)| Predictivo  | Agente      | TASK-1300-13 | OpenAPI + fichas técnicas de modelos            | `docs/predictions/`             |
+| ⏳ Pendiente  | Media     | 1–4 horas | TASK-1300-22 | Manual de explotación del dashboard predictivo | Predictivo  | Agente      | TASK-1300-17 | Manual en `docs/manuals/`                        | `docs/manuals/manual_dashboard_predicciones.md` |
+
+---
+
+## 16. Resumen de Progreso
 
 | Fase      | Total de Tareas | ✅ Completadas | ⏳ Pendientes | En Progreso | 🚫 Bloqueadas | Porcentaje Completado |
 | --------- | --------------- | ----------- | ---------- | ----------- | ---------- | --------------------- |
@@ -475,7 +532,8 @@
 | FASE 10   | 8               | 0           | 8          | 0           | 0          | 0.0%                  |
 | FASE 11   | 3               | 0           | 3          | 0           | 0          | 0.0%                  |
 | FASE 12   | 5               | 0           | 5          | 0           | 0          | 0.0%                  |
-| **TOTAL** | **182**         | **49**      | **133**    | **0**       | **0**      | **26.9%**             |
+| FASE 13   | 22              | 0           | 22         | 0           | 0          | 0.0%                  |
+| **TOTAL** | **204**         | **49**      | **155**    | **0**       | **0**      | **24.0%**             |
 
 ---
 
