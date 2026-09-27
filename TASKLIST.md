@@ -23,10 +23,9 @@
 9. [FASE 7 — Desarrollo: Frontend](#9-fase-7--desarrollo-frontend)
 10. [FASE 8 — Testing y QA](#10-fase-8--testing-y-qa)
 11. [FASE 9 — Despliegue y Operación](#11-fase-9--despliegue-y-operación)
-12. [FASE 10 — Analítica y Reportes](#12-fase-10--analítica-y-reportes)
-13. [FASE 11 — Documentación Final y Defensa](#13-fase-11--documentación-final-y-defensa)
-14. [FASE 12 — Mantenimiento y Evolución](#14-fase-12--mantenimiento-y-evolución)
-15. [FASE 13 — Módulo Predictivo (MLOps)](#15-fase-13--módulo-predictivo-mlops)
+11. [FASE 11 — Módulo Predictivo (MLOps)](#15-fase-11--módulo-predictivo-mlops)
+12. [FASE 12 — Documentación Final y Defensa](#14-fase-12--documentación-final-y-defensa)
+13. [FASE 13 — Mantenimiento y Evolución](#15-fase-13--mantenimiento-y-evolución)
 16. [Resumen de Progreso](#16-resumen-de-progreso)
 
 ---
@@ -437,31 +436,9 @@
 
 ---
 
-## 13. FASE 11 — Documentación Final y Defensa
+## 13. FASE 11 — Módulo Predictivo (MLOps)
 
-| Estado    | Prioridad | Esfuerzo  | ID de Tarea  | Descripción                     | Módulo        | Responsable | Dependencias | Criterio de Aceptación                 | Archivos Afectados           |
-| --------- | --------- | --------- | ------------ | ------------------------------- | ------------- | ----------- | ------------ | -------------------------------------- | ---------------------------- |
-| ⏳ Pendiente | Alta      | 1–4 horas | TASK-1100-01 | Documento final de diseño       | Documentación | Humano + IA |              | Arquitectura y decisiones documentadas | `docs/final-design/`         |
-| ⏳ Pendiente | Alta      | 1–4 horas | TASK-1100-02 | Documentación de implementación | Documentación | Humano + IA |              | Código y procesos documentados         | `docs/implementation/`       |
-| ⏳ Pendiente | Alta      | 1–4 horas | TASK-1100-03 | Presentación de defensa         | Documentación | Humano      |              | Slides funcionales                     | `docs/defense-presentation/` |
-
----
-
-## 14. FASE 12 — Mantenimiento y Evolución
-
-| Estado    | Prioridad | Esfuerzo  | ID de Tarea  | Descripción                   | Módulo        | Responsable | Dependencias | Criterio de Aceptación       | Archivos Afectados           |
-| --------- | --------- | --------- | ------------ | ----------------------------- | ------------- | ----------- | ------------ | ---------------------------- | ---------------------------- |
-| ⏳ Pendiente | Media     | 1–4 horas | TASK-1200-01 | Sistema de soporte            | Mantenimiento | Agente      |              | Tickets resueltos en 24h     | `support/`                   |
-| ⏳ Pendiente | Media     | 1–4 horas | TASK-1200-02 | Plan de mejoras               | Mantenimiento | Agente      |              | Feature requests priorizados | `roadmap/`                   |
-| ⏳ Pendiente | Media     | 1–4 horas | TASK-1200-03 | Monitoreo de infraestructura  | Mantenimiento | Agente      |              | Alertas configuradas         | `infrastructure-monitoring/` |
-| ⏳ Pendiente | Baja      | > 3 días  | TASK-1200-04 | Optimización de rendimiento   | Mantenimiento | Agente      |              | CPU/Memoria reducidos 20%    | `optimization/`              |
-| ⏳ Pendiente | Baja      | > 3 días  | TASK-1200-05 | Actualización de dependencies | Mantenimiento | Agente      |              | Security patches aplicados   | `dependencies/`              |
-
----
-
-## 15. FASE 13 — Módulo Predictivo (MLOps)
-
-### 13.1. Definición y Diseño
+### 11.1. Definición y Diseño
 
 | Estado     | Prioridad            | Esfuerzo  | ID de Tarea  | Descripción                                              | Módulo      | Responsable | Dependencias | Criterio de Aceptación                                  | Archivos Afectados                   |
 | ---------- | -------------------- | --------- | ------------ | -------------------------------------------------------- | ----------- | ----------- | ------------ | ------------------------------------------------------- | ------------------------------------ |
@@ -470,7 +447,7 @@
 | ⏳ Pendiente | Crítica (bloqueante) | 1–4 horas | TASK-1300-03 | Configurar entorno Python + FastAPI                      | Predictivo  | Agente      | TASK-1300-02 | `poetry init` + FastAPI funcional                       | `prediction-service/pyproject.toml`  |
 | ⏳ Pendiente | Crítica (bloqueante) | 1–4 horas | TASK-1300-04 | Configurar BD de predicciones (`bd_predictions`)         | Predictivo  | Agente      | TASK-1300-03 | Docker Compose funcional                                | `docker-compose.yml`                 |
 
-### 13.2. Feature Engineering
+### 11.2. Feature Engineering
 
 | Estado     | Prioridad | Esfuerzo  | ID de Tarea  | Descripción                                          | Módulo      | Responsable | Dependencias | Criterio de Aceptación                          | Archivos Afectados                             |
 | ---------- | --------- | --------- | ------------ | ---------------------------------------------------- | ----------- | ----------- | ------------ | ----------------------------------------------- | ---------------------------------------------- |
@@ -478,7 +455,7 @@
 | ⏳ Pendiente  | Alta      | 🏗️ 1-3 días | TASK-1300-06 | Implementar Feature Engineering (materiales)         | Predictivo  | Agente      | TASK-1300-04 | Features: categoría, costo, consumo histórico   | `prediction-service/features/materiales.py`      |
 | ⏳ Pendiente  | Alta      | 🏗️ 1-3 días | TASK-1300-07 | Implementar Feature Engineering (trabajos)           | Predictivo  | Agente      | TASK-1300-04 | Features: duración, técnico, tipo de falla      | `prediction-service/features/trabajos.py`        |
 
-### 13.3. Modelos Predictivos
+### 11.3. Modelos Predictivos
 
 | Estado     | Prioridad | Esfuerzo  | ID de Tarea  | Descripción                                      | Módulo      | Responsable | Dependencias | Criterio de Aceptación                           | Archivos Afectados                          |
 | ---------- | --------- | --------- | ------------ | ------------------------------------------------ | ----------- | ----------- | ------------ | ------------------------------------------------ | ------------------------------------------- |
@@ -488,14 +465,14 @@
 | ⏳ Pendiente  | Media     | 🏛️ > 3 días | TASK-1300-11 | Modelo: Clasificación de prioridad de quejas      | Predictivo  | Agente      | TASK-1300-05 | Accuracy > 80%, serializado en MLflow            | `prediction-service/models/prioridad_queja/`    |
 | ⏳ Pendiente  | Media     | 🏛️ > 3 días | TASK-1300-12 | Modelo: Predicción de fallos en infraestructura   | Predictivo  | Agente      | TASK-1300-07 | Recall > 75%, serializado en MLflow              | `prediction-service/models/fallos_infraestructura/` |
 
-### 13.4. API y Integración
+### 11.4. API y Integración
 
 | Estado     | Prioridad            | Esfuerzo  | ID de Tarea  | Descripción                          | Módulo      | Responsable | Dependencias | Criterio de Aceptación                          | Archivos Afectados                |
 | ---------- | -------------------- | --------- | ------------ | ------------------------------------ | ----------- | ----------- | ------------ | ----------------------------------------------- | --------------------------------- |
 | ⏳ Pendiente  | Crítica (bloqueante) | 🏗️ 1-3 días | TASK-1300-13 | Implementar API REST de predicciones | Predictivo  | Agente      | TASK-1300-08 a TASK-1300-12 | Endpoints funcionales con Pydantic validation   | `prediction-service/app/api/`     |
 | ⏳ Pendiente  | Crítica (bloqueante) | 1–4 horas | TASK-1300-14 | Integrar con API Gateway             | Predictivo  | Agente      | TASK-1300-13 | Proxy funcional bajo `/api/predictions/*`       | `api-gateway/src/routes/`         |
 
-### 13.5. MLOps y Monitoreo
+### 11.5. MLOps y Monitoreo
 
 | Estado     | Prioridad | Esfuerzo  | ID de Tarea  | Descripción                                      | Módulo      | Responsable | Dependencias | Criterio de Aceptación                         | Archivos Afectados                    |
 | ---------- | --------- | --------- | ------------ | ------------------------------------------------ | ----------- | ----------- | ------------ | ---------------------------------------------- | ------------------------------------- |
@@ -504,7 +481,7 @@
 | ⏳ Pendiente  | Crítica (bloqueante) | 🏗️ 1-3 días | TASK-1300-17 | Implementar dashboard de predicciones (Frontend) | Predictivo  | Agente      | TASK-1300-14 | Gráficos con Recharts funcionando               | `frontend/src/pages/Predictions/`      |
 | ⏳ Pendiente  | Alta      | 🏗️ 1-3 días | TASK-1300-18 | Implementar monitoreo de modelos (drift, métricas) | Predictivo  | Agente      | TASK-1300-15 | Dashboard de drift + alertas configuradas       | `prediction-service/monitoring/`       |
 
-### 13.6. Testing y Documentación
+### 11.6. Testing y Documentación
 
 | Estado     | Prioridad            | Esfuerzo  | ID de Tarea  | Descripción                            | Módulo      | Responsable | Dependencias | Criterio de Aceptación                        | Archivos Afectados              |
 | ---------- | -------------------- | --------- | ------------ | -------------------------------------- | ----------- | ----------- | ------------ | --------------------------------------------- | ------------------------------- |
@@ -515,7 +492,7 @@
 
 ---
 
-## 16. Resumen de Progreso
+## 14. FASE 12 — Documentación Final y Defensa
 
 | Fase      | Total de Tareas | ✅ Completadas | ⏳ Pendientes | En Progreso | 🚫 Bloqueadas | Porcentaje Completado |
 | --------- | --------------- | ----------- | ---------- | ----------- | ---------- | --------------------- |
@@ -530,9 +507,9 @@
 | FASE 8    | 8               | 1           | 7          | 0           | 0          | 12.5%                 |
 | FASE 9    | 7               | 0           | 7          | 0           | 0          | 0.0%                  |
 | FASE 10   | 8               | 0           | 8          | 0           | 0          | 0.0%                  |
-| FASE 11   | 3               | 0           | 3          | 0           | 0          | 0.0%                  |
-| FASE 12   | 5               | 0           | 5          | 0           | 0          | 0.0%                  |
-| FASE 13   | 22              | 0           | 22         | 0           | 0          | 0.0%                  |
+| FASE 11   | 22              | 0           | 22         | 0           | 0          | 0.0%                  |
+| FASE 12   | 3               | 0           | 3          | 0           | 0          | 0.0%                  |
+| FASE 13   | 5               | 0           | 5          | 0           | 0          | 0.0%                  |
 | **TOTAL** | **204**         | **49**      | **155**    | **0**       | **0**      | **24.0%**             |
 
 ---
