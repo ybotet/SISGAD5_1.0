@@ -94,7 +94,7 @@
 | ---------- | -------------------- | --------- | ----------- | ---------------------------------------------- | -------- | ----------- | ------------ | ------------------------------------------------ | ----------------------------- |
 | ✅ Completada | Crítica (bloqueante) | 1–3 días  | TASK-100-01 | Diagrama de casos de uso (24 casos, 7 actores) | Modelado | Humano      |              | Diagrama UML con relaciones include/extend       | `docs/03-07`, `diagrams/`     |
 | ✅ Completada | Crítica (bloqueante) | 1–3 días  | TASK-100-02 | Diagrama de clases (28 clases, 5 contextos)    | Modelado | Humano      |              | Diagrama UML con atributos, métodos y relaciones | `docs/03-07`, `diagrams/`     |
-| ⏳ Pendiente  | Crítica (bloqueante) | 1–3 días  | TASK-100-03 | Diagrama de paquetes (5 paquetes)              | Modelado | Humano      |              | Diagrama UML con reglas de dependencia           | `docs/03-07`, `diagrams/`     |
+| ✅ Completada | Crítica (bloqueante) | 1–3 días  | TASK-100-03 | Diagrama de paquetes (5 paquetes)              | Modelado | Humano      |              | Diagrama UML con reglas de dependencia           | `docs/diagrams/component_diagrams/` |
 | ⏳ Pendiente  | Crítica (bloqueante) | 1–3 días  | TASK-100-04 | Diagramas de secuencia (3 escenarios críticos) | Modelado | Humano      |              | Diagramas UML con tablas de mensajes             | `docs/08`, `diagrams/`        |
 | ⏳ Pendiente  | Crítica (bloqueante) | 1–4 horas | TASK-100-05 | Diccionario de términos (Ubiquitous Language)  | Modelado | Humano      |              | Términos del dominio unificados                  | `docs/04 Словарь терминов.md` |
 | ⏳ Pendiente  | Crítica (bloqueante) | 1–4 horas | TASK-100-06 | Matriz de trazabilidad                         | Modelado | Humano      |              | Requisitos → Casos de uso → Clases               | `docs/`                       |
@@ -497,7 +497,7 @@
 | Fase      | Total de Tareas | ✅ Completadas | ⏳ Pendientes | En Progreso | 🚫 Bloqueadas | Porcentaje Completado |
 | --------- | --------------- | ----------- | ---------- | ----------- | ---------- | --------------------- |
 | FASE 0    | 8               | 3           | 5          | 0           | 0          | 37.5%                 |
-| FASE 1    | 14              | 3           | 11         | 0           | 0          | 21.4%                 |
+| FASE 1    | 14              | 4           | 10         | 0           | 0          | 28.6%                 |
 | FASE 2    | 15              | 4           | 11         | 0           | 0          | 26.7%                 |
 | FASE 3    | 12              | 2           | 10         | 0           | 0          | 16.7%                 |
 | FASE 4    | 36              | 10          | 26         | 0           | 0          | 27.8%                 |
@@ -510,7 +510,7 @@
 | FASE 11   | 22              | 0           | 22         | 0           | 0          | 0.0%                  |
 | FASE 12   | 3               | 0           | 3          | 0           | 0          | 0.0%                  |
 | FASE 13   | 5               | 0           | 5          | 0           | 0          | 0.0%                  |
-| **TOTAL** | **204**         | **49**      | **155**    | **0**       | **0**      | **24.0%**             |
+| **TOTAL** | **204**         | **50**      | **154**    | **0**       | **0**      | **24.5%**             |
 
 ---
 
