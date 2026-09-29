@@ -97,7 +97,7 @@
 | ✅ Completada | Crítica (bloqueante) | 1–3 días  | TASK-100-03 | Diagrama de paquetes (5 paquetes)              | Modelado | Humano      |              | Diagrama UML con reglas de dependencia           | `docs/diagrams/component_diagrams/` |
 | ✅ Completada | Crítica (bloqueante) | 1–3 días  | TASK-100-04 | Diagramas de secuencia                         | Modelado | Humano      |              | Diagramas UML con tablas de mensajes             | `docs/diagrams/sequence_diagrams/` |
 | ✅ Completada | Crítica (bloqueante) | 1–4 horas | TASK-100-05 | Diccionario de términos (Ubiquitous Language)  | Modelado | Humano      |              | Términos del dominio unificados                  | `docs/04_glossary.md`         |
-| ⏳ Pendiente   | Crítica (bloqueante) | 1–4 horas | TASK-100-06 | Matriz de trazabilidad                         | Modelado | Humano      |              | Requisitos → Casos de uso → Clases               | `docs/`                             |
+| ✅ Completada | Crítica (bloqueante) | 1–4 horas | TASK-100-06 | Matriz de trazabilidad                         | Modelado | Humano      |              | Requisitos → Casos de uso → Clases               | `docs/05_requirements.md`           |
 | ⏳ Pendiente   | Crítica (bloqueante) | 1–4 horas | TASK-100-07 | User Story Map                                 | Modelado | Humano      |              | Mapa de historias de usuario por actor           | `docs/02 Акторы.md`                 |
 | ⏳ Pendiente   | Crítica (bloqueante) | 1–4 horas | TASK-100-08 | Event Storming                                 | Modelado | Humano      |              | Eventos, comandos y agregados identificados      | `docs/04 Словарь терминов.md`       |
 
@@ -497,7 +497,7 @@
 | Fase      | Total de Tareas | ✅ Completadas | ⏳ Pendientes | En Progreso | 🚫 Bloqueadas | Porcentaje Completado |
 | --------- | --------------- | -------------- | ------------ | ----------- | -------------- | --------------------- |
 | FASE 0    | 8               | 3              | 5            | 0           | 0              | 37.5%                 |
-| FASE 1    | 14              | 6           | 8          | 0           | 0          | 42.9%                 |
+| FASE 1    | 14              | 7           | 7          | 0           | 0          | 50.0%                 |
 | FASE 2    | 15              | 4              | 11           | 0           | 0              | 26.7%                 |
 | FASE 3    | 12              | 2              | 10           | 0           | 0              | 16.7%                 |
 | FASE 4    | 36              | 10             | 26           | 0           | 0              | 27.8%                 |
@@ -510,7 +510,7 @@
 | FASE 11   | 22              | 0              | 22           | 0           | 0              | 0.0%                  |
 | FASE 12   | 3               | 0              | 3            | 0           | 0              | 0.0%                  |
 | FASE 13   | 5               | 0              | 5            | 0           | 0              | 0.0%                  |
-| **TOTAL** | **204**         | **52**      | **152**    | **0**       | **0**      | **25.5%**             |
+| **TOTAL** | **204**         | **53**      | **151**    | **0**       | **0**      | **26.0%**             |
 
 ---
 
