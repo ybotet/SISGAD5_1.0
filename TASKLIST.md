@@ -99,7 +99,7 @@
 | ✅ Completada | Crítica (bloqueante) | 1–4 horas | TASK-100-05 | Diccionario de términos (Ubiquitous Language)  | Modelado | Humano      |              | Términos del dominio unificados                  | `docs/04_glossary.md`         |
 | ✅ Completada | Crítica (bloqueante) | 1–4 horas | TASK-100-06 | Matriz de trazabilidad                         | Modelado | Humano      |              | Requisitos → Casos de uso → Clases               | `docs/05_requirements.md`           |
 | ✅ Completada | Crítica (bloqueante) | 1–4 horas | TASK-100-07 | User Story Map                                 | Modelado | Humano      |              | Mapa de historias de usuario por actor           | `docs/practices/practice_02_user_story_map.md`  |
-| ⏳ Pendiente   | Crítica (bloqueante) | 1–4 horas | TASK-100-08 | Event Storming                                 | Modelado | Humano      |              | Eventos, comandos y agregados identificados      | `docs/04 Словарь терминов.md`       |
+| ✅ Completada | Crítica (bloqueante) | 1–4 horas | TASK-100-08 | Event Storming                                 | Modelado | Humano      |              | Eventos, comandos, agregados, BR y matriz de trazabilidad | `docs/practices/practice_03_event_storming.md` |
 
 ### 3.2. Diseño de Contratos y Modelos
 

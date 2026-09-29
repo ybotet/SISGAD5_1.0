@@ -68,6 +68,19 @@ Los eventos son hechos inmutables del pasado que ocurren en el dominio. Se escri
 | `StockBajoAlertado` | Stock lógico < mínimo | Cálculo dashboard |
 | `SaldoLogicoCalculado` | Σ(asignado) - Σ(consumido) | Cálculo dashboard |
 
+### Contexto: Prediction (MLOps)
+
+| Evento | Descripción | Trigger |
+|--------|-------------|---------|
+| `PrediccionGenerada` | Predicción generada y registrada | POST /api/predictions/* |
+| `ModeloEntrenado` | Modelo entrenado y registrado en MLflow | Airflow DAG / POST /api/predictions/retrain |
+| `ModeloDesplegado` | Modelo versión promovida a producción | MLflow promote to production |
+| `ModeloRetrainado` | Modelo reentrenado con nuevos datos | Airflow scheduled DAG |
+| `DriftDetectado` | Métricas degradadas por encima de umbral | Monitoreo de modelos |
+| `AlertaDriftEmitida` | Alerta enviada por drift | DriftDetectionJob |
+| `FeatureEngineerizada` | Features procesadas y almacenadas | Feature Engineering pipeline |
+| `PredictionExportada` | Predicción exportada a CSV/PDF | Frontend export action |
+
 ---
 
 ## 2. Comandos (Commands)
@@ -118,6 +131,17 @@ Los comandos son intenciones del usuario que provocan eventos. Validan Invariant
 | `VerificarStock` | Sistema (automático) | Concurrente, goroutines | `StockVerificado` |
 | `GenerarAlertaStockBajo` | Sistema (automático) | Stock < mínimo | `StockBajoAlertado` |
 
+### Prediction Commands
+
+| Comando | Actor | Validaciones | Evento Resultante |
+|---------|-------|--------------|-------------------|
+| `GenerarPrediccion` | Analista/Director | Modelo desplegado, features válidas | `PrediccionGenerada` |
+| `EntrenarModelo` | Admin/Data Scientist | Datos históricos disponibles, hiperparámetros válidos | `ModeloEntrenado` |
+| `DesplegarModelo` | Admin | Modelo entrenado, tests pasados | `ModeloDesplegado` |
+| `RetrainModelo` | System (Airflow) | Schedule activo, nuevos datos | `ModeloRetrainado` |
+| `DetectDrift` | System | Métricas < umbral | `DriftDetectado`, `AlertaDriftEmitida` |
+| `ExportarPrediccion` | Director | Predicción exists | `PredictionExportada` |
+
 ---
 
 ## 3. Agregados (Aggregates)
@@ -160,6 +184,24 @@ Root: Material
 ├── StockLogico (value object)
 ```
 
+### Prediction Aggregate
+
+```
+Root: Modelo
+├── Versiones[] (entidades - MLflow)
+├── UmbralesDrift (value object)
+└── EstadoDespliegue (value object)
+
+Root: Prediccion
+├── Features (value object)
+├── Resultado (value object)
+└── Confianza (value object)
+
+Root: AlertaDrift
+├── Metricas (value object)
+└── Resolucion (value object)
+```
+
 ---
 
 ## 4. Reglas de Negocio Identificadas (BR)
@@ -178,6 +220,11 @@ Root: Material
 | BR-10 | Consumo atómico (todos items o ninguno) | Transaccional | Consumo |
 | BR-11 | No eliminar material con historial de consumo | Invariancia | Material |
 | BR-12 | Estado "Cerrada" requiere prueba exitosa | Regla | Queja |
+| BR-13 | Predicción solo sobre modelos en producción | Validación | Modelo |
+| BR-14 | Drift > umbral → alerta + recomendación retraining | Regla | Modelo |
+| BR-15 | Feature engineering debe validar schema de entrada | Validación | Prediccion |
+| BR-16 | Confianza < 80% → flag de baja confianza | Regla | Prediccion |
+| BR-17 | Retraining automático solo con datos ≥ 7 días | Regla | Modelo |
 
 ---
 
@@ -191,6 +238,12 @@ Root: Material
 | CrearConsumo | ConsumoCreado | BR-08, BR-10, RN-MAT-13 (validar vs asignación) | Consumo |
 | Autenticar | UsuarioAutenticado, SesionCreada | BR-01 (bloqueo), password verification | User/Sesion |
 | RenovarToken | SesionRenovada | BR-02 (rotación), expiración | Sesion |
+| GenerarPrediccion | PrediccionGenerada | BR-13 (modelo prod), BR-15 (schema) | Prediccion/Modelo |
+| EntrenarModelo | ModeloEntrenado | Datos históricos, hiperparámetros | Modelo |
+| DesplegarModelo | ModeloDesplegado | Tests pasados, staging | Modelo |
+| RetrainModelo | ModeloRetrainado | BR-17 (7 días datos) | Modelo |
+| DetectDrift | DriftDetectado, AlertaDriftEmitida | BR-14 (umbral) | Modelo |
+| ExportarPrediccion | PredictionExportada | Predicción exists | Prediccion |
 
 ---
 
@@ -222,6 +275,14 @@ eventFlow
         ConsumoCreado
         StockVerificado
         StockBajoAlertado
+
+    section Prediction
+        PrediccionGenerada
+        ModeloEntrenado
+        ModeloDesplegado
+        ModeloRetrainado
+        DriftDetectado
+        AlertaDriftEmitida
 ```
 
 ---
