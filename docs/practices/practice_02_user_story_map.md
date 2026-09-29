@@ -230,6 +230,40 @@ Actividad: "Análisis de datos"
 
 ---
 
+### Epic 8: Prediction Service (Analítica Predictiva)
+
+```
+Actividad principal: "Obtener y visualizar predicciones"
+
+[VerDashboard] ──→ [SeleccionarModelo] ──→ [ConsultaPrediccion] ──→ [VerConfianza]
+      │                  │                     │                      │
+      │                  │                     └─→ [VerFeatures]      │
+      │                  │                                            │
+      │                  └─→ [VerMetricasModelo]                     │
+      │                                                            │
+      └─→ [VerHistorialPredicciones] ──→ [ExportarPredicciones]    │
+                                                                   │
+[Admin] ──→ [ConfigurarRetraining] ──→ [MonitorearDrift] ──→ [VerAlertas]
+```
+
+**Historias:**
+
+| ID | Historia | Como... | Quiero... | Para... | Prioridad |
+|----|----------|---------|-----------|---------|-----------|
+| US-64 | Predecir Demanda Materiales | Analista/Director | Ver predicción de demanda para los próximos 30 días | Planificar compras y stock | 🔴 |
+| US-65 | Predecir Tiempo Resolución | Jefe/Técnico | Estimar tiempo de cierre de una queja | Planificación de recursos | 🔴 |
+| US-66 | Detección Anomalías Consumo | Analista | Detectar consumos anómalos por técnico/material | Detectar errores y fraudes | 🔴 |
+| US-67 | Clasificar Prioridad Quejas | Operador | Obtener prioridad sugerida al crear queja | Agilizar clasificación | 🟡 |
+| US-68 | Predecir Fallos Infraestructura | Jefe/Técnico | Identificar pizarras/teléfonos con alto riesgo | Mantenimiento preventivo | 🟡 |
+| US-69 | Optimizar Asignación Técnicos | Jefe | Recibir sugerencia de técnico óptimo por trabajo | Reducir tiempos de desplazamiento | 🟡 |
+| US-70 | Dashboard Predictivo | Director/Analista | Visualizar todas las predicciones en un dashboard | Toma de decisiones basada en ML | 🟡 |
+| US-71 | Ver Métricas de Modelo | Analista | Consultar MAE, Accuracy, Precision, Recall | Monitorear calidad del modelo | 🟡 |
+| US-72 | Monitorear Drift | Admin | Ver alertas de degradación de modelo | Detectar necesidad de reentrenamiento | 🟡 |
+| US-73 | Configurar Retraining | Admin | Programar reentrenamiento automático (Airflow) | Mantener modelos actualizados | 🟢 |
+| US-74 | Exportar Predicciones | Director | Exportar resultados a CSV/PDF | Reportes ejecutivos | 🟢 |
+
+---
+
 ## 3. Prioridad del Backlog (MVP → Completo)
 
 ### MVP (Mínimo Producto Viable) - 🔴 Release 1.0
@@ -247,18 +281,15 @@ Actividad: "Análisis de datos"
 - Exportaciones
 - Dashboard avanzado
 
-### Release 2.0 - 🟡 Funcionalidades Avanzadas
-- Concurrencia Go para stock
-- Notificaciones email
-- Auditoría completa
-- Reabrir quejas
-- Stock bajo / alertas
-- Exportación SAP
+### Release 2.0 - 🔴 Predicción y MLOps
+- Prediction Service (FastAPI + scikit-learn + XGBoost + Prophet)
+- 6 modelos predictivos entrenados
+- MLflow Model Registry
+- Airflow pipelines de reentrenamiento
+- Dashboard de predicciones (Recharts)
 
 ### Futuro - ⚪ Innovación
-- Predicción de fallos
-- Asignación automática técnicos
-- Chatbot soporte N1
+- MLOps avanzado (drift detection, explicabilidad SHAP/LIME)
 - API pública
 - Multi-tenancy
 
@@ -275,7 +306,8 @@ Actividad: "Análisis de datos"
 | Trabajos | US-42 a US-45 | 2 | 1 | 0 | 0 | 10 |
 | Materiales | US-46 a US-58 | 5 | 4 | 3 | 0 | 35 |
 | Analítica | US-59 a US-63 | 1 | 3 | 2 | 0 | 12 |
-| **TOTAL** | **63 historias** | **30** | **22** | **10** | **0** | **177** |
+| Prediction Service | US-64 a US-74 | 6 | 4 | 2 | 0 | 34 |
+| **TOTAL** | **74 historias** | **37** | **29** | **12** | **0** | **229** |
 
 ---
 
