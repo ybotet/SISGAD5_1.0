@@ -1,7 +1,7 @@
 # Glosario de Términos (Ubiquitous Language) - SISGAD5
 
-> **Versión:** 1.0  
-> **Fecha:** 2026-09-25  
+> **Versión:** 1.0
+> **Fecha:** 2026-09-25
 > **Fuente:** [SISGAD5_doc/docs/04 Словарь терминов.md](https://github.com/ybotet/SISGAD5_doc)
 
 ---
@@ -56,21 +56,45 @@
 
 ---
 
-## 4. Términos Técnicos y Arquitecturales
+## 4. Términos del Dominio Prediction Service (MLOps)
+
+| Término | Definición | Contexto | Sinónimos |
+|---------|------------|----------|-----------|
+| **Predicción** | Estimación basada en modelo ML para un caso de uso específico | Prediction Service | Estimación, Forecast |
+| **Feature** | Variable de entrada procesada para el modelo predictivo | Prediction Service | Característica, Input Feature |
+| **Feature Engineering** | Proceso de transformación de datos en features | Prediction Service | Ingeniería de Características |
+| **Modelo** | Algoritmo entrenado (scikit-learn, XGBoost, Prophet) | Prediction Service | Modelo ML |
+| **Entrenamiento** | Proceso de ajuste de parámetros del modelo con datos históricos | Prediction Service | Training |
+| **Reentrenamiento** | Actualización periódica del modelo con nuevos datos | Prediction Service | Retraining |
+| **Model Registry** | Repositorio versionado de modelos entrenados (MLflow) | MLOps | Registro de Modelos |
+| **Pipeline** | Secuencia de transformaciones y entrenamiento (Airflow DAG) | MLOps | Flujo de Entrenamiento |
+| **Drift** | Degradación del rendimiento del modelo over time | MLOps | Desviación, Concept Drift |
+| **Inference** | Aplicación del modelo a datos nuevos para generar predicciones | Prediction Service | Inferencia |
+| **Metric** | Métrica de evaluación (MAE, RMSE, Accuracy, Precision, Recall) | Prediction Service | Métrica |
+| **bd_predictions** | Base de datos exclusiva de predicciones, metadatos y métricas | Prediction Service | Prediction DB |
+
+---
+
+## 5. Términos Técnicos y Arquitecturales
 
 | Término | Definición | Contexto |
 |---------|------------|----------|
 | **API Gateway** | Punto de entrada único, enrutamiento, auth, rate limiting | Arquitectura |
-| **Microservicio** | Servicio independientemente desplegable (Users, MP, Materials) | Arquitectura |
-| **BD por Servicio** | Cada microservicio tiene su propia BD PostgreSQL (bd_users, bd_mp, bd_materiales) | Datos |
+| **Microservicio** | Servicio independientemente desplegable (Users, MP, Materials, Prediction) | Arquitectura |
+| **BD por Servicio** | Cada microservicio tiene su propia BD PostgreSQL (bd_users, bd_mp, bd_materiales, bd_predictions) | Datos |
 | **Transacción ACID** | Atomicidad, Consistencia, Aislamiento, Durabilidad (Go: db.Transaction) | Datos |
 | **Concurrencia Go** | Goroutines + WaitGroup + Channels para validaciones paralelas | Materials Service |
 | **OpenAPI 3.0** | Especificación de contratos REST (YAML) | Contratos |
 | **Swagger UI** | Documentación interactiva generada desde OpenAPI | Contratos |
+| **Distributed Lock** | Bloqueo distribuido (Redis SETNX + TTL) para concurrencia | Materials Service |
+| **FSM** | Máquina de Estados Finita (quejas: Abierta→Probada→Asignada→...) | MP Service |
+| **Spec Validation** | Validación con Zod (Node.js) / Pydantic (Python) | Entradas API |
+| **Structured Logging** | Logs en formato JSON con metadata (Pino/Zap/Winston) | Auditoría |
+| **Read-only Service** | Servicio que consume APIs de otros servicios sin escribir en sus BDs | Prediction Service |
 
 ---
 
-## 5. Abreviaturas
+## 6. Abreviaturas
 
 | Abreviatura | Significado |
 |-------------|-------------|
@@ -86,10 +110,62 @@
 | BPMN | Business Process Model and Notation |
 | E2E | End-to-End (Pruebas) |
 | RPS | Requests Per Second |
+| ML | Machine Learning |
+| MLOps | Machine Learning Operations |
+| MAE | Mean Absolute Error |
+| RMSE | Root Mean Square Error |
+| TDD | Test-Driven Development |
+| CI/CD | Continuous Integration / Continuous Deployment |
 
 ---
 
-## 6. Referencias
+## 7. Glosario DDD (Domain-Driven Design)
+
+### Entidades (Entities)
+| Entidad | ID | Contexto | Descripción |
+|---------|----|----------|-------------|
+| **Usuario** | `id` (UUID) | Users | Cuenta con email, hash, roles |
+| **Queja** | `id` (serial) | MP | Incidencia con estado FSM y prioridad |
+| **Trabajo** | `id` (serial) | MP | Orden de campo con técnico asignado |
+| **Material** | `id` (serial) | Materials | Artículo con código, nombre, stock |
+| **Asignación** | `id` (serial) | Materials | Entrega de materiales a trabajador |
+| **Consumo** | `id` (serial) | Materials | Uso real de materiales en trabajo |
+
+### Objetos de Valor (Value Objects)
+| Valor | Contexto | Descripción |
+|-------|----------|-------------|
+| **Email** | Users | Validado con regex, único |
+| **Password** | Users | Hash con bcrypt, política de fuerza |
+| **Prioridad** | MP | Score calculado (1-4) |
+| **Estado Queja** | MP | Enum de FSM (Abierta, Probada, ...) |
+| **Precio** | Materials | Decimal con 4 enteros, 2 decimales |
+| **Cantidad** | Materials | Entero positivo |
+
+### Agregados (Aggregates)
+| Agregado | Entidad Raíz | Entidades/VOs | Contexto |
+|----------|-------------|---------------|----------|
+| **Usuario** | Usuario | Email, Rol, Permiso | Users |
+| **Queja** | Queja | Clasificación, Prioridad, Estado, Técnico | MP |
+| **Trabajo** | Trabajo | Queja (ref), Técnico, Tiempo | MP |
+| **Material** | Material | Categoría, Unidad, Stock | Materials |
+| **Asignación** | Asignación | Material (ref), Cantidad, Precio Momento | Materials |
+| **Consumo** | Consumo | Material (ref), Cantidad, Precio Real | Materials |
+
+### Eventos de Dominio (Domain Events)
+| Evento | Agregado | Descripción |
+|--------|----------|-------------|
+| `UsuarioCreado` | Usuario | Nuevo usuario registrado |
+| `QuejaReportada` | Queja | Queja creada con clasificación inicial |
+| `QuejaReasignada` | Queja | Cambio de técnico asignado |
+| `QuejaCerrada` | Queja | Estado → Cerrada, dispara consumo de materiales |
+| `TrabajoCreado` | Trabajo | OT vinculada a queja |
+| `MaterialAsignado` | Asignación | Material entregado a técnico |
+| `StockDecrementado` | Material | Stock reducido por consumo |
+| `PrediccionGenerada` | Prediction | Nueva predicción registrada en bd_predictions |
+
+---
+
+## 8. Referencias
 
 - [Modelo de Dominio](07_domain_model.md)
 - [Casos de Uso](03_use_cases.md)
