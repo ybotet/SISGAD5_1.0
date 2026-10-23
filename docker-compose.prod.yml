@@ -71,10 +71,47 @@ services:
       - PORT=5000
       - USERS_SERVICE_URL=http://backend-users:5001
       - MP_SERVICE_URL=http://backend-mp:5002
+      - MATERIALES_SERVICE_URL=http://backend-materiales:5003
       - FRONTEND_URL=${FRONTEND_URL}
     depends_on:
       - backend-users
       - backend-mp
+      - backend-materiales
+    networks:
+      - sisgad5-network
+
+  backend-materiales:
+    build: ./backend-materiales-go
+    container_name: sisgad5-materiales
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - PORT=5003
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${MATERIALES_DB_NAME}
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - FRONTEND_URL=${FRONTEND_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sisgad5-network
+
+  frontend:
+    build: ./frontend
+    container_name: sisgad5-frontend
+    restart: unless-stopped
+    ports:
+      - "5004:5004"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_FRONT_URL=${VITE_FRONT_URL}
+    depends_on:
+      - api-gateway
     networks:
       - sisgad5-network
 

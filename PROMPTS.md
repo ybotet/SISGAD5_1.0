@@ -176,7 +176,7 @@ Archivos/carpetas a eliminar: [lista del TASKLIST].
 1. Comandos ejecutados.
 2. `git status` resultante.
 3. Entrada de memoria.
-
+---
 ### 3.4. Prompt para TASK-A-08: Eliminar fallback JWT_SECRET
 
 Agente: security-fixer
@@ -214,7 +214,7 @@ Archivos:
 2. Resultado de tests.
 3. Entrada de memoria.
 
-
+---
 ### 3.5. Prompt para TASK-A-09: JWT en Materials (Go)
 
 **Agente:** `security-fixer`
@@ -243,7 +243,7 @@ Archivo: `backend-materiales-go/cmd/api/main.go` (líneas ~116-177).
 1. Código del middleware + integración en main.go.
 2. Tests (si aplica).
 3. Entrada de memoria.
-
+---
 ### 3.6. Prompt para TASK-A-10: Cerrar puertos internos
 
 Agente: security-fixer
@@ -272,7 +272,7 @@ Archivo: `docker-compose.prod.yml`.
 1. Diff de `docker-compose.prod.yml`.
 2. Verificación de comunicación interna.
 3. Entrada de memoria.
-
+---
 ### 3.7. Prompt para TASK-A-11: Grafana creds
 
 Agente: security-fixer
