@@ -73,13 +73,13 @@
 
 | Estado | Prioridad | Esfuerzo | ID            | Descripción                                                     | Origen                  | Criterio de Aceptación                        |
 | ------ | --------- | -------- | ------------- | --------------------------------------------------------------- | ----------------------- | --------------------------------------------- |
-| ⏳      | 🔴       | 🔨      | TASK-A-01     | Rotar credenciales expuestas (JWT_SECRET, DB_PASSWORD)          | Plan                    | Nuevos secretos en `.env.local` (gitignored)  |
-| ⏳      | 🔴       | 🔨      | TASK-A-02     | Crear `.gitignore` completo                                     | Plan                    | Cubre node_modules, logs, dist, .env, api.exe |
-| ⏳      | 🔴       | 🔨      | TASK-A-03     | Eliminar del índice: node_modules, logs, dist, .env, api.exe    | Plan                    | `git status` limpio                           |
-| ⏳      | 🔴       | 🔨      | TASK-A-04     | Eliminar carpetas: backup/, Continue/, .kilo/.gitignore         | Plan                    | Carpetas eliminadas del disco                 |
-| ⏳      | 🟡       | 🔨      | TASK-A-05     | Eliminar archivos duplicados (docs/architecture.md, etc.)       | Plan                    | Solo queda `ARCHITECTURE.md` en raíz          |
-| ⏳      | 🟡       | 🔨      | TASK-A-06     | Eliminar archivos temporales (hacer.txt, swagger.json)          | Plan                    | Solo quedan los `.yaml` de API                |
-| ⏳      | 🟡       | 🔨      | TASK-A-07     | Verificar que `.env.example` no contiene secretos               | Plan                    | Solo placeholders                             |
+| ✅      | 🔴       | 🔨      | TASK-A-01     | Rotar credenciales expuestas (JWT_SECRET, DB_PASSWORD)          | Plan                    | Nuevos secretos en `.env.local` (gitignored)  |
+| ✅      | 🔴       | 🔨      | TASK-A-02     | Crear `.gitignore` completo                                     | Plan                    | Cubre node_modules, logs, dist, .env, api.exe |
+| ✅      | 🔴       | 🔨      | TASK-A-03     | Eliminar del índice: node_modules, logs, dist, .env, api.exe    | Plan                    | `git status` limpio                           |
+| ✅      | 🔴       | 🔨      | TASK-A-04     | Eliminar carpetas: backup/, Continue/, .kilo/.gitignore         | Plan                    | Carpetas eliminadas del disco                 |
+| ✅      | 🟡       | 🔨      | TASK-A-05     | Eliminar archivos duplicados (docs/architecture.md, etc.)       | Plan                    | Solo queda `ARCHITECTURE.md` en raíz          |
+| ✅      | 🟡       | 🔨      | TASK-A-06     | Eliminar archivos temporales (hacer.txt, swagger.json)          | Plan                    | Solo quedan los `.yaml` de API                |
+| ✅      | 🟡       | 🔨      | TASK-A-07     | Verificar que `.env.example` no contiene secretos               | Plan                    | Solo placeholders                             |
 | ⏳      | 🔴       | 🔨      | **TASK-A-08** | **Eliminar fallback `JWT_SECRET \|\| "secreto"` en Users y MP** | **Auditoría SEC-01**    | Falla al arrancar si falta secreto            |
 | ⏳      | 🔴       | 🏗️    | **TASK-A-09** | **Añadir JWT middleware a Materials Service (Go)**              | **Auditoría SEC-02**    | Endpoints protegidos con JWT                  |
 | ⏳      | 🔴       | 🔨      | **TASK-A-10** | **Cerrar puertos internos (5001, 5002, 5003, 5432) en prod**    | **Auditoría SEC-02/05** | Compose prod sin puertos publicados           |

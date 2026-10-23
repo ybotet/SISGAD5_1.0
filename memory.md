@@ -10,6 +10,10 @@
 | --- | --- | --- | --- |
 | 2026-10-23 | TASK-A-01 | Rotación de credenciales expuestas (JWT_SECRET, DB_PASSWORD) | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-01-rotaci%C3%B3n-de-credenciales-expuestas) |
 | 2026-10-23 | TASK-A-02 | Crear .gitignore completo (remover build artifacts versionados) | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-02-crear-gitignore-completo) |
+| 2026-10-23 | TASK-A-03 | Eliminar del índice: node_modules, logs, dist, .env, api.exe | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-03-eliminar-del-%C3%ADndice-build-artifacts-y-secretos) |
+| 2026-10-23 | TASK-A-04 | Eliminar carpetas: backup/, Continue/, .kilo/.gitignore | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-04-eliminar-carpetas-backup-continue-kilocreategitignore) |
+| 2026-10-23 | TASK-A-05 | Eliminar archivos duplicados (docs/architecture.md, etc.) | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-05-eliminar-archivos-duplicados-de-docs) |
+| 2026-10-23 | TASK-A-06 | Eliminar archivos temporales (hacer.txt, swagger.json) | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-06-eliminar-archivos-temporales) |
 
 ---
 
