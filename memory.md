@@ -4,6 +4,14 @@
 
 ---
 
+## Índice de Tareas
+
+| Fecha | Tarea | Resumen | Detalle |
+| --- | --- | --- | --- |
+| 2026-10-23 | TASK-A-01 | Rotación de credenciales expuestas (JWT_SECRET, DB_PASSWORD) | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-01-rotaci%C3%B3n-de-credenciales-expuestas) |
+
+---
+
 ## Consolidación del Proyecto y Fusión de TASKLIST
 
 **Tipo:** Decisión arquitectónica + reorganización
