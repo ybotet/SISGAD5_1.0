@@ -81,7 +81,7 @@
 | ✅      | 🟡       | 🔨      | TASK-A-06     | Eliminar archivos temporales (hacer.txt, swagger.json)          | Plan                    | Solo quedan los `.yaml` de API                |
 | ✅      | 🟡       | 🔨      | TASK-A-07     | Verificar que `.env.example` no contiene secretos               | Plan                    | Solo placeholders                             |
 | ✅      | 🔴       | 🔨      | **TASK-A-08** | **Eliminar fallback `JWT_SECRET \|\| "secreto"` en Users y MP** | **Auditoría SEC-01**    | Falla al arrancar si falta secreto            |
-| ⏳      | 🔴       | 🏗️    | **TASK-A-09** | **Añadir JWT middleware a Materials Service (Go)**              | **Auditoría SEC-02**    | Endpoints protegidos con JWT                  |
+| ✅      | 🔴       | 🏗️    | **TASK-A-09** | **Añadir JWT middleware a Materials Service (Go)**              | **Auditoría SEC-02**    | Endpoints protegidos con JWT                  |
 | ⏳      | 🔴       | 🔨      | **TASK-A-10** | **Cerrar puertos internos (5001, 5002, 5003, 5432) en prod**    | **Auditoría SEC-02/05** | Compose prod sin puertos publicados           |
 | ⏳      | 🔴       | 🔨      | **TASK-A-11** | **Cambiar credenciales Grafana (admin/admin)**                  | **Auditoría SEC-03**    | Credenciales seguras en `.env`                |
 | ⏳      | 🟠       | 🔨      | **TASK-A-12** | **Corregir `MP_DB_NAME` en docker-compose**                     | **Auditoría ARC-04**    | MP arranca sin abortar                        |
@@ -556,8 +556,8 @@
 
 | ID     | Severidad   | Hallazgo                                       | Tarea que lo resuelve        | Estado |
 | ------ | ----------- | ---------------------------------------------- | ---------------------------- | ------ |
-| SEC-01 | 🔴 Crítico | JWT con fallback `"secreto"`                   | TASK-A-08                    | ⏳      |
-| SEC-02 | 🔴 Crítico | Materials sin JWT, puerto expuesto             | TASK-A-09, TASK-A-10         | ⏳      |
+| SEC-01 | 🔴 Crítico | JWT con fallback `"secreto"`                   | TASK-A-08                    | ✅      |
+| SEC-02 | 🔴 Crítico | Materials con JWT (middleware), puerto 5003 expuesto | TASK-A-09 (✅), TASK-A-10    | ⚠️      |
 | SEC-03 | 🔴 Crítico | Grafana admin/admin                            | TASK-A-11                    | ⏳      |
 | SEC-04 | 🟠 Alto    | CORS `origin: true`                            | TASK-B-16                    | ⏳      |
 | SEC-05 | 🟠 Alto    | Gateway no verifica JWT                        | TASK-B-15                    | ⏳      |

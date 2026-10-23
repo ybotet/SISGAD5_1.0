@@ -126,7 +126,7 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 | ID     | Hallazgo                                | Tarea           | Prohibido mientras tanto                           |
 | ------ | --------------------------------------- | --------------- | -------------------------------------------------- |
 | SEC-01 | ✅ JWT con fallback `"secreto"` | TASK-A-08 | Eliminado fallback; validación de arranque en Users y MP |
-| SEC-02 | Materials sin JWT, puerto 5003 expuesto | TASK-A-09, A-10 | No exponer Materials fuera de la red Docker        |
+| SEC-02 | ⚠️ Materials con JWT (middleware añadido), puerto 5003 aún expuesto | TASK-A-09 (✅), A-10  | No exponer Materials fuera de la red Docker        |
 | SEC-03 | Grafana admin/admin                     | TASK-A-11       | No usar credenciales por defecto                   |
 
 ### Hallazgos Altos (🟠) — Resolver en Fase B
