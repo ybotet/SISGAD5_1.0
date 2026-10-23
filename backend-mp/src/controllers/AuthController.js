@@ -108,7 +108,7 @@ const authController = {
           id: usuario.id_usuario,
           email: usuario.email,
         },
-        process.env.JWT_SECRET || "secreto",
+        process.env.JWT_SECRET,
         { expiresIn: "24h" },
       );
 

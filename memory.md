@@ -14,6 +14,7 @@
 | 2026-10-23 | TASK-A-04 | Eliminar carpetas: backup/, Continue/, .kilo/.gitignore | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-04-eliminar-carpetas-backup-continue-kilocreategitignore) |
 | 2026-10-23 | TASK-A-05 | Eliminar archivos duplicados (docs/architecture.md, etc.) | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-05-eliminar-archivos-duplicados-de-docs) |
 | 2026-10-23 | TASK-A-06 | Eliminar archivos temporales (hacer.txt, swagger.json) | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-06-eliminar-archivos-temporales) |
+| 2026-10-23 | TASK-A-08 | Eliminar fallback `JWT_SECRET \|\| "secreto"` en Users y MP | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-08-eliminar-fallback-jwt_secret--secreto) |
 
 ---
 
