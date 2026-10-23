@@ -1,182 +1,128 @@
-# memory.md — Memoria Persistente del Proyecto SISGAD5
+# 📅 Memoria — 2026-10-23
 
-> **Propósito:** Documentar decisiones clave, contexto histórico, y aprendizajes del equipo de desarrollo.
-> **Última actualización:** Septiembre 2026
+> Detalle completo de las decisiones y cambios del 2026-10-23.
 
 ---
 
-## 1. Historia del Proyecto
+## Consolidación del Proyecto y Fusión de TASKLIST
 
-### Origen (2025)
-- Proyecto iniciado como tesis de maestría en RTU MIREA (Moscú)
-- Cliente: Dirección No. 5 (DAG5), ETECSA, Cuba
-- Sistema heredado: "Mesa de Quejas" (Microsoft Access, 2000)
-- Necesidad: Digitalizar todo el ciclo de gestión operativa
+**Tipo:** Decisión arquitectónica + reorganización
 
-### Objetivo Principal
-Desarrollar una plataforma de microservicios que permita digitalizar desde el reporte de una queja hasta la gestión de materiales, con analítica para toma de decisiones.
+### Qué se hizo
+- Se fusionaron dos TASKLIST: plan de consolidación (Fases A–D) + inventario funcional (Fases 0–13).
+- Se incorporaron 15 hallazgos de auditoría como tareas nuevas (A-08 a A-12, B-15 a B-22, C-11 a C-12).
+- Se decidió que `memory.md` es índice (< 200 líneas) y el detalle va en `docs/memory/`.
+- Se decidió que los hallazgos de auditoría van en `AGENTS.md` sección 8 (deuda técnica activa temporal).
 
-## 2. Decisiones Arquitectónicas Clave
+### Por qué se hizo de esa forma
+- **Un solo TASKLIST:** Evita confusión sobre "fuente de verdad". Parte I (consolidación) primero; Parte II (funcional) después.
+- **Auditoría integrada:** Los críticos (SEC-01, SEC-02, SEC-03) son bloqueantes.
+- **AGENTS.md con deuda técnica:** Los agentes deben saber qué está roto para no empeorarlo.
+- **memory.md como índice:** Evita saturación de contexto y alucinaciones.
 
-| ID | Decisión | Justificación | Estado |
-|----|----------|---------------|--------|
-| D-01 | Microservicios (3 servicios + gateway) | Escalabilidad, aislamiento de fallos, equipos independientes | ✅ Adoptada |
-| D-02 | Go para Materials Service | Concurrencia nativa para validación de stock | ✅ Adoptada |
-| D-03 | Node.js para Auth y MP | Velocidad de desarrollo, ecosistema maduro | ✅ Adoptada |
-| D-04 | React + Vite + TS para frontend | Bundling rápido, tipado estricto | ✅ Adoptada |
-| D-05 | PostgreSQL (3 BDs separadas) | ACID, madurez, JSONB | ✅ Adoptada |
-| D-06 | Redis para locks y rate limit | Atomicidad, rendimiento | ✅ Adoptada |
-| D-07 | No usar colas (RabbitMQ) aún | MVP, simplificación; migrar en v2.0 | 🔄 Pendiente |
-| D-08 | Swagger generado automáticamente | Autodoc en tiempo de build | ✅ Adoptada |
-| D-09 | Python para Prediction Service | Ecosistema ML maduro (scikit-learn, XGBoost, Prophet, MLflow) | ✅ Adoptada |
+### Dónde están los cambios
+- `TASKLIST.md` — Fusionado (273 tareas)
+- `AGENTS.md` — Sección 8 añadida
+- `memory.md` — Este índice
+- `docs/memory/2026-10-23.md` — Este detalle
+- `docs/audit/AUDITORIA.md` — Movido desde raíz
+- `docs/migrations/backend-mp-feature-based.md` — Movido desde raíz
 
-## 2.1. ADR-004: Prediction Service (Python + FastAPI)
+### Qué se aprendió
+- La auditoría reveló 3 críticos y 11 altos no contemplados.
+- El acoplamiento MP → Users (ARC-02) es SPOF.
+- El cierre de queja no orquesta materiales (ARC-03).
 
-**Contexto:** El sistema necesita capacidades predictivas para optimizar la gestión de materiales, tiempos de resolución y priorización de quejas. 
+### Dependencias desbloqueadas
+- TASK-A-01 a A-12 (Fase A) listas para ejecutar.
 
-**Decisiones:**
-1. **Lenguaje:** Python 3.11+ — ecosistema ML/MLOps maduro
-2. **Framework API:** FastAPI — async, tipado, generación automática de OpenAPI docs
-3. **Librerías ML:** scikit-learn (base), XGBoost (gradient boosting), Prophet (series temporales)
-4. **Model Registry:** MLflow — versionamiento, tracking y despliegue de modelos
-5. **Orquestación:** Apache Airflow — pipelines de entrenamiento y reentrenamiento
-6. **Base de datos:** `bd_predictions` (PostgreSQL) — datos derivados de otras BDs vía ETL read-only
-7. **Arquitectura:** Servicio read-only — consume APIs de Users/MP/Materials, no escribe en sus BDs
-8. **Puerto:** 5005
+---
+
+## ADR-004: Prediction Service en Python + FastAPI
+
+**Decisión:** Crear `prediction-service/` como servicio aparte en Python 3.11+ + FastAPI.
+
+**Justificación:**
+- Ecosistema ML maduro en Python (scikit-learn, XGBoost, Prophet, TensorFlow).
+- Ciclo de vida independiente (entrenamiento, versionado, despliegue).
+- Escalabilidad separada.
+- Aislamiento de fallos.
+
+**Alternativas descartadas:**
+- Node.js: ecosistema ML limitado.
+- Go: ecosistema ML muy limitado.
 
 **Consecuencias:**
-- Nueva dependencia: Python + pip + venv
-- Nueva BD: `bd_predictions`
-- Nuevos componentes: MLflow server, Airflow scheduler, Airflow webserver
-- Impacto en CI/CD: tests con pytest, build de imágenes Docker para Python
-
-## 3. Reglas de Negocio Críticas
-
-### Prioridad de Quejas (BR-03)
-```
-prioridad_score = tipo_peso + servicio_peso + ubicacion_peso + (antiguedad_horas > 2 ? 1 : 0)
-
-Mapeo:
-  12-13 → Prioridad 1 (Urgente)
-  9-11  → Prioridad 2 (Alta)  
-  6-8   → Prioridad 3 (Media)
-  3-5   → Prioridad 4 (Baja)
-```
-
-### FSM de Quejas (BR-04)
-```
-States: Reportada → Priorizada → Abierta → EnProgreso → {PendientePrueba | EnRevision | Cerrada}
-Allowed transitions strictly enforced via Specification pattern.
-```
-
-### Stock Concurrente (BR-08, BR-09, BR-10)
-```
-Pattern: Distributed Lock (Redis) + Transaction (PostgreSQL)
-Lock ordering: Always acquire locks sorted by material_id (ascending)
-Retry: Exponential backoff, max 3 attempts
-```
-
-## 4. Credenciales de Desarrollo
-
-```env
-# No usar en producción — estos son datos de DEV
-ADMIN_USER=admin@sistema.cu
-ADMIN_PASS=Admin123Dev!
-JWT_SECRET=dev-secret-key-change-in-prod
-```
-
-## 5. Endpoints Críticos
-
-| Endpoint | Servicio | Notas |
-|----------|----------|-------|
-| POST /api/auth/login | Users | Rate limited (5 attempts → 15min block) |
-| POST /api/materials/asignaciones | Materials | Concurrency-safe, stock validation |
-| POST /api/materials/consumos | Materials | Validation against assignment (BR-08) |
-| POST /api/mp/quejas | MP | Priority calculation + classification |
-| PATCH /api/mp/quejas/{id}/estado | MP | FSM validation |
-| POST /api/predictions/demanda | Prediction | Demand forecasting |
-| POST /api/predictions/tiempo | Prediction | Resolution time prediction |
-| POST /api/predictions/anomalias | Prediction | Anomaly detection |
-| POST /api/predictions/prioridad | Prediction | Complaint priority classification |
-| POST /api/predictions/fallos | Prediction | Infrastructure failure prediction |
-| POST /api/predictions/asignacion | Prediction | Technician assignment optimization |
-
-## 6. Testing
-
-| Herramienta | Uso | Cobertura objetivo |
-|-------------|-----|-------------------|
-| Jest + Supertest | Unit + API integration | 70% |
-| Go testing + Testify | Unit + integration | 85% |
-| pytest + pytest-cov | Unit + integration (Python) | 100% (endpoints) |
-| Testcontainers | Integration con DB real | - |
-| k6 | Load testing | Endpoints críticos |
-| GitHub Actions | CI (on PR), CD (on merge) | 100% PRs |
-
-## 7. Deploy
-
-- **Staging**: Push a rama `staging/*` → deploy automático
-- **Production**: Merge a `main` → CD manual (requiere approval)
-- **Rollback**: `make rollback VERSION=x.y.z`
-
-## 8. Troubleshooting Común
-
-| Síntoma | Causa probable | Acción |
-|---------|---------------|--------|
-| Login 500 | JWT_SECRET no configurado | Verificar .env en Users Service |
-| Stock no decrementa | Lock Redis falló | Verificar Redis, revisar retry logs |
-| Queja no cambia estado | FSM invalid transition | Ver BR-04, usar transición válida |
-| Email no llega | Mailjet API key inválida | Verificar .env en MP Service |
-| Slow queries | Índices faltantes | `EXPLAIN ANALYZE`, añadir índices |
-
-## 9. Pendientes (To-Do)
-
-- [ ] Implementar notificaciones por email (Mailjet)
-- [ ] Activar alertas de stock bajo (background scheduler)
-- [ ] Exportar dashboards (CSV/PDF)
-- [ ] Migrar a RabbitMQ para eventos async
-- [ ] Kubernetes deployment
-- [ ] Mobile app (React Native)
-- [ ] Análitica predictiva (ML) — En FASE 9 (Prediction Service)
-
-## 10. Referencias
-
-- [ESTRUCTURA.md](./ESTRUCTURA.md)
-- [TASKLIST.md](./TASKLIST.md)
-- [CHANGELOG.md](./CHANGELOG.md)
-- [SPEC.md](./SPEC.md)
-- [PROMPTS.md](./PROMPTS.md)
-- [AGENT.md](./AGENT.md)
-- [docs/requirements.md](./docs/requirements.md)
-- [docs/architecture.md](./docs/architecture.md)
-- [docs/roadmap.md](./docs/roadmap.md)
-- [Tesis completa](./docs/thesis/)
+- Nuevo lenguaje en el stack (Python).
+- Nueva BD (`bd_predictions`).
+- Servicios auxiliares: MLflow (model registry), Airflow (pipelines).
+- 19 tareas nuevas en Fase D.
 
 ---
 
-## 11. Registro de Cambios de Estructura (Reorganización 2026-09-25)
+## ADR-005: Estructura Feature-Based en MP
 
-| Cambio | Detalle |
-|--------|---------|
-| Migración docs/ | Centralizada toda documentación en `docs/` con subcarpetas: `api/`, `diagrams/`, `thesis/`, `practices/`, `manuals/` |
-| Migración monitoring/ | `docker-compose.yml` → `prometheus/prometheus.yml`, `promtail-config.yaml` → `loki/promtail-config.yaml`, `loki-config.yaml` → `loki/` |
-| Migración swagger | `backend-mp/docs/*` → `docs/api/`, `backend-materiales-go/docs/*` → `docs/api/` |
-| Creación workflows | `ci.yml`, `cd.yml`, `security.yml`, `docs.yml` en `.github/workflows/` |
-| Creación root docs | `CHANGELOG.md`, `CONTRIBUTING.md`, `LICENSE`, `ARCHITECTURE.md`, `memory.md` |
-| Remoción .env sensibles | `.env.docker`, `.env.production` untracked de git por seguridad |
-| Actualización .gitignore | Añadido `!.env.example` para preservar template en versionamiento |
-| Actualización docker-compose | Rutas de monitoring/ actualizadas tras reorganización |
-| Actualización enlaces | README.md, AGENT.md, SPEC.md, PROMPTS.md referencias actualizadas |
+**Decisión:** Reorganizar `backend-mp/src/` de capas (controllers/, routes/, models/, validations/) a features (asignacion/, cable/, clave/, ...).
+
+**Justificación:**
+- Mantenibilidad: todo lo de una entidad junto.
+- Escalabilidad: añadir entidad = nueva carpeta.
+- Alineación con `backend-materiales-go` (ya feature-based).
+
+**Consecuencias:**
+- 10 lotes de migración (Fase B).
+- 22 tareas en Fase B (incluyendo correcciones de auditoría).
 
 ---
 
-## 12. Registro de Cambios de Estructura (Prediction Service — 2026-09-27)
+## ADR-006: Docs Bilingües ES/RU (Archivos Paralelos)
 
-| Cambio | Detalle |
-|--------|---------|
-| Agregado Prediction Service | Microservicio Python + FastAPI + scikit-learn + XGBoost + Prophet en `prediction-service/` |
-| Nueva base de datos | `bd_predictions` (PostgreSQL) para datos predictivos |
-| MLOps Stack | MLflow (Model Registry), Apache Airflow (pipelines) |
-| Nuevos endpoints | `/api/predictions/*` para 6 casos de uso predictivos |
-| Nueva FASE 9 | MLOps y Prediction Service en PROMPTS.md |
-| Nueva ADR-004 | Decisiones arquitectónicas del Prediction Service |
-| Actualización testing | Añadido pytest + pytest-cov al stack (100% endpoints) |
+**Decisión:** Usar archivos paralelos `nombre.es.md` / `nombre.ru.md` en `docs/`.
+
+**Justificación:**
+- Cumple requisito de tesis bilingüe (RU para defensa, ES para publicaciones).
+- Clara separación de idiomas.
+- Fácil de mantener juntos.
+
+**Alternativas descartadas:**
+- Carpetas por idioma (`docs/es/`, `docs/ru/`): duplicación de estructura.
+- Un archivo con dos secciones (`## ES` / `## RU`): archivos muy largos.
+
+**Consecuencias:**
+- 18 documentos × 2 idiomas = 36 archivos.
+- Fase C (12 tareas) para traducción.
+
+---
+
+## ADR-007: Un Solo Repositorio (SISGAD5_1.0)
+
+**Decisión:** Todo el proyecto vive en `SISGAD5_1.0`. `SISGAD5_doc` se archiva.
+
+**Justificación:**
+- Evita duplicación y confusión sobre "fuente de verdad".
+- Facilita navegación y mantenimiento.
+- Simplifica CI/CD.
+
+**Consecuencias:**
+- Migrar contenido de `SISGAD5_doc` a `docs/practices/` y `docs/diagrams/`.
+- Nota de archivado en README de `SISGAD5_doc`.
+
+---
+
+## Lecciones Aprendidas
+
+1. **Secretos en `.env`:** Riesgo crítico. Rotar y usar `.env.local`.
+2. **Docs ≠ código:** Sincronizar `ARCHITECTURE.md` con realidad (mux vs Gin).
+3. **SPOF MP → Users:** Resolver con claims en JWT.
+4. **Cierre de queja sin materiales:** Implementar saga.
+5. **Orden de rutas Express:** `/dashboard/*` antes de `/:id`.
+6. **CI roto:** `npm test` con `exit 1` debe reemplazarse.
+7. **Auditoría:** 28 hallazgos (3 críticos, 11 altos, 10 medios, 4 bajos).
+8. **Predictivo aparte:** Python, no Node/Go.
+9. **Datos sintéticos:** Anonimizar datos reales para entrenamiento.
+10. **memory.md como índice:** Evita alucinaciones.
+
+---
+
+> **Mantenido por:** Agentes de IA + Ing. Botet S.Y.
+> **Licencia:** Uso académico — Tesis de Maestría RTU MIREA

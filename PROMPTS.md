@@ -1,641 +1,913 @@
-# 🎯 PROMPTS.md — Sistema de Prompts por Fase para SISGAD5
+# 🎯 PROMPTS.md — Sistema de Prompts por Tarea para SISGAD5
 
-> **Proyecto:** SISGAD5 — Sistema de Información para la Gestión y Soporte de la Dirección No. 5
-> **Repositorio:** https://github.com/ybotet/SISGAD5_doc
+> **Proyecto:** SISGAD5 — Sistema de Soporte a la Toma de Decisiones
+> **Repositorio:** https://github.com/ybotet/SISGAD5_1.0
 > **Autor:** Ing. Botet S.Y. (Tesis de Maestría — RTU MIREA)
-> **Propósito:** Este archivo contiene los prompts de sistema que los agentes de IA deben usar en cada fase del proyecto. Cada prompt define un rol, contexto, tarea y formato de salida.
-> **Archivos de referencia obligatoria:** `AGENT.md`, `SPEC.md`, `TASKLIST.md`, `memory.md`
+> **Herramienta:** Kilo Code + agentes en `.agents/agents/`
+> **Última actualización:** 2026-10-23
 
 ---
 
 ## 📑 Tabla de Contenidos
 
 1. [Cómo usar este archivo](#1-cómo-usar-este-archivo)
-2. [FASE 0 — Generación de AGENT.md](#2-fase-0--generación-de-agentmd)
-3. [FASE 1 — Generación de SPEC.md](#3-fase-1--generación-de-specmd)
-4. [FASE 2 — Generación de ARCHITECTURE.md](#4-fase-2--generación-de-architecturemd)
-5. [FASE 3 — Planificación (Task Planner)](#5-fase-3--planificación-task-planner)
-6. [FASE 4 — Implementación (Implementer)](#6-fase-4--implementación-implementer)
-7. [FASE 5 — Verificación (Verifier)](#7-fase-5--verificación-verifier)
-8. [FASE 6 — Cierre y Memoria (Archiver)](#8-fase-6--cierre-y-memoria-archiver)
-9. [FASE 7 — Manual de Explotación](#9-fase-7--manual-de-explotación)
-10. [FASE 8 — Documentación Final y Defensa](#10-fase-8--documentación-final-y-defensa)
-11. [FASE 9 — MLOps y Prediction Service](#11-fase-9--mlops-y-prediction-service)
-14. [Flujo de Trabajo Completo](#12-flujo-de-trabajo-completo)
-15. [Plantilla de memory.md](#13-plantilla-de-memorymd)
+2. [Plantilla base (cualquier tarea)](#2-plantilla-base-cualquier-tarea)
+3. [Fase A — Limpieza y Seguridad](#3-fase-a--limpieza-y-seguridad)
+4. [Fase B — Reorganización y Correcciones](#4-fase-b--reorganización-y-correcciones)
+5. [Fase C — Documentación](#5-fase-c--documentación)
+6. [Fase D — Módulo Predictivo](#6-fase-d--módulo-predictivo)
+7. [Parte II — Inventario Funcional](#7-parte-ii--inventario-funcional)
+8. [Cierre de tarea (memoria)](#8-cierre-de-tarea-memoria)
+9. [Verificación (QA)](#9-verificación-qa)
+10. [Plantillas de reporte](#10-plantillas-de-reporte)
 
 ---
 
 ## 1. Cómo usar este archivo
 
-### 1.1. Flujo General
+### Flujo de 7 pasos
+1. Abrir TASKLIST.md → identificar la tarea (ej. TASK-A-01).
+2. Abrir AGENTS.md sección 9 → identificar el agente recomendado.
+3. Abrir PROMPTS.md → copiar el prompt de la fase/tipo.
+4. Rellenar placeholders ([TASK-XXX], [archivo], etc.).
+5. Ejecutar en Kilo Code con el agente seleccionado.
+6. Al terminar, ejecutar el prompt de "Cierre de tarea" (sección 8).
+7. Marcar la tarea como completada en TASKLIST.md y hacer commit.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  Para cada tarea del TASKLIST.md:                               │
-│                                                                 │
-│  1. Identificar la fase (0-8)                                   │
-│  2. Copiar el prompt de esa fase                                │
-│  3. Rellenar los placeholders [N], [Nombre], etc.               │
-│  4. Ejecutar en el agente de IA                                 │
-│  5. Verificar el resultado                                      │
-│  6. Registrar en memory.md (FASE 6)                             │
-│  7. Marcar la tarea como completada en TASKLIST.md              │
-└─────────────────────────────────────────────────────────────────┘
-```
 
-### 1.2. Placeholders Comunes
+### Placeholders comunes
 
-| Placeholder  | Descripción        | Ejemplo                                   |
-| ------------ | ------------------ | ----------------------------------------- |
-| `[N]`        | Número de tarea    | `TASK-520-05`                             |
-| `[Nombre]`   | Nombre de la tarea | "Validación de stock real"                |
-| `[Módulo]`   | Módulo afectado    | "Materials Service"                       |
-| `[Servicio]` | Servicio afectado  | `backend-materiales-go`                   |
-| `[Archivo]`  | Ruta del archivo   | `internal/services/asignacion_service.go` |
+| Placeholder     | Descripción            | Ejemplo                                           |
+| --------------- | ---------------------- | ------------------------------------------------- |
+| `[TASK-XXX-YY]` | ID de la tarea         | `TASK-A-01`                                       |
+| `[Nombre]`      | Nombre de la tarea     | "Rotar credenciales"                              |
+| `[Módulo]`      | Módulo afectado        | "Users Service"                                   |
+| `[Archivo]`     | Ruta del archivo       | `backend-users/src/controllers/AuthController.js` |
+| `[Criterio]`    | Criterio de aceptación | "Falla al arrancar si falta JWT_SECRET"           |
 
-### 1.3. Archivos de Referencia
+### Archivos de contexto (el agente los lee)
 
-Antes de ejecutar cualquier prompt, el agente debe tener acceso a:
-- `@AGENT.md` — Reglas de oro del proyecto
-- `@SPEC.md` — Especificación técnica
-- `@ARCHITECTURE.md` — Arquitectura del sistema
-- `@TASKLIST.md` — Lista de tareas
-- `@memory.md` — Memoria persistente del proyecto
+- `AGENTS.md` (obligatorio, sección 8: deuda técnica activa)
+- `SPEC.md`
+- `ARCHITECTURE.md`
+- `memory.md` (índice)
+- `TASKLIST.md` (tarea actual)
 
 ---
 
-## 2. FASE 0 — Generación de AGENT.md
+## 2. Plantilla base (cualquier tarea)
 
-### 2.1. Prompt
+Usa esta plantilla si no hay una específica para tu tarea.
 
-```
-[1. ROL]
-Actúa como un Arquitecto de Software Senior y Experto en Sistemas de Microservicios, con especialización en Node.js, Go, PostgreSQL y arquitecturas de baja latencia.
+[ROL]
+Actúa como el agente especializado que corresponde a esta tarea. Sigue estrictamente las reglas de `AGENTS.md` (especialmente sección 8: Deuda Técnica Activa) y la arquitectura de `ARCHITECTURE.md`.
 
-[2. CONTEXTO]
-Estamos construyendo SISGAD5, un sistema de microservicios para la gestión operativa de una empresa de telecomunicaciones cubana (ETECSA - Dirección No. 5). La arquitectura se divide en:
+[CONTEXTO]
+Proyecto: SISGAD5. Tarea: [TASK-XXX-YY] — [Nombre de la tarea].
+Lee `AGENTS.md`, `SPEC.md`, `ARCHITECTURE.md` y `memory.md` (índice) antes de comenzar.
 
-- Frontend: React 18 + Vite + TypeScript + Tailwind
-- API Gateway: Node.js + Express + http-proxy-middleware
-- Users Service: Node.js + Express + Sequelize (autenticación, usuarios, RBAC)
-- MP Service: Node.js + Express + Sequelize + Zod (operaciones: teléfonos, líneas, pizarras, quejas, pruebas, trabajos)
-- Materials Service: Go + gorilla/mux + GORM (gestión de materiales con transacciones ACID y concurrencia)
-- Prediction Service: Python 3.11+ + FastAPI + scikit-learn + XGBoost + Prophet (analítica predictiva)
-- PostgreSQL 17+ (4 bases de datos separadas)
-- Redis 7+ (caché)
+[TAREA]
+Implementa la tarea según el criterio de aceptación del TASKLIST.md:
+- **Descripción:** [copiar del TASKLIST]
+- **Criterio de aceptación:** [copiar del TASKLIST]
+- **Archivos afectados:** [copiar del TASKLIST]
+- **Dependencias:** [copiar del TASKLIST]
 
-[3. TAREA EXACTA]
-Genera un archivo AGENT.md exhaustivo siguiendo el estándar de agents.md. Este archivo servirá como "fichero de reglas de oro" y prompt de sistema persistente para este proyecto.
+[RESTRICCIONES]
+- No violes las reglas de oro de AGENTS.md.
+- No introduzcas nuevos hallazgos de la auditoría (AGENTS.md sección 8).
+- Si encuentras un problema no contemplado, documéntalo en `docs/memory/[fecha].md` y detente.
+- Usa Conventional Commits.
+- Comenta las funciones en español.
 
-[4. RESTRICCIONES Y REGLAS]
-El documento debe incluir los siguientes apartados obligatorios:
-
-- **Stack Tecnológico:** Especificar Node.js (TS) para Users/MP/Gateway, Go para Materials, React para Frontend, PostgreSQL para BD.
-- **Reglas de Oro:**
-  - Prohibido acceder directamente a la BD de otro microservicio.
-  - Prohibido subir secretos o credenciales al código (usar variables de entorno).
-  - Prohibido mezclar lógica de negocio entre microservicios.
-  - Priorizar siempre transacciones ACID en operaciones críticas.
-- **Patrones de Arquitectura:** Uso de API Gateway como única puerta de entrada, comunicación REST/JSON, servicios stateless.
-- **Convenciones de Código:** Tipado estricto en TypeScript, snake_case en Go y BD, camelCase en JS/TS.
-- **Límite de Eficiencia:** Mantén el archivo resultante por debajo de las 500 líneas.
-
-[5. FORMATO DE SALIDA]
-Devuélveme exclusivamente el contenido del archivo en un bloque de código Markdown listo para ser copiado.
-```
+[FORMATO DE SALIDA]
+1. Código implementado (bloques con ruta de archivo).
+2. Tests (si aplica).
+3. Resumen de cambios (qué, por qué, dónde).
+4. Entrada para `docs/memory/[fecha].md`.
 
 ---
 
-## 3. FASE 1 — Generación de SPEC.md
+## 3. Fase A — Limpieza y Seguridad
+### 3.1. Prompt para TASK-A-01: Rotar credenciales
 
-### 3.1. Prompt
+Agente: security-fixer
 
-```
-[1. ROL]
-Actúa como un Product Owner y Arquitecto de Sistemas con experiencia en microservicios, APIs REST y documentación técnica.
+[ROL]
+Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-01, SEC-02, SEC-03).
 
-[2. CONTEXTO]
-Ya tenemos definido el AGENT.md que establece nuestro stack y reglas. Ahora necesitamos definir el SPEC.md para SISGAD5, un sistema de gestión operativa para una empresa de telecomunicaciones. El sistema debe cubrir:
+[CONTEXTO]
+Tarea: TASK-A-01 — Rotar credenciales expuestas (JWT_SECRET, DB_PASSWORD).
+Hallazgos: SEC-01 (JWT fallback), SEC-02 (Materials sin JWT), SEC-03 (Grafana admin/admin).
 
-- Gestión de usuarios y autenticación (JWT + RBAC)
-- Gestión de teléfonos, líneas y pizarras
-- Gestión de quejas, pruebas y trabajos
-- Gestión de materiales (asignaciones y consumos con ACID)
-- Dashboards analíticos
-- API Gateway centralizado
+[TAREA]
+1. Genera nuevo `JWT_SECRET` con `openssl rand -base64 64`.
+2. Genera nuevo `DB_PASSWORD` seguro.
+3. Crea `.env.local` (gitignored) con los nuevos valores.
+4. Verifica que `.env.example` solo tenga placeholders (`your-secret-here`).
+5. Documenta en `docs/memory/2026-10-23.md` los nuevos valores (sin exponerlos, solo referencia).
+6. Avisa al humano para que actualice PostgreSQL.
 
-[3. TAREA EXACTA]
-Genera un archivo SPEC.md exhaustivo siguiendo la metodología Spec-First. El documento debe cubrir:
+[RESTRICCIONES]
+- No subas `.env.local` al repo.
+- No expongas los valores reales en el chat ni en logs.
+- Si no puedes generar los valores, pide al humano que los genere.
 
-1. **Visión General:** Descripción, contexto y problema que resuelve.
-2. **Objetivos y Alcance:** Objetivo general, específicos y qué queda fuera del alcance.
-3. **Arquitectura del Sistema:** Estilo arquitectónico, diagrama de componentes (Mermaid), reglas arquitectónicas.
-4. **Stack Tecnológico:** Backend, frontend, BD, infraestructura.
-5. **Modelo de Datos:** Entidades principales de las 3 BD.
-6. **Especificación de Módulos:** Users, MP, Materials, Frontend, Gateway, Analítica.
-7. **Contratos de API:** Convenciones y endpoints principales.
-8. **Seguridad:** Autenticación, autorización, protecciones.
-9. **Requisitos No Funcionales:** Rendimiento, disponibilidad, concurrencia, integridad.
-10. **Despliegue y Operación:** Hardware, software, comandos.
-11. **Testing y Calidad:** Estrategia, CI/CD, criterios de aceptación.
-12. **Roadmap y Evolución:** Corto, mediano y largo plazo.
-13. **Glosario:** Términos clave.
-14. **Referencias:** Documentación y bibliografía.
-
-[4. RESTRICCIONES Y REGLAS]
-- El diseño debe priorizar la separación de responsabilidades entre microservicios.
-- Define umbrales de rendimiento (ej. < 300 ms para lecturas, < 800 ms para transacciones).
-- Asegura que Materials Service use transacciones ACID y concurrencia con goroutines.
-- Usa diagramas Mermaid para la arquitectura y el modelo ER.
-
-[5. FORMATO DE SALIDA]
-Devuélveme el contenido en un bloque de código Markdown estructurado, listo para ser guardado como SPEC.md en la raíz del proyecto.
-```
+[FORMATO]
+1. Comandos ejecutados (sin mostrar valores).
+2. Contenido de `.env.example` (con placeholders).
+3. Entrada de memoria.
 
 ---
 
-## 4. FASE 2 — Generación de ARCHITECTURE.md
+### 3.2. Prompt para TASK-A-02: Crear .gitignore
 
-### 4.1. Prompt
+Agente: project-auditor
 
-```
-[1. ROL]
-Actúa como un Arquitecto de Sistemas Cloud y Especialista en Infraestructura de Microservicios.
+[ROL]
+Actúa como `project-auditor`. Sigue `AGENTS.md` sección 8.
 
-[2. CONTEXTO]
-Ya tenemos el AGENT.md (reglas) y el SPEC.md (intención). El proyecto es SISGAD5, un sistema de microservicios que separa:
+[CONTEXTO]
+Tarea: TASK-A-02 — Crear `.gitignore` completo.
+Problema: El repo tiene versionados node_modules, logs, dist, .env, api.exe, backup/, Continue/.
 
-- Lógica de negocio en Node.js (Users, MP, Gateway)
-- Lógica transaccional crítica en Go (Materials)
-- Interfaz de usuario en React (Frontend)
+[TAREA]
+1. Crea/actualiza `.gitignore` en la raíz con:
+   - Dependencias: `node_modules/`, `**/node_modules/`, `vendor/`
+   - Build: `dist/`, `build/`, `coverage/`, `*.exe`, `api.exe`
+   - Secretos: `.env`, `.env.*`, `! .env.example`, `**/.env`
+   - Logs: `logs/`, `**/logs/`, `*.log`, `*.log.gz`
+   - Temporales: `backup/`, `Continue/`, `*.bak`, `*.tmp`
+   - IDE: `.vscode/`, `.idea/`, `.kilo/.gitignore`
+   - Python: `__pycache__/`, `*.pkl`, `.venv/`
+   - Datos: `prediction-service/data/`
+2. Verifica que `.env.example` NO esté ignorado.
+3. Documenta en `docs/memory/2026-10-23.md`.
 
-[3. TAREA EXACTA]
-Genera un archivo ARCHITECTURE.md que describa la infraestructura técnica. Debe incluir:
-
-1. **Diagrama de Componentes (Mermaid):** Mostrando la comunicación entre frontend, API Gateway, microservicios y BD.
-2. **Diagrama de Secuencia (Mermaid):** Para el flujo crítico "Cierre de queja con consumo de materiales".
-3. **Diagrama de Despliegue (Mermaid):** Mostrando contenedores Docker, redes y volúmenes.
-4. **Decisiones Arquitectónicas (ADR):** Justificación de por qué microservicios, por qué Go para Materials, por qué 3 BD separadas.
-5. **Reglas de Comunicación:** REST/JSON, sin acceso cruzado a BD, autenticación centralizada en Gateway.
-6. **Estrategia de Escalabilidad:** Servicios stateless, réplicas horizontales, caché con Redis.
-
-[4. RESTRICCIONES]
-- Prioriza la separación total de responsabilidades entre lenguajes.
-- El diagrama debe reflejar claramente el uso del API Gateway como única puerta de entrada.
-- Asegura que la comunicación entre servicios sea vía REST/JSON.
-- Usa Mermaid para todos los diagramas.
-
-[5. FORMATO]
-Devuélveme el contenido en Markdown listo para guardar en la raíz del proyecto.
-```
+[FORMATO]
+1. Contenido del `.gitignore`.
+2. Verificación (qué se ignora, qué no).
+3. Entrada de memoria.
 
 ---
 
-## 5. FASE 3 — Planificación (Task Planner)
+### 3.3. Prompt para TASK-A-03 a A-06: Limpieza de artefactos
 
-### 5.1. Prompt
+Agente: project-auditor
 
-```
-[1. ROL]
-Actúa como un Technical Project Manager (TPM) experto en metodologías agénticas.
+[ROL]
+Actúa como `project-auditor`.
 
-[2. CONTEXTO]
-Basándote en el @SPEC.md y el @ARCHITECTURE.md, necesitamos desglosar la implementación de SISGAD5 en tareas atómicas y secuenciales.
+[CONTEXTO]
+Tarea: [TASK-A-03 / A-04 / A-05 / A-06] — Limpieza de artefactos.
+Archivos/carpetas a eliminar: [lista del TASKLIST].
 
-[3. TAREA EXACTA]
-Crea una lista de tareas técnica y secuencial en el archivo TASKLIST.md. Divide el proyecto en fases:
+[TAREA]
+1. Ejecuta `git rm -r --cached` sobre los archivos/carpetas indicados (sin borrar del disco).
+2. Verifica que `git status` esté limpio.
+3. Verifica que el repo se aligera (`du -sh .git`).
+4. Documenta en `docs/memory/2026-10-23.md`.
 
-- FASE 0: Planificación y documentación base
-- FASE 1: Diseño y modelado
-- FASE 2: Infraestructura y configuración
-- FASE 3: Users Service
-- FASE 4: MP Service
-- FASE 5: Materials Service
-- FASE 6: API Gateway
-- FASE 7: Frontend
-- FASE 8: Testing y QA
-- FASE 9: Despliegue y operación
-- FASE 10: Analítica y reportes
-- FASE 11: Documentación final y defensa
-- FASE 12: Mantenimiento y evolución
+[RESTRICCIONES]
+- No borres archivos del disco sin confirmación del humano.
+- Si un archivo está referenciado en otro lugar, detente y documenta.
 
-Cada tarea debe incluir:
-- ID único (TASK-XXX-YY)
-- Prioridad (🔴 Crítica, 🟡 Alta, 🟢 Media, ⚪ Baja)
-- Esfuerzo (⚡ < 1h, 🔨 1-4h, 🏗️ 1-3d, 🏛️ > 3d)
-- Descripción breve
-- Módulo afectado
-- Dependencias
-- Criterio de aceptación
-- Archivos afectados
+[FORMATO]
+1. Comandos ejecutados.
+2. `git status` resultante.
+3. Entrada de memoria.
 
-[4. RESTRICCIONES]
-- Las tareas deben ser lo suficientemente pequeñas para que un agente las ejecute sin perder contexto (máximo 1 o 2 archivos por tarea).
-- Cada tarea debe incluir un criterio de aceptación técnico y verificable.
-- Respeta las dependencias entre tareas.
+### 3.4. Prompt para TASK-A-08: Eliminar fallback JWT_SECRET
 
-[5. FORMATO]
-Una lista en Markdown dentro de un archivo llamado TASKLIST.md, con secciones por fase y tablas de resumen de progreso.
-```
+Agente: security-fixer
 
----
+[ROL]
+Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-01, crítico).
 
-## 6. FASE 4 — Implementación (Implementer)
+[CONTEXTO]
+Tarea: TASK-A-08 — Eliminar fallback `JWT_SECRET || "secreto"` en Users y MP.
+Archivos:
+- `backend-users/src/controllers/AuthController.js` (líneas ~120-126)
+- `backend-mp/src/controllers/AuthController.js` (líneas ~106-112)
 
-### 6.1. Prompt (Node.js / TypeScript)
+[TAREA]
+1. Busca todas las ocurrencias de `JWT_SECRET || "secreto"` o similares.
+2. Reemplaza por validación que falle al arrancar:
+   ```js
+   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+     throw new Error('JWT_SECRET must be defined and at least 32 chars');
+   }
 
-```
-[1. ROL]
-Actúa como un Senior Software Engineer experto en Node.js, TypeScript, Express, Sequelize y Zod.
+3. Añade la validación en src/config/env.js (o equivalente) si no existe.
+4. Verifica que .env.example tenga JWT_SECRET=your-secret-here.
+5. Ejecuta tests existentes.
+6. Documenta en docs/memory/2026-10-23.md.
 
-[2. CONTEXTO]
-Estamos en la Fase de Implementación de SISGAD5. Lee el @AGENT.md, @SPEC.md, @ARCHITECTURE.md y @memory.md antes de comenzar.
+[RESTRICCIONES]
 
-Módulo actual: [Módulo]
-Servicio: [Servicio]
-Archivo(s) a modificar: [Archivo]
+- No cambies el flujo de login, solo la validación del secreto.
+- Si no hay tests, documenta que faltan.
 
-[3. TAREA EXACTA]
-Implementa la Tarea #[N]: [Nombre de la Tarea] del archivo @TASKLIST.md
+[FORMATO]
 
-Descripción: [Descripción de la tarea]
-Criterio de aceptación: [Criterio de aceptación]
+1. Código corregido (bloques con ruta).
+2. Resultado de tests.
+3. Entrada de memoria.
 
-Realiza las ediciones multi-archivo necesarias y asegúrate de que el código compile. Genera para cada función comentarios en español, para tener claro lo que realiza.
 
-[4. RESTRICCIONES]
-- Prohibido subir llaves privadas o secretos (usa .env).
-- Sigue estrictamente los patrones de diseño del archivo de arquitectura.
-- No generes código que no sea necesario para esta tarea específica.
-- Usa tipado estricto en TypeScript.
-- Añade validaciones con Zod para entradas de API.
-- Maneja errores con códigos HTTP semánticos (400, 401, 403, 404, 409, 500).
-- Añade logs estructurados (JSON) para auditoría.
+### 3.5. Prompt para TASK-A-09: JWT en Materials (Go)
 
-[5. FORMATO]
-Aplica los cambios directamente en los archivos o devuélveme los bloques de código indicando la ruta del archivo.
-```
+**Agente:** `security-fixer`
 
-### 6.2. Prompt (Go / gorilla/mux / GORM)
+[ROL]
+Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-02, crítico) y la skill `security-go-middleware`.
 
-```
-[1. ROL]
-Actúa como un Senior Software Engineer experto en Go, gorilla/mux, GORM y PostgreSQL.
+[CONTEXTO]
+Tarea: TASK-A-09 — Añadir JWT middleware a Materials Service (Go).
+Archivo: `backend-materiales-go/cmd/api/main.go` (líneas ~116-177).
 
-[2. CONTEXTO]
-Estamos en la Fase de Implementación de SISGAD5. Lee el @AGENT.md, @SPEC.md, @ARCHITECTURE.md y @memory.md antes de comenzar.
+[TAREA]
+1. Crea `internal/middleware/auth.go` con validación JWT (usando `golang-jwt/jwt`).
+2. Aplica el middleware a todas las rutas excepto `/health`.
+3. Añade `JWT_SECRET` a `.env.example` y `internal/config/`.
+4. Verifica que sin token, las rutas devuelven 401.
+5. Verifica que con token válido, las rutas funcionan.
+6. Documenta en `docs/memory/2026-10-23.md`.
 
-Módulo actual: Materials Service
-Servicio: backend-materiales-go
-Archivo(s) a modificar: [Archivo]
+[RESTRICCIONES]
+- No cambies la lógica de negocio, solo añade auth.
+- Usa `golang-jwt/jwt/v5`.
+- Comenta las funciones en español.
 
-[3. TAREA EXACTA]
-Implementa la Tarea #[N]: [Nombre de la Tarea] del archivo @TASKLIST.md
+[FORMATO]
+1. Código del middleware + integración en main.go.
+2. Tests (si aplica).
+3. Entrada de memoria.
 
-Descripción: [Descripción de la tarea]
-Criterio de aceptación: [Criterio de aceptación]
+### 3.6. Prompt para TASK-A-10: Cerrar puertos internos
 
-Realiza las ediciones multi-archivo necesarias y asegúrate de que el código compile con `go build`. Genera para cada función comentarios en español, para tener claro lo que realiza.
+Agente: security-fixer
+[ROL]
+Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-02/SEC-05).
 
-[4. RESTRICCIONES]
-- Prohibido subir llaves privadas o secretos (usa .env).
-- Sigue estrictamente los patrones de diseño del archivo de arquitectura.
-- No generes código que no sea necesario para esta tarea específica.
-- Usa transacciones ACID con `db.Transaction()` para operaciones críticas.
-- Usa goroutines y canales para concurrencia cuando sea necesario.
-- Maneja errores con `fmt.Errorf("...: %w", err)`.
-- Añade logs estructurados con `zap` o `logrus`.
+[CONTEXTO]
+Tarea: TASK-A-10 — Cerrar puertos internos (5001, 5002, 5003, 5432) en prod.
+Archivo: `docker-compose.prod.yml`.
 
-[5. FORMATO]
-Aplica los cambios directamente en los archivos o devuélveme los bloques de código indicando la ruta del archivo.
-```
+[TAREA]
+1. En `docker-compose.prod.yml`, elimina los mapeos de puertos internos:
+   - `5001:5001` (Users)
+   - `5002:5002` (MP)
+   - `5003:5003` (Materials)
+   - `5432:5432` (PostgreSQL)
+2. Deja solo el puerto del Gateway (5000) y del Frontend (5004) expuestos.
+3. Verifica que los servicios se comunican por la red interna de Docker.
+4. Documenta en `docs/memory/2026-10-23.md`.
 
-### 6.3. Prompt (React / TypeScript / Tailwind)
+[RESTRICCIONES]
+- No rompas `docker-compose.yml` (dev); solo `prod`.
+- Verifica que el Gateway puede alcanzar los servicios por nombre DNS (`backend-users`, etc.).
 
-```
-[1. ROL]
-Actúa como un Senior Frontend Engineer experto en React 18, TypeScript, Vite, Tailwind CSS y Axios.
+[FORMATO]
+1. Diff de `docker-compose.prod.yml`.
+2. Verificación de comunicación interna.
+3. Entrada de memoria.
 
-[2. CONTEXTO]
-Estamos en la Fase de Implementación de SISGAD5. Lee el @AGENT.md, @SPEC.md, @ARCHITECTURE.md y @memory.md antes de comenzar.
+### 3.7. Prompt para TASK-A-11: Grafana creds
 
-Módulo actual: Frontend
-Servicio: frontend
-Archivo(s) a modificar: [Archivo]
+Agente: security-fixer
+[ROL]
+Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-03, crítico).
 
-[3. TAREA EXACTA]
-Implementa la Tarea #[N]: [Nombre de la Tarea] del archivo @TASKLIST.md
+[CONTEXTO]
+Tarea: TASK-A-11 — Cambiar credenciales Grafana (admin/admin).
+Archivo: `docker-compose.yml` (líneas ~192-199).
 
-Descripción: [Descripción de la tarea]
-Criterio de aceptación: [Criterio de aceptación]
+[TAREA]
+1. Reemplaza `GF_SECURITY_ADMIN_PASSWORD: admin` por `${GRAFANA_ADMIN_PASSWORD}`.
+2. Añade `GRAFANA_ADMIN_PASSWORD` a `.env.example` (placeholder).
+3. Documenta en `docs/memory/2026-10-23.md`.
 
-Realiza las ediciones multi-archivo necesarias y asegúrate de que el código compile. Genera para cada función comentarios en español, para tener claro lo que realiza.
-
-[4. RESTRICCIONES]
-- Prohibido subir llaves privadas o secretos (usa .env con VITE_*).
-- Sigue estrictamente los patrones de diseño del archivo de arquitectura.
-- No generes código que no sea necesario para esta tarea específica.
-- Usa tipado estricto en TypeScript.
-- Usa Tailwind para estilos (no CSS inline).
-- Maneja estados de carga, error y vacío.
-- Usa Axios con interceptores para el token JWT.
-- Añade notificaciones toast para feedback al usuario.
-
-[5. FORMATO]
-Aplica los cambios directamente en los archivos o devuélveme los bloques de código indicando la ruta del archivo.
-```
+[FORMATO]
+1. Diff del compose.
+2. Contenido de `.env.example`.
+3. Entrada de memoria.
 
 ---
 
-## 7. FASE 5 — Verificación (Verifier)
+### 3.8. Prompt para TASK-A-12: MP_DB_NAME
 
-### 7.1. Prompt
+Agente: consistency-fixer
 
-```
-[1. ROL]
-Actúa como un QA Engineer y Auditor de Seguridad experto en microservicios, Node.js, Go y PostgreSQL.
+[ROL]
+Actúa como `consistency-fixer`. Sigue `AGENTS.md` sección 8 (ARC-04).
 
-[2. CONTEXTO]
-Acabamos de implementar la Tarea #[N]: [Nombre de la Tarea] en el módulo [Módulo].
-Necesito verificar que cumple con los requerimientos del @SPEC.md y @TASKLIST.md.
+[CONTEXTO]
+Tarea: TASK-A-12 — Corregir `MP_DB_NAME` en docker-compose.
+Archivos:
+- `docker-compose.yml` (línea ~70)
+- `backend-mp/src/config/env.js` (línea ~23)
+- `backend-mp/src/config/database.js` (líneas ~22-23)
 
-[3. TAREA EXACTA]
-Revisa el código generado. Ejecuta (o pide que se ejecuten) los tests correspondientes. Valida que:
+[TAREA]
+1. En `docker-compose.yml`, cambia `DB_NAME=${MP_DB_NAME}` por `MP_DB_NAME=${MP_DB_NAME}` (o el nombre correcto según el schema Zod).
+2. Verifica que `backend-mp` arranca sin abortar.
+3. Documenta en `docs/memory/2026-10-23.md`.
 
-- La funcionalidad cumple con el criterio de aceptación.
-- El código sigue las reglas de @AGENT.md.
-- No hay vulnerabilidades de seguridad (inyección SQL, XSS, CSRF).
-- Las transacciones ACID funcionan correctamente (si aplica).
-- Los errores se manejan con códigos HTTP semánticos.
-- Los logs son estructurados y no exponen datos sensibles.
+[FORMATO]
+1. Diff del compose.
+2. Verificación de arranque.
+3. Entrada de memoria.
+---
 
-[4. RESTRICCIONES]
-- Si encuentras una vulnerabilidad o un fallo en los tests, no lo ignores; detén el proceso y propón la corrección.
-- Verifica que no se hayan subido secretos al repositorio.
-- Verifica que no se acceda a la BD de otro microservicio.
+## 4. Fase B — Reorganización y Correcciones
+### 4.1. Prompt para TASK-B-01 a B-14: Migración feature-based
 
-[5. FORMATO]
-Un reporte corto con "Checklist de Verificación" (Pasado/Fallido) y, si hay fallos, una propuesta de corrección.
-```
+Agente: refactor-fixer
+
+[ROL]
+Actúa como `refactor-fixer`. Sigue `AGENTS.md` sección 8 y el plan de migración en `docs/migrations/backend-mp-feature-based.md`.
+
+[CONTEXTO]
+Tarea: [TASK-B-XX] — Migrar Lote [N] ([entidades]) a feature-based.
+Plan: `docs/migrations/backend-mp-feature-based.md` (Lote [N]).
+Archivos: `backend-mp/src/controllers/`, `routes/`, `models/`, `validations/`.
+
+[TAREA]
+1. Sigue el mapeo del plan para el Lote [N].
+2. Crea `src/features/[entidad]/` para cada entidad del lote.
+3. Mueve archivos con `git mv`.
+4. Actualiza imports en los archivos movidos y en `routes/index.js`.
+5. Ejecuta tests y verifica que `docker compose up` funciona.
+6. Documenta en `docs/memory/2026-10-23.md`.
+
+[RESTRICCIONES]
+- No cambies lógica de negocio, solo estructura.
+- Si un import no se puede resolver, detente y documenta.
+- Un commit por lote.
+
+[FORMATO]
+1. Archivos movidos (tabla: origen → destino).
+2. Imports actualizados.
+3. Resultado de tests.
+4. Entrada de memoria.
 
 ---
 
-## 8. FASE 6 — Cierre y Memoria (Archiver)
+### 4.2. Prompt para TASK-B-15: JWT en Gateway
 
-### 8.1. Prompt
+Agente: security-fixer
 
-```
-[1. ROL]
+[ROL]
+Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-05, ARC-02).
+
+[CONTEXTO]
+Tarea: TASK-B-15 — Añadir JWT verification en API Gateway.
+Archivo: `api-gateway/src/server.js` (líneas ~86-140).
+
+[TAREA]
+1. Añade middleware de verificación JWT en el Gateway.
+2. Excluye rutas públicas: `/api/auth/login`, `/api/auth/register`, `/health`.
+3. Propaga claims (userId, roles) en headers `X-User-Id`, `X-User-Roles` a los servicios.
+4. Verifica que sin token, las rutas protegidas devuelven 401.
+5. Documenta en `docs/memory/2026-10-23.md`.
+
+[RESTRICCIONES]
+- No dupliques la lógica de Users; solo verifica la firma.
+- Usa `jsonwebtoken`.
+
+[FORMATO]
+1. Código del middleware.
+2. Verificación con/sin token.
+3. Entrada de memoria.
+
+--- 
+
+### 4.3. Prompt para TASK-B-16: CORS lista blanca
+
+Agente: security-fixer
+
+[ROL]
+Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-04).
+
+[CONTEXTO]
+Tarea: TASK-B-16 — CORS con lista blanca en Gateway.
+Archivo: `api-gateway/src/server.js` (líneas ~23-40).
+
+[TAREA]
+1. Reemplaza `origin: true` por lista blanca desde `CORS_ORIGIN` (env var).
+2. Si `CORS_ORIGIN` no está definido en producción, falla al arrancar.
+3. Activa CSP de Helmet en producción.
+4. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Código corregido.
+2. Verificación con/sin origen permitido.
+3. Entrada de memoria.
+
+---
+### 4.4. Prompt para TASK-B-17: RBAC en MP
+
+Agente: security-fixer
+
+[ROL]
+Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-06).
+
+[CONTEXTO]
+Tarea: TASK-B-17 — RBAC por operación en quejas, trabajos, asignaciones.
+Archivos: `backend-mp/src/routes/queja.js`, `trabajo.js`, `asignacion.js`.
+
+[TAREA]
+1. Aplica `tienePermiso` en cada ruta protegida:
+   - `quejas.crear`, `quejas.cerrar`, `quejas.asignar`
+   - `trabajos.crear`, `trabajos.cerrar`
+   - `asignaciones.crear`, `asignaciones.eliminar`
+2. Corrige `tienePermiso` en `middleware/permissions.js` (usa `forEach` sin retorno).
+3. Verifica que sin permiso, devuelve 403.
+4. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Código corregido en rutas y middleware.
+2. Tests de permisos.
+3. Entrada de memoria.
+
+---
+### 4.5. Prompt para TASK-B-18: SQL injection
+
+Agente: security-fixer
+
+[ROL]
+Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-07).
+
+[CONTEXTO]
+Tarea: TASK-B-18 — Parametrizar SQL del dashboard (Sequelize replacements).
+Archivo: `backend-mp/src/controllers/QuejaController.js` (líneas ~830-838).
+
+[TAREA]
+1. Reemplaza la interpolación de fechas en el string SQL por `replacements`.
+2. Verifica que `normalizeDateRange` se usa correctamente.
+3. Añade tests que validen que no hay inyección.
+4. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Código corregido.
+2. Tests.
+3. Entrada de memoria.
+
+---
+### 4.6. Prompt para TASK-B-19: Reordenar rutas dashboard
+
+Agente: refactor-fixer
+
+[ROL]
+Actúa como `refactor-fixer`. Sigue `AGENTS.md` sección 8 (BUS-02).
+
+[CONTEXTO]
+Tarea: TASK-B-19 — Reordenar rutas `/dashboard/*` antes de `/:id`.
+Archivo: `backend-mp/src/routes/queja.js` (líneas ~20, 45-53).
+
+[TAREA]
+1. Mueve las rutas `GET /dashboard/*` antes de `GET /:id`.
+2. Verifica que `GET /dashboard/resumen` funciona.
+3. Verifica que `GET /:id` sigue funcionando para IDs válidos.
+4. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Código reordenado.
+2. Verificación de ambas rutas.
+3. Entrada de memoria.
+
+---
+### 4.7. Prompt para TASK-B-20: Migraciones
+
+Agente: db-migration-specialist
+
+[ROL]
+Actúa como `db-migration-specialist`. Sigue `AGENTS.md` sección 8 (DAT-01) y la skill `sequelize-migrations`.
+
+[CONTEXTO]
+Tarea: TASK-B-20 — Migraciones versionadas + índices (Users, MP).
+Problema: No hay `migrations/`, se usa `sequelize.sync({ force: false })`, sin índices.
+
+[TAREA]
+1. Crea `migrations/` en `backend-users` y `backend-mp`.
+2. Genera migraciones para las tablas existentes (sin perder datos).
+3. Añade índices en: `estado`, FKs, `fecha`.
+4. Reemplaza `sequelize.sync({ force: false })` por `sequelize.sync({ alter: false })` + migraciones.
+5. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Archivos de migración.
+2. Índices añadidos.
+3. Entrada de memoria.
+
+---
+### 4.8. Prompt para TASK-B-21: Tests JS
+
+Agente: test-initializer
+
+[ROL]
+Actúa como `test-initializer`. Sigue `AGENTS.md` sección 8 (QA-01) y la skill `jest-supertest-setup`.
+
+[CONTEXTO]
+Tarea: TASK-B-21 — Sustituir `npm test` placeholder por Jest/Supertest.
+Problema: `backend-users/package.json:10` y `backend-mp/package.json:10` tienen `"test": "exit 1"`.
+
+[TAREA]
+1. Configura Jest + Supertest en `backend-users` y `backend-mp`.
+2. Crea tests básicos para los endpoints críticos (auth, quejas, trabajos).
+3. Verifica que `npm test` pasa.
+4. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Configuración de Jest.
+2. Tests creados.
+3. Resultado de `npm test`.
+4. Entrada de memoria.
+
+---
+### 4.9. Prompt para TASK-B-22: Saga MP → Materials
+
+Agente: integration-specialist
+
+[ROL]
+Actúa como `integration-specialist`. Sigue `AGENTS.md` sección 8 (ARC-03) y la skill `microservices-saga-pattern`.
+
+[CONTEXTO]
+Tarea: TASK-B-22 — Saga/compensación al cerrar queja (MP → Materials).
+Problema: Cerrar queja solo actualiza MP, no registra consumo en Materials.
+
+[TAREA]
+1. Diseña la saga: al cerrar queja, llamar a Materials para registrar consumo.
+2. Implementa compensación si Materials falla (revertir cierre o marcar pendiente).
+3. Añade timeout y retry con backoff.
+4. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Diagrama de la saga (Mermaid).
+2. Código implementado.
+3. Tests.
+4. Entrada de memoria.
+
+---
+## 5. Fase C — Documentación
+### 5.1. Prompt para TASK-C-01 a C-10: Traducción bilingüe
+
+Agente: docs-writer
+
+[ROL]
+Actúa como `docs-writer`. Sigue `AGENTS.md` sección 9 y la skill `report-generation`.
+
+[CONTEXTO]
+Tarea: [TASK-C-XX] — [Renombrar/traducir] `docs/[archivo].md`.
+Convención: archivos paralelos `.es.md` / `.ru.md`.
+
+[TAREA]
+1. Renombra `docs/[archivo].md` a `docs/[archivo].es.md`.
+2. Crea `docs/[archivo].ru.md` con la traducción fiel al ruso.
+3. Actualiza enlaces internos en otros documentos.
+4. Actualiza `docs/00_index.es.md` y `.ru.md`.
+5. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Archivos creados/renombrados.
+2. Verificación de enlaces.
+3. Entrada de memoria.
+
+---
+### 5.2. Prompt para TASK-C-11: Alinear ARCHITECTURE.md
+
+Agente: docs-writer
+
+[ROL]
+Actúa como `docs-writer`. Sigue `AGENTS.md` sección 8 (ARC-01) y la skill `sisgad5-architecture`.
+
+[CONTEXTO]
+Tarea: TASK-C-11 — Alinear `ARCHITECTURE.md` con código real.
+Problema: Docs dicen Gin, pero es gorilla/mux. Docs dicen Redis/Prometheus, pero no están en compose.
+
+[TAREA]
+1. Corrige `ARCHITECTURE.md`:
+   - Materials: gorilla/mux (no Gin).
+   - Redis: marcar como "planificado" o eliminar.
+   - Prometheus: marcar como "planificado" o eliminar.
+   - Prediction Service: añadir (ya está en SPEC.md).
+2. Verifica que los diagramas Mermaid reflejan la realidad.
+3. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Diff de `ARCHITECTURE.md`.
+2. Diagramas actualizados.
+3. Entrada de memoria.
+
+---
+### 5.3. Prompt para TASK-C-12: Actualizar AGENTS.md
+
+Agente: docs-writer
+
+[ROL]
+Actúa como `docs-writer`. Sigue `AGENTS.md` sección 8.
+
+[CONTEXTO]
+Tarea: TASK-C-12 — Actualizar `AGENTS.md` con hallazgos de auditoría.
+Problema: La sección 8 debe reflejar el estado actual de la deuda técnica.
+
+[TAREA]
+1. Revisa `docs/audit/AUDITORIA.md`.
+2. Actualiza la sección 8 de `AGENTS.md`:
+   - Marca hallazgos resueltos (✅).
+   - Añade nuevos hallazgos si los hay.
+   - Actualiza la tabla de "Prohibido mientras tanto".
+3. Si todos los hallazgos están resueltos, mueve la sección a `docs/audit/AUDITORIA.md` (histórico) y elimínala de `AGENTS.md`.
+4. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Diff de `AGENTS.md`.
+2. Estado de hallazgos.
+3. Entrada de memoria.
+
+---
+## 6. Fase D — Módulo Predictivo
+### 6.1. Prompt para TASK-D-01 a D-03: Setup
+
+Agente: ml-engineer
+
+[ROL]
+Actúa como `ml-engineer`. Sigue `AGENTS.md` sección 3.4 y la skill `ml-modeling`.
+
+[CONTEXTO]
+Tarea: [TASK-D-01 / D-02 / D-03] — [Crear estructura / Configurar FastAPI / Configurar bd_predictions].
+
+[TAREA]
+1. Crea `prediction-service/` con estructura:
+
+app/
+├── main.py
+├── config.py
+├── api/v1/
+├── core/features/
+├── core/models/
+├── core/training/
+├── core/evaluation/
+├── db/
+├── schemas/
+└── utils/
+text
+
+2. Configura `requirements.txt` o `pyproject.toml` con: fastapi, uvicorn, scikit-learn, xgboost, prophet, pandas, numpy, mlflow, sqlalchemy, pydantic.
+3. Configura `bd_predictions` en `docker-compose.yml`.
+4. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Estructura creada.
+2. Dependencias.
+3. Entrada de memoria.
+
+---
+### 6.2. Prompt para TASK-D-04 a D-07: Feature engineering
+
+Agente: ml-engineer
+
+[ROL]
+Actúa como `ml-engineer`. Sigue `AGENTS.md` sección 3.4.
+
+[CONTEXTO]
+Tarea: [TASK-D-04 / D-05 / D-06 / D-07] — Feature engineering ([quejas/materiales/trabajos]).
+Datos: sintéticos (anonimizados de datos reales).
+
+[TAREA]
+1. Crea `app/core/features/[entidad].py`.
+2. Define features:
+   - Quejas: prioridad, estado, técnico, ubicación, tipo.
+   - Materiales: categoría, costo, consumo histórico, estacionalidad.
+   - Trabajos: duración, técnico, tipo de falla.
+3. Documenta cada feature (nombre, tipo, fuente, transformación).
+4. Genera script de anonimización de datos reales.
+5. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Código de features.
+2. Documentación de features.
+3. Script de anonimización.
+4. Entrada de memoria.
+
+---
+### 6.3. Prompt para TASK-D-08 a D-12: Modelos
+
+Agente: ml-engineer
+
+[ROL]
+Actúa como `ml-engineer`. Sigue `AGENTS.md` sección 3.4.
+
+[CONTEXTO]
+Tarea: [TASK-D-08 / D-09 / D-10 / D-11 / D-12] — Modelo: [demanda materiales / tiempo resolución / anomalías / prioridad quejas / fallos infraestructura].
+Criterio: [MAE < 15% / MAE < 20% / Precision > 85% / Accuracy > 80% / Recall > 75%].
+
+[TAREA]
+1. Crea `app/core/training/train_[modelo].py`.
+2. Entrena modelo (Prophet/XGBoost/RandomForest según caso).
+3. Evalúa con métricas del criterio.
+4. Serializa modelo en `models/` (gitignored).
+5. Registra en MLflow (si disponible).
+6. Documenta métricas en `docs/memory/2026-10-23.md`.
+
+[RESTRICCIONES]
+- No uses datos reales sin anonimizar.
+- No escribas en `bd_materiales` (solo lectura).
+- Versiona el modelo con SemVer.
+
+[FORMATO]
+1. Código de entrenamiento.
+2. Métricas obtenidas.
+3. Entrada de memoria.
+
+---
+### 6.4. Prompt para TASK-D-09 a D-11: API + integración
+
+Agente: ml-engineer
+
+[ROL]
+Actúa como `ml-engineer`. Sigue `AGENTS.md` sección 3.4.
+
+[CONTEXTO]
+Tarea: [TASK-D-09 / D-10 / D-11] — [API REST / Integrar Gateway / Dashboard predicciones].
+
+[TAREA]
+1. Crea endpoints en `app/api/v1/predictions.py`:
+   - `GET /api/predictions/demanda-materiales`
+   - `GET /api/predictions/tiempo-resolucion/{queja_id}`
+   - `GET /api/predictions/anomalias-consumo`
+   - `GET /api/predictions/prioridad-queja/{queja_id}`
+   - `GET /api/predictions/fallos-infraestructura`
+2. Integra con Gateway (`api-gateway/src/routes/`).
+3. Crea dashboard en `frontend/src/pages/Predictions/`.
+4. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Código de endpoints.
+2. Integración con Gateway.
+3. Dashboard.
+4. Entrada de memoria.
+
+---
+### 6.5. Prompt para TASK-D-20 a D-21: Datos sintéticos
+
+Agente: ml-engineer
+
+[ROL]
+Actúa como `ml-engineer`. Sigue `AGENTS.md` sección 3.4.
+
+[CONTEXTO]
+Tarea: [TASK-D-20 / D-21] — [Protocolo de datos sintéticos / Validar modelos con datos sintéticos].
+
+[TAREA]
+1. Documenta el protocolo de anonimización en `docs/thesis/protocolo_datos_sinteticos.md`:
+   - Qué se anonimiza (nombres, direcciones, teléfonos).
+   - Cómo se genera (Faker, muestreo estadístico).
+   - Cómo se valida (distribución similar a real).
+2. Genera dataset sintético.
+3. Valida modelos con el dataset.
+4. Reporta métricas en `docs/thesis/06_modelado_predictivo.es.md` y `.ru.md`.
+5. Documenta en `docs/memory/2026-10-23.md`.
+
+[FORMATO]
+1. Protocolo documentado.
+2. Dataset generado (resumen).
+3. Métricas.
+4. Entrada de memoria.
+
+---
+## 7. Parte II — Inventario Funcional
+
+Para las tareas de la Parte II (Fases 0–13), usa la plantilla base (sección 2) con el agente recomendado en AGENTS.md sección 9:
+Fase	Agente
+0–2	backend-developer / consistency-fixer
+3 (Users)	backend-developer
+4 (MP)	backend-developer
+5 (Materials)	backend-developer (skill gorm-performance)
+6 (Gateway)	backend-developer
+7 (Frontend)	frontend-developer
+8 (Testing)	test-initializer
+9 (Deploy)	backend-developer
+10 (Analytics)	backend-developer
+11 (Predictivo)	ml-engineer
+12–13	docs-writer / backend-developer
+
+---
+## 8. Cierre de tarea (memoria)
+
+Ejecutar SIEMPRE al final de cada tarea.
+
+[ROL]
 Actúa como Technical Lead.
 
-[2. CONTEXTO]
-Hemos finalizado con éxito la implementación y verificación de la Tarea #[N]: [Nombre de la Tarea].
+[TAREA]
+Genera la entrada de memoria para la tarea [TASK-XXX-YY] completada.
 
-[3. TAREA EXACTA]
-Genera un resumen de memoria técnica siguiendo el formato:
+[FORMATO]
+### [Fecha] — [TASK-XXX-YY]: [Nombre]
 
-- **Qué se hizo:** Descripción breve de la tarea completada.
-- **Por qué se hizo de esa forma:** Justificación técnica.
-- **Dónde están los cambios:** Archivos modificados y rutas.
-- **Qué hemos aprendido:** Errores detectados, soluciones aplicadas, decisiones tomadas.
-- **Dependencias desbloqueadas:** Tareas que ahora se pueden ejecutar.
-
-[4. RESTRICCIONES]
-- Sé breve y directo.
-- Evita explicaciones genéricas.
-- Incluye IDs de tareas y rutas de archivos exactas.
-
-[5. FORMATO]
-Un bloque Markdown para añadir al archivo memory.md.
-```
-
----
-
-## 9. FASE 7 — Manual de Explotación
-
-### 9.1. Prompt
-
-```
-[1. ROL]
-Actúa como un Senior Technical Writer y Arquitecto de Producto con amplia experiencia en documentación técnica, UX y guías de explotación operativa de software.
-
-[2. CONTEXTO]
-Tenemos SISGAD5, una plataforma web destinada a operadores, probadores, editores y administradores de una empresa de telecomunicaciones. La pantalla principal muestra un dashboard con KPIs, gráficos en tiempo real y tablas de datos. Necesitamos un manual de explotación claro para que cualquier usuario entienda qué significa cada elemento de la pantalla, cómo interpretar la información y qué acciones tomar.
-
-[3. TAREA EXACTA]
-Redacta un "Manual de Explotación y Guía de Usuario" exhaustivo y didáctico para la vista [nombre de la vista, ej. Dashboard de Materiales].
-
-El manual debe incluir:
-
-1. **Resumen Ejecutivo y Propósito:** Qué es, para qué sirve y qué decisiones permite tomar.
-2. **Glosario de Conceptos Clave:** Definición clara de términos técnicos.
-3. **Desglose Métrica por Métrica (KPIs):** Significado, fuente del dato y rangos normales vs. alerta.
-4. **Explicación Detallada de Gráficos:** Eje X, Eje Y, qué representa cada línea/barra y cómo interpretar tendencias.
-5. **Guía de Tablas de Datos:** Explicación de columnas, filtros, ordenación y significado de estados/colores.
-6. **Flujo de Trabajo Operativo:** Qué acciones tomar según los resultados observados.
-
-[4. RESTRICCIONES]
-- Idioma: Español claro, profesional y libre de jerga innecesaria.
-- Usa analogías o ejemplos prácticos para explicar gráficos complejos.
-- Incluye cajas de texto/alertas (usando blockquote de Markdown `>`) para resaltar advertencias críticas.
-- Si una métrica requiere cálculo, indica la fórmula matemática explícita.
-- Asume que el lector no participó en el desarrollo del software.
-
-[5. FORMATO DE SALIDA]
-Devuélveme el contenido estructurado en Markdown limpio y modular, organizado con encabezados jerárquicos (H1, H2, H3) e índice interno, listo para guardarse como MANUAL_EXPLOTACION.md en el repositorio.
-```
-
----
-
-## 10. FASE 8 — Documentación Final y Defensa
-
-### 10.1. Prompt
-
-```
-[1. ROL]
-Actúa como un Technical Lead y Redactor Académico experto en documentación técnica y tesis de maestría.
-
-[2. CONTEXTO]
-Hemos finalizado el desarrollo de SISGAD5. Ahora necesitamos consolidar toda la documentación para la defensa de la tesis de maestría en "Ingeniería Industrial" en RTU MIREA.
-
-[3. TAREA EXACTA]
-Genera un documento consolidado que incluya:
-
-1. **Resumen Ejecutivo:** Qué se construyó, por qué y cuáles son los resultados.
-2. **Arquitectura Final:** Diagramas Mermaid actualizados.
-3. **Módulos Implementados:** Estado final de cada módulo (Users, MP, Materials, Gateway, Frontend).
-4. **Resultados de Testing:** Cobertura, tests pasados, métricas.
-5. **Despliegue:** Instrucciones de instalación y operación.
-6. **Lecciones Aprendidas:** Dificultades y soluciones.
-7. **Trabajo Futuro:** Roadmap de evolución.
-8. **Bibliografía:** Referencias según ГОСТ 7.0.5-2008.
-
-[4. RESTRICCIONES]
-- Sigue el formato de ГОСТ 19.201-78 y ГОСТ 19.402-78.
-- Incluye tablas de trazabilidad entre requisitos, tareas y código.
-- Sé conciso pero completo.
-- Usa diagramas Mermaid para arquitectura y flujos.
-
-[5. FORMATO]
-Devuélveme el contenido en Markdown listo para guardarse como `docs/thesis/FINAL_REPORT.md`.
-```
-
----
-
-## 11. FASE 9 — MLOps y Prediction Service
-
-### 11.1. Prompt
-
-```
-[1. ROL]
-Actúa como un Ingeniero de MLOps y Científico de Datos Senior especializado en despliegue de modelos predictivos en entornios de microservicios con Python, FastAPI, MLflow y Airflow.
-
-[2. CONTEXTO]
-Estamos construyendo el Prediction Service de SISGAD5, un microservicio Python (FastAPI + scikit-learn + XGBoost + Prophet) que expone endpoints REST para predicciones. Se comunica con los demás servicios (Users, MP, Materials) vía API REST en modo read-only. Utiliza:
-- MLflow para Model Registry
-- Apache Airflow para pipelines de entrenamiento/reentrenamiento
-- PostgreSQL (bd_predictions) como base de datos local
-- Docker + Docker Compose para despliegue
-
-[3. OBJETIVO]
-[Describe aquí qué funcionalidad se va a implementar]
-
-[4. INSTRUCCIONES]
-- Sigue las convenciones de código definidas en AGENT.md (sección 4.3)
-- Usa pytest + pytest-cov para testing (100% cobertura en endpoints)
-- Documenta con docstrings en formato Google
-- Mantén los modelos versionados en MLflow
-- Respeta el puerto 5005 para el servicio
-- Usa .env.local para secrets (NO en código)
-- Endpoints bajo /api/predictions/*
-
-[5. ENTREGABLES ESPERADOS]
-- Código Python en src/ (api/, models/, services/, utils/)
-- Tests en tests/unit/ y tests/integration/
-- Dockerfiles y configuración en docker/
-- Documentación en docs/api/
-
-Formato de respuesta:
-- Código completo de cada archivo modificado/creado
-- Comandos para ejecutar tests y validar el endpoint
-- Justificación técnica de decisiones de modelado
-```
-
----
-
-## 12. Flujo de Trabajo Completo
-
-### 12.1. Diagrama de Flujo
-
-```mermaid
-graph TD
-    A[Inicio] --> B[FASE 0: Generar AGENT.md]
-    B --> C[FASE 1: Generar SPEC.md]
-    C --> D[FASE 2: Generar ARCHITECTURE.md]
-    D --> E[FASE 3: Generar TASKLIST.md]
-    E --> F{¿Hay tareas pendientes?}
-    F -->|Sí| G[Seleccionar tarea del TASKLIST]
-    G --> H[FASE 4: Implementar tarea]
-    H --> I[FASE 5: Verificar tarea]
-    I --> J{¿Verificación exitosa?}
-    J -->|No| K[Corregir errores]
-    K --> H
-    J -->|Sí| L[FASE 6: Registrar en memory.md]
-    L --> M[Marcar tarea como completada]
-    M --> F
-    F -->|No| N[FASE 7: Generar Manual de Explotación]
-    N --> O[FASE 8: Documentación Final]
-    O --> Q[FASE 9: MLOps (Prediction Service)]
-    Q --> P[Fin]
-```
-
-### 12.2. Ejemplo de Ejecución Completa
-
-```
-1. FASE 4: Implementer → TASK-520-05 (Validación de stock real)
-   - Módulo: Materials Service
-   - Archivo: internal/services/asignacion_service.go
-   - Resultado: Función implementada
-
-2. FASE 5: Verifier → Verificar TASK-520-05
-   - Tests: Pasar
-   - Seguridad: OK
-   - ACID: OK
-   - Resultado: Aprobado
-
-3. FASE 6: Archiver → Registrar TASK-520-05
-   - Qué se hizo: Implementada validación de stock real
-   - Por qué: Completar stub para evitar asignaciones sin stock
-   - Dónde: internal/services/asignacion_service.go
-   - Aprendido: GORM permite SELECT FOR UPDATE para bloqueo
-
-4. Actualizar TASKLIST.md → TASK-520-05 [x]
-```
-
----
-
-## 13. Plantilla de memory.md
-
-```markdown
-# 🧠 memory.md — Memoria Persistente del Proyecto SISGAD5
-
-> **Propósito:** Registro acumulativo de todas las decisiones técnicas, cambios realizados y lecciones aprendidas durante el desarrollo.
-> **Última actualización:** [Fecha]
-> **Mantenido por:** Agentes de IA + Humano
-
----
-
-## 📅 Registro Cronológico
-
-### [Fecha] — TASK-XXX-YY: [Nombre de la Tarea]
-
-**Módulo:** [Módulo]
-**Servicio:** [Servicio]
-**Estado:** ✅ Completada / ⚠️ Parcial / ❌ Fallida
+**Tipo:** [Implementación / Refactorización / Bugfix / Decisión]
+**Estado:** ✅ Completada
 
 #### Qué se hizo
-- [Descripción breve del cambio]
+- [1-2 líneas]
 
 #### Por qué se hizo de esa forma
-- [Justificación técnica]
+- [Justificación]
 
 #### Dónde están los cambios
-- `ruta/al/archivo1.go`
-- `ruta/al/archivo2.js`
+- `ruta/archivo1`
+- `ruta/archivo2`
 
 #### Qué hemos aprendido
-- [Errores detectados]
-- [Soluciones aplicadas]
-- [Decisiones tomadas]
+- [Lección]
 
 #### Dependencias desbloqueadas
-- TASK-XXX-ZZ: [Nombre]
+- [Tareas]
 
 ---
 
-### [Fecha] — TASK-XXX-YY: [Nombre de la Tarea]
-...
+Añade también la línea al índice `memory.md`:
+
+| [Fecha] | [TASK-XXX-YY] | [Resumen] | [ver](docs/memory/[fecha].md#task-xxx-yy) |
 
 ---
+## 9. Verificación (QA)
 
-## 📊 Estadísticas Acumuladas
+Ejecutar después de tareas críticas (A, B, D).
 
-| Métrica | Valor |
+[ROL]
+Actúa como QA Engineer.
+
+[CONTEXTO]
+Tarea completada: [TASK-XXX-YY].
+
+[TAREA]
+Verifica:
+1. Criterio de aceptación cumplido.
+2. Tests existentes pasan.
+3. No se introdujeron hallazgos nuevos de auditoría (AGENTS.md sección 8).
+4. No se violaron reglas de oro.
+5. Código comentado en español.
+6. Conventional Commits usados.
+
+[FORMATO]
+| Check | Estado |
 |---|---|
-| Tareas completadas | [N] |
-| Archivos modificados | [N] |
-| Tests implementados | [N] |
-| Bugs corregidos | [N] |
-| Decisiones arquitectónicas | [N] |
+| Criterio de aceptación | ✅ / ❌ |
+| Tests pasan | ✅ / ❌ |
+| Sin hallazgos nuevos | ✅ / ❌ |
+| Reglas de oro | ✅ / ❌ |
+| Comentarios en español | ✅ / ❌ |
+| Conventional Commits | ✅ / ❌ |
+
+Si hay ❌, propón corrección.
 
 ---
+## 10. Plantillas de reporte
+### 10.1. Reporte de tarea completada
 
-## 🏛️ Decisiones Arquitectónicas Clave
+## 📌 Reporte — [TASK-XXX-YY]: [Nombre]
 
-| ID | Decisión | Justificación | Fecha |
-|---|---|---|---|
-| ADR-001 | Usar Go para Materials Service | Concurrencia nativa, ACID, rendimiento | [Fecha] |
-| ADR-002 | 3 BD separadas | Desacoplamiento, escalabilidad | [Fecha] |
-| ADR-003 | API Gateway centralizado | Seguridad, punto único de entrada | [Fecha] |
+**Módulo:** [Módulo]
+**Agente:** [agente]
+**Estado:** ✅ Completada
 
+### Cambios
+- [cambio 1]
+- [cambio 2]
+
+### Archivos modificados
+- `ruta/archivo1`
+- `ruta/archivo2`
+
+### Tests
+- [ ] Test unitario: [nombre]
+- [ ] Test integración: [nombre]
+
+### Evidencia
+[Capturas, logs, fragmentos]
+
+### Próximos pasos
+- [Siguiente tarea recomendada]
+
+---
+### 10.2. Reporte de bloqueo
+
+## 🚫 Bloqueo — [TASK-XXX-YY]: [Nombre]
+
+**Motivo:** [descripción]
+**Archivo:** [ruta]
+**Error:** [mensaje]
+
+### Alternativas propuestas
+1. [Alternativa 1]
+2. [Alternativa 2]
+
+### Decisión requerida
+[Qué necesita el humano para desbloquear]
+
+    Mantenido por: Ing. Botet S.Y.
+    Última actualización: 2026-10-23
+    Licencia: Uso académico — Tesis de Maestría RTU MIREA
