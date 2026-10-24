@@ -103,7 +103,7 @@
 | ✅      | 🔴       | 🏗️    | TASK-B-02 | Migrar Lote 1 (asignacion, cable, clave)                           | Imports actualizados, Zod validation passes |
 | ✅      | 🔴       | 🏗️    | TASK-B-03 | Migrar Lote 2 (clasificacion, clasificadorclave, clasifpizarra)    | Imports actualizados, route loading passes |
 | ✅      | 🔴       | 🏗️    | TASK-B-04 | Migrar Lote 3 (grup0w, linea, mando)                               | Imports actualizados, route loading passes |
-| ⏳      | 🟡       | 🏗️    | TASK-B-05 | Migrar Lote 4 (movimiento, pizarra, planta)                        | Tests pasan                       |
+| ✅      | 🔴       | 🏗️    | TASK-B-05 | Migrar Lote 4 (movimiento, pizarra, planta)                          | Imports actualizados, route loading passes |
 | ⏳      | 🟡       | 🏗️    | TASK-B-06 | Migrar Lote 5 (propietario, prueba)                                | Tests pasan                       |
 | ⏳      | 🔴       | 🏗️    | TASK-B-07 | Migrar Lote 6 (queja, recorrido)                                   | Tests pasan                       |
 | ⏳      | 🟡       | 🏗️    | TASK-B-08 | Migrar Lote 7 (resultadoprueba, senalizacion, sistema)             | Tests pasan                       |

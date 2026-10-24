@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const PlantaController = require("../controllers/PlantaController");
-const auth = require("../shared/middleware/auth");
-const { tienePermiso } = require("../shared/middleware/permissions");
+const PlantaController = require("./planta.controller");
+const auth = require("../../shared/middleware/auth");
+const { tienePermiso } = require("../../shared/middleware/permissions");
 
 router.use(auth);
 /**

@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const MovimientoController = require("../controllers/MovimientoController");
-const auth = require("../shared/middleware/auth");
-// const { tienePermiso } = require('../shared/middleware/permissions');
+const MovimientoController = require("./movimiento.controller");
+const auth = require("../../shared/middleware/auth");
+// const { tienePermiso } = require('../../shared/middleware/permissions');
 
 router.use(auth);
 /**

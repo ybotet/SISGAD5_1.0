@@ -1,13 +1,13 @@
-const { Movimiento } = require("../models");
+const { Movimiento } = require("../../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
-const { parseListParams } = require("../shared/utils/parseListParams");
+const apiErrors = require("../../shared/utils/apiErrors");
+const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
   createMovimientoSchema,
   updateMovimientoSchema,
   listMovimientoSchema,
-} = require("../validations/movimiento.schemas");
-const validate = require("../shared/middleware/validate");
+} = require("./movimiento.validation");
+const validate = require("../../shared/middleware/validate");
 
 const MovimientoController = {
   /**

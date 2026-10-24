@@ -1,13 +1,13 @@
-const { Planta } = require("../models");
+const { Planta } = require("../../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
-const { parseListParams } = require("../shared/utils/parseListParams");
+const apiErrors = require("../../shared/utils/apiErrors");
+const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
   createPlantaSchema,
   updatePlantaSchema,
   listPlantaSchema,
-} = require("../validations/planta.schemas");
-const validate = require("../shared/middleware/validate");
+} = require("./planta.validation");
+const validate = require("../../shared/middleware/validate");
 
 const PlantaController = {
   /**

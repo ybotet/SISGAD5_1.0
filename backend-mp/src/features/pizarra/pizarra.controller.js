@@ -1,13 +1,13 @@
-const { Pizarra } = require("../models");
+const { Pizarra } = require("../../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
-const { parseListParams } = require("../shared/utils/parseListParams");
+const apiErrors = require("../../shared/utils/apiErrors");
+const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
   createPizarraSchema,
   updatePizarraSchema,
   listPizarraSchema,
-} = require("../validations/pizarra.schemas");
-const validate = require("../shared/middleware/validate");
+} = require("./pizarra.validation");
+const validate = require("../../shared/middleware/validate");
 
 const PizarraController = {
   /**
