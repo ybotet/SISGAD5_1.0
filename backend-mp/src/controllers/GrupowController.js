@@ -1,13 +1,13 @@
 const { Grupow } = require("../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../utils/apiErrors");
+const apiErrors = require("../shared/utils/apiErrors");
 const {
   createGrupowSchema,
   updateGrupowSchema,
   listGrupowSchema,
 } = require("../validations/grupow.schemas");
-const validate = require("../middleware/validate");
-const { parseListParams } = require("../utils/parseListParams");
+const validate = require("../shared/middleware/validate");
+const { parseListParams } = require("../shared/utils/parseListParams");
 
 const GrupowController = {
   /**

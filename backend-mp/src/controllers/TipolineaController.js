@@ -1,13 +1,13 @@
 const { Tipolinea } = require("../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../utils/apiErrors");
-const { parseListParams } = require("../utils/parseListParams");
+const apiErrors = require("../shared/utils/apiErrors");
+const { parseListParams } = require("../shared/utils/parseListParams");
 const {
   createTipolineaSchema,
   updateTipolineaSchema,
   listTipolineaSchema,
 } = require("../validations/tipolinea.schemas");
-const validate = require("../middleware/validate");
+const validate = require("../shared/middleware/validate");
 
 // Helper para normalizar timestamps
 const normalizeTimestamps = (data) => {

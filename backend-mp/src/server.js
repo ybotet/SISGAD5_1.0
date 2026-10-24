@@ -2,19 +2,19 @@ const express = require("express");
 const helmet = require("helmet");
 const path = require("path");
 const dotenv = require("dotenv");
-const config = require("./config/env");
+const config = require("./shared/config/env");
 const swaggerUi = require("swagger-ui-express");
-const swaggerSpec = require("./config/swagger");
+const swaggerSpec = require("./shared/config/swagger");
 
 // Middlewares personalizados
-const requestLogger = require("./middleware/requestLogger");
-const securityMiddleware = require("./config/security");
-const mpLimiter = require("./config/rateLimit");
-const authMiddleware = require("./middleware/auth"); // ⚠️ Asegúrate de importar tu auth
+const requestLogger = require("./shared/middleware/requestLogger");
+const securityMiddleware = require("./shared/config/security");
+const mpLimiter = require("./shared/config/rateLimit");
+const authMiddleware = require("./shared/middleware/auth"); // ⚠️ Asegúrate de importar tu auth
 
 // Cargar variables
 dotenv.config({ path: path.join(__dirname, "../../.env.local") });
-const { testConnection } = require("./config/database");
+const { testConnection } = require("./shared/config/database");
 
 const app = express();
 
@@ -122,10 +122,10 @@ app.use((req, res) => {
 });
 
 // 1️⃣1️⃣ Manejo de errores global (SIEMPRE al final)
-const errorHandler = require("./middleware/errorHandler");
+const errorHandler = require("./shared/middleware/errorHandler");
 app.use(errorHandler);
 
-const logger = require("./config/logger");
+const logger = require("./shared/config/logger");
 const PORT = config.MP_PORT || 5002;
 app.listen(PORT, () => {
   logger.informacion(`🚀 Backend MP ejecutándose en puerto ${PORT}`);

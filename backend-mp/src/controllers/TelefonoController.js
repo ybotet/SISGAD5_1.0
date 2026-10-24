@@ -1,15 +1,15 @@
 const { Telefono } = require("../models");
 const { Op, Sequelize } = require("sequelize");
 const { Recorrido, Queja, Cable, Planta } = require("../models");
-const apiErrors = require("../utils/apiErrors");
-const { parseListParams } = require("../utils/parseListParams");
+const apiErrors = require("../shared/utils/apiErrors");
+const { parseListParams } = require("../shared/utils/parseListParams");
 const {
   createTelefonoSchema,
   updateTelefonoSchema,
   listTelefonoSchema,
 } = require("../validations/telefono.schemas");
-const validate = require("../middleware/validate");
-const { normalizeDateRange } = require("../utils/dateUtils");
+const validate = require("../shared/middleware/validate");
+const { normalizeDateRange } = require("../shared/utils/dateUtils");
 
 const TelefonoController = {
   /**

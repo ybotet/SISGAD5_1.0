@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { User, Rol, Permiso } = require("../models/index");
-const apiErrors = require("../utils/apiErrors");
+const apiErrors = require("../shared/utils/apiErrors");
 
 // Validación de correo: vacío, formato (@ y dominio), longitud, caracteres permitidos
 function validarEmail(email) {

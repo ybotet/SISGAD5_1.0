@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const SistemaController = require("../controllers/SistemaController");
-const auth = require("../middleware/auth");
-const { tienePermiso } = require("../middleware/permissions");
+const auth = require("../shared/middleware/auth");
+const { tienePermiso } = require("../shared/middleware/permissions");
 router.use(auth);
 /**
  * @route   GET /api/sistema
