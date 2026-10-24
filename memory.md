@@ -24,6 +24,7 @@
 | 2026-10-24 | TASK-B-03 | Migrar Lote 2 (clasificacion, clasificadorclave, clasifpizarra) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-03-migrar-lote-2-clasificacion-clasificadorclave-clasifpizarra) |
 | 2026-10-24 | TASK-B-04 | Migrar Lote 3 (grupow, linea, mando) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-04-migrar-lote-3-grupow-linea-mando) |
 | 2026-10-24 | TASK-B-05 | Migrar Lote 4 (movimiento, pizarra, planta) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-05-migrar-lote-4-movimiento-pizarra-planta) |
+| 2026-10-24 | TASK-B-06 | Migrar Lote 5 (propietario, prueba) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-06-migrar-lote-5-propietario-prueba) |
 
 ---
 

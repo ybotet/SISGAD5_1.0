@@ -1,12 +1,12 @@
-const { Propietario } = require("../models");
+const { Propietario } = require("../../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
+const apiErrors = require("../../shared/utils/apiErrors");
 const {
   createPropietarioSchema,
   updatePropietarioSchema,
   listPropietarioSchema,
-} = require("../validations/propietario.schemas");
-const validate = require("../shared/middleware/validate");
+} = require("./propietario.validation");
+const validate = require("../../shared/middleware/validate");
 
 const PropietarioController = {
   /**
