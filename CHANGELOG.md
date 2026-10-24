@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Eliminado fallback `JWT_SECRET || "secreto"` en `backend-mp`; validación de arranque en `backend-users` y `backend-mp`
 - **TASK-A-10:** `docker-compose.prod.yml` — cerrados puertos internos (5001, 5002, 5003, 5432) en producción
 - Añadido `backend-materiales-go` y `frontend` services a `docker-compose.prod.yml` con exposición mínima de puertos (solo 5000 localhost + 5004)
+- **TASK-A-11:** Reemplazado `GF_SECURITY_ADMIN_PASSWORD=admin` por `${GRAFANA_ADMIN_PASSWORD}` en `docker-compose.yml`; añadida variable a `.env.example`
 - Archivos `.env.docker` y `.env.production` removidos de git
 - Añadida excepción `!.env.example` en `.gitignore`
 

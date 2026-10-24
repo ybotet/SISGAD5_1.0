@@ -17,6 +17,7 @@
 | 2026-10-23 | TASK-A-08 | Eliminar fallback `JWT_SECRET \|\| "secreto"` en Users y MP | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-08-eliminar-fallback-jwt_secret--secreto) |
 | 2026-10-23 | TASK-A-09 | Añadir JWT middleware a Materials Service (Go) | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-09-a%C3%B1adir-jwt-middleware-a-materials-service-go) |
 | 2026-10-23 | TASK-A-10 | Cerrar puertos internos (5001, 5002, 5003, 5432) en producción | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-10-cerrar-puertos-internos-en-producci%C3%B3n-docker-composeprodyml) |
+| 2026-10-24 | TASK-A-11 | Cambiar credenciales Grafana (admin/admin) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-a-11-cambiar-credenciales-grafana-adminadmin) |
 
 ---
 
