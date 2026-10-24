@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **TASK-A-10:** `docker-compose.prod.yml` — cerrados puertos internos (5001, 5002, 5003, 5432) en producción
 - Añadido `backend-materiales-go` y `frontend` services a `docker-compose.prod.yml` con exposición mínima de puertos (solo 5000 localhost + 5004)
 - **TASK-A-11:** Reemplazado `GF_SECURITY_ADMIN_PASSWORD=admin` por `${GRAFANA_ADMIN_PASSWORD}` en `docker-compose.yml`; añadida variable a `.env.example`
+- **TASK-A-12:** Corregido `DB_NAME=${MP_DB_NAME}` → `MP_DB_NAME=${MP_DB_NAME}` en `docker-compose.yml`; el Zod schema de `backend-mp` consumía `MP_DB_NAME`, no `DB_NAME`, lo que provocaba abort en arranque
 - Archivos `.env.docker` y `.env.production` removidos de git
 - Añadida excepción `!.env.example` en `.gitignore`
 

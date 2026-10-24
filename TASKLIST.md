@@ -84,7 +84,7 @@
 | ✅      | 🔴       | 🏗️    | **TASK-A-09** | **Añadir JWT middleware a Materials Service (Go)**              | **Auditoría SEC-02**    | Endpoints protegidos con JWT                  |
 | ✅      | 🔴       | 🔨      | **TASK-A-10** | **Cerrar puertos internos (5001, 5002, 5003, 5432) en prod**    | **Auditoría SEC-02/05** | Compose prod sin puertos publicados           |
 | ✅      | 🔴       | 🔨      | **TASK-A-11** | **Cambiar credenciales Grafana (admin/admin)**                  | **Auditoría SEC-03**    | Credenciales seguras en `.env`                |
-| ⏳      | 🟠       | 🔨      | **TASK-A-12** | **Corregir `MP_DB_NAME` en docker-compose**                     | **Auditoría ARC-04**    | MP arranca sin abortar                        |
+| ✅      | 🟠       | 🔨      | **TASK-A-12** | **Corregir `MP_DB_NAME` en docker-compose**                     | **Auditoría ARC-04**    | MP arranca sin abortar                        |
 
 **Total Fase A:** 12 tareas
 
@@ -567,7 +567,7 @@
 | ARC-01 | 🟠 Alto    | Docs ≠ código (Gin vs mux)                     | TASK-C-11                    | ⏳      |
 | ARC-02 | 🟠 Alto    | MP llama a Users en cada request               | TASK-B-15 (claims en JWT)    | ⏳      |
 | ARC-03 | 🟠 Alto    | Cerrar queja no orquesta materiales            | TASK-B-22                    | ⏳      |
-| ARC-04 | 🟠 Alto    | `MP_DB_NAME` mal inyectado                     | TASK-A-12                    | ⏳      |
+| ARC-04 | 🟠 Alto    | `MP_DB_NAME` mal inyectado                     | TASK-A-12 (✅)                 | ✅      |
 | ARC-05 | 🟡 Medio   | Health checks no prueban BD                    | (Fase B)                     | ⏳      |
 | ARC-06 | 🟡 Medio   | `X-Request-Id` no se propaga                   | (Fase B)                     | ⏳      |
 | ARC-07 | 🟡 Medio   | Gateway sin `MATERIALES_SERVICE_URL`           | (Fase B)                     | ⏳      |

@@ -67,7 +67,7 @@ services:
       - PORT=5002
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_NAME=${MP_DB_NAME}
+      - MP_DB_NAME=${MP_DB_NAME}
       - DB_USER=postgres
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
