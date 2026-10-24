@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const ClasifpizarraController = require("../controllers/ClasifpizarraController");
-const auth = require("../shared/middleware/auth");
-const { tienePermiso } = require("../shared/middleware/permissions");
+const ClasifpizarraController = require("./clasifpizarra.controller");
+const auth = require("../../shared/middleware/auth");
+const { tienePermiso } = require("../../shared/middleware/permissions");
 
 router.use(auth);
 /**

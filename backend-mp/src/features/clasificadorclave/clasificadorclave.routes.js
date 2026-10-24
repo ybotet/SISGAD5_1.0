@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const ClasificadorclaveController = require("../controllers/ClasificadorclaveController");
-const auth = require("../shared/middleware/auth");
-const { tienePermiso } = require("../shared/middleware/permissions");
+const ClasificadorclaveController = require("./clasificadorclave.controller");
+const auth = require("../../shared/middleware/auth");
+const { tienePermiso } = require("../../shared/middleware/permissions");
 
 router.use(auth);
 /**

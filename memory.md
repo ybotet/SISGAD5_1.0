@@ -20,7 +20,8 @@
 | 2026-10-24 | TASK-A-11 | Cambiar credenciales Grafana (admin/admin) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-a-11-cambiar-credenciales-grafana-adminadmin) |
 | 2026-10-24 | TASK-A-12 | Corregir `MP_DB_NAME` en docker-compose | [ver](docs/memory/2026-10-23.md#2026-10-24--task-a-12-corregir-mpdbname-en-docker-composeyaml) |
 | 2026-10-24 | TASK-B-01 | Migrar backend-mp a feature-based (Lote 0: shared/) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-01-migrar-backend-mp-a-feature-based-lote-0-shared) |
-| 2026-10-24 | TASK-B-02 | Migrar Lote 1 (asignacion, cable, clave) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-02-migrar-lote-1-asignacion-cable-clave) |
+| 2026-10-24 | TASK-B-02 | Migrar backend-mp a feature-based (Lote 1: asignacion, cable, clave) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-02-migrar-lote-1-asignacion-cable-clave) |
+| 2026-10-24 | TASK-B-03 | Migrar Lote 2 (clasificacion, clasificadorclave, clasifpizarra) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-03-migrar-lote-2-clasificacion-clasificadorclave-clasifpizarra) |
 
 ---
 

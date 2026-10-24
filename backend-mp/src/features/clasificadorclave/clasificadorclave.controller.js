@@ -1,12 +1,12 @@
-const { Clasificadorclave } = require("../models");
+const { Clasificadorclave } = require("../../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
+const apiErrors = require("../../shared/utils/apiErrors");
 const {
   createClasificadorclaveSchema,
   updateClasificadorclaveSchema,
   listClasificadorclaveSchema,
-} = require("../validations/clasificadorclave.schemas");
-const validate = require("../shared/middleware/validate");
+} = require("./clasificadorclave.validation");
+const validate = require("../../shared/middleware/validate");
 
 const ClasificadorclaveController = {
   /**

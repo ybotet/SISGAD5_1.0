@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const ClasificacionController = require("../controllers/ClasificacionController");
-const auth = require("../shared/middleware/auth");
-const { tienePermiso } = require("../shared/middleware/permissions");
+const ClasificacionController = require("./clasificacion.controller");
+const auth = require("../../shared/middleware/auth");
+const { tienePermiso } = require("../../shared/middleware/permissions");
 
 router.use(auth);
 /**

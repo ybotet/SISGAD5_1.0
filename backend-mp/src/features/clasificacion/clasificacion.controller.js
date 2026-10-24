@@ -1,13 +1,13 @@
-const { Clasificacion } = require("../models");
+const { Clasificacion } = require("../../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
-const { parseListParams } = require("../shared/utils/parseListParams");
+const apiErrors = require("../../shared/utils/apiErrors");
+const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
   createClasificacionSchema,
   updateClasificacionSchema,
   listClasificacionSchema,
-} = require("../validations/clasificacion.schemas");
-const validate = require("../shared/middleware/validate");
+} = require("./clasificacion.validation");
+const validate = require("../../shared/middleware/validate");
 
 const ClasificacionController = {
   /**
