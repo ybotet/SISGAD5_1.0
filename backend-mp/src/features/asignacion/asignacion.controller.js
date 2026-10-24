@@ -1,16 +1,16 @@
-const apiError = require("../shared/utils/apiErrors");
-const { Asignacion, AsignacionTrabajadores, Queja } = require("../models");
+const apiError = require("../../shared/utils/apiErrors");
+const { Asignacion, AsignacionTrabajadores, Queja } = require("../../models");
 const { Op } = require("sequelize");
-const { parseListParams } = require("../shared/utils/parseListParams");
+const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
   createAsignacionSchema,
   updateAsignacionSchema,
   listAsignacionSchema,
-} = require("../validations/asignacion.schemas");
-const validate = require("../shared/middleware/validate");
-const { create } = require("./TrabajoTrabajadoresController");
-const { get } = require("../routes/asignacion");
-const { normalizeToDbDateTime } = require("../shared/utils/dateUtils");
+} = require("./asignacion.validation");
+const validate = require("../../shared/middleware/validate");
+const { create } = require("../../controllers/TrabajoTrabajadoresController");
+const { get } = require("./asignacion.routes");
+const { normalizeToDbDateTime } = require("../../shared/utils/dateUtils");
 
 const AsignacionController = {
   /**

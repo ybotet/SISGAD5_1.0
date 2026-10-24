@@ -10,13 +10,13 @@ const { sequelize, setupPostgresTimezone } = require("../shared/config/database"
   }
 })();
 
-const Asignacion = require("./Asignacion")(sequelize);
-const AsignacionTrabajadores = require("./AsignacionTrabajadores")(sequelize);
-const Cable = require("./Cable")(sequelize);
+const Asignacion = require("../features/asignacion/asignacion.model")(sequelize);
+const AsignacionTrabajadores = require("../features/asignacion/asignacion_trabajadores.model")(sequelize);
+const Cable = require("../features/cable/cable.model")(sequelize);
 const Clasificacion = require("./Clasificacion")(sequelize);
 const Clasificadorclave = require("./Clasificadorclave")(sequelize);
 const Clasifpizarra = require("./Clasifpizarra")(sequelize);
-const Clave = require("./Clave")(sequelize);
+const Clave = require("../features/clave/clave.model")(sequelize);
 const Grupow = require("./Grupow")(sequelize);
 const Linea = require("./Linea")(sequelize);
 const Mando = require("./Mando")(sequelize);

@@ -100,7 +100,7 @@
 | Estado | Prioridad | Esfuerzo | ID        | Descripción                                                        | Criterio de Aceptación            |
 | ------ | --------- | -------- | --------- | ------------------------------------------------------------------ | --------------------------------- |
 | ✅      | 🔴       | 🏗️    | TASK-B-01 | Crear `src/shared/` y mover middleware, utils, config              | Imports actualizados, Zod validation passes |
-| ⏳      | 🔴       | 🏗️    | TASK-B-02 | Migrar Lote 1 (asignacion, cable, clave)                           | Tests pasan, Docker funcional     |
+| ✅      | 🔴       | 🏗️    | TASK-B-02 | Migrar Lote 1 (asignacion, cable, clave)                           | Imports actualizados, Zod validation passes |
 | ⏳      | 🔴       | 🏗️    | TASK-B-03 | Migrar Lote 2 (clasificacion, clasificadorclave, clasifpizarra)    | Tests pasan                       |
 | ⏳      | 🔴       | 🏗️    | TASK-B-04 | Migrar Lote 3 (grup0w, linea, mando)                               | Tests pasan                       |
 | ⏳      | 🟡       | 🏗️    | TASK-B-05 | Migrar Lote 4 (movimiento, pizarra, planta)                        | Tests pasan                       |
