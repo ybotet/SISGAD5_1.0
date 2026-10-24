@@ -9,6 +9,10 @@ const dotenv = require("dotenv");
 // require("dotenv").config();
 dotenv.config({ path: path.join(__dirname, "../../.env.local") });
 
+// 🔒 Validar JWT_SECRET al arranque (SEC-01: fail if missing or < 32 chars)
+const { requireJwtSecret } = require("./config/jwt");
+requireJwtSecret();
+
 const { testConnection } = require("./config/database");
 
 const app = express();

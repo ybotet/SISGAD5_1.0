@@ -1,5 +1,5 @@
 ---
-name: microservices-audit
+name: sisgad-microservices-audit
 description: Áreas críticas a auditar en sistemas de microservicios. Aplica cuando el proyecto tenga múltiples servicios comunicándose.
 ---
 
