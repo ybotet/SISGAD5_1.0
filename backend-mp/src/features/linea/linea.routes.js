@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const LineaController = require("../controllers/LineaController");
-const auth = require("../shared/middleware/auth");
-// const { tienePermiso } = require('../shared/middleware/permissions');
+const LineaController = require("./linea.controller");
+const auth = require("../../shared/middleware/auth");
+// const { tienePermiso } = require('../../shared/middleware/permissions');
 
 router.use(auth);
 /**

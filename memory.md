@@ -22,6 +22,7 @@
 | 2026-10-24 | TASK-B-01 | Migrar backend-mp a feature-based (Lote 0: shared/) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-01-migrar-backend-mp-a-feature-based-lote-0-shared) |
 | 2026-10-24 | TASK-B-02 | Migrar backend-mp a feature-based (Lote 1: asignacion, cable, clave) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-02-migrar-lote-1-asignacion-cable-clave) |
 | 2026-10-24 | TASK-B-03 | Migrar Lote 2 (clasificacion, clasificadorclave, clasifpizarra) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-03-migrar-lote-2-clasificacion-clasificadorclave-clasifpizarra) |
+| 2026-10-24 | TASK-B-04 | Migrar Lote 3 (grupow, linea, mando) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-04-migrar-lote-3-grupow-linea-mando) |
 
 ---
 

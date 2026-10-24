@@ -8,9 +8,9 @@ router.use("/clasificacion", require("../features/clasificacion/clasificacion.ro
 router.use("/clasificadorclave", require("../features/clasificadorclave/clasificadorclave.routes"));
 router.use("/clasifpizarra", require("../features/clasifpizarra/clasifpizarra.routes"));
 router.use("/clave", require("../features/clave/clave.routes"));
-router.use("/grupow", require("./grupow"));
-router.use("/linea", require("./linea"));
-router.use("/mando", require("./mando"));
+router.use("/grupow", require("../features/grupow/grupow.routes"));
+router.use("/linea", require("../features/linea/linea.routes"));
+router.use("/mando", require("../features/mando/mando.routes"));
 router.use("/movimiento", require("./movimiento"));
 router.use("/pizarra", require("./pizarra"));
 router.use("/planta", require("./planta"));

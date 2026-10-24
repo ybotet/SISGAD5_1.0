@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const GrupowController = require('../controllers/GrupowController');
-const auth = require('../shared/middleware/auth');
-const { tienePermiso } = require('../shared/middleware/permissions');
+const GrupowController = require('./grupow.controller');
+const auth = require('../../shared/middleware/auth');
+const { tienePermiso } = require('../../shared/middleware/permissions');
 
 // Todas las rutas requieren autenticación
 router.use(auth);
