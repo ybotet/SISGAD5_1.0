@@ -1,6 +1,6 @@
 const { TrabajoTrabajadores } = require("../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../utils/apiErrors");
+const apiErrors = require("../shared/utils/apiErrors");
 
 const TrabajoTrabajadoresController = {
   /**

@@ -1,13 +1,13 @@
 const { Mando } = require("../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../utils/apiErrors");
-const { parseListParams } = require("../utils/parseListParams");
+const apiErrors = require("../shared/utils/apiErrors");
+const { parseListParams } = require("../shared/utils/parseListParams");
 const {
   createMandoSchema,
   updateMandoSchema,
   listMandoSchema,
 } = require("../validations/mando.schemas");
-const validate = require("../middleware/validate");
+const validate = require("../shared/middleware/validate");
 
 const MandoController = {
   /**

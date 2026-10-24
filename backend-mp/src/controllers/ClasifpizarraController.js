@@ -1,13 +1,13 @@
 // ClasifpizarraController.js
 const { Clasifpizarra } = require("../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../utils/apiErrors");
+const apiErrors = require("../shared/utils/apiErrors");
 const {
   createClasifpizarraSchema,
   updateClasifpizarraSchema,
   listClasifpizarraSchema,
 } = require("../validations/clasifpizarra.schemas");
-const validate = require("../middleware/validate");
+const validate = require("../shared/middleware/validate");
 
 // ✅ Debug: Verificar que el modelo existe
 console.log("🔍 Modelo Clasifpizarra cargado:", !!Clasifpizarra);

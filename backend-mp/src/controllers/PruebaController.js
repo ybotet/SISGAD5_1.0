@@ -1,14 +1,14 @@
 const { Prueba, Queja } = require("../models");
 const { Op } = require("sequelize");
 const { addFlowEntry, removeFlowEntry } = require("../utils/quejaFlow");
-const apiErrors = require("../utils/apiErrors");
+const apiErrors = require("../shared/utils/apiErrors");
 const {
   createPruebaSchema,
   updatePruebaSchema,
   listPruebaSchema,
 } = require("../validations/prueba.schemas");
-const validate = require("../middleware/validate");
-const { normalizeToDbDateTime } = require("../utils/dateUtils");
+const validate = require("../shared/middleware/validate");
+const { normalizeToDbDateTime } = require("../shared/utils/dateUtils");
 
 const PruebaController = {
   /**

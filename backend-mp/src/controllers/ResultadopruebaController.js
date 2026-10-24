@@ -1,13 +1,13 @@
 const { Resultadoprueba } = require("../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../utils/apiErrors");
-const { parseListParams } = require("../utils/parseListParams"); // ← IMPORTAR
+const apiErrors = require("../shared/utils/apiErrors");
+const { parseListParams } = require("../shared/utils/parseListParams"); // ← IMPORTAR
 const {
   createResultadopruebaSchema,
   updateResultadopruebaSchema,
   listResultadopruebaSchema,
 } = require("../validations/resultadoprueba.schemas");
-const validate = require("../middleware/validate");
+const validate = require("../shared/middleware/validate");
 
 const ResultadopruebaController = {
   /**

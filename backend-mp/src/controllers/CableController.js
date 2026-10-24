@@ -1,13 +1,13 @@
-const apiErrors = require("../utils/apiErrors");
+const apiErrors = require("../shared/utils/apiErrors");
 const { Cable } = require("../models");
 const { Op } = require("sequelize");
-const { parseListParams } = require("../utils/parseListParams");
+const { parseListParams } = require("../shared/utils/parseListParams");
 const {
   createCableSchema,
   updateCableSchema,
   listCableSchema,
 } = require("../validations/cable.schemas");
-const validate = require("../middleware/validate");
+const validate = require("../shared/middleware/validate");
 
 const CableController = {
   /**

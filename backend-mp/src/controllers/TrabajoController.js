@@ -1,15 +1,15 @@
 const { Trabajo, TrabajoTrabajadores, Queja, Trabajador, Clave } = require("../models");
 const { addFlowEntry, removeFlowEntry } = require("../utils/quejaFlow");
 const { Op } = require("sequelize");
-const { parseListParams } = require("../utils/parseListParams");
-const apiError = require("../utils/apiErrors");
+const { parseListParams } = require("../shared/utils/parseListParams");
+const apiError = require("../shared/utils/apiErrors");
 const {
   createTrabajoSchema,
   updateTrabajoSchema,
   listTrabajoSchema,
 } = require("../validations/trabajo.schemas");
-const validate = require("../middleware/validate");
-const { normalizeToDbDateTime } = require("../utils/dateUtils");
+const validate = require("../shared/middleware/validate");
+const { normalizeToDbDateTime } = require("../shared/utils/dateUtils");
 
 const TrabajoController = {
   /**

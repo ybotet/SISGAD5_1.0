@@ -16,13 +16,13 @@ const {
   listQuejaSchema,
   cerrarQuejaSchema,
 } = require("../validations/queja.schemas");
-const validate = require("../middleware/validate");
-const apiErrors = require("../utils/apiErrors");
+const validate = require("../shared/middleware/validate");
+const apiErrors = require("../shared/utils/apiErrors");
 const {
   normalizeToDbDateTime,
   normalizeDateRange,
   getCurrentDateTime,
-} = require("../utils/dateUtils");
+} = require("../shared/utils/dateUtils");
 
 // Función auxiliar para normalizar fechas de quejas (texto a timestamp)
 const normalizeQuejaDate = (dateStr) => {

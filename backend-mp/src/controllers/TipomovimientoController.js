@@ -1,13 +1,13 @@
 const { Tipomovimiento } = require("../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../utils/apiErrors");
-const { parseListParams } = require("../utils/parseListParams");
+const apiErrors = require("../shared/utils/apiErrors");
+const { parseListParams } = require("../shared/utils/parseListParams");
 const {
   createTipomovimientoSchema,
   updateTipomovimientoSchema,
   listTipomovimientoSchema,
 } = require("../validations/tipomovimiento.schemas");
-const validate = require("../middleware/validate");
+const validate = require("../shared/middleware/validate");
 
 // Helper para normalizar timestamps
 const normalizeTimestamps = (data) => {

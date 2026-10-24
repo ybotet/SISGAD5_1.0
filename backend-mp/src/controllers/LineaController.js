@@ -1,15 +1,15 @@
 const { Linea } = require("../models");
 const { Op } = require("sequelize");
 const { Recorrido, Queja } = require("../models");
-const apiErrors = require("../utils/apiErrors");
-const { parseListParams } = require("../utils/parseListParams");
+const apiErrors = require("../shared/utils/apiErrors");
+const { parseListParams } = require("../shared/utils/parseListParams");
 const {
   createLineaSchema,
   updateLineaSchema,
   listLineaSchema,
 } = require("../validations/linea.schemas");
-const validate = require("../middleware/validate");
-const { normalizeDateRange } = require("../utils/dateUtils");
+const validate = require("../shared/middleware/validate");
+const { normalizeDateRange } = require("../shared/utils/dateUtils");
 
 // Helper para normalizar timestamps en respuesta
 const normalizeTimestamps = (data) => {

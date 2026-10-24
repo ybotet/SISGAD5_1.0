@@ -2,7 +2,7 @@ const { Sequelize, DataTypes } = require("sequelize");
 const path = require("path");
 const dotenv = require("dotenv");
 
-dotenv.config({ path: path.join(__dirname, "../../../.env.local") });
+dotenv.config({ path: path.join(__dirname, "../../../../.env.local") });
 
 // Configurar zona horaria global
 process.env.TZ = process.env.TZ || "America/Santiago";

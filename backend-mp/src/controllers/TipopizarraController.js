@@ -1,13 +1,13 @@
 const { Tipopizarra } = require("../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../utils/apiErrors");
+const apiErrors = require("../shared/utils/apiErrors");
 const {
   createTipopizarraSchema,
   updateTipopizarraSchema,
   listTipopizarraSchema,
 } = require("../validations/tipopizarra.schemas");
-const validate = require("../middleware/validate");
-const { parseListParams } = require("../utils/parseListParams");
+const validate = require("../shared/middleware/validate");
+const { parseListParams } = require("../shared/utils/parseListParams");
 
 const TipopizarraController = {
   /**

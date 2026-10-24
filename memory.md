@@ -19,6 +19,7 @@
 | 2026-10-23 | TASK-A-10 | Cerrar puertos internos (5001, 5002, 5003, 5432) en producción | [ver](docs/memory/2026-10-23.md#2026-10-23--task-a-10-cerrar-puertos-internos-en-producci%C3%B3n-docker-composeprodyml) |
 | 2026-10-24 | TASK-A-11 | Cambiar credenciales Grafana (admin/admin) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-a-11-cambiar-credenciales-grafana-adminadmin) |
 | 2026-10-24 | TASK-A-12 | Corregir `MP_DB_NAME` en docker-compose | [ver](docs/memory/2026-10-23.md#2026-10-24--task-a-12-corregir-mpdbname-en-docker-composeyaml) |
+| 2026-10-24 | TASK-B-01 | Migrar backend-mp a feature-based (Lote 0: shared/) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-01-migrar-backend-mp-a-feature-based-lote-0-shared) |
 
 ---
 

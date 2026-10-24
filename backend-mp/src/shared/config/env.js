@@ -3,7 +3,7 @@ const { z } = require("zod");
 const path = require("path");
 
 // 🔹 Cargar variables desde la raíz (ya lo hace dotenv en server.js, pero por seguridad)
-require("dotenv").config({ path: path.join(__dirname, "../../../.env.local") });
+require("dotenv").config({ path: path.join(__dirname, "../../../../.env.local") });
 
 // 🔹 Schema con SOLO las variables que necesita este microservicio
 const envSchema = z.object({

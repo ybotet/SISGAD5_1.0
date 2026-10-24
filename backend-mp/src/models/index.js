@@ -1,5 +1,5 @@
 const { Sequelize, DataTypes } = require("sequelize");
-const { sequelize, setupPostgresTimezone } = require("../config/database");
+const { sequelize, setupPostgresTimezone } = require("../shared/config/database");
 
 // Configurar zona horaria antes de cualquier operación
 (async () => {
