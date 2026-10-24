@@ -1,12 +1,12 @@
-const { Recorrido } = require("../models");
+const { Recorrido } = require("../../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
+const apiErrors = require("../../shared/utils/apiErrors");
 const {
   createRecorridoSchema,
   updateRecorridoSchema,
   listRecorridoSchema,
-} = require("../validations/recorrido.schemas");
-const validate = require("../shared/middleware/validate");
+} = require("./recorrido.validation");
+const validate = require("../../shared/middleware/validate");
 
 const RecorridoController = {
   /**

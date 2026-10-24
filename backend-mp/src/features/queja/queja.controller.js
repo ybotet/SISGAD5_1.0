@@ -8,21 +8,21 @@ const {
   Trabajador,
   Cable,
   Clave,
-} = require("../models");
+} = require("../../models");
 const { Op, Sequelize } = require("sequelize");
 const {
   createQuejaSchema,
   updateQuejaSchema,
   listQuejaSchema,
   cerrarQuejaSchema,
-} = require("../validations/queja.schemas");
-const validate = require("../shared/middleware/validate");
-const apiErrors = require("../shared/utils/apiErrors");
+} = require("./queja.validation");
+const validate = require("../../shared/middleware/validate");
+const apiErrors = require("../../shared/utils/apiErrors");
 const {
   normalizeToDbDateTime,
   normalizeDateRange,
   getCurrentDateTime,
-} = require("../shared/utils/dateUtils");
+} = require("../../shared/utils/dateUtils");
 
 // Función auxiliar para normalizar fechas de quejas (texto a timestamp)
 const normalizeQuejaDate = (dateStr) => {
