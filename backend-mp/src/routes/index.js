@@ -24,9 +24,9 @@ router.use("/senalizacion", require("../features/senalizacion/senalizacion.route
 router.use("/sistema", require("../features/sistema/sistema.routes"));
 router.use("/telefono", require("../features/telefono/telefono.routes"));
 router.use("/tipomovimiento", require("../features/tipomovimiento/tipomovimiento.routes"));
-router.use("/tipopizarra", require("./tipopizarra"));
-router.use("/tipoqueja", require("./tipoqueja"));
-router.use("/trabajador", require("./trabajador"));
+router.use("/tipopizarra", require("../features/tipopizarra/tipopizarra.routes"));
+router.use("/tipoqueja", require("../features/tipoqueja/tipoqueja.routes"));
+router.use("/trabajador", require("../features/trabajador/trabajador.routes"));
 router.use("/trabajo", require("./trabajo"));
 router.use("/trabajotrabajadores", require("./trabajoTrabajadores"));
 

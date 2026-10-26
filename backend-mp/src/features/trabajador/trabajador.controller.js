@@ -1,13 +1,13 @@
-const { Trabajador, Grupow } = require("../models");
+const { Trabajador, Grupow } = require("../../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
-const { parseListParams } = require("../shared/utils/parseListParams");
+const apiErrors = require("../../shared/utils/apiErrors");
+const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
   createTrabajadorSchema,
   updateTrabajadorSchema,
   listTrabajadorSchema,
-} = require("../validations/trabajador.schemas");
-const validate = require("../shared/middleware/validate");
+} = require("./trabajador.validation");
+const validate = require("../../shared/middleware/validate");
 
 const TrabajadorController = {
   /**

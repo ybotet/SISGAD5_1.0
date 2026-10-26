@@ -1,13 +1,13 @@
-const { Tipoqueja } = require("../models");
+const { Tipoqueja } = require("../../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
+const apiErrors = require("../../shared/utils/apiErrors");
 const {
   createTipoquejaSchema,
   updateTipoquejaSchema,
   listTipoquejaSchema,
-} = require("../validations/tipoqueja.schemas");
-const validate = require("../shared/middleware/validate");
-const { parseListParams } = require("../shared/utils/parseListParams");
+} = require("./tipoqueja.validation");
+const validate = require("../../shared/middleware/validate");
+const { parseListParams } = require("../../shared/utils/parseListParams");
 
 const TipoquejaController = {
   /**

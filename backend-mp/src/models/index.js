@@ -33,9 +33,9 @@ const Sistema = require("../features/sistema/sistema.model")(sequelize);
 const Telefono = require("../features/telefono/telefono.model")(sequelize);
 const Tipolinea = require("../features/tipolinea/tipolinea.model")(sequelize);
 const Tipomovimiento = require("../features/tipomovimiento/tipomovimiento.model")(sequelize);
-const Tipopizarra = require("./Tipopizarra")(sequelize);
-const Tipoqueja = require("./Tipoqueja")(sequelize);
-const Trabajador = require("./Trabajador")(sequelize);
+const Tipopizarra = require("../features/tipopizarra/tipopizarra.model")(sequelize);
+const Tipoqueja = require("../features/tipoqueja/tipoqueja.model")(sequelize);
+const Trabajador = require("../features/trabajador/trabajador.model")(sequelize);
 const Trabajo = require("./Trabajo")(sequelize);
 const TrabajoTrabajadores = require("./Trabajo_trabajadores")(sequelize);
 

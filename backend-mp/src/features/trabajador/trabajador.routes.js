@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const TrabajadorController = require("../controllers/TrabajadorController");
-const Trabajador = require("../models/Trabajador");
-const auth = require("../shared/middleware/auth");
+const TrabajadorController = require("./trabajador.controller");
+const Trabajador = require("./trabajador.model");
+const auth = require("../../shared/middleware/auth");
 //const { tienePermiso } = require('../shared/middleware/permissions');
 
 router.use(auth);
