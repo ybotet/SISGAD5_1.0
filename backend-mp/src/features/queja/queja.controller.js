@@ -826,44 +826,58 @@ QuejaController.sankey = async (req, res, next) => {
     const { fecha_desde, fecha_hasta } = req.query;
     const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
 
-    // Función para filtrar por fecha con CAST a timestamp (solo filas con formato YYYY-MM-DD)
+    // Función para filtrar por fecha con CAST a timestamp (solo filtras con formato YYYY-MM-DD)
+    // Usa Sequelize replacements para prevenir inyección SQL
     const dateFilter = (alias = "q") => {
       const parts = [];
       if (normalizedRange.from)
         parts.push(
-          `${alias}.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(${alias}.fecha from 1 for 19)::timestamp >= '${normalizedRange.from}'::timestamp`,
+          `${alias}.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(${alias}.fecha from 1 for 19)::timestamp >= :fromDate::timestamp`,
         );
       if (normalizedRange.to)
         parts.push(
-          `${alias}.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(${alias}.fecha from 1 for 19)::timestamp <= '${normalizedRange.to}'::timestamp`,
+          `${alias}.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(${alias}.fecha from 1 for 19)::timestamp <= :toDate::timestamp`,
         );
-      return parts.length ? ` AND ${parts.join(" AND ")}` : "";
+      return {
+        clause: parts.length ? ` AND ${parts.join(" AND ")}` : "",
+        replacements: {
+          fromDate: normalizedRange.from,
+          toDate: normalizedRange.to,
+        },
+      };
     };
 
     // Calculamos aristas (edges) aproximadas entre etapas usando existencia de eventos y estado actual.
     // Estas consultas usan DISTINCT para contar quejas únicas por flujo.
+    const df = dateFilter("q");
     const [[{ cnt_abierta_probada }]] = await sequelize.query(
-      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_abierta_probada FROM tb_queja q JOIN tb_prueba p ON p.id_queja = q.id_queja WHERE p.id_queja IS NOT NULL${dateFilter("q")};`,
+      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_abierta_probada FROM tb_queja q JOIN tb_prueba p ON p.id_queja = q.id_queja WHERE p.id_queja IS NOT NULL${df.clause};`,
+      { replacements: df.replacements },
     );
 
     const [[{ cnt_probada_asignada }]] = await sequelize.query(
-      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_probada_asignada FROM tb_queja q JOIN tb_prueba p ON p.id_queja = q.id_queja JOIN tb_asignacion a ON a.id_queja = q.id_queja WHERE 1=1${dateFilter("q")};`,
+      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_probada_asignada FROM tb_queja q JOIN tb_prueba p ON p.id_queja = q.id_queja JOIN tb_asignacion a ON a.id_queja = q.id_queja WHERE 1=1${df.clause};`,
+      { replacements: df.replacements },
     );
 
     const [[{ cnt_abierta_asignada }]] = await sequelize.query(
-      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_abierta_asignada FROM tb_queja q JOIN tb_asignacion a ON a.id_queja = q.id_queja LEFT JOIN tb_prueba p ON p.id_queja = q.id_queja WHERE p.id_queja IS NULL${dateFilter("q")};`,
+      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_abierta_asignada FROM tb_queja q JOIN tb_asignacion a ON a.id_queja = q.id_queja LEFT JOIN tb_prueba p ON p.id_queja = q.id_queja WHERE p.id_queja IS NULL${df.clause};`,
+      { replacements: df.replacements },
     );
 
     const [[{ cnt_probada_resuelta }]] = await sequelize.query(
-      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_probada_resuelta FROM tb_queja q JOIN tb_prueba p ON p.id_queja = q.id_queja WHERE q.estado IN ('Resuelta','Cerrada')${dateFilter("q")};`,
+      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_probada_resuelta FROM tb_queja q JOIN tb_prueba p ON p.id_queja = q.id_queja WHERE q.estado IN ('Resuelta','Cerrada')${df.clause};`,
+      { replacements: df.replacements },
     );
 
     const [[{ cnt_asignada_pendiente }]] = await sequelize.query(
-      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_asignada_pendiente FROM tb_queja q JOIN tb_asignacion a ON a.id_queja = q.id_queja WHERE q.estado='Pendiente'${dateFilter("q")};`,
+      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_asignada_pendiente FROM tb_queja q JOIN tb_asignacion a ON a.id_queja = q.id_queja WHERE q.estado='Pendiente'${df.clause};`,
+      { replacements: df.replacements },
     );
 
     const [[{ cnt_asignada_resuelta }]] = await sequelize.query(
-      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_asignada_resuelta FROM tb_queja q JOIN tb_asignacion a ON a.id_queja = q.id_queja WHERE q.estado IN ('Resuelta','Cerrada')${dateFilter("q")};`,
+      `SELECT COUNT(DISTINCT q.id_queja) AS cnt_asignada_resuelta FROM tb_queja q JOIN tb_asignacion a ON a.id_queja = q.id_queja WHERE q.estado IN ('Resuelta','Cerrada')${df.clause};`,
+      { replacements: df.replacements },
     );
 
     // Definir colores para cada estado
@@ -925,16 +939,23 @@ QuejaController.funnel = async (req, res, next) => {
       const parts = [];
       if (normalizedRange.from)
         parts.push(
-          `${alias}.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(${alias}.fecha from 1 for 19)::timestamp >= '${normalizedRange.from}'::timestamp`,
+          `${alias}.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(${alias}.fecha from 1 for 19)::timestamp >= :fromDate::timestamp`,
         );
       if (normalizedRange.to)
         parts.push(
-          `${alias}.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(${alias}.fecha from 1 for 19)::timestamp <= '${normalizedRange.to}'::timestamp`,
+          `${alias}.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(${alias}.fecha from 1 for 19)::timestamp <= :toDate::timestamp`,
         );
-      return parts.length ? ` AND ${parts.join(" AND ")}` : "";
+      return {
+        clause: parts.length ? ` AND ${parts.join(" AND ")}` : "",
+        replacements: {
+          fromDate: normalizedRange.from,
+          toDate: normalizedRange.to,
+        },
+      };
     };
 
     // Counts per stage
+    const df = dateFilter("q");
     const total = await Queja.count({
       where:
         normalizedRange.from || normalizedRange.to
@@ -949,19 +970,22 @@ QuejaController.funnel = async (req, res, next) => {
     const cnt_probada =
       (
         await sequelize.query(
-          `SELECT COUNT(DISTINCT p.id_queja) AS c FROM tb_prueba p JOIN tb_queja q ON p.id_queja = q.id_queja WHERE p.id_queja IS NOT NULL${dateFilter("q")};`,
+          `SELECT COUNT(DISTINCT p.id_queja) AS c FROM tb_prueba p JOIN tb_queja q ON p.id_queja = q.id_queja WHERE p.id_queja IS NOT NULL${df.clause};`,
+          { replacements: df.replacements },
         )
       )[0][0].c || 0;
     const cnt_asignada =
       (
         await sequelize.query(
-          `SELECT COUNT(DISTINCT a.id_queja) AS c FROM tb_asignacion a JOIN tb_queja q ON a.id_queja = q.id_queja WHERE a.id_queja IS NOT NULL${dateFilter("q")};`,
+          `SELECT COUNT(DISTINCT a.id_queja) AS c FROM tb_asignacion a JOIN tb_queja q ON a.id_queja = q.id_queja WHERE a.id_queja IS NOT NULL${df.clause};`,
+          { replacements: df.replacements },
         )
       )[0][0].c || 0;
     const cnt_resuelta =
       (
         await sequelize.query(
-          `SELECT COUNT(*) AS c FROM tb_queja q WHERE q.estado IN ('Resuelta','Cerrada')${dateFilter("q")};`,
+          `SELECT COUNT(*) AS c FROM tb_queja q WHERE q.estado IN ('Resuelta','Cerrada')${df.clause};`,
+          { replacements: df.replacements },
         )
       )[0][0].c || 0;
 
@@ -976,7 +1000,8 @@ QuejaController.funnel = async (req, res, next) => {
     ) AS hours
    FROM tb_queja q
    JOIN (SELECT id_queja, MIN(created_at) AS min_created FROM tb_prueba GROUP BY id_queja) p ON p.id_queja = q.id_queja
-   WHERE 1=1${dateFilter("q")};`,
+   WHERE 1=1${df.clause};`,
+      { replacements: df.replacements },
     );
     const avgPrueba = Number((avgPruebaQ[0][0] && avgPruebaQ[0][0].hours) || 0).toFixed(2);
 
@@ -1314,8 +1339,11 @@ QuejaController.recurrentes = async (req, res, next) => {
     const normalizedRange = normalizeDateRange({ from: fecha_desde, to: fecha_hasta });
     const sequelize = Queja.sequelize;
     let whereDate = "";
+    const replacements = {};
     if (normalizedRange.from || normalizedRange.to) {
-      whereDate = `WHERE q.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(q.fecha from 1 for 19)::timestamp >= '${normalizedRange.from || "1970-01-01 00:00:00"}'::timestamp AND substring(q.fecha from 1 for 19)::timestamp <= '${normalizedRange.to || getCurrentDateTime()}'::timestamp`;
+      whereDate = `WHERE q.fecha ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' AND substring(q.fecha from 1 for 19)::timestamp >= :fromDate::timestamp AND substring(q.fecha from 1 for 19)::timestamp <= :toDate::timestamp`;
+      replacements.fromDate = normalizedRange.from || "1970-01-01 00:00:00";
+      replacements.toDate = normalizedRange.to || getCurrentDateTime();
     }
     const q = `
       SELECT COALESCE(qt.telefono::text, ql.clavelinea::text, qp.nombre::text) AS equipo,
@@ -1335,7 +1363,7 @@ QuejaController.recurrentes = async (req, res, next) => {
       HAVING COUNT(*) > 1
       ORDER BY total DESC;
     `;
-    const [rows] = await sequelize.query(q);
+    const [rows] = await sequelize.query(q, { replacements });
     res.json({ success: true, data: rows });
   } catch (error) {
     next(error);
