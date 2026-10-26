@@ -1,4 +1,4 @@
-const { Planta } = require("../../models");
+const { Planta } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const { parseListParams } = require("../../shared/utils/parseListParams");
@@ -169,3 +169,4 @@ const PlantaController = {
 };
 
 module.exports = PlantaController;
+

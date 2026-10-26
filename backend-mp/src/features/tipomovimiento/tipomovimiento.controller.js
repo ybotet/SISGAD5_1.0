@@ -1,4 +1,4 @@
-const { Tipomovimiento } = require("../../models");
+const { Tipomovimiento } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const { parseListParams } = require("../../shared/utils/parseListParams");
@@ -222,3 +222,4 @@ const TipomovimientoController = {
 };
 
 module.exports = TipomovimientoController;
+

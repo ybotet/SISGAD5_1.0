@@ -1,4 +1,4 @@
-const { Resultadoprueba } = require("../../models");
+const { Resultadoprueba } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const { parseListParams } = require("../../shared/utils/parseListParams"); // ← IMPORTAR
@@ -164,3 +164,4 @@ const ResultadopruebaController = {
 };
 
 module.exports = ResultadopruebaController;
+

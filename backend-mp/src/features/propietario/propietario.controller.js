@@ -1,4 +1,4 @@
-const { Propietario } = require("../../models");
+const { Propietario } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const {
@@ -201,3 +201,4 @@ const PropietarioController = {
 };
 
 module.exports = PropietarioController;
+

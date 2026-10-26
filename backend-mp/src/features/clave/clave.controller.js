@@ -1,4 +1,4 @@
-const { Clave } = require("../../models");
+const { Clave } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const { parseListParams } = require("../../shared/utils/parseListParams");
@@ -210,3 +210,4 @@ const ClaveController = {
 };
 
 module.exports = ClaveController;
+

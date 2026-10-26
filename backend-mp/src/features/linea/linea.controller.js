@@ -1,6 +1,6 @@
-const { Linea } = require("../../models");
+const { Linea } = require("../../features");
 const { Op } = require("sequelize");
-const { Recorrido, Queja } = require("../../models");
+const { Recorrido, Queja } = require("../../features");
 const apiErrors = require("../../shared/utils/apiErrors");
 const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
@@ -421,3 +421,4 @@ LineaController.dashboard = async function (req, res, next) {
 };
 
 module.exports = LineaController;
+

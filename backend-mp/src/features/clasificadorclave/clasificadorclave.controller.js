@@ -1,4 +1,4 @@
-const { Clasificadorclave } = require("../../models");
+const { Clasificadorclave } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const {
@@ -185,3 +185,4 @@ const ClasificadorclaveController = {
 };
 
 module.exports = ClasificadorclaveController;
+

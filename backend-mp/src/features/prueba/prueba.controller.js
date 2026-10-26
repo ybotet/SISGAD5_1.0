@@ -1,4 +1,4 @@
-const { Prueba, Queja } = require("../../models");
+const { Prueba, Queja } = require("../../features");
 const { Op } = require("sequelize");
 const { addFlowEntry, removeFlowEntry } = require("../../utils/quejaFlow");
 const apiErrors = require("../../shared/utils/apiErrors");
@@ -252,3 +252,4 @@ const PruebaController = {
 };
 
 module.exports = PruebaController;
+

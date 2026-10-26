@@ -1,5 +1,5 @@
 const apiError = require("../../shared/utils/apiErrors");
-const { Asignacion, AsignacionTrabajadores, Queja } = require("../../models");
+const { Asignacion, AsignacionTrabajadores, Queja } = require("../../features");
 const { Op } = require("sequelize");
 const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
@@ -8,7 +8,7 @@ const {
   listAsignacionSchema,
 } = require("./asignacion.validation");
 const validate = require("../../shared/middleware/validate");
-const { create } = require("../../controllers/TrabajoTrabajadoresController");
+const { create } = require("../../features/trabajo_trabajadores/trabajo_trabajadores.controller");
 const { get } = require("./asignacion.routes");
 const { normalizeToDbDateTime } = require("../../shared/utils/dateUtils");
 
@@ -145,3 +145,4 @@ const AsignacionController = {
 };
 
 module.exports = AsignacionController;
+

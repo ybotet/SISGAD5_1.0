@@ -8,7 +8,7 @@ const {
   Trabajador,
   Cable,
   Clave,
-} = require("../../models");
+} = require("../../features");
 const { Op, Sequelize } = require("sequelize");
 const {
   createQuejaSchema,
@@ -1343,3 +1343,4 @@ QuejaController.recurrentes = async (req, res, next) => {
 };
 
 module.exports = QuejaController;
+

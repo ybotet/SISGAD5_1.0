@@ -1,4 +1,4 @@
-const { Tipoqueja } = require("../../models");
+const { Tipoqueja } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const {
@@ -186,3 +186,4 @@ const TipoquejaController = {
 };
 
 module.exports = TipoquejaController;
+

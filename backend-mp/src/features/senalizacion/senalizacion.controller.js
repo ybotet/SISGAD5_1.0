@@ -1,4 +1,4 @@
-const { Senalizacion } = require("../../models");
+const { Senalizacion } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const { parseListParams } = require("../../shared/utils/parseListParams");
@@ -222,3 +222,4 @@ const SenalizacionController = {
 };
 
 module.exports = SenalizacionController;
+

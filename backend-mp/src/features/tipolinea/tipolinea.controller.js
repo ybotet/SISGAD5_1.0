@@ -1,4 +1,4 @@
-const { Tipolinea } = require("../../models");
+const { Tipolinea } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const { parseListParams } = require("../../shared/utils/parseListParams");
@@ -246,3 +246,4 @@ const TipolineaController = {
 };
 
 module.exports = TipolineaController;
+

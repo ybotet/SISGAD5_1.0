@@ -1,4 +1,4 @@
-const { Recorrido } = require("../../models");
+const { Recorrido } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const {
@@ -195,3 +195,4 @@ const RecorridoController = {
 };
 
 module.exports = RecorridoController;
+

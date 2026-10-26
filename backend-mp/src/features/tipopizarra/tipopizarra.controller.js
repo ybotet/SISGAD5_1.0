@@ -1,4 +1,4 @@
-const { Tipopizarra } = require("../../models");
+const { Tipopizarra } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const {
@@ -196,3 +196,4 @@ const TipopizarraController = {
 };
 
 module.exports = TipopizarraController;
+

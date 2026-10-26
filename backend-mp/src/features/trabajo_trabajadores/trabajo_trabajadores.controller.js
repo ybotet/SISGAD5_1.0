@@ -1,6 +1,6 @@
-const { TrabajoTrabajadores } = require("../models");
+const { TrabajoTrabajadores } = require("../../features");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
+const apiErrors = require("../../shared/utils/apiErrors");
 
 const TrabajoTrabajadoresController = {
   /**

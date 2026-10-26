@@ -1,4 +1,4 @@
-const { Queja } = require("../models");
+const { Queja } = require("../features");
 
 /**
  * Añade una entrada al flujo de una queja. Ambos arreglos claves_flujo y fechas_flujo

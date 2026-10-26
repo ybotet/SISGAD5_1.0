@@ -1,5 +1,5 @@
 // ClasifpizarraController.js
-const { Clasifpizarra } = require("../../models");
+const { Clasifpizarra } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const {
@@ -215,3 +215,4 @@ const ClasifpizarraController = {
 };
 
 module.exports = ClasifpizarraController;
+

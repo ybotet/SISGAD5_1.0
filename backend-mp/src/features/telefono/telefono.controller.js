@@ -1,6 +1,6 @@
-const { Telefono } = require("../../models");
+const { Telefono } = require("../../features");
 const { Op, Sequelize } = require("sequelize");
-const { Recorrido, Queja, Cable, Planta } = require("../../models");
+const { Recorrido, Queja, Cable, Planta } = require("../../features");
 const apiErrors = require("../../shared/utils/apiErrors");
 const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
@@ -532,3 +532,4 @@ TelefonoController.dashboard = async function (req, res, next) {
     return next(error);
   }
 };
+

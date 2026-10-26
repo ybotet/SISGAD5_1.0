@@ -1,4 +1,4 @@
-const { Movimiento } = require("../../models");
+const { Movimiento } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const { parseListParams } = require("../../shared/utils/parseListParams");
@@ -257,3 +257,4 @@ const MovimientoController = {
   },
 };
 module.exports = MovimientoController;
+

@@ -1,4 +1,4 @@
-const { Trabajador, Grupow } = require("../../models");
+const { Trabajador, Grupow } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const { parseListParams } = require("../../shared/utils/parseListParams");
@@ -341,3 +341,4 @@ TrabajadorController.dashboard = async function (req, res, next) {
 };
 
 module.exports = TrabajadorController;
+

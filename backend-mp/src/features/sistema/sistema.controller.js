@@ -1,4 +1,4 @@
-const { Sistema } = require("../../models");
+const { Sistema } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const { parseListParams } = require("../../shared/utils/parseListParams");
@@ -195,3 +195,4 @@ const SistemaController = {
 };
 
 module.exports = SistemaController;
+

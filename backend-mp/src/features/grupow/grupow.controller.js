@@ -1,4 +1,4 @@
-const { Grupow } = require("../../models");
+const { Grupow } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const {
@@ -181,3 +181,4 @@ const GrupowController = {
 };
 
 module.exports = GrupowController;
+

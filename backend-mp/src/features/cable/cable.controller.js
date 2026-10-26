@@ -1,5 +1,5 @@
 const apiErrors = require("../../shared/utils/apiErrors");
-const { Cable } = require("../../models");
+const { Cable } = require("../../features");
 const { Op } = require("sequelize");
 const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
@@ -204,3 +204,4 @@ const CableController = {
 };
 
 module.exports = CableController;
+

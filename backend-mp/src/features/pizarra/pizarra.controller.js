@@ -1,4 +1,4 @@
-const { Pizarra } = require("../../models");
+const { Pizarra } = require("../../features");
 const { Op } = require("sequelize");
 const apiErrors = require("../../shared/utils/apiErrors");
 const { parseListParams } = require("../../shared/utils/parseListParams");
@@ -230,3 +230,4 @@ const PizarraController = {
 };
 
 module.exports = PizarraController;
+

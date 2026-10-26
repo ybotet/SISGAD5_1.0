@@ -36,8 +36,8 @@ const Tipomovimiento = require("../features/tipomovimiento/tipomovimiento.model"
 const Tipopizarra = require("../features/tipopizarra/tipopizarra.model")(sequelize);
 const Tipoqueja = require("../features/tipoqueja/tipoqueja.model")(sequelize);
 const Trabajador = require("../features/trabajador/trabajador.model")(sequelize);
-const Trabajo = require("./Trabajo")(sequelize);
-const TrabajoTrabajadores = require("./Trabajo_trabajadores")(sequelize);
+const Trabajo = require("./trabajo/trabajo.model")(sequelize);
+const TrabajoTrabajadores = require("./trabajo_trabajadores/trabajo_trabajadores.model")(sequelize);
 
 // Configurar relaciones aquí
 //#region Primeras relaciones

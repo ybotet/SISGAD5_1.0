@@ -27,8 +27,8 @@ router.use("/tipomovimiento", require("../features/tipomovimiento/tipomovimiento
 router.use("/tipopizarra", require("../features/tipopizarra/tipopizarra.routes"));
 router.use("/tipoqueja", require("../features/tipoqueja/tipoqueja.routes"));
 router.use("/trabajador", require("../features/trabajador/trabajador.routes"));
-router.use("/trabajo", require("./trabajo"));
-router.use("/trabajotrabajadores", require("./trabajoTrabajadores"));
+router.use("/trabajo", require("../features/trabajo/trabajo.routes"));
+router.use("/trabajotrabajadores", require("../features/trabajo_trabajadores/trabajo_trabajadores.routes"));
 
 // router.use('/tbMaterial', require('./tbMaterial'));
 // router.use('/tbMaterialempleado', require('./tbMaterialempleado'));
