@@ -30,11 +30,6 @@ router.use("/trabajador", require("../features/trabajador/trabajador.routes"));
 router.use("/trabajo", require("../features/trabajo/trabajo.routes"));
 router.use("/trabajotrabajadores", require("../features/trabajo_trabajadores/trabajo_trabajadores.routes"));
 
-// router.use('/tbMaterial', require('./tbMaterial'));
-// router.use('/tbMaterialempleado', require('./tbMaterialempleado'));
-// router.use('/tbMaterialEntregado', require('./tbMaterialEntregado'));
-// router.use('/tbOs', require('./tbOs'));
-
 // Ruta de fallback para APIs no encontradas
 router.use((req, res) => {
   res.status(404).json({
