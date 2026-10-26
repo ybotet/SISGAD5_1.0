@@ -22,10 +22,19 @@ const PORT = process.env.PORT || 5000;
 // 🔧 CONFIGURACIÓN GLOBAL
 // ========================================
 
-// CORS - Configuración para desarrollo
+// 🔒 CORS — lista blanca desde CORS_ORIGIN
+// En producción, CORS_ORIGIN es obligatorio (falla al arranque si falta)
+const isProduction = process.env.NODE_ENV === "production";
+const corsOrigin = process.env.CORS_ORIGIN;
+
+if (isProduction && !corsOrigin) {
+  logger.error("❌ CORS_ORIGIN no definido en producción. Abortando startup.");
+  process.exit(1);
+}
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || true,
+    origin: corsOrigin ? corsOrigin.split(",").map((o) => o.trim()) : "*",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
@@ -35,10 +44,19 @@ app.use(
 // Logging personalizado (request id + centralizado)
 app.use(requestLogger);
 
-// Seguridad con Helmet (ajustado para desarrollo)
+// 🔒 Seguridad con Helmet — CSP activado en producción
 app.use(
   helmet({
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: isProduction
+      ? {
+          directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", "data:", "https:"],
+          },
+        }
+      : false,
     crossOriginEmbedderPolicy: false,
   }),
 );

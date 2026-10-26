@@ -133,7 +133,7 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 
 | ID     | Hallazgo                            | Tarea     | Prohibido mientras tanto                          |
 | ------ | ----------------------------------- | --------- | ------------------------------------------------- |
-| SEC-04 | CORS `origin: true`                 | TASK-B-16 | No añadir orígenes sin lista blanca               |
+| SEC-04 | ✅ CORS con lista blanca | TASK-B-16 | `CORS_ORIGIN` obligatorio en prod |
 | SEC-05 | ✅ Gateway verifica JWT (middleware) | TASK-B-15 | N/A — resuelto                                    |
 | SEC-06 | RBAC incompleto en MP               | TASK-B-17 | No crear endpoints sin `tienePermiso`             |
 | SEC-07 | SQL injection en dashboard          | TASK-B-18 | No interpolar strings en SQL                      |

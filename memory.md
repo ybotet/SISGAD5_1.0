@@ -34,6 +34,7 @@
 | 2026-10-26 | TASK-B-13 | Verificar docker compose up y tests E2E | [ver](docs/memory/2026-10-23.md#2026-10-26--task-b-13-verificar-docker-compose-up-y-tests-e2e) |
 | 2026-10-26 | TASK-B-14 | Commit por lote + PR + merge | [ver](docs/memory/2026-10-23.md#2026-10-26--task-b-14-commit-por-lote--pr--merge) |
 | 2026-10-26 | TASK-B-15 | JWT verification en API Gateway | [ver](docs/memory/2026-10-23.md#2026-10-26--task-b-15-jwt-verification-en-api-gateway) |
+| 2026-10-26 | TASK-B-16 | CORS lista blanca en Gateway | [ver](docs/memory/2026-10-23.md#2026-10-26--task-b-16-cors-con-lista-blanca-en-api-gateway) |
 
 ---
 
