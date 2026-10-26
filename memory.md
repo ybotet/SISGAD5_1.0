@@ -27,6 +27,7 @@
 | 2026-10-24 | TASK-B-06 | Migrar Lote 5 (propietario, prueba) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-06-migrar-lote-5-propietario-prueba) |
 | 2026-10-24 | TASK-B-07 | Migrar Lote 6 (queja, recorrido) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-07-migrar-lote-6-queja-recorrido) |
 | 2026-10-24 | TASK-B-08 | Migrar Lote 7 (resultadoprueba, senalizacion, sistema) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-08-migrar-lote-7-resultadoprueba-senalizacion-sistema) |
+| 2026-10-24 | TASK-B-09 | Migrar Lote 8 (telefono, tipolinea, tipomovimiento) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-09-migrar-lote-8-telefono-tipolinea-tipomovimiento) |
 
 ---
 
