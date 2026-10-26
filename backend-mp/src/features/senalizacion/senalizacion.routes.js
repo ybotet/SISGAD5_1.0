@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const SenalizacionController = require("../controllers/SenalizacionController");
-const auth = require("../shared/middleware/auth");
-const { tienePermiso } = require("../shared/middleware/permissions");
+const SenalizacionController = require("./senalizacion.controller");
+const auth = require("../../shared/middleware/auth");
+const { tienePermiso } = require("../../shared/middleware/permissions");
 
 router.use(auth);
 /**

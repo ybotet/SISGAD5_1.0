@@ -1,13 +1,13 @@
-const { Senalizacion } = require("../models");
+const { Senalizacion } = require("../../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
-const { parseListParams } = require("../shared/utils/parseListParams");
+const apiErrors = require("../../shared/utils/apiErrors");
+const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
   createSenalizacionSchema,
   updateSenalizacionSchema,
   listSenalizacionSchema,
-} = require("../validations/senalizacion.schemas");
-const validate = require("../shared/middleware/validate");
+} = require("./senalizacion.validation");
+const validate = require("../../shared/middleware/validate");
 
 // Helper para normalizar timestamps
 const normalizeTimestamps = (data) => {

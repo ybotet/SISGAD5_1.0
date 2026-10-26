@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const ResultadopruebaController = require("../controllers/ResultadopruebaController");
-const auth = require("../shared/middleware/auth");
-const { tienePermiso } = require("../shared/middleware/permissions");
+const ResultadopruebaController = require("./resultadoprueba.controller");
+const auth = require("../../shared/middleware/auth");
+const { tienePermiso } = require("../../shared/middleware/permissions");
 
 router.use(auth);
 /**

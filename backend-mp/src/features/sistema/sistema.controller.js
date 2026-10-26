@@ -1,13 +1,13 @@
-const { Sistema } = require("../models");
+const { Sistema } = require("../../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
-const { parseListParams } = require("../shared/utils/parseListParams");
+const apiErrors = require("../../shared/utils/apiErrors");
+const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
   createSistemaSchema,
   updateSistemaSchema,
   listSistemaSchema,
-} = require("../validations/sistema.schemas");
-const validate = require("../shared/middleware/validate");
+} = require("./sistema.validation");
+const validate = require("../../shared/middleware/validate");
 
 const SistemaController = {
   /**
