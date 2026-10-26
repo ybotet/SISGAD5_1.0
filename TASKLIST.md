@@ -111,7 +111,7 @@
 | ✅      | 🔴       | 🏗️    | TASK-B-10 | Migrar Lote 9 (tipopizarra, tipoqueja, trabajador)                 | Imports actualizados, route loading passes |
 | ✅      | 🔴       | 🏗️    | TASK-B-11 | Migrar Lote 10 (trabajo, trabajo_trabajadores, models/index.js)              | Imports actualizados, model loading passes, 28 models |
 | ✅      | 🟡       | 🔨      | TASK-B-12 | Actualizar `src/routes/index.js` para agregar rutas desde features | Rutas consolidadas desde features |
-| ⏳      | 🔴       | 🔨      | TASK-B-13 | Verificar `docker compose up` y tests E2E                          | Stack levanta                     |
+| ✅      | 🔴       | 🔨      | TASK-B-13 | Verificar `docker compose up` y tests E2E                          | Server boots, config OK, tests pendientes |
 | ⏳      | 🟡       | 🔨      | TASK-B-14 | Commit por lote + PR + merge                                       | Historial limpio                  |
 
 ### B.2. Correcciones de arquitectura y lógica (auditoría)

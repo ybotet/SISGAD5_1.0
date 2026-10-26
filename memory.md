@@ -31,6 +31,7 @@
 | 2026-10-24 | TASK-B-10 | Migrar Lote 9 (tipopizarra, tipoqueja, trabajador) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-10-migrar-lote-9-tipopizarra-tipoqueja-trabajador) |
 | 2026-10-24 | TASK-B-11 | Migrar Lote 10 (trabajo, trabajo_trabajadores, models/index.js) | [ver](docs/memory/2026-10-23.md#2026-10-24--task-b-11-migrar-lote-10-trabajo-trabajo_trabajadores-modelsindexjs) |
 | 2026-10-26 | TASK-B-12 | Consolidar routes/index.js — rutas desde features | [ver](docs/memory/2026-10-23.md#2026-10-26--task-b-12-actualizar-srcroutesindexjs--rutas-consolidadas-desde-features) |
+| 2026-10-26 | TASK-B-13 | Verificar docker compose up y tests E2E | [ver](docs/memory/2026-10-23.md#2026-10-26--task-b-13-verificar-docker-compose-up-y-tests-e2e) |
 
 ---
 
