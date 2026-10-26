@@ -135,7 +135,7 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 | ------ | ----------------------------------- | --------- | ------------------------------------------------- |
 | SEC-04 | ✅ CORS con lista blanca | TASK-B-16 | `CORS_ORIGIN` obligatorio en prod |
 | SEC-05 | ✅ Gateway verifica JWT (middleware) | TASK-B-15 | N/A — resuelto                                    |
-| SEC-06 | RBAC incompleto en MP               | TASK-B-17 | No crear endpoints sin `tienePermiso`             |
+| SEC-06 | ✅ RBAC aplicado en MP | TASK-B-17 | `tienePermiso` aplicado en quejas, trabajos, asignaciones |
 | SEC-07 | SQL injection en dashboard          | TASK-B-18 | No interpolar strings en SQL                      |
 | ARC-02 | ✅ Gateway propaga claims via headers | TASK-B-15 | N/A — mitigado (no añadir llamadas síncronas)    |
 | ARC-03 | Cerrar queja no orquesta materiales | TASK-B-22 | No asumir que el cierre de queja registra consumo |
