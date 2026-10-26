@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const QuejaController = require("./queja.controller");
 const auth = require("../../shared/middleware/auth");
-// const { tienePermiso } = require('../shared/middleware/permissions');
+const { tienePermiso } = require("../../shared/middleware/permissions");
 
 router.use(auth);
 /**
@@ -22,25 +22,32 @@ router.get("/:id", QuejaController.getById);
 /**
  * @route   POST /api/tbQueja
  * @desc    Crear nuevo Queja
- * @access  Public
+ * @access  Permiso: quejas.crear
  */
-router.post("/", QuejaController.create);
+router.post("/", tienePermiso("quejas.crear"), QuejaController.create);
 
 /**
  * @route   PUT /api/tbQueja/:id
  * @desc    Actualizar Queja
- * @access  Public
+ * @access  Permiso: quejas.actualizar
  */
-router.put("/:id", QuejaController.update);
+router.put("/:id", tienePermiso("quejas.actualizar"), QuejaController.update);
 
 /**
  * @route   DELETE /api/tbQueja/:id
  * @desc    Eliminar Queja
- * @access  Public
+ * @access  Permiso: quejas.eliminar
  */
-router.delete("/:id", QuejaController.delete);
+router.delete("/:id", tienePermiso("quejas.eliminar"), QuejaController.delete);
 
-router.patch("/:id/cerrar", QuejaController.cerrar);
+/**
+ * @route   PATCH /api/tbQueja/:id/cerrar
+ * @desc    Cerrar Queja
+ * @access  Permiso: quejas.cerrar
+ */
+router.patch("/:id/cerrar", tienePermiso("quejas.cerrar"), QuejaController.cerrar);
+
+// NOTE: quejas.asignar route documented pending (TASK-B-22 saga) — controller.asignar not yet implemented
 
 // Dashboard endpoints
 router.get("/dashboard/summary", QuejaController.dashboardSummary);

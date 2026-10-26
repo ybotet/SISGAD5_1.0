@@ -8,29 +8,29 @@ router.use(auth);
 /**
  * @route   POST /api/asignacion
  * @desc    Crear nueva asignacion
- * @access  Public
+ * @access  Permiso: asignaciones.crear
  */
-router.post("/", AsignacionController.create);
+router.post("/", tienePermiso("asignaciones.crear"), AsignacionController.create);
 
 /**
  * @route   GET /api/asignacion
  * @desc    Obtener todas las asignaciones
- * @access  Public
+ * @access  Permiso: asignaciones.leer
  */
-router.get("/", AsignacionController.getAll);
+router.get("/", tienePermiso("asignaciones.leer"), AsignacionController.getAll);
 
 /**
  * @route   GET /api/asignacion/:id
  * @desc    Obtener una asignacion por ID
- * @access  Public
+ * @access  Permiso: asignaciones.leer
  */
-router.get("/:id", AsignacionController.getById);
+router.get("/:id", tienePermiso("asignaciones.leer"), AsignacionController.getById);
 
 /**
  * @route   DELETE /api/asignacion/:id
  * @desc    Eliminar una asignacion por ID
- * @access  Public
+ * @access  Permiso: asignaciones.eliminar
  */
-router.delete("/:id", AsignacionController.delete);
+router.delete("/:id", tienePermiso("asignaciones.eliminar"), AsignacionController.delete);
 
 module.exports = router;

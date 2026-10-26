@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const TrabajoController = require("./trabajo.controller");
 const auth = require("../../shared/middleware/auth");
-//const { tienePermiso } = require('../shared/middleware/permissions');
+const { tienePermiso } = require("../../shared/middleware/permissions");
 
 router.use(auth);
 /**
@@ -22,22 +22,29 @@ router.get("/:id", TrabajoController.getById);
 /**
  * @route   POST /api/tbTrabajo
  * @desc    Crear nuevo Trabajo
- * @access  Public
+ * @access  Permiso: trabajos.crear
  */
-router.post("/", TrabajoController.create);
+router.post("/", tienePermiso("trabajos.crear"), TrabajoController.create);
 
 /**
  * @route   PUT /api/tbTrabajo/:id
  * @desc    Actualizar Trabajo
- * @access  Public
+ * @access  Permiso: trabajos.actualizar
  */
-router.put("/:id", TrabajoController.update);
+router.put("/:id", tienePermiso("trabajos.actualizar"), TrabajoController.update);
 
 /**
  * @route   DELETE /api/tbTrabajo/:id
  * @desc    Eliminar Trabajo
- * @access  Public
+ * @access  Permiso: trabajos.eliminar
  */
-router.delete("/:id", TrabajoController.delete);
+router.delete("/:id", tienePermiso("trabajos.eliminar"), TrabajoController.delete);
+
+/**
+ * @route   PATCH /api/tbTrabajo/:id/cerrar
+ * @desc    Cerrar Trabajo
+ * @access  Permiso: trabajos.cerrar
+ */
+router.patch("/:id/cerrar", tienePermiso("trabajos.cerrar"), TrabajoController.cerrar);
 
 module.exports = router;
