@@ -108,7 +108,7 @@
 | ✅      | 🔴       | 🏗️    | TASK-B-07 | Migrar Lote 6 (queja, recorrido)                                   | Imports actualizados, route loading passes |
 | ✅      | 🔴       | 🏗️    | TASK-B-08 | Migrar Lote 7 (resultadoprueba, senalizacion, sistema)             | Imports actualizados, route loading passes |
 | ✅      | 🔴       | 🏗️    | TASK-B-09 | Migrar Lote 8 (telefono, tipolinea, tipomovimiento)                | Imports actualizados, route loading passes |
-| ⏳      | 🟡       | 🏗️    | TASK-B-10 | Migrar Lote 9 (tipopizarra, tipoqueja, trabajador)                 | Tests pasan                       |
+| ✅      | 🔴       | 🏗️    | TASK-B-10 | Migrar Lote 9 (tipopizarra, tipoqueja, trabajador)                 | Imports actualizados, route loading passes |
 | ⏳      | 🔴       | 🏗️    | TASK-B-11 | Migrar Lote 10 (trabajo, trabajo_trabajadores, index)              | Tests pasan                       |
 | ⏳      | 🟡       | 🔨      | TASK-B-12 | Actualizar `src/routes/index.js` para agregar rutas desde features | Rutas funcionales                 |
 | ⏳      | 🔴       | 🔨      | TASK-B-13 | Verificar `docker compose up` y tests E2E                          | Stack levanta                     |
