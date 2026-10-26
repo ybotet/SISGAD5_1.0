@@ -122,7 +122,7 @@
 | ✅      | 🟠       | 🔨      | **TASK-B-16** | **CORS con lista blanca en Gateway**                        | **Auditoría SEC-04** | `CORS_ORIGIN` obligatorio en prod               |
 | ✅      | 🟠       | 🔨      | **TASK-B-17** | **RBAC por operación en quejas, trabajos, asignaciones**    | **Auditoría SEC-06** | `tienePermiso` aplicado en cada ruta            |
 | ✅      | 🟠       | 🔨      | **TASK-B-18** | **Parametrizar SQL del dashboard (Sequelize replacements)** | **Auditoría SEC-07** | Sin interpolación de strings                    |
-| ⏳      | 🟠       | 🔨      | **TASK-B-19** | **Reordenar rutas `/dashboard/*` antes de `/:id`**          | **Auditoría BUS-02** | Dashboard accesible                             |
+| ✅      | 🟠       | 🔨      | **TASK-B-19** | **Reordenar rutas `/dashboard/*` antes de `/:id`**          | **Auditoría BUS-02** | Dashboard accesible                             |
 | ⏳      | 🟠       | 🏗️    | **TASK-B-20** | **Migraciones versionadas + índices (Users, MP)**           | **Auditoría DAT-01** | `migrations/` con índices en estado, FKs, fecha |
 | ⏳      | 🟠       | 🏗️    | **TASK-B-21** | **Sustituir `npm test` placeholder por Jest/Supertest**     | **Auditoría QA-01**  | CI pasa con tests reales                        |
 | ⏳      | 🟠       | 🏗️    | **TASK-B-22** | **Saga/compensación al cerrar queja (MP → Materials)**      | **Auditoría ARC-03** | Consumo registrado al cerrar queja              |

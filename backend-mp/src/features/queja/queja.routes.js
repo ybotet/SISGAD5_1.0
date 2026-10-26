@@ -13,6 +13,21 @@ router.use(auth);
 router.get("/", QuejaController.getAll);
 
 /**
+ * @route   GET /api/tbQueja/dashboard/*
+ * @desc    Endpoints de dashboard
+ * @access  Public
+ * @note    ORDEN CRÍTICO: Deben estar antes de /:id para evitar que /:id atrape "dashboard"
+ */
+router.get("/dashboard/summary", QuejaController.dashboardSummary);
+router.get("/dashboard/sankey", QuejaController.sankey);
+router.get("/dashboard/funnel", QuejaController.funnel);
+router.get("/dashboard/heatmap", QuejaController.heatmap);
+router.get("/dashboard/historic", QuejaController.historic);
+router.get("/dashboard/mttr", QuejaController.mttr);
+router.get("/dashboard/recurrentes", QuejaController.recurrentes);
+router.get("/dashboard/close_buckets", QuejaController.closeBuckets);
+
+/**
  * @route   GET /api/tbQueja/:id
  * @desc    Obtener un Queja por ID
  * @access  Public
@@ -48,15 +63,5 @@ router.delete("/:id", tienePermiso("quejas.eliminar"), QuejaController.delete);
 router.patch("/:id/cerrar", tienePermiso("quejas.cerrar"), QuejaController.cerrar);
 
 // NOTE: quejas.asignar route documented pending (TASK-B-22 saga) — controller.asignar not yet implemented
-
-// Dashboard endpoints
-router.get("/dashboard/summary", QuejaController.dashboardSummary);
-router.get("/dashboard/sankey", QuejaController.sankey);
-router.get("/dashboard/funnel", QuejaController.funnel);
-router.get("/dashboard/heatmap", QuejaController.heatmap);
-router.get("/dashboard/historic", QuejaController.historic);
-router.get("/dashboard/mttr", QuejaController.mttr);
-router.get("/dashboard/recurrentes", QuejaController.recurrentes);
-router.get("/dashboard/close_buckets", QuejaController.closeBuckets);
 
 module.exports = router;

@@ -139,7 +139,7 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 | SEC-07 | ✅ Parametrizado con Sequelize replacements | TASK-B-18 | No interpolar strings en SQL                     |
 | ARC-02 | ✅ Gateway propaga claims via headers | TASK-B-15 | N/A — mitigado (no añadir llamadas síncronas)    |
 | ARC-03 | Cerrar queja no orquesta materiales | TASK-B-22 | No asumir que el cierre de queja registra consumo |
-| BUS-02 | Rutas dashboard después de `/:id`   | TASK-B-19 | No añadir rutas después de `/:id`                 |
+| BUS-02 | ✅ Rutas `/dashboard/*` antes de `/:id` | TASK-B-19 | No añadir rutas después de `/:id`                  |
 | DAT-01 | Sin migraciones ni índices          | TASK-B-20 | No añadir modelos sin migración                   |
 | QA-01  | `npm test` es `exit 1`              | TASK-B-21 | No confiar en CI hasta que pase                   |
 
