@@ -1,13 +1,13 @@
-const { Tipolinea } = require("../models");
+const { Tipomovimiento } = require("../../models");
 const { Op } = require("sequelize");
-const apiErrors = require("../shared/utils/apiErrors");
-const { parseListParams } = require("../shared/utils/parseListParams");
+const apiErrors = require("../../shared/utils/apiErrors");
+const { parseListParams } = require("../../shared/utils/parseListParams");
 const {
-  createTipolineaSchema,
-  updateTipolineaSchema,
-  listTipolineaSchema,
-} = require("../validations/tipolinea.schemas");
-const validate = require("../shared/middleware/validate");
+  createTipomovimientoSchema,
+  updateTipomovimientoSchema,
+  listTipomovimientoSchema,
+} = require("./tipomovimiento.validation");
+const validate = require("../../shared/middleware/validate");
 
 // Helper para normalizar timestamps
 const normalizeTimestamps = (data) => {
@@ -30,43 +30,19 @@ const normalizeTimestamps = (data) => {
   return data;
 };
 
-const TipolineaController = {
-  /**
-   * @swagger
-   * tags:
-   *   name: TiposLinea
-   *   description: Gestión de tipos de línea
-   */
-
-  /**
-   * @swagger
-   * /tipolinea:
-   *   get:
-   *     summary: Listar tipos de línea
-   *     tags: [TiposLinea]
-   *     parameters:
-   *       - in: query
-   *         name: page
-   *         schema: { type: integer, default: 1 }
-   *       - in: query
-   *         name: limit
-   *         schema: { type: integer, default: 10 }
-   *     responses:
-   *       200:
-   *         description: Lista de tipos de línea
-   */
+const TipomovimientoController = {
   /**
    * @desc    Obtener todos los registros (CON validación Zod en query)
-   * @route   GET /api/mp/tipolinea
+   * @route   GET /api/mp/tipomovimiento
    * @access  Public
    */
   getAll: [
-    validate(listTipolineaSchema, "query"),
+    validate(listTipomovimientoSchema, "query"),
     async (req, res, next) => {
       try {
         const { page, limit, offset, sortBy, sortOrder, search } = parseListParams(req.query, {
-          allowedSortFields: ["tipo", "createdAt", "updatedAt"],
-          defaultSort: "tipo",
+          allowedSortFields: ["movimiento", "estadobaja", "createdAt", "updatedAt"],
+          defaultSort: "movimiento",
           defaultOrder: "ASC",
           maxLimit: 100,
           columnMapping: {
@@ -78,10 +54,10 @@ const TipolineaController = {
         // Construir where clause para búsqueda
         const whereClause = {};
         if (search) {
-          whereClause[Op.or] = [{ tipo: { [Op.iLike]: `%${search}%` } }];
+          whereClause[Op.or] = [{ movimiento: { [Op.iLike]: `%${search}%` } }];
         }
 
-        const data = await Tipolinea.findAndCountAll({
+        const data = await Tipomovimiento.findAndCountAll({
           where: whereClause,
           limit: parseInt(limit),
           offset: parseInt(offset),
@@ -90,7 +66,7 @@ const TipolineaController = {
         });
 
         const rowsNormalizados = data.rows.map((row) => {
-          const plainRow = row.toJSON();
+          const plainRow = row.toJSON(); // 🔑 CLAVE: convertir a objeto plano
           return normalizeTimestamps(plainRow);
         });
 
@@ -105,7 +81,7 @@ const TipolineaController = {
           },
         });
       } catch (error) {
-        console.error(" Error en getAll Tipolinea:", error);
+        console.error(" Error en getAll Tipomovimiento:", error);
         return next(error);
       }
     },
@@ -113,16 +89,16 @@ const TipolineaController = {
 
   /**
    * @desc    Obtener un registro por ID
-   * @route   GET /api/mp/tipolinea/:id
+   * @route   GET /api/mp/tipomovimiento/:id
    * @access  Public
    */
   async getById(req, res, next) {
     try {
       const { id } = req.params;
-      const data = await Tipolinea.findByPk(id);
+      const data = await Tipomovimiento.findByPk(id);
 
       if (!data) {
-        return next(apiErrors.notFound("Tipolinea"));
+        return next(apiErrors.notFound("Tipomovimiento"));
       }
 
       // Normalizar timestamps
@@ -133,24 +109,24 @@ const TipolineaController = {
         data: dataNormalizada,
       });
     } catch (error) {
-      console.error(" Error en getById Tipolinea:", error);
+      console.error(" Error en getById Tipomovimiento:", error);
       return next(error);
     }
   },
 
   /**
    * @desc    Crear nuevo registro (CON validación Zod en body)
-   * @route   POST /api/mp/tipolinea
+   * @route   POST /api/mp/tipomovimiento
    * @access  Public
    */
   create: [
-    validate(createTipolineaSchema, "body"),
+    validate(createTipomovimientoSchema, "body"),
     async (req, res, next) => {
       try {
         // Filtrar campos de timestamps
         const { createdAt, updatedAt, ...cleanData } = req.body;
 
-        const data = await Tipolinea.create(cleanData);
+        const data = await Tipomovimiento.create(cleanData);
 
         // Normalizar respuesta
         const dataNormalizada = normalizeTimestamps(data.toJSON());
@@ -158,16 +134,16 @@ const TipolineaController = {
         res.status(201).json({
           success: true,
           data: dataNormalizada,
-          message: "Tipo de línea creado exitosamente",
+          message: "Tipo de movimiento creado exitosamente",
         });
       } catch (error) {
-        console.error(" Error creando Tipolinea:", error);
+        console.error(" Error creando Tipomovimiento:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
         }
         if (error.name === "SequelizeUniqueConstraintError") {
-          return next(apiErrors.conflict("El tipo de línea ya existe"));
+          return next(apiErrors.conflict("El tipo de movimiento ya existe"));
         }
         return next(error);
       }
@@ -176,11 +152,11 @@ const TipolineaController = {
 
   /**
    * @desc    Actualizar registro (CON validación Zod parcial)
-   * @route   PUT /api/mp/tipolinea/:id
+   * @route   PUT /api/mp/tipomovimiento/:id
    * @access  Public
    */
   update: [
-    validate(updateTipolineaSchema, "body"),
+    validate(updateTipomovimientoSchema, "body"),
     async (req, res, next) => {
       try {
         const { id } = req.params;
@@ -188,15 +164,15 @@ const TipolineaController = {
         // Filtrar campos de timestamps
         const { createdAt, updatedAt, ...cleanData } = req.body;
 
-        const [affectedRows] = await Tipolinea.update(cleanData, {
-          where: { id_tipolinea: id },
+        const [affectedRows] = await Tipomovimiento.update(cleanData, {
+          where: { id_tipomovimiento: id },
         });
 
         if (affectedRows === 0) {
-          return next(apiErrors.notFound("Tipolinea"));
+          return next(apiErrors.notFound("Tipomovimiento"));
         }
 
-        const updatedData = await Tipolinea.findByPk(id);
+        const updatedData = await Tipomovimiento.findByPk(id);
 
         // Normalizar respuesta
         const dataNormalizada = normalizeTimestamps(updatedData.toJSON());
@@ -204,10 +180,10 @@ const TipolineaController = {
         res.json({
           success: true,
           data: dataNormalizada,
-          message: "Tipo de línea actualizado exitosamente",
+          message: "Tipo de movimiento actualizado exitosamente",
         });
       } catch (error) {
-        console.error(" Error actualizando Tipolinea:", error);
+        console.error(" Error actualizando Tipomovimiento:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiErrors.badRequest(mensajes));
@@ -219,30 +195,30 @@ const TipolineaController = {
 
   /**
    * @desc    Eliminar registro
-   * @route   DELETE /api/mp/tipolinea/:id
+   * @route   DELETE /api/mp/tipomovimiento/:id
    * @access  Public
    */
   async delete(req, res, next) {
     try {
       const { id } = req.params;
 
-      const affectedRows = await Tipolinea.destroy({
-        where: { id_tipolinea: id },
+      const affectedRows = await Tipomovimiento.destroy({
+        where: { id_tipomovimiento: id },
       });
 
       if (affectedRows === 0) {
-        return next(apiErrors.notFound("Tipolinea"));
+        return next(apiErrors.notFound("Tipomovimiento"));
       }
 
       res.json({
         success: true,
-        message: "Tipo de línea eliminado exitosamente",
+        message: "Tipo de movimiento eliminado exitosamente",
       });
     } catch (error) {
-      console.error(" Error eliminando Tipolinea:", error);
+      console.error(" Error eliminando Tipomovimiento:", error);
       return next(error);
     }
   },
 };
 
-module.exports = TipolineaController;
+module.exports = TipomovimientoController;
