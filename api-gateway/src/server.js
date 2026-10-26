@@ -3,14 +3,17 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-const requestLogger = require("./middleware/requestLogger");
-const logger = require("./config/logger");
 const path = require("path");
 const dotenv = require("dotenv");
+const requestLogger = require("./middleware/requestLogger");
 const { globalLimiter, authLimiter } = require("./middleware/rateLimit.js");
+const verifyJwt = require("./middleware/verifyJwt");
+const logger = require("./config/logger");
 
-// Cargar variables de entorno
 dotenv.config({ path: path.join(__dirname, "../../.env.local") });
+
+const { requireJwtSecret } = require("./config/jwt");
+requireJwtSecret();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -67,9 +70,13 @@ const createServiceProxy = (target, serviceName, proxyOptions = {}) => {
       }
     },
     onProxyReq: (proxyReq, req, res) => {
-      // Propagar headers importantes (ej. Authorization)
       if (req.headers.authorization) {
         proxyReq.setHeader("Authorization", req.headers.authorization);
+      }
+      if (req.user) {
+        proxyReq.setHeader("X-User-Id", String(req.user.id));
+        proxyReq.setHeader("X-User-Email", req.user.email || "");
+        proxyReq.setHeader("X-User-Roles", JSON.stringify(req.user.roles || []));
       }
       logger.informacion(`🔀 [${serviceName}] ${req.method} ${req.url} → ${target}`);
     },
@@ -90,6 +97,9 @@ app.use(
 );
 
 app.use(globalLimiter); // Límite global para todas las demás rutas
+
+// 🔐 JWT verification — excludes public routes (login, register, /health)
+app.use(verifyJwt);
 
 // /api/users/* -> backend-users /api/*
 app.use(
