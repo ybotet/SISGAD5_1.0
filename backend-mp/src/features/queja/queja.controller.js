@@ -23,6 +23,8 @@ const {
   normalizeDateRange,
   getCurrentDateTime,
 } = require("../../shared/utils/dateUtils");
+const { CierreQuejaSaga } = require("../../shared/services/cierreQuejaSaga");
+const logger = require("../../shared/config/logger");
 
 // Función auxiliar para normalizar fechas de quejas (texto a timestamp)
 const normalizeQuejaDate = (dateStr) => {
@@ -665,25 +667,9 @@ const QuejaController = {
     validate(cerrarQuejaSchema, "body"),
     async (req, res, next) => {
       try {
-        const { id } = req.params;
+         const { id } = req.params;
         const { id_clavecierre, fechaok } = req.body;
-        const fechaokNormalized = normalizeToDbDateTime(fechaok);
 
-        // 1. Verificar que la queja existe
-        const queja = await Queja.findByPk(id, {
-          attributes: ["id_queja", "estado"],
-        });
-
-        if (!queja) {
-          return next(apiErrors.notFound("Queja"));
-        }
-
-        // 2. Validar que no esté ya cerrada
-        if (queja.estado === "Cerrada") {
-          return next(apiErrors.badRequest("La queja ya está cerrada"));
-        }
-
-        // 3. Validar que la clave de cierre exista y no sea pendiente
         const claveCierre = await Clave.findByPk(id_clavecierre);
         if (!claveCierre) {
           return next(apiErrors.badRequest("La clave de cierre no existe"));
@@ -692,50 +678,60 @@ const QuejaController = {
           return next(apiErrors.badRequest("No se puede cerrar con una clave pendiente"));
         }
 
-        // 4. Validar transición de estado para cerrar
-        const estadosValidosParaCerrar = ["Resuelta", "Probada"];
-        if (!estadosValidosParaCerrar.includes(queja.estado)) {
+        const saga = new CierreQuejaSaga();
+        const result = await saga.execute(id, {
+          id_clavecierre,
+          fechaok,
+          userId: req.userId,
+          token: req.headers.authorization?.replace("Bearer ", ""),
+        });
+
+        if (result.compensacion) {
+          const motivo = result.compensacion.motivo;
+          if (motivo === "QUEJA_NO_ENCONTRADA") {
+            return next(apiErrors.notFound("Queja"));
+          }
+          if (motivo === "YA_CERRADA") {
+            return next(apiErrors.badRequest("La queja ya está cerrada"));
+          }
+          if (motivo === "ESTADO_INVALIDO") {
+            return next(
+              apiErrors.badRequest(
+                `No se puede cerrar una queja en estado "${result.compensacion.estado}". La queja debe estar en estado Resuelta o Probada.`,
+              ),
+            );
+          }
+          if (motivo === "MATERIALES_FALLA") {
+            logger.alerta(
+              "Cierre compensado: Materials service falló (%s). Se revirtió cierre.",
+              result.compensacion.error,
+            );
+            return res.status(502).json({
+              success: false,
+              error: "Cierre revertido: no se pudo registrar consumo en Materials",
+              compensacion: result.compensacion,
+            });
+          }
           return next(
             apiErrors.badRequest(
-              `No se puede cerrar una queja en estado "${queja.estado}". La queja debe estar en estado Resuelta o Probada.`,
+              `Cierre fallido: ${result.compensacion.motivo}`,
             ),
           );
         }
 
-        // 5. Actualizar la queja
-        await Queja.update(
-          {
-            estado: "Cerrada",
-            id_clavecierre: id_clavecierre,
-            fechaok: fechaokNormalized,
-            updated_by: req.userId,
-          },
-          {
-            where: { id_queja: parseInt(id) },
-            validate: false, // Desactivar validación
-            individualHooks: false,
-          },
-        );
-
-        // 6. Obtener la queja actualizada con sus relaciones
-        const updatedData = await Queja.findByPk(id, {
-          include: [
-            { association: "tb_clave", attributes: ["id_clave", "clave"] },
-            {
-              association: "tb_clave_cierre",
-              attributes: ["id_clave", "clave", "es_pendiente"],
-              required: false,
-            },
-          ],
-        });
-
         res.json({
           success: true,
           message: "Queja cerrada exitosamente",
-          data: updatedData,
+          data: result.queja,
+          consumo: result.consumo || null,
+          saga: {
+            success: result.success,
+            trabajos_procesados: result.trabajos.length,
+            consumo_registrado: result.consumo !== null,
+          },
         });
       } catch (error) {
-        console.error(" Error cerrando queja:", error);
+        logger.error(" Error cerrando queja:", error);
         next(error);
       }
     },

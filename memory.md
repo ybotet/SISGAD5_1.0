@@ -40,6 +40,7 @@
 | 2026-10-26 | TASK-B-19 | Reordenar rutas /dashboard/* antes de /:id | [ver](docs/memory/2026-10-23.md#2026-10-26--task-b-19-reordenar-rutas-dashboard-antes-de--id) |
 | 2026-10-27 | TASK-B-20 | Migraciones versionadas + índices users/mp | [ver](docs/memory/2026-10-23.md#2026-10-27--task-b-20-migraciones-versionadas--índices-usersmp) |
 | 2026-10-27 | TASK-B-21 | Infraestructura de tests (Jest + Supertest) | [ver](docs/memory/2026-10-23.md#2026-10-27--task-b-21-infraestructura-de-tests-jest--supertest) |
+| 2026-10-27 | TASK-B-22 | Saga/compensación al cerrar queja (MP → Materials) | [ver](docs/memory/2026-10-23.md#2026-10-27--task-b-22-sagacompenzaci%C3%B3n-al-cerrar-queja-mp--materials) |
 
 ---
 

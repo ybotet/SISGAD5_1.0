@@ -26,12 +26,18 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, "ERROR.JWT.SECRET_TOO_SHORT"),
   JWT_EXPIRES_IN: z.string().default("24h"),
 
-  // Servicios externos (opcionales para desarrollo)
+  // Servicios externos
   USERS_SERVICE_URL: z
     .string()
     .url()
     .optional()
     .default("http://localhost:5001"),
+
+  MATERIALES_SERVICE_URL: z
+    .string()
+    .url()
+    .optional()
+    .default("http://localhost:5003"),
 
   // Logging
   LOG_LEVEL: z.enum(["error", "warn", "info", "debug"]).default("info"),

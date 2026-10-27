@@ -137,11 +137,11 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 | SEC-05 | ✅ Gateway verifica JWT (middleware) | TASK-B-15 | N/A — resuelto                                    |
 | SEC-06 | ✅ RBAC aplicado en MP | TASK-B-17 | `tienePermiso` aplicado en quejas, trabajos, asignaciones |
 | SEC-07 | ✅ Parametrizado con Sequelize replacements | TASK-B-18 | No interpolar strings en SQL                     |
-| ARC-02 | ✅ Gateway propaga claims via headers | TASK-B-15 | N/A — mitigado (no añadir llamadas síncronas)    |
-| ARC-03 | Cerrar queja no orquesta materiales | TASK-B-22 | No asumir que el cierre de queja registra consumo |
+| ARC-02 | ✅ Gateway propaga claims via headers | TASK-B-15 | N/A — mitigado (claims en JWT, no llamadas síncronas)    |
+| ARC-03 | ✅ Cerrar queja orquesta consumo en Materials | TASK-B-22 | Saga con compensación — rollback si Materials falla     |
 | BUS-02 | ✅ Rutas `/dashboard/*` antes de `/:id` | TASK-B-19 | No añadir rutas después de `/:id`                  |
 | DAT-01 | ✅ Migraciones + índices creados | TASK-B-20 | No añadir modelos sin migración            |
-| QA-01  | ✅ `npm test` passes (21 tests en MP, 11 en Users) | TASK-B-21 | Confiar en CI                   |
+| QA-01  | ✅ `npm test` passes (27 MP + 11 Users) | TASK-B-21 | Confiar en CI                   |
 
 ### Reglas derivadas de la auditoría
 

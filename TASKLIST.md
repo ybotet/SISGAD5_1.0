@@ -125,7 +125,7 @@
 | ✅     | 🟠       | 🔨      | **TASK-B-19** | **Reordenar rutas `/dashboard/*` antes de `/:id`**          | **Auditoría BUS-02** | Dashboard accesible                             |
 | ✅     | 🟠       | 🔨      | **TASK-B-20** | **Migraciones versionadas + índices (Users, MP)**           | **Auditoría DAT-01** | `migrations/` con índices en estado, FKs, fecha |
 | ✅     | 🟠       | 🔨      | **TASK-B-21** | **Infraestructura Jest/Supertest + 32 tests**               | **Auditoría QA-01**  | CI pasa con tests reales (21 MP + 11 Users)     |
-| ⏳      | 🟠       | 🏗️    | **TASK-B-22** | **Saga/compensación al cerrar queja (MP → Materials)**      | **Auditoría ARC-03** | Consumo registrado al cerrar queja              |
+| ✅      | 🟠       | 🏗️    | **TASK-B-22** | **Saga/compensación al cerrar queja (MP → Materials)**      | **Auditoría ARC-03** | Consumo registrado al cerrar queja              |
 
 **Total Fase B:** 22 tareas
 
@@ -190,11 +190,11 @@
 
 | Fase                              | Tareas | Completadas | %      |
 | --------------------------------- | ------ | ----------- | ------ |
-| A — Limpieza y Seguridad          | 12     | 0           | 0%     |
-| B — Reorganización y Correcciones | 22     | 0           | 0%     |
+| A — Limpieza y Seguridad          | 12     | 12          | 100%   |
+| B — Reorganización y Correcciones | 22     | 22          | 100%   |
 | C — Documentación                 | 12     | 0           | 0%     |
 | D — Predictivo + Tesis            | 19     | 0           | 0%     |
-| **TOTAL PARTE I**                 | **65** | **0**       | **0%** |
+| **TOTAL PARTE I**                 | **65** | **34**      | **52%** |
 
 ---
 
@@ -630,7 +630,7 @@
 | SEC-08 | 🟡 Medio   | DebugLogin con credenciales fijas                          | (Fase B, dentro de frontend)   | ⏳      |
 | ARC-01 | 🟠 Alto    | Docs ≠ código (Gin vs mux)                                 | TASK-C-11                      | ⏳      |
 | ARC-02 | 🟠 Alto    | MP llama a Users en cada request                           | TASK-B-15 (claims en JWT)      | ✅     |
-| ARC-03 | 🟠 Alto    | Cerrar queja no orquesta materiales                        | TASK-B-22                      | ⏳      |
+| ARC-03 | 🟠 Alto    | Cerrar queja no orquesta materiales                        | TASK-B-22                    | ✅      |
 | ARC-04 | 🟠 Alto    | `MP_DB_NAME` mal inyectado                                 | TASK-A-12 (✅)                 | ✅     |
 | ARC-05 | 🟡 Medio   | Health checks no prueban BD                                | (Fase B)                       | ⏳      |
 | ARC-06 | 🟡 Medio   | `X-Request-Id` no se propaga                               | (Fase B)                       | ⏳      |
@@ -659,10 +659,10 @@
 | Fase                              | Tareas | Completadas | %      |
 | --------------------------------- | ------ | ----------- | ------ |
 | A — Limpieza y Seguridad          | 12     | 12          | 100%   |
-| B — Reorganización y Correcciones | 22     | 21          | 95%    |
+| B — Reorganización y Correcciones | 22     | 22          | 100%   |
 | C — Documentación                 | 12     | 0           | 0%     |
 | D — Predictivo + Tesis            | 19     | 0           | 0%     |
-| **TOTAL PARTE I**                 | **65** | **33**      | **51%** |
+| **TOTAL PARTE I**                 | **65** | **34**      | **52%** |
 
 ### Parte II — Inventario Funcional
 
@@ -689,9 +689,9 @@
 
 | Parte     | Tareas  | Completadas | %        |
 | --------- | ------- | ----------- | -------- |
-| Parte I   | 65      | 33          | 51%      |
+| Parte I   | 65      | 34          | 52%      |
 | Parte II  | 230     | 59          | 26%      |
-| **TOTAL** | **295** | **92**      | **~31%** |
+| **TOTAL** | **295** | **93**      | **~32%** |
 
 ---
 
