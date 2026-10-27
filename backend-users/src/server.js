@@ -75,7 +75,12 @@ app.use((error, req, res, next) => {
 
 const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, () => {
-  logger.informacion(`🚀 Microservicio Usuarios ejecutándose en puerto ${PORT}`);
-  logger.informacion(`📊 Entorno: ${process.env.NODE_ENV || "development"}`);
-});
+// Only start server when run directly (not required by tests)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    logger.informacion(`🚀 Microservicio Usuarios ejecutándose en puerto ${PORT}`);
+    logger.informacion(`📊 Entorno: ${process.env.NODE_ENV || "development"}`);
+  });
+}
+
+module.exports = app;

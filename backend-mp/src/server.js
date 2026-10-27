@@ -127,6 +127,12 @@ app.use(errorHandler);
 
 const logger = require("./shared/config/logger");
 const PORT = config.MP_PORT || 5002;
-app.listen(PORT, () => {
-  logger.informacion(`🚀 Backend MP ejecutándose en puerto ${PORT}`);
-});
+
+// Only start server when run directly (not required by tests)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    logger.informacion(`🚀 Backend MP ejecutándose en puerto ${PORT}`);
+  });
+}
+
+module.exports = app;

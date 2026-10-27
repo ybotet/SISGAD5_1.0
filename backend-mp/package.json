@@ -7,10 +7,13 @@
     "build": "tsc",
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "generate:models": "node scripts/generate-models.js",
     "generate:cruds": "node scripts/generate-cruds.js",
     "db:sync": "node -e \"require('./src/models').syncModels()\"",
+    "db:migrate": "npx sequelize db:migrate",
+    "db:migrate:undo": "npx sequelize db:migrate:undo",
     "swagger:export": "node -e \"const swagger=require('./src/config/swagger');const fs=require('fs');fs.mkdirSync('docs',{recursive:true});fs.writeFileSync('docs/swagger.json',JSON.stringify(swagger,null,2));console.log('✅ Swagger exportado a docs/swagger.json')\"",
     "migrate:timezone": "node scripts/migrate-timezone.js",
     "fix:dates": "node scripts/fix-existing-dates.js",
@@ -40,5 +43,10 @@
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "sequelize-cli": "^6.6.5",
+    "supertest": "^7.3.1"
   }
 }

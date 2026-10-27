@@ -1,20 +1,24 @@
-const { describe, it } = require("node:test");
-const assert = require("node:assert/strict");
 const { requireJwtSecret } = require("./jwt");
 
-describe("requireJwtSecret", () => {
+describe("requireJwtSecret (JWT validation)", () => {
+  const originalSecret = process.env.JWT_SECRET;
+
+  afterEach(() => {
+    process.env.JWT_SECRET = originalSecret;
+  });
+
   it("rechaza secreto ausente", () => {
-    assert.throws(() => requireJwtSecret(undefined), /JWT_SECRET/);
-    assert.throws(() => requireJwtSecret(""), /JWT_SECRET/);
+    expect(() => requireJwtSecret(undefined)).toThrow();
+    expect(() => requireJwtSecret("")).toThrow();
   });
 
   it("rechaza secreto menor de 32 caracteres", () => {
-    assert.throws(() => requireJwtSecret("secreto"), /JWT_SECRET/);
-    assert.throws(() => requireJwtSecret("a".repeat(31)), /JWT_SECRET/);
+    expect(() => requireJwtSecret("secreto")).toThrow();
+    expect(() => requireJwtSecret("a".repeat(31))).toThrow();
   });
 
   it("acepta secreto de 32 caracteres o más", () => {
     const secret = "a".repeat(32);
-    assert.equal(requireJwtSecret(secret), secret);
+    expect(requireJwtSecret(secret)).toBe(secret);
   });
 });

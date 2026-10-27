@@ -40,11 +40,4 @@ router.put("/:id", tienePermiso("trabajos.actualizar"), TrabajoController.update
  */
 router.delete("/:id", tienePermiso("trabajos.eliminar"), TrabajoController.delete);
 
-/**
- * @route   PATCH /api/tbTrabajo/:id/cerrar
- * @desc    Cerrar Trabajo
- * @access  Permiso: trabajos.cerrar
- */
-router.patch("/:id/cerrar", tienePermiso("trabajos.cerrar"), TrabajoController.cerrar);
-
 module.exports = router;

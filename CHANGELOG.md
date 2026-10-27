@@ -50,6 +50,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🚀 Infraestructura
 - Creación de `.github/projects/sisgad5-roadmap.yml` con configuración del tablero
 - Creación de `scripts/setup-github-project.sh` para configurar GitHub Projects
+- **TASK-B-20:** Migraciones versionadas + índices (28 tablas MP, users): `migrations/`, `.sequelizerc`, `sequelize.config.js`, scripts `db:migrate`/`db:migrate:undo`, `sync({ alter: false })`
+- **TASK-B-21:** Jest + Supertest en `backend-mp` (21 tests) y `backend-users` (11 tests); `server.js` exporta `app` con listen condicional
+- `.sequelizerc` añadido a `.gitignore`
 
 ---
 

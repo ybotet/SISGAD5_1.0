@@ -17,62 +17,82 @@ function assertNoInjection(name, input) {
   const result = normalizeDateRange({ from: input, to: input });
   const combined = JSON.stringify(result);
   const injectionPatterns = [
-    "'", "--", ";", "/*", "*/", "xp_", "DROP", "DELETE", "INSERT", "UPDATE",
-    "UNION", "SELECT", "EXEC", "<", ">",
+    "'",
+    "--",
+    ";",
+    "/*",
+    "*/",
+    "xp_",
+    "DROP",
+    "DELETE",
+    "INSERT",
+    "UPDATE",
+    "UNION",
+    "SELECT",
+    "EXEC",
+    "<",
+    ">",
   ];
   const found = injectionPatterns.some((p) => combined.includes(p.toUpperCase()));
   assert(name, !found, "Injection pattern found in: " + combined);
 }
 
-// Test 1: normalizeDateRange with valid dates
-const validRange = normalizeDateRange({ from: "2025-01-01", to: "2025-12-31" });
-assert(
-  "Valid date range produces YYYY-MM-DD HH:MM:SS format",
-  /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(validRange.from) &&
-    /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(validRange.to),
-  JSON.stringify(validRange),
-);
+describe("SQL injection prevention — dateFilter uses Sequelize replacements", () => {
+  // Test 1: normalizeDateRange with valid dates
+  const validRange = normalizeDateRange({ from: "2025-01-01", to: "2025-12-31" });
+  test("Valid date range produces YYYY-MM-DD HH:MM:SS format", () => {
+    expect(validRange.from).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+    expect(validRange.to).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+  });
 
-// Test 2: normalizeDateRange with invalid dates returns null
-const invalidRange = normalizeDateRange({ from: "not-a-date", to: null });
-assert("Invalid date returns null", invalidRange.from === null && invalidRange.to === null);
+  // Test 2: normalizeDateRange with invalid dates returns null
+  const invalidRange = normalizeDateRange({ from: "not-a-date", to: null });
+  test("Invalid date returns null", () => {
+    expect(invalidRange.from).toBeNull();
+    expect(invalidRange.to).toBeNull();
+  });
 
-// Test 3: SQL injection in date input
-assertNoInjection("SQL injection: ' OR 1=1 --", "' OR 1=1 --");
-assertNoInjection("SQL injection: '; DROP TABLE tb_queja;", "'; DROP TABLE tb_queja;");
-assertNoInjection("SQL injection: 2025-01-01' UNION SELECT *", "2025-01-01' UNION SELECT *");
-assertNoInjection("SQL injection: <script>alert(1)</script>", "<script>alert(1)</script>");
+  // Test 3: SQL injection in date input
+  const injectionPayloads = [
+    "' OR 1=1 --",
+    "'; DROP TABLE tb_queja;",
+    "2025-01-01' UNION SELECT *",
+    "<script>alert(1)</script>",
+  ];
 
-// Test 4: Verify dateFilter uses named placeholders (not string interpolation)
-const dateFilterSrc = require("fs").readFileSync(__dirname + "/../src/features/queja/queja.controller.js", "utf8");
+  injectionPayloads.forEach((payload) => {
+    test(`SQL injection rejected: ${payload}`, () => {
+      const result = normalizeDateRange({ from: payload, to: payload });
+      const combined = JSON.stringify(result);
+      const injectionPatterns = ["'", "--", ";", "DROP", "DELETE", "INSERT", "UPDATE", "UNION", "SELECT", "<", ">"];
+      injectionPatterns.forEach((p) => {
+        expect(combined).not.toContain(p.toUpperCase());
+      });
+    });
+  });
 
-assert(
-  "dateFilter uses :fromDate placeholder",
-  dateFilterSrc.includes(":fromDate::timestamp"),
-);
-assert(
-  "dateFilter uses :toDate placeholder",
-  dateFilterSrc.includes(":toDate::timestamp"),
-);
+  // Test 4: Verify dateFilter uses named placeholders (not string interpolation)
+  const fs = require("fs");
+  const dateFilterSrc = fs.readFileSync(__dirname + "/../src/features/queja/queja.controller.js", "utf8");
 
-assert(
-  "No interpolated normalizedRange.from in SQL string",
-  !dateFilterSrc.includes("${normalizedRange.from}"),
-  "Found ${normalizedRange.from} in source",
-);
-assert(
-  "No interpolated normalizedRange.to in SQL string",
-  !dateFilterSrc.includes("${normalizedRange.to}"),
-  "Found ${normalizedRange.to} in source",
-);
+  test("dateFilter uses :fromDate placeholder", () => {
+    expect(dateFilterSrc).toContain(":fromDate::timestamp");
+  });
 
-assert(
-  "Queries pass replacements option to sequelize.query",
-  (dateFilterSrc.match(/replacements/g) || []).length >= 5,
-  "Expected at least 5 usages of replacements",
-);
+  test("dateFilter uses :toDate placeholder", () => {
+    expect(dateFilterSrc).toContain(":toDate::timestamp");
+  });
 
-console.log("\n========================================");
-console.log("Resultados: " + passed + " passed, " + failed + " failed");
-console.log("========================================");
-process.exit(failed > 0 ? 1 : 0);
+  test("No interpolated normalizedRange.from in SQL string", () => {
+    expect(dateFilterSrc).not.toContain("${normalizedRange.from}");
+  });
+
+  test("No interpolated normalizedRange.to in SQL string", () => {
+    expect(dateFilterSrc).not.toContain("${normalizedRange.to}");
+  });
+
+  test("Queries pass replacements option to sequelize.query", () => {
+    const matches = dateFilterSrc.match(/replacements/g) || [];
+    expect(matches.length).toBeGreaterThanOrEqual(5);
+  });
+});

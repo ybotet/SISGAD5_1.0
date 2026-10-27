@@ -124,7 +124,7 @@
 | ✅      | 🟠       | 🔨      | **TASK-B-18** | **Parametrizar SQL del dashboard (Sequelize replacements)** | **Auditoría SEC-07** | Sin interpolación de strings                    |
 | ✅      | 🟠       | 🔨      | **TASK-B-19** | **Reordenar rutas `/dashboard/*` antes de `/:id`**          | **Auditoría BUS-02** | Dashboard accesible                             |
 | ✅      | 🟠       | 🔨      | **TASK-B-20** | **Migraciones versionadas + índices (Users, MP)**      | **Auditoría DAT-01** | `migrations/` con índices en estado, FKs, fecha |
-| ⏳      | 🟠       | 🏗️    | **TASK-B-21** | **Sustituir `npm test` placeholder por Jest/Supertest**     | **Auditoría QA-01**  | CI pasa con tests reales                        |
+| ✅      | 🟠       | 🔨      | **TASK-B-21** | **Infraestructura Jest/Supertest + 32 tests**            | **Auditoría QA-01**  | CI pasa con tests reales (21 MP + 11 Users)     |
 | ⏳      | 🟠       | 🏗️    | **TASK-B-22** | **Saga/compensación al cerrar queja (MP → Materials)**      | **Auditoría ARC-03** | Consumo registrado al cerrar queja              |
 
 **Total Fase B:** 22 tareas
@@ -575,10 +575,10 @@
 | BUS-02 | 🟠 Alto    | Rutas dashboard después de `/:id`              | TASK-B-19                    | ⏳      |
 | BUS-03 | 🟡 Medio   | Máquina de estados laxa                        | (Fase B)                     | ⏳      |
 | BUS-04 | 🟡 Medio   | `fecha` es STRING                              | (Fase B)                     | ⏳      |
-| DAT-01 | 🟠 Alto    | Sin migraciones ni índices                     | TASK-B-20                    | ⏳      |
+| DAT-01 | 🟠 Alto    | Sin migraciones ni índices                     | TASK-B-20                    | ✅      |
 | DAT-02 | 🟡 Medio   | `SkipDefaultTransaction: true`                 | (Fase A, revisar)            | ⏳      |
 | DAT-03 | 🟡 Medio   | N+1 en consumos                                | (Fase B)                     | ⏳      |
-| QA-01  | 🟠 Alto    | `npm test` es `exit 1`                         | TASK-B-21                    | ⏳      |
+| QA-01  | 🟠 Alto    | `npm test` es `exit 1`                         | TASK-B-21                    | ✅      |
 | QA-02  | 🟡 Medio   | Pocos tests Node/Frontend                      | TASK-800-01, TASK-800-02     | ⏳      |
 | QA-03  | 🟡 Medio   | Código muerto (`AuthController` MP, `useAuth`) | (Fase B)                     | ⏳      |
 | QA-04  | 🟢 Bajo    | Duplicación `authLimiter`                      | (Fase B)                     | ⏳      |

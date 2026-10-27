@@ -60,9 +60,12 @@ Continue/
 *.iml
 .kilo/.gitignore
 
-# ============================================
-# SISTEMA OPERATIVO
-# ============================================
+  # ============================================
+  # SISTEMA OPERATIVO
+  # ============================================
+  # .sequelizerc (paths are env/workspace-specific)
+.sequelizerc
+**/.sequelizerc
 .DS_Store
 Thumbs.db
 

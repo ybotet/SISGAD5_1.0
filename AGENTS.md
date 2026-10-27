@@ -141,7 +141,7 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 | ARC-03 | Cerrar queja no orquesta materiales | TASK-B-22 | No asumir que el cierre de queja registra consumo |
 | BUS-02 | ✅ Rutas `/dashboard/*` antes de `/:id` | TASK-B-19 | No añadir rutas después de `/:id`                  |
 | DAT-01 | ✅ Migraciones + índices creados | TASK-B-20 | No añadir modelos sin migración            |
-| QA-01  | `npm test` es `exit 1`              | TASK-B-21 | No confiar en CI hasta que pase                   |
+| QA-01  | ✅ `npm test` passes (21 tests en MP, 11 en Users) | TASK-B-21 | Confiar en CI                   |
 
 ### Reglas derivadas de la auditoría
 

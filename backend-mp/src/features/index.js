@@ -303,7 +303,7 @@ const syncModels = async () => {
     // Configurar zona horaria antes de sincronizar
     await setupPostgresTimezone();
 
-    await sequelize.sync({ force: false });
+    await sequelize.sync({ alter: false }); // Schema gestionado por migrations/, no por sync
     console.log("✅ Modelos sincronizados con la base de datos");
 
     // Verificar que las columnas de fecha sean del tipo correcto

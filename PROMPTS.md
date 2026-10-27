@@ -105,7 +105,7 @@ Hallazgos: SEC-01 (JWT fallback), SEC-02 (Materials sin JWT), SEC-03 (Grafana ad
 2. Genera nuevo `DB_PASSWORD` seguro.
 3. Crea `.env.local` (gitignored) con los nuevos valores.
 4. Verifica que `.env.example` solo tenga placeholders (`your-secret-here`).
-5. Documenta en `docs/memory/2026-10-23.md` los nuevos valores (sin exponerlos, solo referencia).
+5. Documenta en `docs/memory/[fecha de hoy].md` los nuevos valores (sin exponerlos, solo referencia).
 6. Avisa al humano para que actualice PostgreSQL.
 
 [RESTRICCIONES]
@@ -142,7 +142,7 @@ Problema: El repo tiene versionados node_modules, logs, dist, .env, api.exe, bac
    - Python: `__pycache__/`, `*.pkl`, `.venv/`
    - Datos: `prediction-service/data/`
 2. Verifica que `.env.example` NO esté ignorado.
-3. Documenta en `docs/memory/2026-10-23.md`.
+3. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Contenido del `.gitignore`.
@@ -166,7 +166,7 @@ Archivos/carpetas a eliminar: [lista del TASKLIST].
 1. Ejecuta `git rm -r --cached` sobre los archivos/carpetas indicados (sin borrar del disco).
 2. Verifica que `git status` esté limpio.
 3. Verifica que el repo se aligera (`du -sh .git`).
-4. Documenta en `docs/memory/2026-10-23.md`.
+4. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [RESTRICCIONES]
 - No borres archivos del disco sin confirmación del humano.
@@ -201,7 +201,7 @@ Archivos:
 3. Añade la validación en src/config/env.js (o equivalente) si no existe.
 4. Verifica que .env.example tenga JWT_SECRET=your-secret-here.
 5. Ejecuta tests existentes.
-6. Documenta en docs/memory/2026-10-23.md.
+6. Documenta en docs/memory/[fecha de hoy].md.
 
 [RESTRICCIONES]
 
@@ -232,7 +232,7 @@ Archivo: `backend-materiales-go/cmd/api/main.go` (líneas ~116-177).
 3. Añade `JWT_SECRET` a `.env.example` y `internal/config/`.
 4. Verifica que sin token, las rutas devuelven 401.
 5. Verifica que con token válido, las rutas funcionan.
-6. Documenta en `docs/memory/2026-10-23.md`.
+6. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [RESTRICCIONES]
 - No cambies la lógica de negocio, solo añade auth.
@@ -262,7 +262,7 @@ Archivo: `docker-compose.prod.yml`.
    - `5432:5432` (PostgreSQL)
 2. Deja solo el puerto del Gateway (5000) y del Frontend (5004) expuestos.
 3. Verifica que los servicios se comunican por la red interna de Docker.
-4. Documenta en `docs/memory/2026-10-23.md`.
+4. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [RESTRICCIONES]
 - No rompas `docker-compose.yml` (dev); solo `prod`.
@@ -286,7 +286,7 @@ Archivo: `docker-compose.yml` (líneas ~192-199).
 [TAREA]
 1. Reemplaza `GF_SECURITY_ADMIN_PASSWORD: admin` por `${GRAFANA_ADMIN_PASSWORD}`.
 2. Añade `GRAFANA_ADMIN_PASSWORD` a `.env.example` (placeholder).
-3. Documenta en `docs/memory/2026-10-23.md`.
+3. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Diff del compose.
@@ -312,7 +312,7 @@ Archivos:
 [TAREA]
 1. En `docker-compose.yml`, cambia `DB_NAME=${MP_DB_NAME}` por `MP_DB_NAME=${MP_DB_NAME}` (o el nombre correcto según el schema Zod).
 2. Verifica que `backend-mp` arranca sin abortar.
-3. Documenta en `docs/memory/2026-10-23.md`.
+3. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Diff del compose.
@@ -339,7 +339,7 @@ Archivos: `backend-mp/src/controllers/`, `routes/`, `models/`, `validations/`.
 3. Mueve archivos con `git mv`.
 4. Actualiza imports en los archivos movidos y en `routes/index.js`.
 5. Ejecuta tests y verifica que `docker compose up` funciona.
-6. Documenta en `docs/memory/2026-10-23.md`.
+6. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [RESTRICCIONES]
 - No cambies lógica de negocio, solo estructura.
@@ -370,7 +370,7 @@ Archivo: `api-gateway/src/server.js` (líneas ~86-140).
 2. Excluye rutas públicas: `/api/auth/login`, `/api/auth/register`, `/health`.
 3. Propaga claims (userId, roles) en headers `X-User-Id`, `X-User-Roles` a los servicios.
 4. Verifica que sin token, las rutas protegidas devuelven 401.
-5. Documenta en `docs/memory/2026-10-23.md`.
+5. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [RESTRICCIONES]
 - No dupliques la lógica de Users; solo verifica la firma.
@@ -398,7 +398,7 @@ Archivo: `api-gateway/src/server.js` (líneas ~23-40).
 1. Reemplaza `origin: true` por lista blanca desde `CORS_ORIGIN` (env var).
 2. Si `CORS_ORIGIN` no está definido en producción, falla al arrancar.
 3. Activa CSP de Helmet en producción.
-4. Documenta en `docs/memory/2026-10-23.md`.
+4. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Código corregido.
@@ -424,7 +424,7 @@ Archivos: `backend-mp/src/routes/queja.js`, `trabajo.js`, `asignacion.js`.
    - `asignaciones.crear`, `asignaciones.eliminar`
 2. Corrige `tienePermiso` en `middleware/permissions.js` (usa `forEach` sin retorno).
 3. Verifica que sin permiso, devuelve 403.
-4. Documenta en `docs/memory/2026-10-23.md`.
+4. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Código corregido en rutas y middleware.
@@ -447,7 +447,7 @@ Archivo: `backend-mp/src/controllers/QuejaController.js` (líneas ~830-838).
 1. Reemplaza la interpolación de fechas en el string SQL por `replacements`.
 2. Verifica que `normalizeDateRange` se usa correctamente.
 3. Añade tests que validen que no hay inyección.
-4. Documenta en `docs/memory/2026-10-23.md`.
+4. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Código corregido.
@@ -470,7 +470,7 @@ Archivo: `backend-mp/src/routes/queja.js` (líneas ~20, 45-53).
 1. Mueve las rutas `GET /dashboard/*` antes de `GET /:id`.
 2. Verifica que `GET /dashboard/resumen` funciona.
 3. Verifica que `GET /:id` sigue funcionando para IDs válidos.
-4. Documenta en `docs/memory/2026-10-23.md`.
+4. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Código reordenado.
@@ -494,7 +494,7 @@ Problema: No hay `migrations/`, se usa `sequelize.sync({ force: false })`, sin �
 2. Genera migraciones para las tablas existentes (sin perder datos).
 3. Añade índices en: `estado`, FKs, `fecha`.
 4. Reemplaza `sequelize.sync({ force: false })` por `sequelize.sync({ alter: false })` + migraciones.
-5. Documenta en `docs/memory/2026-10-23.md`.
+5. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Archivos de migración.
@@ -517,7 +517,7 @@ Problema: `backend-users/package.json:10` y `backend-mp/package.json:10` tienen 
 1. Configura Jest + Supertest en `backend-users` y `backend-mp`.
 2. Crea tests básicos para los endpoints críticos (auth, quejas, trabajos).
 3. Verifica que `npm test` pasa.
-4. Documenta en `docs/memory/2026-10-23.md`.
+4. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Configuración de Jest.
@@ -541,7 +541,7 @@ Problema: Cerrar queja solo actualiza MP, no registra consumo en Materials.
 1. Diseña la saga: al cerrar queja, llamar a Materials para registrar consumo.
 2. Implementa compensación si Materials falla (revertir cierre o marcar pendiente).
 3. Añade timeout y retry con backoff.
-4. Documenta en `docs/memory/2026-10-23.md`.
+4. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Diagrama de la saga (Mermaid).
@@ -567,7 +567,7 @@ Convención: archivos paralelos `.es.md` / `.ru.md`.
 2. Crea `docs/[archivo].ru.md` con la traducción fiel al ruso.
 3. Actualiza enlaces internos en otros documentos.
 4. Actualiza `docs/00_index.es.md` y `.ru.md`.
-5. Documenta en `docs/memory/2026-10-23.md`.
+5. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Archivos creados/renombrados.
@@ -593,7 +593,7 @@ Problema: Docs dicen Gin, pero es gorilla/mux. Docs dicen Redis/Prometheus, pero
    - Prometheus: marcar como "planificado" o eliminar.
    - Prediction Service: añadir (ya está en SPEC.md).
 2. Verifica que los diagramas Mermaid reflejan la realidad.
-3. Documenta en `docs/memory/2026-10-23.md`.
+3. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Diff de `ARCHITECTURE.md`.
@@ -619,7 +619,7 @@ Problema: La sección 8 debe reflejar el estado actual de la deuda técnica.
    - Añade nuevos hallazgos si los hay.
    - Actualiza la tabla de "Prohibido mientras tanto".
 3. Si todos los hallazgos están resueltos, mueve la sección a `docs/audit/AUDITORIA.md` (histórico) y elimínala de `AGENTS.md`.
-4. Documenta en `docs/memory/2026-10-23.md`.
+4. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Diff de `AGENTS.md`.
@@ -656,7 +656,7 @@ text
 
 2. Configura `requirements.txt` o `pyproject.toml` con: fastapi, uvicorn, scikit-learn, xgboost, prophet, pandas, numpy, mlflow, sqlalchemy, pydantic.
 3. Configura `bd_predictions` en `docker-compose.yml`.
-4. Documenta en `docs/memory/2026-10-23.md`.
+4. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Estructura creada.
@@ -683,7 +683,7 @@ Datos: sintéticos (anonimizados de datos reales).
    - Trabajos: duración, técnico, tipo de falla.
 3. Documenta cada feature (nombre, tipo, fuente, transformación).
 4. Genera script de anonimización de datos reales.
-5. Documenta en `docs/memory/2026-10-23.md`.
+5. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Código de features.
@@ -709,7 +709,7 @@ Criterio: [MAE < 15% / MAE < 20% / Precision > 85% / Accuracy > 80% / Recall > 7
 3. Evalúa con métricas del criterio.
 4. Serializa modelo en `models/` (gitignored).
 5. Registra en MLflow (si disponible).
-6. Documenta métricas en `docs/memory/2026-10-23.md`.
+6. Documenta métricas en `docs/memory/[fecha de hoy].md`.
 
 [RESTRICCIONES]
 - No uses datos reales sin anonimizar.
@@ -741,7 +741,7 @@ Tarea: [TASK-D-09 / D-10 / D-11] — [API REST / Integrar Gateway / Dashboard pr
    - `GET /api/predictions/fallos-infraestructura`
 2. Integra con Gateway (`api-gateway/src/routes/`).
 3. Crea dashboard en `frontend/src/pages/Predictions/`.
-4. Documenta en `docs/memory/2026-10-23.md`.
+4. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Código de endpoints.
@@ -768,7 +768,7 @@ Tarea: [TASK-D-20 / D-21] — [Protocolo de datos sintéticos / Validar modelos 
 2. Genera dataset sintético.
 3. Valida modelos con el dataset.
 4. Reporta métricas en `docs/thesis/06_modelado_predictivo.es.md` y `.ru.md`.
-5. Documenta en `docs/memory/2026-10-23.md`.
+5. Documenta en `docs/memory/[fecha de hoy].md`.
 
 [FORMATO]
 1. Protocolo documentado.

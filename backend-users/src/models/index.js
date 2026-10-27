@@ -37,7 +37,7 @@ Permiso.belongsToMany(Rol, {
 // Sincronizar modelos
 const syncModels = async () => {
   try {
-    await sequelize.sync({ force: false });
+    await sequelize.sync({ alter: false }); // Schema gestionado por migrations/, no por sync
     console.log("✅ Modelos sincronizados con la base de datos");
   } catch (error) {
     console.error("❌ Error sincronizando modelos: ", error);
