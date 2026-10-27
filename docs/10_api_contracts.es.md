@@ -338,5 +338,5 @@
 - [MP Service OpenAPI](api/mp.yaml)
 - [Materials Service OpenAPI](api/materials.yaml)
 - [API Gateway OpenAPI](api/gateway.yaml)
-- [Estrategia de Seguridad](13_security.md)
-- [Matriz RBAC](12_rbac_matrix.md)
+- [Estrategia de Seguridad](13_security.es.md)
+- [Matriz RBAC](12_rbac_matrix.es.md)

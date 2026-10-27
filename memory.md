@@ -1,6 +1,6 @@
-# 📅 Memoria — 2026-10-23
+# 📅 Memoria — 2026-10-27
 
-> Detalle completo de las decisiones y cambios del 2026-10-23.
+> Detalle completo de las decisiones y cambios del 2026-10-23 al 2026-10-27.
 
 ---
 
@@ -41,6 +41,9 @@
 | 2026-10-27 | TASK-B-20 | Migraciones versionadas + índices users/mp | [ver](docs/memory/2026-10-23.md#2026-10-27--task-b-20-migraciones-versionadas--índices-usersmp) |
 | 2026-10-27 | TASK-B-21 | Infraestructura de tests (Jest + Supertest) | [ver](docs/memory/2026-10-23.md#2026-10-27--task-b-21-infraestructura-de-tests-jest--supertest) |
 | 2026-10-27 | TASK-B-22 | Saga/compensación al cerrar queja (MP → Materials) | [ver](docs/memory/2026-10-23.md#2026-10-27--task-b-22-sagacompenzaci%C3%B3n-al-cerrar-queja-mp--materials) |
+| 2026-10-27 | TASK-C-01 | Renombrar `docs/*.md` a `docs/*.es.md` (18 archivos) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-01-renombrar-docsmd-a-docsesmd-18-archivos) |
+| 2026-10-27 | TASK-C-02 | Crear `docs/*.ru.md` (traducción de 18 archivos) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-02-crear-docsru-md-traducci%C3%B3n-de-18-archivos) |
+| 2026-10-27 | TASK-C-03 | Consolidar documentación (duplicados, enlaces) | [ver](docs/memory/2026-10-27.md#2026-10-27--consolidaci%C3%B3n-de-documentaci%C3%B3n-en-docs) |
 
 ---
 

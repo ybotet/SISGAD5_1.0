@@ -331,8 +331,8 @@ updates:
 
 ## 11. Referencias
 
-- [Matriz RBAC](12_rbac_matrix.md)
-- [Modelo de Dominio](07_domain_model.md) - Entidades User, Sesion
-- [Casos de Uso](03_use_cases.md) - UC-01 a UC-08
-- [Diagramas de Secuencia](08_sequence_diagrams.md) - Escenario 3
+- [Matriz RBAC](12_rbac_matrix.es.md)
+- [Modelo de Dominio](07_domain_model.es.md) - Entidades User, Sesion
+- [Casos de Uso](03_use_cases.es.md) - UC-01 a UC-08
+- [Diagramas de Secuencia](08_sequence_diagrams.es.md) - Escenario 3
 - [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)

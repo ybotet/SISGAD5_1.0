@@ -1,15 +1,15 @@
-# Diagramas de Secuencia - SISGAD5
+# Диаграммы последовательностей - SISGAD5
 
-> **Versión:** 1.0  
-> **Fecha:** 2026-09-25  
-> **Escenarios:** 3 críticos  
-> **Fuente:** [SISGAD5_doc/docs/08](https://github.com/ybotet/SISGAD5_doc)
+> **Версия:** 1.0
+> **Дата:** 2026-09-25
+> **Сценарии:** 3 критических
+> **Источник:** [SISGAD5_doc/docs/08](https://github.com/ybotet/SISGAD5_doc)
 
 ---
 
-## 1. Escenario 1: Flujo Completo de Queja (Crítico)
+## 1. Сценарий 1: Полный поток жалобы (Критический)
 
-### Actores: Operador, Técnico, Jefe, Sistema
+### Актёры: Оператор, Техник, Jefe, Система
 
 ```
 ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌──────────┐
@@ -67,10 +67,10 @@
      │<─────────────│ 200 OK       │              │              │
 ```
 
-### Tabla de Mensajes
+### Таблица сообщений
 
-| # | De | Hacia | Mensaje | Datos |
-|---|----|-------|---------|-------|
+| # | От | К | Сообщение | Данные |
+|---|----|---|-----------|-------|
 | 1 | Operador | Sistema | POST /api/mp/quejas | {tipo_queja, servicio, ubicacion, reportado_por, telefono_id} |
 | 2 | Sistema | Operador | 201 Created | {queja: {id, num_reporte, estado: "Abierta", prioridad}} |
 | 3 | Técnico | Sistema | GET /api/mp/quejas?estado=Abierta | - |
@@ -90,9 +90,9 @@
 
 ---
 
-## 2. Escenario 2: Asignación y Consumo de Materiales (Crítico)
+## 2. Сценарий 2: Назначение и Расход Материалов (Критический)
 
-### Actores: Analista, Técnico, Sistema
+### Актёры: Аналитик, Техник, Система
 
 ```
 ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
@@ -126,10 +126,10 @@
      │              │              │<─────────────│              │
 ```
 
-### Tabla de Mensajes
+### Таблица сообщений
 
-| # | De | Hacia | Mensaje | Datos |
-|---|----|-------|---------|-------|
+| # | От | К | Сообщение | Данные |
+|---|----|---|-----------|-------|
 | 1 | Analista | Sistema | POST /api/materials/asignaciones | {trabajador_id, trabajo_id, items: [{material_id, cantidad}]} |
 | 2 | Sistema | - | Validar existencia materiales | SELECT * FROM materiales WHERE id IN (...) |
 | 3 | Sistema | - | Verificar stock (concurrente) | Goroutines por material |
@@ -144,9 +144,9 @@
 
 ---
 
-## 3. Escenario 3: Autenticación y Acceso a Recurso Protegido (Crítico)
+## 3. Сценарий 3: Аутентификация и доступ к защищенному ресурсу (Критический)
 
-### Actores: Usuario, API Gateway, Users Service, MP Service
+### Актёры: Пользователь, API Gateway, Users Service, MP Service
 
 ```
 ┌────────┐    ┌────────────┐    ┌─────────────┐    ┌─────────┐
@@ -196,10 +196,10 @@
      │   new_refresh}│                  │              │
 ```
 
-### Tabla de Mensajes
+### Таблица сообщений
 
-| # | De | Hacia | Mensaje | Datos |
-|---|----|-------|---------|-------|
+| # | От | К | Сообщение | Данные |
+|---|----|---|-----------|-------|
 | 1 | Usuario | Gateway | POST /api/auth/login | {email, password} |
 | 2 | Gateway | Users | POST /api/auth/login | {email, password} |
 | 3 | Users | - | Validar bcrypt, generar tokens | - |
@@ -219,9 +219,9 @@
 
 ---
 
-## 4. Diagramas Fuente
+## 4. Исходные диаграммы
 
-Ver archivos Mermaid en: [`docs/diagrams/sequence_diagrams/`](../diagrams/sequence_diagrams/)
+См. файлы Mermaid: [`docs/diagrams/sequence_diagrams/`](../diagrams/sequence_diagrams/)
 
 - `01_flujo_queja_completo.mmd`
 - `02_asignacion_consumo_materiales.mmd`
@@ -229,9 +229,9 @@ Ver archivos Mermaid en: [`docs/diagrams/sequence_diagrams/`](../diagrams/sequen
 
 ---
 
-## 5. Referencias
+## 5. Ссылки
 
-- [Casos de Uso](03_use_cases.md)
-- [Modelo de Dominio](07_domain_model.md)
-- [Máquinas de Estado](09_state_machines.md)
-- [Estrategia de Seguridad](13_security.md)
+- [Варианты использования](03_use_cases.ru.md)
+- [Модель домена](07_domain_model.ru.md)
+- [Машины состояний](09_state_machines.ru.md)
+- [Стратегия безопасности](13_security.ru.md)

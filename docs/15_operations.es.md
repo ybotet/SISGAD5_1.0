@@ -408,8 +408,8 @@ services:
 
 ## 9. Referencias
 
-- [Despliegue](14_deployment.md)
+- [Despliegue](14_deployment.es.md)
 - [Monitoreo](../monitoring/)
 - [Scripts](../scripts/)
-- [Testing](16_testing.md)
+- [Testing](16_testing.es.md)
 - [Arquitectura](../ARCHITECTURE.md)

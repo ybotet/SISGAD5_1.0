@@ -185,5 +185,5 @@ graph TD
 - [TASKLIST.md](../TASKLIST.md) - Tareas detalladas por fase
 - [SPEC.md](../SPEC.md) - Especificación técnica base
 - [Arquitectura](../ARCHITECTURE.md) - Decisiones arquitectónicas
-- [Guía de Operación](15_operations.md) - Operación actual
-- [Testing](16_testing.md) - Estrategia de calidad
+- [Guía de Operación](15_operations.es.md) - Operación actual
+- [Testing](16_testing.es.md) - Estrategia de calidad

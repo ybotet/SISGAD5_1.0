@@ -90,6 +90,6 @@ Ver [User Story Map](../practices/practice_02_user_story_map.md)
 
 ## 5. Referencias
 
-- [Casos de Uso](03_use_cases.md)
-- [Matriz RBAC](12_rbac_matrix.md)
+- [Casos de Uso](03_use_cases.es.md)
+- [Matriz RBAC](12_rbac_matrix.es.md)
 - [Event Storming](../practices/practice_03_event_storming.md)

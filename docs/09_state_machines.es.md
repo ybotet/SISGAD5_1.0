@@ -231,8 +231,8 @@ Ver archivos Mermaid en: [`docs/diagrams/state_machines/`](../diagrams/state_mac
 
 ## 7. Referencias
 
-- [Reglas de Negocio](06_business_rules.md)
-- [Casos de Uso](03_use_cases.md)
-- [Modelo de Dominio](07_domain_model.md)
-- [Diagramas de Secuencia](08_sequence_diagrams.md)
+- [Reglas de Negocio](06_business_rules.es.md)
+- [Casos de Uso](03_use_cases.es.md)
+- [Modelo de Dominio](07_domain_model.es.md)
+- [Diagramas de Secuencia](08_sequence_diagrams.es.md)
 - [Event Storming](../practices/practice_03_event_storming.md)

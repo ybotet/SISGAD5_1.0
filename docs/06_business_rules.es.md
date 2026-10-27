@@ -126,7 +126,7 @@
 
 ## 10. Referencias
 
-- [Requisitos](05_requirements.md)
-- [Modelo de Dominio](07_domain_model.md)
-- [Máquinas de Estado](09_state_machines.md)
+- [Requisitos](05_requirements.es.md)
+- [Modelo de Dominio](07_domain_model.es.md)
+- [Máquinas de Estado](09_state_machines.es.md)
 - [Event Storming](../practices/practice_03_event_storming.md)

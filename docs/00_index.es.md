@@ -10,24 +10,24 @@
 
 | # | Documento | Descripción |
 |---|-----------|-------------|
-| 00 | [00_index.md](00_index.md) | Este índice |
-| 01 | [01_introduction.md](01_introduction.md) | Introducción y contexto del proyecto |
-| 02 | [02_actors.md](02_actors.md) | Actores del sistema (7 roles) |
-| 03 | [03_use_cases.md](03_use_cases.md) | Casos de uso (24 casos) |
-| 04 | [04_glossary.md](04_glossary.md) | Glosario de términos (Ubiquitous Language) |
-| 05 | [05_requirements.md](05_requirements.md) | Requisitos funcionales y no funcionales |
-| 06 | [06_business_rules.md](06_business_rules.md) | Reglas de negocio |
-| 07 | [07_domain_model.md](07_domain_model.md) | Modelo de dominio (28 clases, 5 contextos) |
-| 08 | [08_sequence_diagrams.md](08_sequence_diagrams.md) | Diagramas de secuencia (3 escenarios críticos) |
-| 09 | [09_state_machines.md](09_state_machines.md) | Máquinas de estado |
-| 10 | [10_api_contracts.md](10_api_contracts.md) | Contratos de API (índice) |
-| 11 | [11_data_model.md](11_data_model.md) | Modelo de datos (ER consolidado 3 BD) |
-| 12 | [12_rbac_matrix.md](12_rbac_matrix.md) | Matriz de roles y permisos (RBAC) |
-| 13 | [13_security.md](13_security.md) | Estrategia de seguridad (JWT + Refresh) |
-| 14 | [14_deployment.md](14_deployment.md) | Guía de despliegue |
-| 15 | [15_operations.md](15_operations.md) | Guía de operación |
-| 16 | [16_testing.md](16_testing.md) | Estrategia de testing |
-| 17 | [17_roadmap.md](17_roadmap.md) | Roadmap de evolución |
+| 00 | [00_index.md](00_index.es.md) | Este índice |
+| 01 | [01_introduction.md](01_introduction.es.md) | Introducción y contexto del proyecto |
+| 02 | [02_actors.md](02_actors.es.md) | Actores del sistema (7 roles) |
+| 03 | [03_use_cases.md](03_use_cases.es.md) | Casos de uso (24 casos) |
+| 04 | [04_glossary.md](04_glossary.es.md) | Glosario de términos (Ubiquitous Language) |
+| 05 | [05_requirements.md](05_requirements.es.md) | Requisitos funcionales y no funcionales |
+| 06 | [06_business_rules.md](06_business_rules.es.md) | Reglas de negocio |
+| 07 | [07_domain_model.md](07_domain_model.es.md) | Modelo de dominio (28 clases, 5 contextos) |
+| 08 | [08_sequence_diagrams.md](08_sequence_diagrams.es.md) | Diagramas de secuencia (3 escenarios críticos) |
+| 09 | [09_state_machines.md](09_state_machines.es.md) | Máquinas de estado |
+| 10 | [10_api_contracts.md](10_api_contracts.es.md) | Contratos de API (índice) |
+| 11 | [11_data_model.md](11_data_model.es.md) | Modelo de datos (ER consolidado 3 BD) |
+| 12 | [12_rbac_matrix.md](12_rbac_matrix.es.md) | Matriz de roles y permisos (RBAC) |
+| 13 | [13_security.md](13_security.es.md) | Estrategia de seguridad (JWT + Refresh) |
+| 14 | [14_deployment.md](14_deployment.es.md) | Guía de despliegue |
+| 15 | [15_operations.md](15_operations.es.md) | Guía de operación |
+| 16 | [16_testing.md](16_testing.es.md) | Estrategia de testing |
+| 17 | [17_roadmap.md](17_roadmap.es.md) | Roadmap de evolución |
 
 ---
 

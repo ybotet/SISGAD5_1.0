@@ -89,8 +89,8 @@ La **Dirección No. 5** es una unidad organizativa responsable de la infraestruc
 
 ## 6. Documentación Relacionada
 
-- [Actores del Sistema](02_actors.md)
-- [Casos de Uso](03_use_cases.md)
+- [Actores del Sistema](02_actors.es.md)
+- [Casos de Uso](03_use_cases.es.md)
 - [Arquitectura Técnica](../ARCHITECTURE.md)
 - [Especificación Completa](../SPEC.md)
 - [Lista de Tareas](../TASKLIST.md)

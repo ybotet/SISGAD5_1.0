@@ -402,8 +402,8 @@ Ver diagrama fuente en: [`docs/diagrams/class_diagrams/`](../diagrams/class_diag
 
 ## 9. Referencias
 
-- [Casos de Uso](03_use_cases.md)
-- [Glosario](04_glossary.md)
-- [Reglas de Negocio](06_business_rules.md)
-- [Diagramas de Secuencia](08_sequence_diagrams.md)
-- [Modelo de Datos ER](11_data_model.md)
+- [Casos de Uso](03_use_cases.es.md)
+- [Glosario](04_glossary.es.md)
+- [Reglas de Negocio](06_business_rules.es.md)
+- [Diagramas de Secuencia](08_sequence_diagrams.es.md)
+- [Modelo de Datos ER](11_data_model.es.md)

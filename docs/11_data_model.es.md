@@ -532,7 +532,7 @@ LEFT JOIN users tec ON q.tecnico_asignado_id = tec.id;
 
 ## 7. Referencias
 
-- [Modelo de Dominio](07_domain_model.md)
-- [Reglas de Negocio](06_business_rules.md)
-- [Casos de Uso](03_use_cases.md)
+- [Modelo de Dominio](07_domain_model.es.md)
+- [Reglas de Negocio](06_business_rules.es.md)
+- [Casos de Uso](03_use_cases.es.md)
 - [Diagramas ER fuente](diagrams/er_diagrams/)

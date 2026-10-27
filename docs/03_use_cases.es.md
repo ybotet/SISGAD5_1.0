@@ -88,7 +88,7 @@ Ver diagrama fuente en: [`docs/diagrams/use_cases/`](../diagrams/use_cases/)
 
 ## 5. Referencias
 
-- [Actores](02_actors.md)
-- [Modelo de Dominio](07_domain_model.md)
-- [Diagramas de Secuencia](08_sequence_diagrams.md)
+- [Actores](02_actors.es.md)
+- [Modelo de Dominio](07_domain_model.es.md)
+- [Diagramas de Secuencia](08_sequence_diagrams.es.md)
 - [Matriz de Trazabilidad](../practices/practice_06_uml_dynamic.md)

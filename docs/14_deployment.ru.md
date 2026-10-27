@@ -1,25 +1,25 @@
-# Guía de Despliegue - SISGAD5
+# Руководство по развертыванию - SISGAD5
 
-> **Versión:** 1.0  
-> **Fecha:** 2026-09-25
+> **Версия:** 1.0
+> **Дата:** 2026-09-25
 
 ---
 
-## 1. Requisitos Previos
+## 1. Предварительные требования
 
-### 1.1 Infraestructura Mínima (Desarrollo)
-| Componente | Versión | Notas |
-|------------|---------|-------|
+### 1.1 Минимальная инфраструктура (Разработка)
+| Компонент | Версия | Примечание |
+|-----------|--------|------------|
 | Docker | 24+ | Docker Engine |
-| Docker Compose | 2.20+ | Plugin `docker compose` |
-| Node.js | 20 LTS | Para build frontend |
-| Go | 1.21+ | Para build materials service |
-| PostgreSQL | 15+ | En contenedor o externo |
-| Git | 2.40+ | Control de versiones |
+| Docker Compose | 2.20+ | Плагин `docker compose` |
+| Node.js | 20 LTS | Для сборки frontend |
+| Go | 1.21+ | Для сборки materials service |
+| PostgreSQL | 15+ | В контейнере или внешне |
+| Git | 2.40+ | Управление версиями |
 
-### 1.2 Puertos Requeridos
-| Servicio | Puerto Interno | Puerto Externo (Dev) |
-|----------|----------------|----------------------|
+### 1.2 Требуемые порты
+| Сервис | Внутренний порт | Внешний порт (Dev) |
+|--------|----------------|----------------------|
 | API Gateway | 3000 | 3000 |
 | Users Service | 3001 | 3001 |
 | MP Service | 3002 | 3002 |
@@ -34,9 +34,9 @@
 
 ---
 
-## 2. Variables de Entorno
+## 2. Переменные окружения
 
-### 2.1 Archivos `.env.example` por Servicio
+### 2.1 Archivos `.env.example` по сервисам
 
 #### API Gateway (`.env.example`)
 ```env
@@ -114,15 +114,15 @@ VITE_DEFAULT_LANG=es
 
 ---
 
-## 3. Despliegue Local (Desarrollo)
+## 3. Развертывание локально (Разработка)
 
-### 3.1 Clonar y Configurar
+### 3.1 Клонирование и настройка
 ```bash
-# Clonar repositorio
+# Клонировать репозиторий
 git clone https://github.com/ybotet/SISGAD5_1.0.git
 cd SISGAD5_1.0
 
-# Copiar archivos de entorno
+# Скопировать файлы окружения
 cp .env.example .env
 cp api-gateway/.env.example api-gateway/.env
 cp backend-users/.env.example backend-users/.env
@@ -130,7 +130,7 @@ cp backend-mp/.env.example backend-mp/.env
 cp backend-materiales-go/.env.example backend-materiales-go/.env
 cp frontend/.env.example frontend/.env
 
-# Generar claves JWT (una sola vez)
+# Сгенерировать ключи JWT (один раз)
 mkdir -p api-gateway/keys backend-users/keys backend-mp/keys backend-materiales-go/keys
 openssl genrsa -out backend-users/keys/private.pem 2048
 openssl rsa -in backend-users/keys/private.pem -pubout -out backend-users/keys/public.pem
@@ -139,19 +139,19 @@ cp backend-users/keys/public.pem backend-mp/keys/
 cp backend-users/keys/public.pem backend-materiales-go/keys/
 ```
 
-### 3.2 Levantar Stack Completo
+### 3.2 Поднятие полного стека
 ```bash
-# Desarrollo (con hot reload)
+# Разработка (с hot reload)
 docker compose up -d --build
 
-# Ver logs
+# Просмотр логов
 docker compose logs -f
 
-# Ver estado
+# Проверка состояния
 docker compose ps
 ```
 
-### 3.3 Verificar Servicios
+### 3.3 Проверка сервисов
 ```bash
 # Health checks
 curl http://localhost:3000/health      # API Gateway
@@ -163,27 +163,27 @@ curl http://localhost:8080/health      # Materials
 open http://localhost:5173
 ```
 
-### 3.4 Comandos Útiles
+### 3.4 Полезные команды
 ```bash
-# Reiniciar un servicio
+# Перезапуск сервиса
 docker compose restart api-gateway
 
-# Rebuild y reiniciar
+# Пересборка и перезапуск
 docker compose up -d --build backend-users
 
-# Ejecutar migraciones (Users)
+# Выполнение миграций (Users)
 docker compose exec backend-users npm run migrate
 
-# Ejecutar seeders (Users)
+# Выполнение seeders (Users)
 docker compose exec backend-users npm run seed
 
-# Ejecutar migraciones (MP)
+# Выполнение миграций (MP)
 docker compose exec backend-mp npm run migrate
 
-# Ejecutar migraciones (Materials)
+# Выполнение миграций (Materials)
 docker compose exec backend-materiales-go migrate -path ./migrations -database "postgres://postgres:postgres@postgres-materials:5432/bd_materiales?sslmode=disable" up
 
-# Acceso a BD
+# Доступ к БД
 docker compose exec postgres-users psql -U postgres -d bd_users
 docker compose exec postgres-mp psql -U postgres -d bd_mp
 docker compose exec postgres-materials psql -U postgres -d bd_materiales
@@ -191,20 +191,20 @@ docker compose exec postgres-materials psql -U postgres -d bd_materiales
 
 ---
 
-## 4. Despliegue en Producción
+## 4. Развертывание в продакшен
 
-### 4.1 Preparación
+### 4.1 Подготовка
 ```bash
-# Usar docker-compose.prod.yml
+# Использовать docker-compose.prod.yml
 cp .env.example .env.production
-# Editar .env.production con valores reales (passwords, keys, dominios)
+# Редактировать .env.production с реальными значениями (passwords, keys, домены)
 
-# Generar claves JWT de producción
+# Сгенерировать ключи JWT для продакшена
 openssl genrsa -out backend-users/keys/private.pem 4096
 openssl rsa -in backend-users/keys/private.pem -pubout -out backend-users/keys/public.pem
 ```
 
-### 4.2 Variables Críticas de Producción
+### 4.2 Критические переменные продакшена
 ```env
 # .env.production
 NODE_ENV=production
@@ -216,19 +216,19 @@ LOG_LEVEL=warn
 CORS_ORIGINS=https://sisgad5.dominio.cu
 ```
 
-### 4.3 Desplegar
+### 4.3 Развёртывание
 ```bash
-# Con docker-compose.prod.yml
+# С docker-compose.prod.yml
 docker compose -f docker-compose.prod.yml up -d --build
 
-# Verificar
+# Проверка
 docker compose -f docker-compose.prod.yml ps
 curl https://sisgad5.dominio.cu/health
 ```
 
 ### 4.4 SSL/TLS (Reverse Proxy)
 ```nginx
-# nginx.conf (ejemplo)
+# nginx.conf (пример)
 server {
     listen 443 ssl http2;
     server_name sisgad5.dominio.cu;
@@ -255,9 +255,9 @@ server {
 
 ---
 
-## 5. Kubernetes (Producción Avanzada)
+## 5. Kubernetes (Продвинутый продакшен)
 
-### 5.1 Estructura `k8s/prod/`
+### 5.1 Структура `k8s/prod/`
 ```
 k8s/prod/
 ├── namespace.yaml
@@ -291,7 +291,7 @@ k8s/prod/
     └── backend-materiales-go.yaml
 ```
 
-### 5.2 Deployment Ejemplo (API Gateway)
+### 5.2 Пример развертывания (API Gateway)
 ```yaml
 # k8s/prod/deployments/api-gateway.yaml
 apiVersion: apps/v1
@@ -322,12 +322,12 @@ spec:
         - secretRef:
             name: sisgad5-secrets
         resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
           limits:
             memory: "512Mi"
             cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
         livenessProbe:
           httpGet:
             path: /health
@@ -342,7 +342,7 @@ spec:
           periodSeconds: 5
 ```
 
-### 5.3 HPA (Horizontal Pod Autoscaler)
+### 5.3 HPA (Горизонтальный автоскейлер подов)
 ```yaml
 # k8s/prod/hpa/api-gateway.yaml
 apiVersion: autoscaling/v2
@@ -374,18 +374,18 @@ spec:
 
 ---
 
-## 6. Base de Datos en Producción
+## 6. База данных в продакшен
 
-### 6.1 PostgreSQL (Managed Service Recomendado)
+### 6.1 PostgreSQL (Рекомендуемый управляемый сервис)
 - **Cloud SQL (GCP) / RDS (AWS) / Azure Database**
-- **Alta disponibilidad:** Réplica sincrónica en zona distinta
-- **Backups:** Automáticos diarios + point-in-time recovery (7 días)
-- **Conexiones:** Pooling con PgBouncer (max 100 conexiones por servicio)
+- **Высокая доступность:** Синхронная реплика в другой зоне
+- **Бэкапы:** Ежедневные автоматические + восстановление во время (7 дней)
+- **Подключения:** Пул соединений с PgBouncer (max 100 на сервис)
 
-### 6.2 Migraciones en Producción
+### 6.2 Миграции в продакшен
 ```bash
 # Users/MP (Sequelize)
-# Ejecutar en pipeline CI/CD antes de deploy
+# Выполнять в CI/CD перед deploy
 npm run migrate
 
 # Materials (Golang Migrate)
@@ -431,7 +431,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       
-      # ... (repeat for each service)
+      # ... (повторить для каждого сервиса)
       
       - name: Deploy to Kubernetes
         uses: azure/k8s-set-context@v1
@@ -444,55 +444,55 @@ jobs:
 
 ---
 
-## 8. Rollback
+## 8. Откат (Rollback)
 
 ### 8.1 Docker Compose
 ```bash
-# Etiquetar versión anterior antes de deploy
+# Пометить предыдущую версию перед deploy
 docker tag ghcr.io/ybotet/sisgad5-api-gateway:latest ghcr.io/ybotet/sisgad5-api-gateway:prev
 
-# Rollback rápido
+# Быстрый откат
 docker compose -f docker-compose.prod.yml down
-# Editar docker-compose.prod.yml para usar tag :prev
+# Отредактировать docker-compose.prod.yml для использования тега :prev
 docker compose -f docker-compose.prod.yml up -d
 ```
 
 ### 8.2 Kubernetes
 ```bash
-# Rollback deployment
+# Откат развертывания
 kubectl rollout undo deployment/api-gateway -n sisgad5-prod
 
-# Ver historial
+# Просмотр истории
 kubectl rollout history deployment/api-gateway -n sisgad5-prod
 
-# Rollback a revisión específica
+# Откат к конкретной версии
 kubectl rollout undo deployment/api-gateway -n sisgad5-prod --to-revision=5
 ```
 
 ---
 
-## 9. Checklist Pre-Despliegue
+## 9. Чек-лист перед развертыванием
 
-- [ ] Variables de entorno configuradas (`.env.production`)
-- [ ] Claves JWT generadas y distribuidas
-- [ ] Contraseñas BD fuertes y únicas por servicio
-- [ ] Certificados SSL válidos
-- [ ] DNS configurado (A/AAAA records)
-- [ ] Health checks responden 200
-- [ ] Migraciones BD ejecutadas
-- [ ] Seeders de datos iniciales (roles, permisos, catálogos MP)
-- [ ] Monitoreo alertando (Prometheus rules)
-- [ ] Logs centralizados (Loki recibiendo)
-- [ ] Backups BD verificados
-- [ ] Documentación de rollback accesible
+- [ ] Переменные окружения настроены (`.env.production`)
+- [ ] Ключи JWT сгенерированы и распределены
+- [ ] Пароли БД сильные и уникальны для каждого сервиса
+- [ ] SSL-сертификаты действительны
+- [ ] DNS настроен (A/AAAA записи)
+- [ ] Health checks возвращают 200
+- [ ] Миграции БД выполнены
+- [ ] Seedеры начальных данных (роли, разрешения, каталоги MP)
+- [ ] Мониторинг оповещает (Prometheus rules)
+- [ ] Централизованные логи (Loki получает)
+- [ ] Бэкапы БД проверены
+- [ ] Документация отката доступна
 
 ---
 
-## 10. Referencias
+## 10. Ссылки
 
-- [Arquitectura](../ARCHITECTURE.md)
-- [Operaciones](15_operations.md)
-- [Monitoreo](../monitoring/)
-- [Scripts de automatización](../scripts/)
+- [Архитектура](../ARCHITECTURE.md)
+- [Операции](15_operations.ru.md)
+- [Мониторинг](../monitoring/)
+- [Скрипты автоматизации](../scripts/)
 - [docker-compose.yml](../docker-compose.yml)
 - [docker-compose.prod.yml](../docker-compose.prod.yml)

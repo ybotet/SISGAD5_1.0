@@ -1,4 +1,4 @@
-# 🤖 AGENTS.md — Reglas de Oro del Proyecto SISGAD5
+#  AGENTS.md — Reglas de Oro del Proyecto SISGAD5
 
 > **Propósito:** Contrato global del proyecto. Kilo Code lo carga automáticamente en cada sesión.
 > **Repositorio:** https://github.com/ybotet/SISGAD5_1.0
@@ -243,6 +243,6 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 
 ---
 
-> **Última actualización:** 2026-10-23
+> **Última actualización:** 2026-10-27
 > **Mantenido por:** Ing. Botet S.Y.
 > **Licencia:** Uso académico — Tesis de Maestría RTU MIREA

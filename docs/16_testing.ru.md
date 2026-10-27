@@ -1,30 +1,30 @@
-# Estrategia de Testing - SISGAD5
+# Стратегия тестирования - SISGAD5
 
-> **Versión:** 1.0  
-> **Fecha:** 2026-09-25
-
----
-
-## 1. Pirámide de Testing
-
-```
-                    ┌─────────────┐
-                    │   E2E Tests │  ← Pocos, críticos, lentos
-                    └──────┬──────┘
-           ┌───────────────┼───────────────┐
-           ▼               ▼               ▼
-      ┌─────────┐    ┌─────────┐    ┌─────────┐
-      │Integration│  │Integration│  │Integration│  ← Por servicio, media cantidad
-      └────┬────┘    └────┬────┘    └────┬────┘
-           ▼               ▼               ▼
-      ┌─────────────────────────────────────┐
-      │         Unit Tests (70%+)           │  ← Muchos, rápidos, aislados
-      └─────────────────────────────────────┘
-```
+> **Версия:** 1.0
+> **Дата:** 2026-09-25
 
 ---
 
-## 2. Tests Unitarios (Cobertura ≥ 70%)
+## 1. Тестовая пирамида
+
+```
+                     ┌─────────────┐
+                     │   E2E Tests │  ← Few, critical, slow
+                     └──────┬──────┘
+            ┌───────────────┼───────────────┐
+            ▼               ▼               ▼
+       ┌─────────┐    ┌─────────┐    ┌─────────┐
+       │Integration│  │Integration│  │Integration│  ← Per service, medium quantity
+       └────┬────┘    └────┬────┘    └────┬────┘
+            ▼               ▼               ▼
+       ┌─────────────────────────────────────┐
+       │         Unit Tests (70%+)           │  ← Many, fast, isolated
+       └─────────────────────────────────────┘
+```
+
+---
+
+## 2. Модульные тесты (Cobertura ≥ 70%)
 
 ### 2.1 Users Service (Jest + Supertest)
 ```bash
@@ -73,7 +73,7 @@ backend-mp/tests/
 │   ├── services/
 │   │   ├── quejaService.test.js
 │   │   ├── trabajoService.test.js
-│   │   └── estadoQuejaService.test.js  # Máquina de estados
+│   │   └── estadoQuejaService.test.js  # Машина состояний
 │   ├── middlewares/
 │   └── validators/
 └── integration/
@@ -93,9 +93,9 @@ backend-materiales-go/
 │   │   └── dashboard_handler_test.go
 │   ├── services/
 │   │   ├── material_service_test.go
-│   │   ├── asignacion_service_test.go      # Transacciones, stock
-│   │   ├── consumo_service_test.go         # Validación vs asignación
-│   │   └── stock_service_test.go           # Saldo lógico
+│   │   ├── asignacion_service_test.go      # Транзакции, stock
+│   │   ├── consumo_service_test.go         # Проверка vs назначение
+│   │   └── stock_service_test.go           # Логический склад
 │   ├── repositories/
 │   │   └── postgres/
 │   │       ├── material_repo_test.go
@@ -142,7 +142,7 @@ frontend/tests/
 │   │   └── DashboardPage.test.tsx
 │   └── flows/
 │       └── authFlow.test.tsx
-└── e2e/                          # Ver sección 3
+└── e2e/                          # См. раздел 3
 ```
 
 **Comandos:**
@@ -154,39 +154,39 @@ npm run test:e2e           # E2E (Playwright)
 
 ---
 
-## 3. Tests de Integración (Por Servicio)
+## 3. Интеграционные тесты (По сервису)
 
 ### 3.1 Users Service
-- **Auth flow completo:** register → login → refresh → logout
-- **CRUD usuarios:** create → read → update → delete (soft)
-- **RBAC:** asignar roles → verificar permisos en endpoints
-- **Sesiones:** crear → listar → revocar
+- **Полный auth flow:** register → login → refresh → logout
+- **CRUD пользователей:** create → read → update → delete (soft)
+- **RBAC:** назначить роли → проверить разрешения на эндпоинтах
+- **Сессии:** создать → список → отозвать
 
 ### 3.2 MP Service
-- **Queja lifecycle:** crear → probar → asignar → trabajo → consumir → cerrar
-- **Infraestructura:** CRUD teléfono/línea/pizarra + historial
-- **Pruebas:** registrar → vincular queja/trabajo
-- **Trabajos:** crear → asignar → cerrar con tiempo real
+- **Жизненный цикл жалобы:** создать → протестировать → назначить → работа → расход → закрыть
+- **Инфраструктура:** CRUD телефон/линия/панель + история
+- **Тесты:** зарегистрировать → связать с жалобой/работой
+- **Работы:** создать → назначить → закрыть с реальным временем
 
 ### 3.3 Materials Service
-- **Asignación atómica:** múltiples items → transacción → rollback en error
-- **Consumo atómico:** validar vs asignación → transacción
-- **Stock lógico:** Σ(asignado) - Σ(consumido) por trabajador/material
-- **Concurrencia:** goroutines validando stock simultáneo
+- **Атомарное назначение:** множественные позиции → транзакция → откат при ошибке
+- **Атомарный расход:** проверить vs назначение → транзакция
+- **Логический склад:** Σ(назначено) - Σ(расходовано) по пользователю/материалу
+- **Конкуренция:** goroutines проверяющие stock одновременно
 
 ---
 
-## 4. Tests End-to-End (E2E) - Globales
+## 4. Сквозные тесты (E2E) - Глобальные
 
-### 4.1 Herramienta: Playwright (TypeScript)
+### 4.1 Инструмент: Playwright (TypeScript)
 ```bash
 tests/
 ├── e2e/
-│   ├── critical-flows.spec.ts      # Flujos críticos usuario
+│   ├── critical-flows.spec.ts      # Критические сценарии пользователя
 │   ├── auth.spec.ts                # Login, logout, refresh
-│   ├── mp-quejas-flow.spec.ts      # Flujo completo queja
-│   ├── materials-asignacion.spec.ts # Asignación + consumo
-│   └── cross-service.spec.ts       # Flujos multi-servicio
+│   ├── mp-quejas-flow.spec.ts      # Полный поток жалобы
+│   ├── materials-asignacion.spec.ts # Назначение + расход
+│   └── cross-service.spec.ts       # Многосервисные сценарии
 ├── fixtures/
 │   ├── test-data.json
 │   └── users.json
@@ -197,17 +197,17 @@ tests/
     └── MaterialesPage.ts
 ```
 
-### 4.2 Flujos Críticos a Cubrir
+### 4.2 Критические сценарии для покрытия
 
-| Flujo | Descripción | Prioridad |
-|-------|-------------|-----------|
-| **Auth Completo** | Login → navegar áreas protegidas → refresh token → logout | 🔴 Crítica |
-| **Queja → Trabajo → Consumo** | Operador crea queja → Jefe asigna → Técnico prueba/crea trabajo → Consume materiales → Cierra | 🔴 Crítica |
-| **Asignación Materiales** | Analista asigna → Técnico consume → Verificar stock lógico | 🔴 Crítica |
-| **Dashboard KPIs** | Verificar datos reales en dashboards MP y Materiales | 🟡 Alta |
-| **RBAC** | Verificar acceso denegado por rol en cada módulo | 🟡 Alta |
+| Сценарий | Описание | Приоритет |
+|----------|----------|-----------|
+| **Полный Auth** | Login → навигация по защищённым зонам → refresh token → logout | 🔴 Критическое |
+| **Жалоба → Работа → Расход** | Оператор создаёт жалобу → Jefe назначает → Техник тестирует/создаёт работу → Расходует материалы → Закрывает | 🔴 Критическое |
+| **Назначение материалов** | Аналитик назначает → Техник расходует → Проверить логический склад | 🔴 Критическое |
+| **KPI Дашборды** | Проверить реальные данные в дашбордах MP и материалов | 🟡 Высокое |
+| **RBAC** | Проверить запрет доступа по ролям в каждом модуле | 🟡 Высокое |
 
-### 4.3 Configuración Playwright
+### 4.3 Конфигурация Playwright
 ```typescript
 // tests/e2e/playwright.config.ts
 import { defineConfig, devices } from '@playwright/test';
@@ -242,32 +242,32 @@ export default defineConfig({
 
 ---
 
-## 5. Tests de Carga y Rendimiento
+## 5. Тесты нагрузки и производительности
 
-### 5.1 Herramienta: k6 (JavaScript)
+### 5.1 Инструмент: k6 (JavaScript)
 ```bash
 tests/
 └── load/
-    ├── endpoints.js              # Tests de carga por endpoint
+    ├── endpoints.js              # Тесты нагрузки по эндпоинтам
     ├── scenarios/
-    │   ├── normal-load.js        # 100 usuarios, 10 min
-    │   ├── stress-test.js        # Rampa hasta 500 usuarios
-    │   ├── spike-test.js         # Pico repentino 1000 usuarios
-    │   └── soak-test.js          # 100 usuarios, 1 hora
-    └── thresholds.js             # Umbrales de aceptación
+    │   ├── normal-load.js        # 100 пользователей, 10 мин
+    │   ├── stress-test.js        # Нарастание до 500 пользователей
+    │   ├── spike-test.js         # Резкий пик 1000 пользователей
+    │   └── soak-test.js          # 100 пользователей, 1 час
+    └── thresholds.js             # Пороги принятия
 ```
 
-### 5.2 Umbrales de Aceptación (RNF-01 a RNF-03)
+### 5.2 Пороги принятия (RNF-01 a RNF-03)
 
-| Métrica | Objetivo | Umbral Fallo |
-|---------|----------|--------------|
-| **Latencia p95** | < 200ms | > 500ms |
-| **Throughput** | 1000+ RPS | < 500 RPS |
-| **Tasa error** | < 1% | > 5% |
-| **Concurrencia** | 500+ usuarios | < 200 usuarios |
-| **Disponibilidad** | 99.9% | < 99.5% |
+| Метрика | Цель | Порог сбоя |
+|--------|------|------------|
+| **Задержка p95** | < 200ms | > 500ms |
+| **Пропускная способность** | 1000+ RPS | < 500 RPS |
+| **Частота ошибок** | < 1% | > 5% |
+| **Конкуренция** | 500+ пользователей | < 200 пользователей |
+| **Доступность** | 99.9% | < 99.5% |
 
-### 5.3 Ejemplo k6 Script
+### 5.3 Пример k6 скрипта
 ```javascript
 // tests/load/endpoints.js
 import http from 'k6/http';
@@ -279,11 +279,11 @@ const latency = new Trend('latency');
 
 export const options = {
   stages: [
-    { duration: '2m', target: 100 },   // Rampa
-    { duration: '5m', target: 100 },   // Estable
-    { duration: '2m', target: 200 },   // Estrés
+    { duration: '2m', target: 100 },   // Разгон
+    { duration: '5m', target: 100 },   // Стабильно
+    { duration: '2m', target: 200 },   // Нагрузка
     { duration: '5m', target: 200 },
-    { duration: '2m', target: 0 },     // Bajada
+    { duration: '2m', target: 0 },     // Снижение
   ],
   thresholds: {
     'http_req_duration{type:api}': ['p(95)<500'],
@@ -320,30 +320,30 @@ export default function () {
 
 ---
 
-## 6. Tests de Contrato (Contract Testing)
+## 6. Тесты контрактов (Contract Testing)
 
-### 6.1 Herramienta: Pact (Opcional)
-- Verificar compatibilidad entre Gateway y servicios
-- Ejecutar en CI antes de deploy
+### 6.1 Инструмент: Pact (Опционально)
+- Проверка совместимости между Gateway и сервисами
+- Выполняется в CI перед деплоем
 
-### 6.2 Validación OpenAPI
+### 6.2 Валидация OpenAPI
 ```bash
-# Validar especificación
+# Валидация спецификации
 npx @redocly/openapi-cli lint docs/api/users.yaml
 npx @redocly/openapi-cli lint docs/api/mp.yaml
 npx @redocly/openapi-cli lint docs/api/materials.yaml
 npx @redocly/openapi-cli lint docs/api/gateway.yaml
 
-# Generar clientes TypeScript/Go
+# Генерация клиентов TypeScript/Go
 npx openapi-typescript docs/api/users.yaml -o frontend/src/types/api-users.ts
 oapi-codegen -generate types,chi-server -package api docs/api/materials.yaml > backend-materiales-go/internal/api/types.go
 ```
 
 ---
 
-## 7. Tests de Seguridad
+## 7. Тесты безопасности
 
-### 7.1 SAST (Análisis Estático)
+### 7.1 SAST (Статический анализ)
 ```yaml
 # .github/workflows/security.yml
 - name: Run ESLint Security
@@ -361,11 +361,11 @@ oapi-codegen -generate types,chi-server -package api docs/api/materials.yaml > b
       p/owasp-top-ten
 ```
 
-### 7.2 DAST (Análisis Dinámico - Opcional)
-- OWASP ZAP en staging
-- Escaneo semanal programado
+### 7.2 DAST (Динамический анализ - Опционально)
+- OWASP ZAP на staging
+- Еженедельные запланированные сканирования
 
-### 7.3 Dependency Scanning
+### 7.3 Сканирование зависимостей
 ```bash
 # npm
 npm audit --audit-level=high
@@ -380,9 +380,9 @@ trivy image ghcr.io/ybotet/sisgad5-api-gateway:latest
 
 ---
 
-## 8. CI/CD Integration
+## 8. Интеграция CI/CD
 
-### 8.1 Pipeline de Tests
+### 8.1 Pipeline тестов
 ```yaml
 # .github/workflows/ci.yml
 jobs:
@@ -448,9 +448,9 @@ jobs:
 
 ---
 
-## 9. Test Data Management
+## 9. Управление тестовыми данными
 
-### 9.1 Seeders por Ambiente
+### 9.1 Seeders по окружению
 ```javascript
 // backend-users/seeders/20260925-roles-permisos.js
 module.exports = {
@@ -466,13 +466,13 @@ module.exports = {
       { nombre: 'auditor', descripcion: 'Auditor cumplimiento' },
     ], { returning: true });
 
-    // Permisos (ver 12_rbac_matrix.md)
+    // Permisos (см. 12_rbac_matrix.ru.md)
     // ...
   }
 };
 ```
 
-### 9.2 Factories para Tests (Factory Pattern)
+### 9.2 Фабрики для тестов (Factory Pattern)
 ```typescript
 // tests/factories/userFactory.ts
 export const createTestUser = (overrides = {}) => ({
@@ -498,10 +498,10 @@ export const createTestQueja = (overrides = {}) => ({
 
 ---
 
-## 10. Cobertura Mínima Requerida
+## 10. Минимальное требование к покрытию
 
-| Servicio | Unitarios | Integración | Total Objetivo |
-|----------|-----------|-------------|----------------|
+| Сервис | Модульные | Интеграционные | Общая цель |
+|--------|-----------|----------------|------------|
 | Users | ≥ 70% | ≥ 50% | ≥ 70% |
 | MP | ≥ 70% | ≥ 50% | ≥ 70% |
 | Materials | ≥ 70% | ≥ 50% | ≥ 70% |
@@ -510,9 +510,9 @@ export const createTestQueja = (overrides = {}) => ({
 
 ---
 
-## 11. Referencias
+## 11. Ссылки
 
-- [Guía de Despliegue](14_deployment.md) - Tests en pipeline
-- [Guía de Operación](15_operations.md) - Monitoreo de tests
-- [Requisitos](05_requirements.md) - RNF-10
-- [Arquitectura](../ARCHITECTURE.md) - Testing strategy
+- [Руководство по развертыванию](14_deployment.ru.md) - Тесты в пайплайне
+- [Руководство по эксплуатации](15_operations.ru.md) - Мониторинг тестов
+- [Требования](05_requirements.ru.md) - RNF-10
+- [Архитектура](../ARCHITECTURE.md) - Стратегия тестирования

@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### 📚 Documentación
+- **TASK-C-01:** Renombrado 18 archivos `docs/*.md` a `docs/*.es.md` y corregidos enlaces internos
+- **TASK-C-02:** Creadas 13 archivos `.ru.md` traduciendo documentación existente (18 total)
+- **TASK-C-03:** Movido `AUDITORIA.md` a `docs/audit/AUDITORIA.md`
+- **TASK-C-04:** Fusionado `docs/requirements.md` en `docs/05_requirements.es.md`
+- **TASK-C-05:** Fusionado `docs/roadmap.md` en `docs/17_roadmap.es.md`
+- Verificación de 0 enlaces rotos en archivos `.es.md` y `.ru.md`
 - Reorganización de la estructura del repositorio según `ESTRUCTURA.md`
 - Migración de documentación del repositorio SISGAD5_doc al repositorio principal
 - Creación de `AGENT.md`, `SPEC.md`, `ARCHITECTURE.md` y `TASKLIST.md`

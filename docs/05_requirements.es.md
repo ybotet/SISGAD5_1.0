@@ -166,7 +166,7 @@
 
 ## 3. Reglas de Negocio (RN)
 
-Ver [Reglas de Negocio](06_business_rules.md)
+Ver [Reglas de Negocio](06_business_rules.es.md)
 
 ---
 
@@ -283,8 +283,8 @@ Ver [Reglas de Negocio](06_business_rules.md)
 
 ## 5. Referencias
 
-- [Casos de Uso](03_use_cases.md)
-- [Reglas de Negocio](06_business_rules.md)
-- [Modelo de Dominio](07_domain_model.md)
-- [Matriz RBAC](12_rbac_matrix.md)
-- [Estrategia Seguridad](13_security.md)
+- [Casos de Uso](03_use_cases.es.md)
+- [Reglas de Negocio](06_business_rules.es.md)
+- [Modelo de Dominio](07_domain_model.es.md)
+- [Matriz RBAC](12_rbac_matrix.es.md)
+- [Estrategia Seguridad](13_security.es.md)
