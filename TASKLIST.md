@@ -4,8 +4,8 @@
 > **Proyecto:** SISGAD5 — Sistema de Soporte a la Toma de Decisiones para la Dirección No. 5 (ETECSA)
 > **Repositorio:** https://github.com/ybotet/SISGAD5_1.0
 > **Autor:** Ing. Botet S.Y. (Tesis de Maestría — RTU MIREA)
-> **Última actualización:** 2026-10-23
-> **Estado:** En progreso (~20% completado)
+> **Última actualización:** 2026-10-27
+> **Estado:** En progreso (~53% completado — 93/295)
 
 ---
 
@@ -73,18 +73,18 @@
 
 | Estado | Prioridad | Esfuerzo | ID            | Descripción                                                     | Origen                  | Criterio de Aceptación                        |
 | ------ | --------- | -------- | ------------- | --------------------------------------------------------------- | ----------------------- | --------------------------------------------- |
-| ✅      | 🔴       | 🔨      | TASK-A-01     | Rotar credenciales expuestas (JWT_SECRET, DB_PASSWORD)          | Plan                    | Nuevos secretos en `.env.local` (gitignored)  |
-| ✅      | 🔴       | 🔨      | TASK-A-02     | Crear `.gitignore` completo                                     | Plan                    | Cubre node_modules, logs, dist, .env, api.exe |
-| ✅      | 🔴       | 🔨      | TASK-A-03     | Eliminar del índice: node_modules, logs, dist, .env, api.exe    | Plan                    | `git status` limpio                           |
-| ✅      | 🔴       | 🔨      | TASK-A-04     | Eliminar carpetas: backup/, Continue/, .kilo/.gitignore         | Plan                    | Carpetas eliminadas del disco                 |
-| ✅      | 🟡       | 🔨      | TASK-A-05     | Eliminar archivos duplicados (docs/architecture.md, etc.)       | Plan                    | Solo queda `ARCHITECTURE.md` en raíz          |
-| ✅      | 🟡       | 🔨      | TASK-A-06     | Eliminar archivos temporales (hacer.txt, swagger.json)          | Plan                    | Solo quedan los `.yaml` de API                |
-| ✅      | 🟡       | 🔨      | TASK-A-07     | Verificar que `.env.example` no contiene secretos               | Plan                    | Solo placeholders                             |
-| ✅      | 🔴       | 🔨      | **TASK-A-08** | **Eliminar fallback `JWT_SECRET \|\| "secreto"` en Users y MP** | **Auditoría SEC-01**    | Falla al arrancar si falta secreto            |
-| ✅      | 🔴       | 🏗️    | **TASK-A-09** | **Añadir JWT middleware a Materials Service (Go)**              | **Auditoría SEC-02**    | Endpoints protegidos con JWT                  |
-| ✅      | 🔴       | 🔨      | **TASK-A-10** | **Cerrar puertos internos (5001, 5002, 5003, 5432) en prod**    | **Auditoría SEC-02/05** | Compose prod sin puertos publicados           |
-| ✅      | 🔴       | 🔨      | **TASK-A-11** | **Cambiar credenciales Grafana (admin/admin)**                  | **Auditoría SEC-03**    | Credenciales seguras en `.env`                |
-| ✅      | 🟠       | 🔨      | **TASK-A-12** | **Corregir `MP_DB_NAME` en docker-compose**                     | **Auditoría ARC-04**    | MP arranca sin abortar                        |
+| ✅     | 🔴       | 🔨      | TASK-A-01     | Rotar credenciales expuestas (JWT_SECRET, DB_PASSWORD)          | Plan                    | Nuevos secretos en `.env.local` (gitignored)  |
+| ✅     | 🔴       | 🔨      | TASK-A-02     | Crear `.gitignore` completo                                     | Plan                    | Cubre node_modules, logs, dist, .env, api.exe |
+| ✅     | 🔴       | 🔨      | TASK-A-03     | Eliminar del índice: node_modules, logs, dist, .env, api.exe    | Plan                    | `git status` limpio                           |
+| ✅     | 🔴       | 🔨      | TASK-A-04     | Eliminar carpetas: backup/, Continue/, .kilo/.gitignore         | Plan                    | Carpetas eliminadas del disco                 |
+| ✅     | 🟡       | 🔨      | TASK-A-05     | Eliminar archivos duplicados (docs/architecture.md, etc.)       | Plan                    | Solo queda `ARCHITECTURE.md` en raíz          |
+| ✅     | 🟡       | 🔨      | TASK-A-06     | Eliminar archivos temporales (hacer.txt, swagger.json)          | Plan                    | Solo quedan los `.yaml` de API                |
+| ✅     | 🟡       | 🔨      | TASK-A-07     | Verificar que `.env.example` no contiene secretos               | Plan                    | Solo placeholders                             |
+| ✅     | 🔴       | 🔨      | **TASK-A-08** | **Eliminar fallback `JWT_SECRET \|\| "secreto"` en Users y MP** | **Auditoría SEC-01**    | Falla al arrancar si falta secreto            |
+| ✅     | 🔴       | 🏗️    | **TASK-A-09** | **Añadir JWT middleware a Materials Service (Go)**              | **Auditoría SEC-02**    | Endpoints protegidos con JWT                  |
+| ✅     | 🔴       | 🔨      | **TASK-A-10** | **Cerrar puertos internos (5001, 5002, 5003, 5432) en prod**    | **Auditoría SEC-02/05** | Compose prod sin puertos publicados           |
+| ✅     | 🔴       | 🔨      | **TASK-A-11** | **Cambiar credenciales Grafana (admin/admin)**                  | **Auditoría SEC-03**    | Credenciales seguras en `.env`                |
+| ✅     | 🟠       | 🔨      | **TASK-A-12** | **Corregir `MP_DB_NAME` en docker-compose**                     | **Auditoría ARC-04**    | MP arranca sin abortar                        |
 
 **Total Fase A:** 12 tareas
 
@@ -97,34 +97,34 @@
 
 ### B.1. Migración feature-based de MP (10 lotes)
 
-| Estado | Prioridad | Esfuerzo | ID        | Descripción                                                        | Criterio de Aceptación            |
-| ------ | --------- | -------- | --------- | ------------------------------------------------------------------ | --------------------------------- |
-| ✅      | 🔴       | 🏗️    | TASK-B-01 | Crear `src/shared/` y mover middleware, utils, config              | Imports actualizados, Zod validation passes |
-| ✅      | 🔴       | 🏗️    | TASK-B-02 | Migrar Lote 1 (asignacion, cable, clave)                           | Imports actualizados, Zod validation passes |
-| ✅      | 🔴       | 🏗️    | TASK-B-03 | Migrar Lote 2 (clasificacion, clasificadorclave, clasifpizarra)    | Imports actualizados, route loading passes |
-| ✅      | 🔴       | 🏗️    | TASK-B-04 | Migrar Lote 3 (grup0w, linea, mando)                               | Imports actualizados, route loading passes |
-| ✅      | 🔴       | 🏗️    | TASK-B-05 | Migrar Lote 4 (movimiento, pizarra, planta)                          | Imports actualizados, route loading passes |
-| ✅      | 🟡       | 🏗️    | TASK-B-06 | Migrar Lote 5 (propietario, prueba)                              | Imports actualizados, route loading passes |
-| ✅      | 🔴       | 🏗️    | TASK-B-07 | Migrar Lote 6 (queja, recorrido)                                   | Imports actualizados, route loading passes |
-| ✅      | 🔴       | 🏗️    | TASK-B-08 | Migrar Lote 7 (resultadoprueba, senalizacion, sistema)             | Imports actualizados, route loading passes |
-| ✅      | 🔴       | 🏗️    | TASK-B-09 | Migrar Lote 8 (telefono, tipolinea, tipomovimiento)                | Imports actualizados, route loading passes |
-| ✅      | 🔴       | 🏗️    | TASK-B-10 | Migrar Lote 9 (tipopizarra, tipoqueja, trabajador)                 | Imports actualizados, route loading passes |
-| ✅      | 🔴       | 🏗️    | TASK-B-11 | Migrar Lote 10 (trabajo, trabajo_trabajadores, models/index.js)              | Imports actualizados, model loading passes, 28 models |
-| ✅      | 🟡       | 🔨      | TASK-B-12 | Actualizar `src/routes/index.js` para agregar rutas desde features | Rutas consolidadas desde features |
-| ✅      | 🔴       | 🔨      | TASK-B-13 | Verificar `docker compose up` y tests E2E                          | Server boots, config OK, tests pendientes |
-| ✅      | 🔴       | 🟢      | TASK-B-14 | Commit por lote + PR + merge                                         | 16 commits OK, push OK, PR manual |
+| Estado | Prioridad | Esfuerzo | ID        | Descripción                                                        | Criterio de Aceptación                                |
+| ------ | --------- | -------- | --------- | ------------------------------------------------------------------ | ----------------------------------------------------- |
+| ✅     | 🔴       | 🏗️    | TASK-B-01 | Crear `src/shared/` y mover middleware, utils, config              | Imports actualizados, Zod validation passes           |
+| ✅     | 🔴       | 🏗️    | TASK-B-02 | Migrar Lote 1 (asignacion, cable, clave)                           | Imports actualizados, Zod validation passes           |
+| ✅     | 🔴       | 🏗️    | TASK-B-03 | Migrar Lote 2 (clasificacion, clasificadorclave, clasifpizarra)    | Imports actualizados, route loading passes            |
+| ✅     | 🔴       | 🏗️    | TASK-B-04 | Migrar Lote 3 (grup0w, linea, mando)                               | Imports actualizados, route loading passes            |
+| ✅     | 🔴       | 🏗️    | TASK-B-05 | Migrar Lote 4 (movimiento, pizarra, planta)                        | Imports actualizados, route loading passes            |
+| ✅     | 🟡       | 🏗️    | TASK-B-06 | Migrar Lote 5 (propietario, prueba)                                | Imports actualizados, route loading passes            |
+| ✅     | 🔴       | 🏗️    | TASK-B-07 | Migrar Lote 6 (queja, recorrido)                                   | Imports actualizados, route loading passes            |
+| ✅     | 🔴       | 🏗️    | TASK-B-08 | Migrar Lote 7 (resultadoprueba, senalizacion, sistema)             | Imports actualizados, route loading passes            |
+| ✅     | 🔴       | 🏗️    | TASK-B-09 | Migrar Lote 8 (telefono, tipolinea, tipomovimiento)                | Imports actualizados, route loading passes            |
+| ✅     | 🔴       | 🏗️    | TASK-B-10 | Migrar Lote 9 (tipopizarra, tipoqueja, trabajador)                 | Imports actualizados, route loading passes            |
+| ✅     | 🔴       | 🏗️    | TASK-B-11 | Migrar Lote 10 (trabajo, trabajo_trabajadores, models/index.js)    | Imports actualizados, model loading passes, 28 models |
+| ✅     | 🟡       | 🔨      | TASK-B-12 | Actualizar `src/routes/index.js` para agregar rutas desde features | Rutas consolidadas desde features                     |
+| ✅     | 🔴       | 🔨      | TASK-B-13 | Verificar `docker compose up` y tests E2E                          | Server boots, config OK, tests pendientes             |
+| ✅     | 🔴       | 🟢      | TASK-B-14 | Commit por lote + PR + merge                                       | 16 commits OK, push OK, PR manual                     |
 
 ### B.2. Correcciones de arquitectura y lógica (auditoría)
 
 | Estado | Prioridad | Esfuerzo | ID            | Descripción                                                 | Origen               | Criterio de Aceptación                          |
 | ------ | --------- | -------- | ------------- | ----------------------------------------------------------- | -------------------- | ----------------------------------------------- |
-| ✅      | 🔴       | 🏗️    | **TASK-B-15** | **Añadir JWT verification en API Gateway**                  | **Auditoría SEC-05** | Gateway rechaza requests sin JWT                |
-| ✅      | 🟠       | 🔨      | **TASK-B-16** | **CORS con lista blanca en Gateway**                        | **Auditoría SEC-04** | `CORS_ORIGIN` obligatorio en prod               |
-| ✅      | 🟠       | 🔨      | **TASK-B-17** | **RBAC por operación en quejas, trabajos, asignaciones**    | **Auditoría SEC-06** | `tienePermiso` aplicado en cada ruta            |
-| ✅      | 🟠       | 🔨      | **TASK-B-18** | **Parametrizar SQL del dashboard (Sequelize replacements)** | **Auditoría SEC-07** | Sin interpolación de strings                    |
-| ✅      | 🟠       | 🔨      | **TASK-B-19** | **Reordenar rutas `/dashboard/*` antes de `/:id`**          | **Auditoría BUS-02** | Dashboard accesible                             |
-| ✅      | 🟠       | 🔨      | **TASK-B-20** | **Migraciones versionadas + índices (Users, MP)**      | **Auditoría DAT-01** | `migrations/` con índices en estado, FKs, fecha |
-| ✅      | 🟠       | 🔨      | **TASK-B-21** | **Infraestructura Jest/Supertest + 32 tests**            | **Auditoría QA-01**  | CI pasa con tests reales (21 MP + 11 Users)     |
+| ✅     | 🔴       | 🏗️    | **TASK-B-15** | **Añadir JWT verification en API Gateway**                  | **Auditoría SEC-05** | Gateway rechaza requests sin JWT                |
+| ✅     | 🟠       | 🔨      | **TASK-B-16** | **CORS con lista blanca en Gateway**                        | **Auditoría SEC-04** | `CORS_ORIGIN` obligatorio en prod               |
+| ✅     | 🟠       | 🔨      | **TASK-B-17** | **RBAC por operación en quejas, trabajos, asignaciones**    | **Auditoría SEC-06** | `tienePermiso` aplicado en cada ruta            |
+| ✅     | 🟠       | 🔨      | **TASK-B-18** | **Parametrizar SQL del dashboard (Sequelize replacements)** | **Auditoría SEC-07** | Sin interpolación de strings                    |
+| ✅     | 🟠       | 🔨      | **TASK-B-19** | **Reordenar rutas `/dashboard/*` antes de `/:id`**          | **Auditoría BUS-02** | Dashboard accesible                             |
+| ✅     | 🟠       | 🔨      | **TASK-B-20** | **Migraciones versionadas + índices (Users, MP)**           | **Auditoría DAT-01** | `migrations/` con índices en estado, FKs, fecha |
+| ✅     | 🟠       | 🔨      | **TASK-B-21** | **Infraestructura Jest/Supertest + 32 tests**               | **Auditoría QA-01**  | CI pasa con tests reales (21 MP + 11 Users)     |
 | ⏳      | 🟠       | 🏗️    | **TASK-B-22** | **Saga/compensación al cerrar queja (MP → Materials)**      | **Auditoría ARC-03** | Consumo registrado al cerrar queja              |
 
 **Total Fase B:** 22 tareas
@@ -148,8 +148,8 @@
 | ⏳      | 🟡       | 🔨      | TASK-C-08     | Renombrar `docs/thesis/*.md` a `*.es.md` y crear `*.ru.md`                                   | Tesis bilingüe         |
 | ⏳      | 🟡       | 🔨      | TASK-C-09     | Verificar enlaces internos (`scripts/validate_docs.sh`)                                      | 0 enlaces rotos        |
 | ⏳      | 🟡       | 🔨      | TASK-C-10     | Commit + PR + merge                                                                          | Docs consolidadas      |
-| ⏳      | 🟠       | 🔨      | **TASK-C-11** | **Alinear `ARCHITECTURE.md` con código real (mux, no Gin; sin Redis/Prometheus en compose)** | **Auditoría ARC-01**   | Docs = código 
-| ⏳      | 🟠       | 🔨      | **TASK-C-12** | **Actualizar `AGENTS.md` con hallazgos de auditoría**                                        | **Auditoría**          | Sección 8 actualizada 
+| ⏳      | 🟠       | 🔨      | **TASK-C-11** | **Alinear `ARCHITECTURE.md` con código real (mux, no Gin; sin Redis/Prometheus en compose)** | **Auditoría ARC-01**   | Docs = código
+| ⏳      | 🟠       | 🔨      | **TASK-C-12** | **Actualizar `AGENTS.md` con hallazgos de auditoría**                                        | **Auditoría**          | Sección 8 actualizada
 
 **Total Fase C:** 12 tareas
 
@@ -545,6 +545,70 @@
 | ⏳      | ⚪        | 🏛️    | TASK-1300-05 | Inteligencia de negocio | Post-defensa    | Dashboards avanzados   |
 | ⏳      | ⚪        | 🏛️    | TASK-1300-06 | API pública             | Post-defensa    | API documentada        |
 
+
+---
+
+## FASE 14 — Informe de Práctica (Proyecto-Tecnológica)
+
+> **Duración estimada:** 3–4 semanas
+> **Objetivo:** Redactar el informe de práctica bilingüe (ES → RU) siguiendo la estructura oficial.
+> **Flujo:** Redactar en español → revisar → traducir al ruso.
+> **Fuente:** `docs/thesis/ESTRUCTURA_INFORME.es.md`
+
+### 14.1. Redacción en español
+
+| Estado | Prioridad | Esfuerzo | ID           | Descripción                                                       | Sección del informe | Criterio de Aceptación                  |
+| ------ | --------- | -------- | ------------ | ----------------------------------------------------------------- | ------------------- | --------------------------------------- |
+| ⏳      | 🔴       | 🏗️    | TASK-1400-01 | Documentar aspectos socioeconómicos                               | 2.1.1               | Impacto social y económico justificados |
+| ⏳      | 🔴       | 🏗️    | TASK-1400-02 | Formalizar modelos matemáticos (predictivos + máquina de estados) | 2.1.2               | Fórmulas y diagramas incluidos          |
+| ⏳      | 🟡       | 🔨      | TASK-1400-03 | Redactar acta de constitución y acuerdo de equipo                 | 2.2.1               | Roles y reglas definidos                |
+| ⏳      | 🟡       | 🔨      | TASK-1400-04 | Evaluar recursos (hardware, software, humanos)                    | 2.2.2               | Tabla de recursos completa              |
+| ⏳      | 🔴       | 🏗️    | TASK-1400-05 | Gestionar riesgos (identificar, mitigar)                          | 2.2.3               | Matriz de riesgos completa              |
+| ⏳      | 🟡       | 🔨      | TASK-1400-06 | Crear diagrama de Gantt formal                                    | 2.3.2               | Gantt con Fases A–D + Parte II          |
+| ⏳      | 🟡       | 🔨      | TASK-1400-07 | Documentar metodologías ágiles aplicadas                          | 3.2.1               | Scrum/Kanban justificados               |
+| ⏳      | 🔴       | 🏗️    | TASK-1400-08 | Evaluar eficacia (rendimiento, modelos, usabilidad)               | 4                   | Métricas y tablas comparativas          |
+| ⏳      | 🟡       | 🏗️    | TASK-1400-09 | Validar con el cliente (pruebas de aceptación)                    | 4.4                 | Acta de validación (o plan B)           |
+| ⏳      | 🔴       | 🏛️    | TASK-1400-10 | Consolidar informe en español                                     | Todo                | Documento completo, coherente           |
+
+### 14.2. Revisión
+
+| Estado | Prioridad | Esfuerzo | ID           | Descripción                                         | Criterio de Aceptación |
+| ------ | --------- | -------- | ------------ | --------------------------------------------------- | ---------------------- |
+| ⏳      | 🔴       | 🏗️    | TASK-1410-01 | Revisar coherencia interna (secciones, referencias) | Sin contradicciones    |
+| ⏳      | 🔴       | 🔨      | TASK-1410-02 | Revisar formato ГОСТ (19.201-78, 19.402-78)         | Formato correcto       |
+| ⏳      | 🟡       | 🔨      | TASK-1410-03 | Revisar bibliografía (ГОСТ 7.0.5-2008)              | Referencias correctas  |
+| ⏳      | 🟡       | 🔨      | TASK-1410-04 | Revisar tablas y figuras (numeración, títulos)      | Consistentes           |
+
+### 14.3. Traducción al ruso
+
+| Estado | Prioridad | Esfuerzo | ID           | Descripción                           | Criterio de Aceptación               |
+| ------ | --------- | -------- | ------------ | ------------------------------------- | ------------------------------------ |
+| ⏳      | 🔴       | 🏛️    | TASK-1420-01 | Traducir informe completo al ruso     | `docs/thesis/informe_practica.ru.md` |
+| ⏳      | 🔴       | 🏗️    | TASK-1420-02 | Revisar traducción técnica (términos) | Glosario consistente                 |
+| ⏳      | 🟡       | 🔨      | TASK-1420-03 | Revisar formato ГОСТ en ruso          | Formato correcto                     |
+| ⏳      | 🟡       | 🔨      | TASK-1420-04 | Verificar bibliografía en ruso        | Referencias correctas                |
+
+### 14.4. Anexos
+
+| Estado | Prioridad | Esfuerzo | ID           | Descripción                            | Criterio de Aceptación    |
+| ------ | --------- | -------- | ------------ | -------------------------------------- | ------------------------- |
+| ⏳      | 🔴       | 🔨      | TASK-1430-01 | Preparar Anexo A (código fuente)       | Capturas + enlace al repo |
+| ⏳      | 🟡       | 🔨      | TASK-1430-02 | Preparar Anexo B (diagramas)           | Mermaid exportados        |
+| ⏳      | 🟡       | 🔨      | TASK-1430-03 | Preparar Anexo C (manuales)            | Manuales incluidos        |
+| ⏳      | 🟢       | 🔨      | TASK-1430-04 | Preparar Anexo D (resultados de tests) | Reportes de cobertura     |
+
+**Total Fase 14:** 22 tareas
+
+**Resumen Fase 14:**
+
+| Subfase            | Tareas | Completadas | %      |
+| ------------------ | ------ | ----------- | ------ |
+| 14.1 Redacción ES  | 10     | 0           | 0%     |
+| 14.2 Revisión      | 4      | 0           | 0%     |
+| 14.3 Traducción RU | 4      | 0           | 0%     |
+| 14.4 Anexos        | 4      | 0           | 0%     |
+| **TOTAL**          | **22** | **0**       | **0%** |
+
 ---
 
 # ANEXOS
@@ -554,37 +618,37 @@
 > **Fuente:** `docs/audit/AUDITORIA.md` (2026-10-07)
 > **Estado:** Todos pendientes. Se resuelven en Fase A o B.
 
-| ID     | Severidad   | Hallazgo                                       | Tarea que lo resuelve        | Estado |
-| ------ | ----------- | ---------------------------------------------- | ---------------------------- | ------ |
-| SEC-01 | 🔴 Crítico | JWT con fallback `"secreto"`                   | TASK-A-08                    | ✅      |
-| SEC-02 | 🔴 Crítico | Materials con JWT middleware + puerto 5003 cerrado en prod | TASK-A-09 (✅), TASK-A-10 (✅)    | ✅      |
-| SEC-03 | 🔴 Crítico | Grafana admin/admin                            | TASK-A-11 (✅)               | ✅      |
-| SEC-04 | 🟠 Alto    | CORS `origin: true`                            | TASK-B-16                    | ⏳      |
-| SEC-05 | 🟠 Alto    | Gateway no verifica JWT                        | TASK-B-15                    | ⏳      |
-| SEC-06 | 🟠 Alto    | RBAC incompleto en MP                          | TASK-B-17                    | ⏳      |
-| SEC-07 | 🟠 Alto    | SQL injection en dashboard                     | TASK-B-18                    | ⏳      |
-| SEC-08 | 🟡 Medio   | DebugLogin con credenciales fijas              | (Fase B, dentro de frontend) | ⏳      |
-| ARC-01 | 🟠 Alto    | Docs ≠ código (Gin vs mux)                     | TASK-C-11                    | ⏳      |
-| ARC-02 | 🟠 Alto    | MP llama a Users en cada request               | TASK-B-15 (claims en JWT)    | ⏳      |
-| ARC-03 | 🟠 Alto    | Cerrar queja no orquesta materiales            | TASK-B-22                    | ⏳      |
-| ARC-04 | 🟠 Alto    | `MP_DB_NAME` mal inyectado                     | TASK-A-12 (✅)                 | ✅      |
-| ARC-05 | 🟡 Medio   | Health checks no prueban BD                    | (Fase B)                     | ⏳      |
-| ARC-06 | 🟡 Medio   | `X-Request-Id` no se propaga                   | (Fase B)                     | ⏳      |
-| ARC-07 | 🟡 Medio   | Gateway sin `MATERIALES_SERVICE_URL`           | (Fase B)                     | ⏳      |
-| BUS-01 | 🟠 Alto    | Stock real comentado                           | TASK-520-05                  | ⏳      |
-| BUS-02 | 🟠 Alto    | Rutas dashboard después de `/:id`              | TASK-B-19                    | ⏳      |
-| BUS-03 | 🟡 Medio   | Máquina de estados laxa                        | (Fase B)                     | ⏳      |
-| BUS-04 | 🟡 Medio   | `fecha` es STRING                              | (Fase B)                     | ⏳      |
-| DAT-01 | 🟠 Alto    | Sin migraciones ni índices                     | TASK-B-20                    | ✅      |
-| DAT-02 | 🟡 Medio   | `SkipDefaultTransaction: true`                 | (Fase A, revisar)            | ⏳      |
-| DAT-03 | 🟡 Medio   | N+1 en consumos                                | (Fase B)                     | ⏳      |
-| QA-01  | 🟠 Alto    | `npm test` es `exit 1`                         | TASK-B-21                    | ✅      |
-| QA-02  | 🟡 Medio   | Pocos tests Node/Frontend                      | TASK-800-01, TASK-800-02     | ⏳      |
-| QA-03  | 🟡 Medio   | Código muerto (`AuthController` MP, `useAuth`) | (Fase B)                     | ⏳      |
-| QA-04  | 🟢 Bajo    | Duplicación `authLimiter`                      | (Fase B)                     | ⏳      |
-| QA-05  | 🟢 Bajo    | Comentario de rutas Go incorrecto              | (Fase B)                     | ⏳      |
-| QA-06  | 🟢 Bajo    | `tienePermiso` usa `forEach` sin retorno       | TASK-B-17                    | ⏳      |
-| QA-07  | 🟢 Bajo    | `password_hash` en tipo `User` del cliente     | (Fase B)                     | ⏳      |
+| ID     | Severidad   | Hallazgo                                                   | Tarea que lo resuelve          | Estado |
+| ------ | ----------- | ---------------------------------------------------------- | ------------------------------ | ------ |
+| SEC-01 | 🔴 Crítico | JWT con fallback `"secreto"`                               | TASK-A-08                      | ✅     |
+| SEC-02 | 🔴 Crítico | Materials con JWT middleware + puerto 5003 cerrado en prod | TASK-A-09 (✅), TASK-A-10 (✅) | ✅     |
+| SEC-03 | 🔴 Crítico | Grafana admin/admin                                        | TASK-A-11 (✅)                 | ✅     |
+| SEC-04 | 🟠 Alto    | CORS `origin: true`                                        | TASK-B-16                      | ✅     |
+| SEC-05 | 🟠 Alto    | Gateway no verifica JWT                                    | TASK-B-15                      | ✅     |
+| SEC-06 | 🟠 Alto    | RBAC incompleto en MP                                      | TASK-B-17                      | ✅     |
+| SEC-07 | 🟠 Alto    | SQL injection en dashboard                                 | TASK-B-18                      | ✅     |
+| SEC-08 | 🟡 Medio   | DebugLogin con credenciales fijas                          | (Fase B, dentro de frontend)   | ⏳      |
+| ARC-01 | 🟠 Alto    | Docs ≠ código (Gin vs mux)                                 | TASK-C-11                      | ⏳      |
+| ARC-02 | 🟠 Alto    | MP llama a Users en cada request                           | TASK-B-15 (claims en JWT)      | ✅     |
+| ARC-03 | 🟠 Alto    | Cerrar queja no orquesta materiales                        | TASK-B-22                      | ⏳      |
+| ARC-04 | 🟠 Alto    | `MP_DB_NAME` mal inyectado                                 | TASK-A-12 (✅)                 | ✅     |
+| ARC-05 | 🟡 Medio   | Health checks no prueban BD                                | (Fase B)                       | ⏳      |
+| ARC-06 | 🟡 Medio   | `X-Request-Id` no se propaga                               | (Fase B)                       | ⏳      |
+| ARC-07 | 🟡 Medio   | Gateway sin `MATERIALES_SERVICE_URL`                       | (Fase B)                       | ⏳      |
+| BUS-01 | 🟠 Alto    | Stock real comentado                                       | TASK-520-05                    | ⏳      |
+| BUS-02 | 🟠 Alto    | Rutas dashboard después de `/:id`                          | TASK-B-19                      | ✅     |
+| BUS-03 | 🟡 Medio   | Máquina de estados laxa                                    | (Fase B)                       | ⏳      |
+| BUS-04 | 🟡 Medio   | `fecha` es STRING                                          | (Fase B)                       | ⏳      |
+| DAT-01 | 🟠 Alto    | Sin migraciones ni índices                                 | TASK-B-20                      | ✅     |
+| DAT-02 | 🟡 Medio   | `SkipDefaultTransaction: true`                             | (Fase A, revisar)              | ⏳      |
+| DAT-03 | 🟡 Medio   | N+1 en consumos                                            | (Fase B)                       | ⏳      |
+| QA-01  | 🟠 Alto    | `npm test` es `exit 1`                                     | TASK-B-21                      | ✅     |
+| QA-02  | 🟡 Medio   | Pocos tests Node/Frontend                                  | TASK-800-01, TASK-800-02       | ⏳      |
+| QA-03  | 🟡 Medio   | Código muerto (`AuthController` MP, `useAuth`)             | (Fase B)                       | ⏳      |
+| QA-04  | 🟢 Bajo    | Duplicación `authLimiter`                                  | (Fase B)                       | ⏳      |
+| QA-05  | 🟢 Bajo    | Comentario de rutas Go incorrecto                          | (Fase B)                       | ⏳      |
+| QA-06  | 🟢 Bajo    | `tienePermiso` usa `forEach` sin retorno                   | TASK-B-17                      | ✅     |
+| QA-07  | 🟢 Bajo    | `password_hash` en tipo `User` del cliente                 | (Fase B)                       | ⏳      |
 
 ---
 
@@ -594,42 +658,43 @@
 
 | Fase                              | Tareas | Completadas | %      |
 | --------------------------------- | ------ | ----------- | ------ |
-| A — Limpieza y Seguridad          | 12     | 0           | 0%     |
-| B — Reorganización y Correcciones | 22     | 0           | 0%     |
+| A — Limpieza y Seguridad          | 12     | 12          | 100%   |
+| B — Reorganización y Correcciones | 22     | 21          | 95%    |
 | C — Documentación                 | 12     | 0           | 0%     |
 | D — Predictivo + Tesis            | 19     | 0           | 0%     |
-| **TOTAL PARTE I**                 | **65** | **0**       | **0%** |
+| **TOTAL PARTE I**                 | **65** | **33**      | **51%** |
 
 ### Parte II — Inventario Funcional
 
-| Fase                     | Tareas  | Completadas | %       |
-| ------------------------ | ------- | ----------- | ------- |
-| 0 — Planificación        | 8       | 8           | 100%    |
-| 1 — Diseño               | 14      | 8           | 57%     |
-| 2 — Infraestructura      | 15      | 4           | 27%     |
-| 3 — Users                | 12      | 2           | 17%     |
-| 4 — MP                   | 36      | 10          | 28%     |
-| 5 — Materials            | 34      | 22          | 65%     |
-| 6 — Gateway              | 10      | 3           | 30%     |
-| 7 — Frontend             | 22      | 1           | 5%      |
-| 8 — Testing              | 8       | 1           | 13%     |
-| 9 — Despliegue           | 7       | 0           | 0%      |
-| 10 — Analítica           | 8       | 0           | 0%      |
-| 11 — Predictivo          | 22      | 0           | 0%      |
-| 12 — Documentación Final | 6       | 0           | 0%      |
-| 13 — Mantenimiento       | 6       | 0           | 0%      |
-| **TOTAL PARTE II**       | **208** | **59**      | **28%** |
+| Fase                         | Tareas  | Completadas | %       |
+| ---------------------------- | ------- | ----------- | ------- |
+| 0 — Planificación            | 8       | 8           | 100%    |
+| 1 — Diseño                   | 14      | 8           | 57%     |
+| 2 — Infraestructura          | 15      | 4           | 27%     |
+| 3 — Users                    | 12      | 2           | 17%     |
+| 4 — MP                       | 36      | 10          | 28%     |
+| 5 — Materials                | 34      | 22          | 65%     |
+| 6 — Gateway                  | 10      | 3           | 30%     |
+| 7 — Frontend                 | 22      | 1           | 5%      |
+| 8 — Testing                  | 8       | 1           | 13%     |
+| 9 — Despliegue               | 7       | 0           | 0%      |
+| 10 — Analítica               | 8       | 0           | 0%      |
+| 11 — Predictivo              | 22      | 0           | 0%      |
+| 12 — Documentación Final     | 6       | 0           | 0%      |
+| 13 — Mantenimiento           | 6       | 0           | 0%      |
+| **14 — Informe de Práctica** | **22**  | **0**       | **0%**  |
+| **TOTAL PARTE II**           | **230** | **59**      | **26%** |
 
 ### Total General
 
 | Parte     | Tareas  | Completadas | %        |
 | --------- | ------- | ----------- | -------- |
-| Parte I   | 65      | 0           | 0%       |
-| Parte II  | 208     | 59          | 28%      |
-| **TOTAL** | **273** | **59**      | **~22%** |
+| Parte I   | 65      | 33          | 51%      |
+| Parte II  | 230     | 59          | 26%      |
+| **TOTAL** | **295** | **92**      | **~31%** |
 
 ---
 
 > **Mantenido por:** Ing. Botet S.Y.
-> **Última actualización:** 2026-10-23
-> **Próxima revisión:** Al finalizar Fase A
+> **Última actualización:** 2026-10-27
+> **Próxima revisión:** Al finalizar Fase C
