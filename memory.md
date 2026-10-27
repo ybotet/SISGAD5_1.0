@@ -44,6 +44,8 @@
 | 2026-10-27 | TASK-C-01 | Renombrar `docs/*.md` a `docs/*.es.md` (18 archivos) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-01-renombrar-docsmd-a-docsesmd-18-archivos) |
 | 2026-10-27 | TASK-C-02 | Crear `docs/*.ru.md` (traducción de 18 archivos) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-02-crear-docsru-md-traducci%C3%B3n-de-18-archivos) |
 | 2026-10-27 | TASK-C-03 | Consolidar documentación (duplicados, enlaces) | [ver](docs/memory/2026-10-27.md#2026-10-27--consolidaci%C3%B3n-de-documentaci%C3%B3n-en-docs) |
+| 2026-10-27 | TASK-C-04 | Fusionar `docs/requirements.md` en `docs/05_requirements.es.md` | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-04-fusionar-docsrequirementsmd-en-docs05_requirementsesmd) |
+| 2026-10-27 | TASK-C-05 | Fusionar `docs/roadmap.md` en `docs/17_roadmap.es.md` | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-05-fusionar-docsroadmapmd-en-docs17_roadmapesmd) |
 
 ---
 

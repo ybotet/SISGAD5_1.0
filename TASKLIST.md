@@ -5,7 +5,7 @@
 > **Repositorio:** https://github.com/ybotet/SISGAD5_1.0
 > **Autor:** Ing. Botet S.Y. (Tesis de Maestría — RTU MIREA)
 > **Última actualización:** 2026-10-27
-> **Estado:** En progreso (~55% completado — 95/295)
+> **Estado:** En progreso (~58% completado — 97/295)
 
 ---
 
@@ -141,8 +141,8 @@
 | ✅      | 🔴       | 🏗️    | TASK-C-01     | Renombrar `docs/*.md` a `docs/*.es.md` (18 archivos)                                         | Archivos renombrados + enlaces internos corregidos   |
 | ✅      | 🔴       | 🏛️    | TASK-C-02     | Crear `docs/*.ru.md` (traducción de 18 archivos)                                             | 18 archivos .ru.md creados + enlaces verificados     |
 | ⏳      | 🟡       | 🔨      | TASK-C-03     | Mover `AUDITORIA.md` a `docs/audit/AUDITORIA.md`                                             | Archivo movido         |
-| ⏳      | 🟡       | 🔨      | TASK-C-04     | Fusionar `docs/requirements.md` en `docs/05_requirements.es.md`                              | Sin duplicados         |
-| ⏳      | 🟡       | 🔨      | TASK-C-05     | Fusionar `docs/roadmap.md` en `docs/17_roadmap.es.md`                                        | Sin duplicados         |
+| ✅      | 🟡       | 🔨      | TASK-C-04     | Fusionar `docs/requirements.md` en `docs/05_requirements.es.md`                              | Sin duplicados         |
+| ✅      | 🟡       | 🔨      | TASK-C-05     | Fusionar `docs/roadmap.md` en `docs/17_roadmap.es.md`                                        | Sin duplicados         |
 | ⏳      | 🟡       | 🔨      | TASK-C-06     | Renombrar `docs/manuals/*.md` a `*.es.md` y crear `*.ru.md`                                  | Manuales bilingües     |
 | ⏳      | 🟡       | 🔨      | TASK-C-07     | Renombrar `docs/practices/*.md` a `*.es.md` y crear `*.ru.md`                                | Prácticas bilingües    |
 | ⏳      | 🟡       | 🔨      | TASK-C-08     | Renombrar `docs/thesis/*.md` a `*.es.md` y crear `*.ru.md`                                   | Tesis bilingüe         |
@@ -192,9 +192,9 @@
 | --------------------------------- | ------ | ----------- | ------ |
 | A — Limpieza y Seguridad          | 12     | 12          | 100%   |
 | B — Reorganización y Correcciones | 22     | 22          | 100%   |
-| C — Documentación                 | 12     | 2           | 17%    |
+| C — Documentación                 | 12     | 4           | 33%    |
 | D — Predictivo + Tesis            | 19     | 0           | 0%     |
-| **TOTAL PARTE I**                 | **65** | **36**      | **55%** |
+| **TOTAL PARTE I**                 | **65** | **38**      | **58%** |
 
 ---
 
@@ -660,9 +660,9 @@
 | --------------------------------- | ------ | ----------- | ------ |
 | A — Limpieza y Seguridad          | 12     | 12          | 100%   |
 | B — Reorganización y Correcciones | 22     | 22          | 100%   |
-| C — Documentación                 | 12     | 2           | 17%    |
+| C — Documentación                 | 12     | 4           | 33%    |
 | D — Predictivo + Tesis            | 19     | 0           | 0%     |
-| **TOTAL PARTE I**                 | **65** | **36**      | **55%** |
+| **TOTAL PARTE I**                 | **65** | **38**      | **58%** |
 
 ### Parte II — Inventario Funcional
 
@@ -689,9 +689,9 @@
 
 | Parte     | Tareas  | Completadas | %        |
 | --------- | ------- | ----------- | -------- |
-| Parte I   | 65      | 36          | 55%      |
+| Parte I   | 65      | 38          | 58%      |
 | Parte II  | 230     | 59          | 26%      |
-| **TOTAL** | **295** | **95**      | **~32%** |
+| **TOTAL** | **295** | **97**      | **~33%** |
 
 ---
 
