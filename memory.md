@@ -38,6 +38,7 @@
 | 2026-10-26 | TASK-B-17 | RBAC permisos en quejas/trabajos/asignaciones | [ver](docs/memory/2026-10-23.md#2026-10-26--task-b-17-rbac-permisos-en-quejas-trabajos-asignaciones) |
 | 2026-10-26 | TASK-B-18 | Parametrizar SQL dashboard (replacements) | [ver](docs/memory/2026-10-23.md#2026-10-26--task-b-18-parametrizar-sql-del-dashboard-sequelize-replacements) |
 | 2026-10-26 | TASK-B-19 | Reordenar rutas /dashboard/* antes de /:id | [ver](docs/memory/2026-10-23.md#2026-10-26--task-b-19-reordenar-rutas-dashboard-antes-de--id) |
+| 2026-10-27 | TASK-B-20 | Migraciones versionadas + índices | [ver](docs/memory/2026-10-23.md#2026-10-27--task-b-20-migraciones-versionadas--índices-users-mp) |
 
 ---
 
