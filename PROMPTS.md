@@ -794,6 +794,63 @@ Fase	Agente
 12–13	docs-writer / backend-developer
 
 ---
+Para cada tarea de redacción (TASK-1400-01 a 1400-09), usa este prompt con el agente docs-writer:
+
+[ROL]
+Actúa como `docs-writer`. Sigue `AGENTS.md` y `docs/thesis/ESTRUCTURA_INFORME.es.md`.
+
+[CONTEXTO]
+Tarea: [TASK-1400-XX] — Redactar sección [X.X.X] del informe de práctica.
+Fuente: [archivo de referencia].
+Idioma: español (luego se traduce al ruso).
+
+[TAREA]
+1. Lee la fuente indicada.
+2. Redacta la sección en español, con:
+   - Introducción al tema.
+   - Desarrollo (tablas, listas, diagramas Mermaid si aplica).
+   - Conclusiones parciales.
+3. Cita fuentes en formato ГОСТ 7.0.5-2008.
+4. Guarda en `docs/thesis/informe_practica/[seccion].es.md`.
+
+[RESTRICCIONES]
+- No inventes datos. Si falta información, marca `[TODO: ...]`.
+- Usa tablas para comparativas.
+- Usa Mermaid para diagramas.
+
+[FORMATO]
+1. Contenido redactado.
+2. Referencias usadas.
+3. `[TODO]` pendientes.
+
+---
+Flujo de traducción (TASK-1420-01)
+
+[ROL]
+Actúa como `docs-writer` bilingüe (ES/RU).
+
+[CONTEXTO]
+Tarea: TASK-1420-01 — Traducir informe completo al ruso.
+Fuente: `docs/thesis/informe_practica/*.es.md`.
+
+[TAREA]
+1. Traduce cada sección al ruso, manteniendo:
+   - Estructura y numeración.
+   - Tablas y diagramas.
+   - Referencias ГОСТ.
+2. Guarda en `docs/thesis/informe_practica/[seccion].ru.md`.
+
+[RESTRICCIONES]
+- Traducción técnica fiel, no literal.
+- Mantén términos técnicos en inglés si son estándar (JWT, microservicios → микросервисы).
+- Verifica formato ГОСТ en ruso.
+
+[FORMATO]
+1. Archivos traducidos.
+2. Glosario de términos usados.
+
+---
+
 ## 8. Cierre de tarea (memoria)
 
 Ejecutar SIEMPRE al final de cada tarea.
