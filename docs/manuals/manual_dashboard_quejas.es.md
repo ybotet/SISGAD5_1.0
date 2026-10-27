@@ -113,8 +113,8 @@ El reporte PDF incluye:
 
 ## 8. Referencias
 
-- [Manual Técnico](./manual_tecnico.md)
-- [Manual Operativo](./manual_operativo.md)
-- [BPMN](../practices/practice_04_bpmn.md)
-- [FSM](../practices/practice_06_uml_dynamic.md)
-- [Tesis - Resultados](../thesis/06_conclusions.md)
+- [Manual Técnico](./manual_tecnico.es.md)
+- [Manual Operativo](./manual_operativo.es.md)
+- [BPMN](../practices/practice_04_bpmn.es.md)
+- [FSM](../practices/practice_06_uml_dynamic.es.md)
+- [Tesis - Resultados](../thesis/06_conclusions.es.md)

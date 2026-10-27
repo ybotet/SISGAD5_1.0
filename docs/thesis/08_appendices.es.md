@@ -120,10 +120,10 @@ migrate -path migrations/ -database $DB_URL up
 
 ## 8.7. Referencias
 
-- [Abstract](00_abstract.md)
-- [Introducción](01_introduction.md)
-- [Fundamentos](02_state_of_art.md)
-- [Diseño](03_methodology.md)
-- [Implementación](04_development.md)
-- [Testing](05_results.md)
-- [Resultados](06_conclusions.md)
+- [Abstract](00_abstract.es.md)
+- [Introducción](01_introduction.es.md)
+- [Fundamentos](02_state_of_art.es.md)
+- [Diseño](03_methodology.es.md)
+- [Implementación](04_development.es.md)
+- [Testing](05_results.es.md)
+- [Resultados](06_conclusions.es.md)

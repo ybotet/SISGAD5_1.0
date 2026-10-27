@@ -139,7 +139,7 @@ Desarrollar un sistema integral que digitalice y automatice los procesos de gest
 
 ## 10. Referencias
 
-- [User Story Map](practice_02_user_story_map.md)
-- [Event Storming](practice_03_event_storming.md)
-- [Requisitos](../05_requirements.md)
-- [Roadmap](../17_roadmap.md)
+- [User Story Map](practice_02_user_story_map.es.md)
+- [Event Storming](practice_03_event_storming.es.md)
+- [Requisitos](../05_requirements.es.md)
+- [Roadmap](../17_roadmap.es.md)

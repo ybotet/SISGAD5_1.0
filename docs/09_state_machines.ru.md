@@ -235,4 +235,4 @@ Activo → Bloqueado → Activo
 - [Варианты использования](03_use_cases.ru.md)
 - [Модель домена](07_domain_model.ru.md)
 - [Диаграммы последовательностей](08_sequence_diagrams.ru.md)
-- [Event Storming](../practices/practice_03_event_storming.md)
+- [Event Storming](practices/practice_03_event_storming.ru.md)

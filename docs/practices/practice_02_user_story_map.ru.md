@@ -1,16 +1,16 @@
-# Práctica 02 - User Story Map (Mapa de Historias de Usuario)
+# Практика 02 — User Story Map (Карта историй пользователей)
 
-> **Disciplina:** Ingeniería de Requisitos  
-> **Basado en:** [SISGAD5_doc/docs/02 Акторы.md](https://github.com/ybotet/SISGAD5_doc)
+> **Дисциплина:** Инженерия требований
+> **Основано на:** [SISGAD5_doc/docs/02 Акторы.md](https://github.com/ybotet/SISGAD5_doc)
 
 ---
 
-## 1. Historias de Usuario por Actor
+## 1. Истории пользователей по акторам
 
-### Epic 1: Autenticación y Gestión de Usuarios
+### Epic 1: Аутентификация и управление пользователями
 
 ```
-Actividad principal: "Gestionar cuenta de usuario"
+Основная активность: "Управление аккаунтом пользователя"
 
 [Login] ──→ [Dashboard] ──→ [VerPerfil] ──→ [EditarPerfil] ──→ [ChangePassword]
    │            │              │                │
@@ -27,9 +27,9 @@ Actividad principal: "Gestionar cuenta de usuario"
              └─→ [CrearRol] ──→ [AsignarPermisos] ──→ [EditarRol] ──→ [EliminarRol]
 ```
 
-**Historias:**
+**Истории:**
 
-| ID | Historia | Como... | Quiero... | Para... | Prioridad |
+| ID | История | Как... | Я хочу... | Чтобы... | Приоритет |
 |----|----------|---------|-----------|---------|-----------|
 | US-01 | Login | Usuario | Iniciar sesión con email/password | Acceder al sistema | 🔴 |
 | US-02 | Refresh Token | Usuario | Renovar access token automáticamente | No interrumpir flujo de trabajo | 🔴 |
@@ -49,20 +49,20 @@ Actividad principal: "Gestionar cuenta de usuario"
 ### Epic 2: Gestión de Infraestructura (Teléfonos, Líneas, Pizarras)
 
 ```
-Actividad: "Gestionar infraestructura"
+Активность: "Управление инфраструктурой"
 
 [CrearElemento] ──→ [VerDetalle] ──→ [EditarElemento] ──→ [CambiarEstado] ──→ [VerHistorial]
-       │                 │               │                  │
-       │                 │               └─→ [Eliminar]    │
-       │                 │                                 │
-       │                 └─→ [BuscarElementos]             │
+       │                │               │                  │
+       │                │               └─→ [Eliminar]    │
+       │                │                                 │
+       │                └─→ [BuscarElementos]             │
        │                                                   │
        └─→ [ListarElementos] ──→ [FiltrarElementos] ──→ [ExportarLista]
 ```
 
-**Historias:**
+**Истории:**
 
-| ID | Historia | Como... | Quiero... | Para... | Prioridad |
+| ID | История | Как... | Я хочу... | Чтобы... | Приоритет |
 |----|----------|---------|-----------|---------|-----------|
 | US-15 | CRUD Teléfonos | Operador | Registrar/editar/eliminar teléfonos | Digitalizar inventario | 🔴 |
 | US-16 | Cambiar Estado Teléfono | Operador | Marca activo/baja con fecha | Gestión ciclo vida | 🔴 |
@@ -80,24 +80,24 @@ Actividad: "Gestionar infraestructura"
 ### Epic 3: Gestión de Quejas
 
 ```
-Actividad: "Ciclo de vida de queja"
+Активность: "Цикл жизни заявки"
 
 [CrearQueja] ──→ [VerDetalle] ──→ [EditarQueja] ──→ [CambiarEstado/Asignar]
-      │              │                │                    │
-      │              │                │                    └─→ [VerHistorial]
-      │              │                │                    └─→ [VerAuditoría]
-      │              │                │                    └─→ [AsignarTécnico]
-      │              │                │
-      │              │                └─→ [Eliminar] (solo draft)
-      │              │
-      │              └─→ [BuscarQuejas/Filtrar]
-      │
-      └─→ [ListarQuejas] ──→ [FiltrarQuejas]
+    │              │                │                    │
+    │              │                │                    └─→ [VerHistorial]
+    │              │                │                    └─→ [VerAuditoría]
+    │              │                │                    └─→ [AsignarTécnico]
+    │              │                │
+    │              │                └─→ [Eliminar] (solo draft)
+    │              │
+    │              └─→ [BuscarQuejas/Filtrar]
+    │
+    └─→ [ListarQuejas] ──→ [FiltrarQuejas]
 ```
 
-**Historias:**
+**Истории:**
 
-| ID | Historia | Como... | Quiero... | Para... | Prioridad |
+| ID | История | Как... | Я хочу... | Чтобы... | Приоритет |
 |----|----------|---------|-----------|---------|-----------|
 | US-27 | Crear Queja | Operador | Registrar queja con clasificación | Iniciar proceso | 🔴 |
 | US-28 | Clasificar Queja | Operador | Seleccionar tipo/servicio/ubicación/clave | Priorizar y dirigir | 🔴 |
@@ -106,7 +106,7 @@ Actividad: "Ciclo de vida de queja"
 | US-31 | Asignar Técnico | Jefe | Asignar a técnico disponible | Ejecución | 🔴 |
 | US-32 | Ver Detalle Queja | Todos (según rol) | Ver pruebas, trabajos, historial | Diagnóstico | 🟡 |
 | US-33 | Ver Historial Estado | Auditor | Ver todos los cambios de estado | Trazabilidad | 🟡 |
-| US-34 | Ver Auditoría | Auditor | Ver quién hizo qué y cuándo | Cumplimiento | 🟡 |
+| US-34 | Ver Auditoría | Auditor | Ver quién hizo qué y cuándо | Cumplimiento | 🟡 |
 | US-35 | Buscar Quejas | Operador | Filtrar por estado, fecha, técnico, prioridad | Localizar rápido | 🟡 |
 | US-36 | Notificación Email | Sistema | Enviar email al asignar/cambiar estado | Comunicación | 🟢 |
 | US-37 | Reabrir Queja | Operador | Cambiar estado Cerrada → Abierta | Corrección | 🟢 |
@@ -114,18 +114,18 @@ Actividad: "Ciclo de vida de queja"
 ### Epic 4: Gestión de Pruebas
 
 ```
-Actividad: "Registrar pruebas técnicas"
+Активность: "Регистрация технических тестов"
 
 [CrearPrueba] ──→ [VerDetalle] ──→ [EditarPrueba]
-       │               │               │
-       │               └─→ [VerHistorial]
-       │
-       └─→ [ListarPruebas] ──→ [FiltrarPruebas]
+      │               │               │
+      │               └─→ [VerHistorial]
+      │
+      └─→ [ListarPruebas] ──→ [FiltrarPruebas]
 ```
 
-**Historias:**
+**Истории:**
 
-| ID | Historia | Como... | Quiero... | Para... | Prioridad |
+| ID | История | Как... | Я хочу... | Чтобы... | Приоритет |
 |----|----------|---------|-----------|---------|-----------|
 | US-38 | Registrar Prueba | Técnico | Registrar resultado con mediciones | Evidenciar verificación | 🔴 |
 | US-39 | Resultado Prueba | Técnico | Marcar exitoso/fail + observaciones | Calidad | 🔴 |
@@ -135,33 +135,33 @@ Actividad: "Registrar pruebas técnicas"
 ### Epic 5: Gestión de Trabajos
 
 ```
-Actividad: "Orden de trabajo"
+Активность: "Ордер работы"
 
 [CrearTrabajo] ──→ [VerDetalle] ──→ [EditarTrabajo] ──→ [AsignarTécnico]
-       │              │                │                  │
-       │              │                │                  └─→ [CerrarTrabajo]
-       │              │                │                    (requiere tiempo real)
-       │              │                │
-       │              │                └─→ [Eliminar]
-       │              │
-       │              └─→ [VerHistorial]
-       │
-       └─→ [ListarTrabajos] ──→ [FiltrarTrabajos]
+     │              │                │                  │
+     │              │                │                  └─→ [CerrarTrabajo]
+     │              │                │                    (requiere tiempo real)
+     │              │                │
+     │              │                └─→ [Eliminar]
+     │              │
+     │              └─→ [VerHistorial]
+     │
+     └─→ [ListarTrabajos] ──→ [FiltrarTrabajos]
 ```
 
-**Historias:**
+**Истории:**
 
-| ID | Historia | Como... | Quiero... | Para... | Prioridad |
+| ID | История | Как... | Я хочу... | Чтобы... | Приоритет |
 |----|----------|---------|-----------|---------|-----------|
-| US-42 | Crear Trabajo | Jefe | Orden de trabajo con descripción y tiempo estimado | Planificar | 🔴 |
+| US-42 | Crear Trabajo | Jefe | Orden de trabajo с descripción y tiempo estimado | Planificar | 🔴 |
 | US-43 | Asignar Técnico | Jefe | Asignar trabajo a técnico | Ejecución | 🔴 |
-| US-44 | Cerrar Trabajo | Técnico | Registrar tiempo real y cerrar | Finalizar | 🔴 |
+| US-44 | Cerrar Trabajo | Técnico | Registrar tiempo real и закрыть | Finalizar | 🔴 |
 | US-45 | Historial Trabajos | Jefe | Listar con filtros | Supervisión | 🟡 |
 
 ### Epic 6: Gestión de Materiales
 
 ```
-Actividad: "Catálogo y movimientos de materiales"
+Активность: "Каталог и движение материалов"
 
 [GestionarMateriales] ──→ [VerDetalle] ──→ [EditarMaterial]
          │                    │               │
@@ -186,9 +186,9 @@ Actividad: "Catálogo y movimientos de materiales"
                 └─→ [ListarConsumos]
 ```
 
-**Historias:**
+**Истории:**
 
-| ID | Historia | Como... | Quiero... | Para... | Prioridad |
+| ID | История | Как... | Я хочу... | Чтобы... | Приоритет |
 |----|----------|---------|-----------|---------|-----------|
 | US-46 | CRUD Materiales | Analista | Gestionar catálogo completo | Digitalizar inventario | 🔴 |
 | US-47 | CRUD Categorías | Analista | Organizar materiales | Gestión eficiente | 🔴 |
@@ -207,20 +207,20 @@ Actividad: "Catálogo y movimientos de materiales"
 ### Epic 7: Estadísticas y Dashboards
 
 ```
-Actividad: "Análisis de datos"
+Активность: "Анализ данных"
 
 [VerDashboardMP] ──→ [FiltrarDatos] ──→ [VerGráficos] ──→ [ExportarDatos]
-         │                │                │                │
-         └─→ [KPIsPrincipales]             │                │
-                                           │                │
-                                        [VerDetalle]         │
-                                                             │
+       │                │                │                │
+       └─→ [KPIsPrincipales]             │                │
+                                         │                │
+                                    [VerDetalle]         │
+                                                        │
 [VerDashboardMateriales] ──→ [FiltrarDatos] ──→ [VerGráficos] ──→ [ExportarDatos]
 ```
 
-**Historias:**
+**Истории:**
 
-| ID | Historia | Como... | Quiero... | Para... | Prioridad |
+| ID | История | Как... | Я хочу... | Чтобы... | Приоритет |
 |----|----------|---------|-----------|---------|-----------|
 | US-59 | Dashboard MP | Jefe/Director | Ver KPIs: quejas, trabajos, pruebas | Supervisión | 🟡 |
 | US-60 | Dashboard Materiales | Analista/Director | Ver KPIs: asignaciones, consumos, stock | Supervisión | 🟡 |
@@ -233,26 +233,26 @@ Actividad: "Análisis de datos"
 ### Epic 8: Prediction Service (Analítica Predictiva)
 
 ```
-Actividad principal: "Obtener y visualizar predicciones"
+Основная активность: "Получить и визуализировать предсказания"
 
 [VerDashboard] ──→ [SeleccionarModelo] ──→ [ConsultaPrediccion] ──→ [VerConfianza]
-      │                  │                     │                      │
-      │                  │                     └─→ [VerFeatures]      │
-      │                  │                                            │
-      │                  └─→ [VerMetricasModelo]                     │
-      │                                                            │
-      └─→ [VerHistorialPredicciones] ──→ [ExportarPredicciones]    │
-                                                                   │
+     │                  │                     │                      │
+     │                  │                     └─→ [VerFeatures]      │
+     │                  │                                            │
+     │                  └─→ [VerMetricasModelo]                     │
+     │                                                            │
+     └─→ [VerHistorialPredicciones] ──→ [ExportarPredicciones]    │
+                                                                │
 [Admin] ──→ [ConfigurarRetraining] ──→ [MonitorearDrift] ──→ [VerAlertas]
 ```
 
-**Historias:**
+**Истории:**
 
-| ID | Historia | Como... | Quiero... | Para... | Prioridad |
+| ID | История | Как... | Я хочу... | Чтобы... | Приоритет |
 |----|----------|---------|-----------|---------|-----------|
 | US-64 | Predecir Demanda Materiales | Analista/Director | Ver predicción de demanda para los próximos 30 días | Planificar compras y stock | 🔴 |
 | US-65 | Predecir Tiempo Resolución | Jefe/Técnico | Estimar tiempo de cierre de una queja | Planificación de recursos | 🔴 |
-| US-66 | Detección Anomalías Consumo | Analista | Detectar consumos anómalos por técnico/material | Detectar errores y fraudes | 🔴 |
+| US-66 | Detección Anomalías Consumo | Analista | Detectar consumos anómalos por técnico/material | Detectar errores и fraudes | 🔴 |
 | US-67 | Clasificar Prioridad Quejas | Operador | Obtener prioridad sugerida al crear queja | Agilizar clasificación | 🟡 |
 | US-68 | Predecir Fallos Infraestructura | Jefe/Técnico | Identificar pizarras/teléfonos con alto riesgo | Mantenimiento preventivo | 🟡 |
 | US-69 | Optimizar Asignación Técnicos | Jefe | Recibir sugerencia de técnico óptimo por trabajo | Reducir tiempos de desplazamiento | 🟡 |
@@ -264,38 +264,38 @@ Actividad principal: "Obtener y visualizar predicciones"
 
 ---
 
-## 3. Prioridad del Backlog (MVP → Completo)
+## 3. Приоритет бэклога (MVP → Полный)
 
 ### MVP (Mínimo Producto Viable) - 🔴 Release 1.0
-- Autenticación completa (US-01 a US-04)
+- Полная аутентификация (US-01 a US-04)
 - CRUD teléfonos/líneas/pizarras (US-15 a US-24)
-- Quejas: crear, clasificar, flujo completo (US-27 a US-30)
-- Trabajos: crear, asignar, cerrar (US-42 a US-44)
-- Materiales: CRUD + asignación básica (US-46 a US-49)
-- Dashboard básico
+- Заявки: создание, классификация, полный цикл (US-27 a US-30)
+- Trabajos: создание, назначение, закрытие (US-42 a US-44)
+- Materiales: CRUD + базовое назначение (US-46 a US-49)
+- Базовый дашборд
 
 ### Release 1.5 - 🟡 Mejora Operativa
-- Priorización automática quejas
-- Historiales completos
+- Автоматическая приоритизация заявок
+- Полные истории
 - Búsqueda y filtrado avanzado
-- Exportaciones
-- Dashboard avanzado
+- Экспорт
+- Расширенный дашборд
 
-### Release 2.0 - 🔴 Predicción y MLOps
+### Release 2.0 - 🔴 Прогнозирование и MLOps
 - Prediction Service (FastAPI + scikit-learn + XGBoost + Prophet)
-- 6 modelos predictivos entrenados
+- 6 обученных прогностических моделей
 - MLflow Model Registry
-- Airflow pipelines de reentrenamiento
-- Dashboard de predicciones (Recharts)
+- Airflow pipelines переобучения
+- Дашборд прогнозирования (Recharts)
 
 ### Futuro - ⚪ Innovación
 - MLOps avanzado (drift detection, explicabilidad SHAP/LIME)
 - API pública
-- Multi-tenancy
+- Мультитенантность
 
 ---
 
-## 4. Métricas de Historias
+## 4. Métricas de historias
 
 | Epic | Historias | Priority 1 | Priority 2 | Priority 3 | Priority 4 | Total Story Points |
 |------|-----------|------------|------------|------------|------------|-------------------|
@@ -311,10 +311,10 @@ Actividad principal: "Obtener y visualizar predicciones"
 
 ---
 
-## 5. Enlaces Relacionados
+## 5. Связанные ссылки
 
-- [Casos de Uso](../03_use_cases.md)
-- [Actores](../02_actors.md)
-- [Event Storming](practice_03_event_storming.md)
-- [Project Card](practice_01_project_card.md)
-- [Roadmap](../17_roadmap.md)
+- [Casos de Uso](../03_use_cases.ru.md)
+- [Actores](../02_actors.ru.md)
+- [Event Storming](practice_03_event_storming.ru.md)
+- [Project Card](practice_01_project_card.ru.md)
+- [Roadmap](../17_roadmap.ru.md)

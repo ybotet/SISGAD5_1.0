@@ -199,8 +199,8 @@ Estado actual: Reportada → Priorizada → Abierta
 
 ## 8. Referencias
 
-- [Manual Administrativo](manual_administracion.md)
-- [Manual de Explotación](manual_explotacion_general.md)
-- [Manual Técnico](manual_tecnico.md)
-- [Tesis - Implementación](../thesis/04_development.md)
-- [BPMN](../practices/practice_04_bpmn.md)
+- [Manual Administrativo](manual_administracion.es.md)
+- [Manual de Explotación](manual_explotacion_general.es.md)
+- [Manual Técnico](manual_tecnico.es.md)
+- [Tesis - Implementación](../thesis/04_development.es.md)
+- [BPMN](../practices/practice_04_bpmn.es.md)

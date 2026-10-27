@@ -210,6 +210,6 @@ func TestQuejaCompleta(t *testing.T) {
 
 ## 5.7. Referencias
 
-- [Métricas de Testing](../16_testing.md)
-- [UML Dinámico](../practices/practice_06_uml_dynamic.md)
-- [Event Storming](../practices/practice_03_event_storming.md)
+- [Métricas de Testing](../16_testing.es.md)
+- [UML Dinámico](../practices/practice_06_uml_dynamic.es.md)
+- [Event Storming](../practices/practice_03_event_storming.es.md)

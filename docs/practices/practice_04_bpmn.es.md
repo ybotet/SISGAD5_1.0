@@ -186,8 +186,8 @@ flowchart TD
 
 ## 6. Referencias
 
-- [User Story Map](practice_02_user_story_map.md)
-- [Reglas de Negocio](../06_business_rules.md)
-- [Casos de Uso](../03_use_cases.md)
-- [Máquinas de Estado](../09_state_machines.md)
-- [Event Storming](practice_03_event_storming.md)
+- [User Story Map](practice_02_user_story_map.es.md)
+- [Reglas de Negocio](../06_business_rules.es.md)
+- [Casos de Uso](../03_use_cases.es.md)
+- [Máquinas de Estado](../09_state_machines.es.md)
+- [Event Storming](practice_03_event_storming.es.md)

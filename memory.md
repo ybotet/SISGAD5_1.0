@@ -43,9 +43,12 @@
 | 2026-10-27 | TASK-B-22 | Saga/compensación al cerrar queja (MP → Materials) | [ver](docs/memory/2026-10-23.md#2026-10-27--task-b-22-sagacompenzaci%C3%B3n-al-cerrar-queja-mp--materials) |
 | 2026-10-27 | TASK-C-01 | Renombrar `docs/*.md` a `docs/*.es.md` (18 archivos) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-01-renombrar-docsmd-a-docsesmd-18-archivos) |
 | 2026-10-27 | TASK-C-02 | Crear `docs/*.ru.md` (traducción de 18 archivos) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-02-crear-docsru-md-traducci%C3%B3n-de-18-archivos) |
-| 2026-10-27 | TASK-C-03 | Consolidar documentación (duplicados, enlaces) | [ver](docs/memory/2026-10-27.md#2026-10-27--consolidaci%C3%B3n-de-documentaci%C3%B3n-en-docs) |
+| 2026-10-27 | TASK-C-03 | Consolidar documentación (duplicados, enlaces) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-03-consolidar-documentaci%C3%B3n-duplicados-enlaces) |
 | 2026-10-27 | TASK-C-04 | Fusionar `docs/requirements.md` en `docs/05_requirements.es.md` | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-04-fusionar-docsrequirementsmd-en-docs05_requirementsesmd) |
 | 2026-10-27 | TASK-C-05 | Fusionar `docs/roadmap.md` en `docs/17_roadmap.es.md` | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-05-fusionar-docsroadmapmd-en-docs17_roadmapesmd) |
+| 2026-10-27 | TASK-C-06 | Crear `.es.md`/`.ru.md` para manuales (docs/manuals/) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-06-crear-es-mdru-md-para-manuales-docsmanuals) |
+| 2026-10-27 | TASK-C-07 | Completar docs/practices/ (`.es.md`/`.ru.md`) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-07-completar-docspractices-es-mderu-md) |
+| 2026-10-27 | TASK-C-09 | Verificar enlaces internos (`scripts/validate_docs.sh`) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-09-verificar-enlaces-internos-scriptssvalidate_docssh) |
 
 ---
 

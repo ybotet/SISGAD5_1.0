@@ -98,7 +98,7 @@ La técnica Event Storming fue utilizada para identificar:
 - **Reglas de negocio:** 12 reglas (BR-01 a BR-12)
 - **Políticas de readmodel:** 6 proyecciones para dashboards
 
-Ver: [Event Storming](../practices/practice_03_event_storming.md)
+Ver: [Event Storming](../practices/practice_03_event_storming.es.md)
 
 ## 2.5. BPMN
 
@@ -108,7 +108,7 @@ El modelado BPMN fue aplicado a tres procesos críticos:
 2. Gestión de Materiales (asignación → consumo)
 3. Autenticación y Autorización
 
-Ver: [BPMN](../practices/practice_04_bpmn.md)
+Ver: [BPMN](../practices/practice_04_bpmn.es.md)
 
 ## 2.6. UML
 
@@ -121,4 +121,4 @@ Diagramas estáticos y dinámicos:
 - 2 diagramas de actividad (asignación→consumo, ciclo de vida de queja)
 - 1 mapa de interacción (escenario end-to-end 18 mensajes)
 
-Ver: [UML Estático](../practices/practice_05_uml_static.md), [UML Dinámico](../practices/practice_06_uml_dynamic.md)
+Ver: [UML Estático](../practices/practice_05_uml_static.es.md), [UML Dinámico](../practices/practice_06_uml_dynamic.es.md)

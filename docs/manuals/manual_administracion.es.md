@@ -143,7 +143,7 @@ Este manual está dirigido a usuarios con perfiles de jefe, coordinador o admini
 
 ## 10. Referencias
 
-- [Manual de Explotación](manual_explotacion_general.md)
-- [Manual Técnico](manual_tecnico.md)
-- [Manual Operativo](manual_operativo.md)
-- [Tesis - Fundamentos](../thesis/02_state_of_art.md)
+- [Manual de Explotación](manual_explotacion_general.es.md)
+- [Manual Técnico](manual_tecnico.es.md)
+- [Manual Operativo](manual_operativo.es.md)
+- [Tesis - Fundamentos](../thesis/02_state_of_art.es.md)

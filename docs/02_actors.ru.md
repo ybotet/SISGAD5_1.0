@@ -83,7 +83,7 @@
 
 ## 4. Истории пользователей по актёрам
 
-См. [User Story Map](../practices/practice_02_user_story_map.md)
+См. [User Story Map](practices/practice_02_user_story_map.ru.md)
 
 ---
 
@@ -91,4 +91,4 @@
 
 - [Варианты использования](03_use_cases.ru.md)
 - [Матрица RBAC](12_rbac_matrix.ru.md)
-- [Event Storming](../practices/practice_03_event_storming.md)
+- [Event Storming](practices/practice_03_event_storming.ru.md)

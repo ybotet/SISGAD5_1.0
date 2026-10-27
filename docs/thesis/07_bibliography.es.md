@@ -80,6 +80,6 @@
 
 ## 7.5. Referencias
 
-- [Roadmap](../17_roadmap.md)
-- [Testing](../16_testing.md)
-- [Fundamentos](../thesis/02_state_of_art.md)
+- [Roadmap](../17_roadmap.es.md)
+- [Testing](../16_testing.es.md)
+- [Fundamentos](02_state_of_art.es.md)

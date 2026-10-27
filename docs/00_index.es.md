@@ -79,13 +79,17 @@ docs/thesis/
 
 ```
 docs/practices/
-├── practice_01_project_card.md
-├── practice_02_user_story_map.md
-├── practice_03_event_storming.md
-├── practice_04_bpmn.md
-├── practice_05_uml_static.md
-├── practice_06_uml_dynamic.md
-├── 01_setup_inicial.md
+├── practice_01_project_card.es.md
+├── practice_02_user_story_map.es.md
+├── practice_03_event_storming.es.md
+├── practice_04_bpmn.es.md
+├── practice_05_uml_static.es.md
+├── practice_06_uml_dynamic.es.md
+├── practice_07_system_architecture.es.md
+├── practice_08_deployment_diagram.es.md
+├── practice_09_dfd.es.md
+├── practice_10_security_model.es.md
+├── 01_setup_inicial.es.md
 ├── hacer.txt
 └── curso-go/
     └── Informe.md

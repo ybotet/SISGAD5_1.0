@@ -361,8 +361,8 @@ sequenceDiagram
 
 ## 6. Referencias
 
-- [Diagramas UML](../10_uml_diagrams.md)
-- [Event Storming](practice_03_event_storming.md)
-- [Máquinas de Estado](../09_state_machines.md)
-- [Diagramas de Secuencia](../doc/diagrams/sequence_diagrams/)
-- [Flujo de Trabajo](../05_workflow.md)
+- [Diagramas UML](../08_sequence_diagrams.es.md)
+- [Event Storming](practice_03_event_storming.es.md)
+- [Máquinas de Estado](../09_state_machines.es.md)
+- [Diagramas de Secuencia](practice_08_deployment_diagram.es.md)
+- [Flujo de Trabajo](practice_04_bpmn.es.md)

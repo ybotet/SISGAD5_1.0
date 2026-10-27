@@ -73,6 +73,6 @@ Este documento está organizado de la siguiente manera:
 
 ## 1.6. Referencias
 
-- [User Story Map](../practices/practice_02_user_story_map.md)
-- [Evento Storming](../practices/practice_03_event_storming.md)
-- [UML Estático](../practices/practice_05_uml_static.md)
+- [User Story Map](../practices/practice_02_user_story_map.es.md)
+- [Evento Storming](../practices/practice_03_event_storming.es.md)
+- [UML Estático](../practices/practice_05_uml_static.es.md)

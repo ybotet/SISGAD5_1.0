@@ -627,8 +627,8 @@ Ver archivos fuente en: [`docs/diagrams/class_diagrams/`](../diagrams/class_diag
 
 ## 7. Referencias
 
-- [Modelo de Dominio](../07_domain_model.md)
-- [Casos de Uso](../03_use_cases.md)
-- [Diccionario de Términos](../04_glossary.md)
-- [UML Dinámico](practice_06_uml_dynamic.md)
-- [Event Storming](practice_03_event_storming.md)
+- [Modelo de Dominio](../07_domain_model.es.md)
+- [Casos de Uso](../03_use_cases.es.md)
+- [Diccionario de Términos](../04_glossary.es.md)
+- [UML Dinámico](practice_06_uml_dynamic.es.md)
+- [Event Storming](practice_03_event_storming.es.md)

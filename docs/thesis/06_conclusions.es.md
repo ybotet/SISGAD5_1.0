@@ -94,6 +94,6 @@ make test-materiales
 
 ## 6.6. Referencias
 
-- [Testing](../16_testing.md)
-- [Roadmap](../17_roadmap.md)
-- [UML Dinámico](../practices/practice_06_uml_dynamic.md)
+- [Testing](../16_testing.es.md)
+- [Roadmap](../17_roadmap.es.md)
+- [UML Dinámico](../practices/practice_06_uml_dynamic.es.md)

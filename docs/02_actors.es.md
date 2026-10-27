@@ -84,7 +84,7 @@
 
 ## 4. Historias de Usuario por Actor
 
-Ver [User Story Map](../practices/practice_02_user_story_map.md)
+Ver [User Story Map](practices/practice_02_user_story_map.es.md)
 
 ---
 
@@ -92,4 +92,4 @@ Ver [User Story Map](../practices/practice_02_user_story_map.md)
 
 - [Casos de Uso](03_use_cases.es.md)
 - [Matriz RBAC](12_rbac_matrix.es.md)
-- [Event Storming](../practices/practice_03_event_storming.md)
+- [Event Storming](practices/practice_03_event_storming.es.md)

@@ -158,6 +158,6 @@ GET    /api/materials/unidades            # Listar unidades
 
 ## 4.6. Referencias
 
-- [UML Estático](../practices/practice_05_uml_static.md)
-- [UML Dinámico](../practices/practice_06_uml_dynamic.md)
+- [UML Estático](../practices/practice_05_uml_static.es.md)
+- [UML Dinámico](../practices/practice_06_uml_dynamic.es.md)
 - [API Reference](../api/mp_reference.md)

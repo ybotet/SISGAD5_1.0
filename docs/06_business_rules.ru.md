@@ -129,4 +129,4 @@
 - [Требования](05_requirements.ru.md)
 - [Модель домена](07_domain_model.ru.md)
 - [Машины состояний](09_state_machines.ru.md)
-- [Event Storming](../practices/practice_03_event_storming.md)
+- [Event Storming](practices/practice_03_event_storming.ru.md)

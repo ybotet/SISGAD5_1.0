@@ -168,5 +168,5 @@
 
 - [Модель домена](07_domain_model.ru.md)
 - [Варианты использования](03_use_cases.ru.md)
-- [Event Storming](../practices/practice_03_event_storming.md)
+- [Event Storming](practices/practice_03_event_storming.ru.md)
 - [Оригинальный словарь в SISGAD5_doc](https://github.com/ybotet/SISGAD5_doc/blob/main/docs/04%20%D0%A1%D0%BB%D0%BE%D0%B2%D0%B0%D1%80%D1%8C%20%D1%82%D0%B5%D1%80%D0%BC%D0%B8%D0%BD%D0%BE%D0%B2.md)

@@ -37,7 +37,7 @@
 | Cable CAT6 UTP | 100 | 45 | -55 |
 | Conector RJ45 | 50 | 12 | -38 |
 
-**Acción:** Click en material → Ver detalle y historial → [Ir a Material](../manual_operativo.md)
+**Acción:** Click en material → Ver detalle y historial → [Ir a Material](manual_operativo.es.md)
 
 ## 3. Cómo Usar los Filtros
 
@@ -97,7 +97,7 @@ El dashboard genera alertas visuales:
 
 ## 8. Referencias
 
-- [Manual Técnico](./manual_tecnico.md)
-- [Manual Operativo](./manual_operativo.md)
-- [Tesis - Resultados](../thesis/06_conclusions.md)
-- [UML Estático](../practices/practice_05_uml_static.md)
+- [Manual Técnico](./manual_tecnico.es.md)
+- [Manual Operativo](./manual_operativo.es.md)
+- [Tesis - Resultados](../thesis/06_conclusions.es.md)
+- [UML Estático](../practices/practice_05_uml_static.es.md)

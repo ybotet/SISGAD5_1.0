@@ -221,8 +221,8 @@ certbot --nginx -d api.sisgad5.com
 
 ## 8. Referencias
 
-- [Tesis - Implementación](../thesis/04_development.md)
-- [Manual Técnico](manual_tecnico.md)
-- [Manual Operativo](manual_operativo.md)
-- [Manual Administrativo](manual_administracion.md)
+- [Tesis - Implementación](../thesis/04_development.es.md)
+- [Manual Técnico](manual_tecnico.es.md)
+- [Manual Operativo](manual_operativo.es.md)
+- [Manual Administrativo](manual_administracion.es.md)
 - [API Reference](../api/mp_reference.md)

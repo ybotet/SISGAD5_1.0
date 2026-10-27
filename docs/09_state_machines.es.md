@@ -235,4 +235,4 @@ Ver archivos Mermaid en: [`docs/diagrams/state_machines/`](../diagrams/state_mac
 - [Casos de Uso](03_use_cases.es.md)
 - [Modelo de Dominio](07_domain_model.es.md)
 - [Diagramas de Secuencia](08_sequence_diagrams.es.md)
-- [Event Storming](../practices/practice_03_event_storming.md)
+- [Event Storming](practices/practice_03_event_storming.es.md)

@@ -12,7 +12,7 @@ Este manual describe aspectos técnicos del sistema: arquitectura, APIs, reglas 
 
 ## 2. Arquitectura
 
-Ver el capítulo 3 de la tesis para detalles completos: [Tesis - Diseño](../thesis/03_methodology.md)
+Ver el capítulo 3 de la tesis para detalles completos: [Tesis - Diseño](../thesis/03_methodology.es.md)
 
 ```mermaid
 graph LR
@@ -275,10 +275,10 @@ make status
 
 ## 10. Referencias
 
-- [Tesis - Implementación](../thesis/04_development.md)
-- [Tesis - Fundamentos](../thesis/02_state_of_art.md)
-- [Tesis - Testing](../thesis/05_results.md)
-- [UML Dinámico](../practices/practice_06_uml_dynamic.md)
-- [UML Estático](../practices/practice_05_uml_static.md)
-- [Event Storming](../practices/practice_03_event_storming.md)
-- [BPMN](../practices/practice_04_bpmn.md)
+- [Tesis - Implementación](../thesis/04_development.es.md)
+- [Tesis - Fundamentos](../thesis/02_state_of_art.es.md)
+- [Tesis - Testing](../thesis/05_results.es.md)
+- [UML Dinámico](../practices/practice_06_uml_dynamic.es.md)
+- [UML Estático](../practices/practice_05_uml_static.es.md)
+- [Event Storming](../practices/practice_03_event_storming.es.md)
+- [BPMN](../practices/practice_04_bpmn.es.md)

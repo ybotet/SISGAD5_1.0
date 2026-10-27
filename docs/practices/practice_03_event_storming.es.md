@@ -289,8 +289,8 @@ eventFlow
 
 ## 7. Referencias
 
-- [Diccionario de Términos](../04_glossary.md)
-- [User Story Map](practice_02_user_story_map.md)
-- [Reglas de Negocio](../06_business_rules.md)
-- [Modelo de Dominio](../07_domain_model.md)
-- [Máquinas de Estado](../09_state_machines.md)
+- [Diccionario de Términos](../04_glossary.es.md)
+- [User Story Map](practice_02_user_story_map.es.md)
+- [Reglas de Negocio](../06_business_rules.es.md)
+- [Modelo de Dominio](../07_domain_model.es.md)
+- [Máquinas de Estado](../09_state_machines.es.md)
