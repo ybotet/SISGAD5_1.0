@@ -147,7 +147,7 @@
 | ✅     | 🟠       | 🔨      | **TASK-B-19** | **Reordenar rutas `/dashboard/*` antes de `/:id`**          | **Auditoría BUS-02** | Dashboard accesible                             |
 | ✅     | 🟠       | 🔨      | **TASK-B-20** | **Migraciones versionadas + índices (Users, MP)**           | **Auditoría DAT-01** | `migrations/` con índices en estado, FKs, fecha |
 | ✅     | 🟠       | 🔨      | **TASK-B-21** | **Infraestructura Jest/Supertest + 32 tests**               | **Auditoría QA-01**  | CI pasa con tests reales (21 MP + 11 Users)     |
-| ✅      | 🟠       | 🏗️    | **TASK-B-22** | **Saga/compensación al cerrar queja (MP → Materials)**      | **Auditoría ARC-03** | Consumo registrado al cerrar queja              |
+| ✅     | 🟠       | 🏗️    | **TASK-B-22** | **Saga/compensación al cerrar queja (MP → Materials)**      | **Auditoría ARC-03** | Consumo registrado al cerrar queja              |
 
 **Total Fase B:** 22 tareas
 
@@ -155,20 +155,20 @@
 
 > **Objetivo:** Documentación bilingüe ES/RU, sin duplicados, alineada con código real.
 
-| Estado | Prioridad | Esfuerzo | ID            | Descripción                                                                                  | Criterio de Aceptación |
-| ------ | --------- | -------- | ------------- | -------------------------------------------------------------------------------------------- | ---------------------- |
-| ✅      | 🔴       | 🏗️    | TASK-C-01     | Renombrar `docs/*.md` a `docs/*.es.md` (18 archivos)                                         | Archivos renombrados + enlaces internos corregidos   |
-| ✅      | 🔴       | 🏛️    | TASK-C-02     | Crear `docs/*.ru.md` (traducción de 18 archivos)                                             | 18 archivos .ru.md creados + enlaces verificados     |
-| ✅      | 🟡       | 🔨      | TASK-C-03     | Mover `AUDITORIA.md` a `docs/audit/AUDITORIA.md`                                       | Archivo movido         |
-| ✅      | 🟡       | 🔨      | TASK-C-04     | Fusionar `docs/requirements.md` en `docs/05_requirements.es.md`                              | Sin duplicados         |
-| ✅      | 🟡       | 🔨      | TASK-C-05     | Fusionar `docs/roadmap.md` en `docs/17_roadmap.es.md`                                        | Sin duplicados         |
-| ✅      | 🟡       | 🔨      | TASK-C-06     | Renombrar `docs/manuals/*.md` a `*.es.md` y crear `*.ru.md`                                  | Manuales bilingües     |
-| ✅      | 🟡       | 🔨      | TASK-C-07     | Renombrar `docs/practices/*.md` a `*.es.md` y crear `*.ru.md`                                | Prácticas bilingües    |
-| ⏳      | 🟡       | 🔨      | TASK-C-08     | Renombrar `docs/thesis/*.md` a `*.es.md` y crear `*.ru.md`                                   | Tesis bilingüe         |
-| ✅      | 🟡       | 🔨      | TASK-C-09     | Verificar enlaces internos (`scripts/validate_docs.sh`)                                      | 0 enlaces rotos (*.es.md) |
-| ⏳      | 🟡       | 🔨      | TASK-C-10     | Commit + PR + merge                                                                          | Docs consolidadas      |
-| ⏳      | 🟠       | 🔨      | **TASK-C-11** | **Alinear `ARCHITECTURE.md` con código real (mux, no Gin; sin Redis/Prometheus en compose)** | **Auditoría ARC-01**   | Docs = código
-| ⏳      | 🟠       | 🔨      | **TASK-C-12** | **Actualizar `AGENTS.md` con hallazgos de auditoría**                                        | **Auditoría**          | Sección 8 actualizada
+| Estado | Prioridad | Esfuerzo | ID            | Descripción                                                                                  | Criterio de Aceptación                             |
+| ------ | --------- | -------- | ------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| ✅     | 🔴       | 🏗️    | TASK-C-01     | Renombrar `docs/*.md` a `docs/*.es.md` (18 archivos)                                         | Archivos renombrados + enlaces internos corregidos |
+| ✅     | 🔴       | 🏛️    | TASK-C-02     | Crear `docs/*.ru.md` (traducción de 18 archivos)                                             | 18 archivos .ru.md creados + enlaces verificados   |
+| ✅     | 🟡       | 🔨      | TASK-C-03     | Mover `AUDITORIA.md` a `docs/audit/AUDITORIA.md`                                             | Archivo movido                                     |
+| ✅     | 🟡       | 🔨      | TASK-C-04     | Fusionar `docs/requirements.md` en `docs/05_requirements.es.md`                              | Sin duplicados                                     |
+| ✅     | 🟡       | 🔨      | TASK-C-05     | Fusionar `docs/roadmap.md` en `docs/17_roadmap.es.md`                                        | Sin duplicados                                     |
+| ✅     | 🟡       | 🔨      | TASK-C-06     | Renombrar `docs/manuals/*.md` a `*.es.md` y crear `*.ru.md`                                  | Manuales bilingües                                 |
+| ✅     | 🟡       | 🔨      | TASK-C-07     | Renombrar `docs/practices/*.md` a `*.es.md` y crear `*.ru.md`                                | Prácticas bilingües                                |
+| ⏳      | 🟡       | 🔨      | TASK-C-08     | Renombrar `docs/thesis/*.md` a `*.es.md` y crear `*.ru.md`                                   | Tesis bilingüe                                     |
+| ✅     | 🟡       | 🔨      | TASK-C-09     | Verificar enlaces internos (`scripts/validate_docs.sh`)                                      | 0 enlaces rotos (*.es.md)                          |
+| ⏳      | 🟡       | 🔨      | TASK-C-10     | Commit + PR + merge                                                                          | Docs consolidadas                                  |
+| ⏳      | 🟠       | 🔨      | **TASK-C-11** | **Alinear `ARCHITECTURE.md` con código real (mux, no Gin; sin Redis/Prometheus en compose)** | **Auditoría ARC-01**                               | Docs = código
+| ⏳      | 🟠       | 🔨      | **TASK-C-12** | **Actualizar `AGENTS.md` con hallazgos de auditoría**                                        | **Auditoría**                                      | Sección 8 actualizada
 
 **Total Fase C:** 12 tareas
 
@@ -204,12 +204,12 @@
 
 ## Resumen Parte I
 
-| Fase                              | Tareas | Completadas | %      |
-| --------------------------------- | ------ | ----------- | ------ |
-| A — Limpieza y Seguridad          | 12     | 12          | 100%   |
-| B — Reorganización y Correcciones | 22     | 22          | 100%   |
-| C — Documentación                 | 12     | 6           | 50%    |
-| D — Predictivo + Tesis            | 19     | 0           | 0%     |
+| Fase                              | Tareas | Completadas | %       |
+| --------------------------------- | ------ | ----------- | ------- |
+| A — Limpieza y Seguridad          | 12     | 12          | 100%    |
+| B — Reorganización y Correcciones | 22     | 22          | 100%    |
+| C — Documentación                 | 12     | 6           | 50%     |
+| D — Predictivo + Tesis            | 19     | 0           | 0%      |
 | **TOTAL PARTE I**                 | **65** | **40**      | **62%** |
 
 # PARTE II — INVENTARIO FUNCIONAL
@@ -545,7 +545,6 @@
 ### 14.1. Redacción en español
 
 | Estado | Prioridad | Esfuerzo | ID           | Descripción                                                       | Sección del informe | Criterio de Aceptación                  |
-
 | ------ | --------- | -------- | ------------ | ----------------------------------------------------------------- | ------------------- | --------------------------------------- |
 | ⏳      | 🔴       | 🏗️    | TASK-1400-01 | Documentar aspectos socioeconómicos                               | 2.1.1               | Impacto social y económico justificados |
 | ⏳      | 🔴       | 🏗️    | TASK-1400-02 | Formalizar modelos matemáticos (predictivos + máquina de estados) | 2.1.2               | Fórmulas y diagramas incluidos          |
@@ -617,7 +616,7 @@
 | SEC-08 | 🟡 Medio   | DebugLogin con credenciales fijas                          | (Fase B, dentro de frontend)   | ⏳      |
 | ARC-01 | 🟠 Alto    | Docs ≠ código (Gin vs mux)                                 | TASK-C-11                      | ⏳      |
 | ARC-02 | 🟠 Alto    | MP llama a Users en cada request                           | TASK-B-15 (claims en JWT)      | ✅     |
-| ARC-03 | 🟠 Alto    | Cerrar queja no orquesta materiales                        | TASK-B-22                    | ✅      |
+| ARC-03 | 🟠 Alto    | Cerrar queja no orquesta materiales                        | TASK-B-22                      | ✅     |
 | ARC-04 | 🟠 Alto    | `MP_DB_NAME` mal inyectado                                 | TASK-A-12 (✅)                 | ✅     |
 | ARC-05 | 🟡 Medio   | Health checks no prueban BD                                | (Fase B)                       | ⏳      |
 | ARC-06 | 🟡 Medio   | `X-Request-Id` no se propaga                               | (Fase B)                       | ⏳      |
@@ -668,7 +667,7 @@
 | --------- | ------- | ----------- | -------- |
 | Parte I   | 65      | 40          | 62%      |
 | Parte II  | 230     | 59          | 26%      |
-| **TOTAL** | **295** | **100**      | **~34%** |
+| **TOTAL** | **295** | **100**     | **~34%** |
 
 > **Mantenido por:** Ing. Botet C.Y.
 
