@@ -127,75 +127,94 @@ sequenceDiagram
 
 ---
 
-## Escenario 3: Cierre de queja con consumo de materiales
+## Escenario 3: Cierre de queja con consumo de materiales (Saga orquestada)
 
 ```mermaid
 sequenceDiagram
     actor TE as Técnico (Frontend)
     participant GW as API Gateway
     participant MPS as MP Service
-    participant US as Users Service
-    participant MS as Materials Service
+    participant SAGA as CierreQuejaSaga (Orquestador)
     participant MPDB as bd_mp (PostgreSQL)
+    participant MS as Materials Service
     participant MADB as bd_materiales (PostgreSQL)
 
-    TE->>GW: POST /api/mp/quejas/{id}/cerrar<br/>{trabajo_id, consumos[]}
-    GW->>GW: Validar JWT
-    GW->>MPS: POST /api/mp/quejas/{id}/cerrar
-    MPS->>US: GET /api/users/perfil (validar técnico)
-    US-->>MPS: Usuario + permisos (técnico)
-    MPS->>MPDB: SELECT queja WHERE id = {id}
-    MPDB-->>MPS: Queja (id, estado, trabajo_id)
-    alt Estado = 'Resuelta' (transición válida)
-        MPS->>MPDB: UPDATE queja SET estado='Cerrada', fecha_cierre=NOW()
-        MPDB-->>MPS: OK (fila actualizada)
-        MPS->>MS: POST /api/materials/consumos<br/>{trabajo_id, items[]}
-        MS->>MADB: BEGIN TRANSACTION
-        MS->>MADB: SELECT stock WHERE id IN (?) (validar stock)
-        alt Stock suficiente para todos
-            MS->>MADB: INSERT consumos + UPDATE stock
-            MADB-->>MS: COMMIT
-            MS-->>MPS: 201 Created {consumo_id}
-            MPS-->>GW: 200 OK (queja cerrada + consumos registrados)
-            GW-->>TE: 200 OK {mensaje: "Queja cerrada exitosamente"}
-        else Stock insuficiente
-            MS->>MADB: ROLLBACK
-            MS-->>MPS: 409 Conflict (stock_insuficiente)
-            MPS-->>GW: 409 Conflict
-            GW-->>TE: 409 Conflict
-        end
-    else Estado ≠ 'Resuelta' (transición inválida)
-        MPS-->>GW: 400 Bad Request (transición FSM inválida)
+    TE->>GW: POST /api/mp/quejas/{id}/cerrar<br/>{id_clavecierre, fechaok, token}
+    GW->>GW: Verificar JWT + claims (rol: tecnico)
+    GW->>MPS: POST /api/mp/quejas/{id}/cerrar (forward con claims)
+    MPS->>SAGA: execute(quejaId, ctx)
+
+    SAGA->>MPDB: BEGIN (transacción Sequelize)
+    SAGA->>MPDB: SELECT queja WHERE id = {id}
+    MPDB-->>SAGA: Queja (estado, id_telefono, etc.)
+
+    alt Queja no existe
+        SAGA->>MPDB: ROLLBACK
+        SAGA-->>MPS: 404 Not Found (QUEJA_NO_ENCONTRADA)
+        MPS-->>GW: 404 Not Found
+        GW-->>TE: 404 Not Found
+    else Estado inválido (no Resuelta/Probada)
+        SAGA->>MPDB: ROLLBACK
+        SAGA-->>MPS: 400 Bad Request (ESTADO_INVALIDO)
+        MPS-->>GW: 400 Bad Request
         GW-->>TE: 400 Bad Request
+    else Ya está cerrada
+        SAGA->>MPDB: ROLLBACK
+        SAGA-->>MPS: compensación: YA_CERRADA
+        MPS-->>GW: 400 Bad Request (already closed)
+        GW-->>TE: 400 Bad Request
+    else Estado válido
+        SAGA->>MPDB: UPDATE queja SET estado='Cerrada', fechaok=NOW()
+        SAGA->>MPDB: SELECT trabajos WHERE id_queja = {id}
+        MPDB-->>SAGA: trabajos[]
+        alt No hay trabajos (sin consumo)
+            SAGA->>MPDB: COMMIT
+            SAGA-->>MPS: 200 OK (queja cerrada, sin consumo)
+            MPS-->>GW: 200 OK
+            GW-->>TE: 200 OK {mensaje: "Queja cerrada"}
+        else Hay trabajos
+            SAGA->>MS: POST /api/materiales/consumos<br/>{trabajo_id, trabajador_id, ...}
+            Alt Retry con backoff exponencial (max 3)
+            MS->>MADB: BEGIN TRANSACTION
+            MS->>MADB: INSERT consumo + UPDATE stock (con lock)
+            alt Stock suficiente
+                MS->>MADB: COMMIT
+                MS-->>SAGA: 201 Created {consumo_id}
+                SAGA->>MPDB: COMMIT
+                SAGA-->>MPS: 200 OK (queja cerrada + consumo registrado)
+                MPS-->>GW: 200 OK
+                GW-->>TE: 200 OK {mensaje: "Queja cerrada exitosamente"}
+            else Stock insuficiente o Materials falla
+                MS->>MADB: ROLLBACK
+                MS-->>SAGA: 409/500 (stock_insuficiente/error)
+                SAGA->>MPDB: UPDATE queja SET estado='Resuelta' (compensación)
+                SAGA->>MPDB: ROLLBACK
+                SAGA-->>MPS: compensación: MATERIALES_FALLA
+                MPS-->>GW: 500/409 (error con compensación)
+                GW-->>TE: Error: cierre revertido, intente nuevamente
+            end
+        end
     end
 ```
 
-### Tabla de Mensajes — Cierre de Queja con Consumo
+### Tabla de Mensajes — Cierre de Queja (Saga Orquestada)
 
-| Paso | Emisor             | Mensaje                                          | Destino        | Protocolo | Descripción                                    |
-| ---- | ------------------ | ------------------------------------------------ | -------------- | --------- | ---------------------------------------------- |
-| 1    | Técnico (Frontend) | `POST /api/mp/quejas/{id}/cerrar`                | API Gateway    | HTTPS     | Cierre de queja con consumos de materiales     |
-| 2    | API Gateway        | Verificar JWT                                    | —              | Internal  | Validación de autenticación                    |
-| 3    | API Gateway        | `POST /api/mp/quejas/{id}/cerrar`                | MP Service     | REST/JSON | Forward de la solicitud                        |
-| 4    | MP Service         | `GET /api/users/perfil`                          | Users Service  | REST/JSON | Validar usuario técnico y permisos             |
-| 5    | Users Service      | `200 OK {user, permissions}`                    | MP Service     | REST/JSON | Confirmación de rol técnico                    |
-| 6    | MP Service         | `SELECT * FROM quejas WHERE id = ?`             | bd_mp          | SQL       | Obtención del estado actual de la queja        |
-| 7    | bd_mp              | Queja (id, estado, trabajo_id)                 | MP Service     | SQL       | Respuesta con datos de la queja                |
-| 8    | MP Service         | Validar FSM: estado actual → 'Cerrada'          | —              | Internal  | Verificación de máquina de estados             |
-| 9    | MP Service         | `UPDATE quejas SET estado='Cerrada'`            | bd_mp          | SQL       | Actualización del estado de la queja           |
-| 10   | bd_mp              | `COMMIT`                                        | MP Service     | SQL       | Confirmación del cambio de estado              |
-| 11   | MP Service         | `POST /api/materials/consumos`                  | Materials Service | REST/JSON | Registro de consumos de materiales        |
-| 12   | Materials Service  | `BEGIN TRANSACTION`                             | bd_materiales  | SQL       | Inicio de transacción                          |
-| 13   | Materials Service  | `SELECT stock WHERE id IN (?)`                  | bd_materiales  | SQL       | Validación de stock para todos los ítems       |
-| 14   | bd_materiales      | Stock disponible                                | Materials Service | SQL       | Confirmación de stock suficiente               |
-| 15   | Materials Service  | `INSERT consumos + UPDATE stock`                | bd_materiales  | SQL       | Registro de consumos y decremento de stock     |
-| 16   | bd_materiales      | `COMMIT`                                        | Materials Service | SQL       | Confirmación atómica                           |
-| 17   | Materials Service  | `201 Created`                                   | MP Service     | REST/JSON | Confirmación de consumos registrados           |
-| 18   | MP Service         | `200 OK`                                        | API Gateway    | REST/JSON | Confirmación de cierre de queja                |
-| 19   | API Gateway        | `200 OK`                                        | Técnico        | HTTPS     | Respuesta exitosa al frontend                  |
-| 20   | Materials Service  | `409 Conflict` (stock_insuficiente)             | MP Service     | REST/JSON | Error: stock insuficiente                      |
-| 21   | MP Service         | `ROLLBACK` + `409 Conflict`                      | API Gateway    | REST/JSON | Reversión y notificación de error              |
-| 22   | MP Service         | `400 Bad Request` (FSM inválida)                | API Gateway    | REST/JSON | Error: transición de estado no permitida       |
+| Paso | Emisor | Mensaje | Destino | Protocolo | Descripción |
+| ---- | ------ | ------- | ------- | --------- | ----------- |
+| 1 | Técnico (Frontend) | `POST /api/mp/quejas/{id}/cerrar` | API Gateway | HTTPS | Cierre de queja con datos de cierre |
+| 2 | API Gateway | Verificar JWT + claims (`rol: tecnico`) | — | Internal | Validación con claims (no llama a Users Service) |
+| 3 | API Gateway | Forward request con headers `x-user-*` | MP Service | REST/JSON | Propagación de claims |
+| 4 | MP Service | `CierreQuejaSaga.execute(quejaId, ctx)` | — | Internal | Inicio de orquestación |
+| 5 | CierreQuejaSaga | `BEGIN` | bd_mp | SQL | Transacción local |
+| 6 | CierreQuejaSaga | `SELECT queja WHERE id = ?` | bd_mp | SQL | Validar existencia y estado |
+| 7 | CierreQuejaSaga | Validar FSM: estado ∈ {Resuelta, Probada} | — | Internal | Verificación de máquina de estados |
+| 8 | CierreQuejaSaga | `UPDATE quejas SET estado='Cerrada'` | bd_mp | SQL | Cierre local |
+| 9 | CierreQuejaSaga | `SELECT trabajos WHERE id_queja = ?` | bd_mp | SQL | Buscar trabajos asociados |
+| 10 | CierreQuejaSaga | `POST /api/materiales/consumos` | Materials Service | REST/JSON | Registro de consumo (si hay trabajos) |
+| 11 | Materials Service | `BEGIN TRANSACTION` + `INSERT consumo` + `UPDATE stock` | bd_materiales | SQL | Transacción ACID remota |
+| 12 | CierreQuejaSaga | `COMMIT` | bd_mp | SQL | Confirmación local (si Materials OK) |
+| 13 | CierreQuejaSaga | `UPDATE quejas SET estado='Resuelta'` (rollback) | bd_mp | SQL | Compensación (si Materials falla) |
+| 14 | CierreQuejaSaga | `ROLLBACK` | bd_mp | SQL | Reversión de transacción local |
 
 ---
 

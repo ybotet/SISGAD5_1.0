@@ -1,7 +1,7 @@
 # Casos de Uso - SISGAD5
 
-> **Versión:** 1.0  
-> **Fecha:** 2026-09-25  
+> **Versión:** 1.1  
+> **Fecha:** 2026-10-28  
 > **Total:** 24 casos de uso  
 > **Fuente:** [SISGAD5_doc/docs/03-07](https://github.com/ybotet/SISGAD5_doc)
 
@@ -32,10 +32,10 @@ Ver diagrama fuente en: [`docs/diagrams/use_cases/`](../diagrams/use_cases/)
 
 | ID | Caso de Uso | Actor Principal | Descripción |
 |----|-------------|-----------------|-------------|
-| UC-09 | **Gestionar Teléfonos** | Operador/Admin | CRUD teléfonos, cambio estado, historial |
-| UC-10 | **Gestionar Líneas** | Operador/Admin | CRUD líneas, cambio estado, historial |
-| UC-11 | **Gestionar Pizarras** | Operador/Admin | CRUD pizarras, puertos, conexiones, ubicación |
-| UC-12 | **Buscar y Filtrar Infraestructura** | Operador/Admin | Búsqueda unificada teléfonos/líneas/pizarras |
+    | UC-09 | **Gestionar Teléfonos** | Operador/Administrador | CRUD teléfonos, cambio estado, historial |
+    | UC-10 | **Gestionar Líneas** | Operador/Administrador | CRUD líneas, cambio estado, historial |
+    | UC-11 | **Gestionar Pizarras** | Operador/Administrador | CRUD pizarras, puertos, conexiones, ubicación |
+    | UC-12 | **Buscar y Filtrar** | Operador/Administrador | Búsqueda unificada teléfonos/líneas/pizarras |
 | UC-13 | **Ver Historial Completo** | Técnico/Jefe/Auditor | Quejas, recorridos, movimientos por elemento |
 
 ### Gestión de Quejas, Pruebas y Trabajos (UC-14 a UC-20)
@@ -54,7 +54,7 @@ Ver diagrama fuente en: [`docs/diagrams/use_cases/`](../diagrams/use_cases/)
 
 | ID | Caso de Uso | Actor Principal | Descripción |
 |----|-------------|-----------------|-------------|
-| UC-21 | **Gestionar Catálogo Materiales** | Analista/Admin | CRUD materiales, categorías, unidades, búsqueda, paginación |
+    | UC-21 | **Gestionar Catálogo Materiales** | Analista/Administrador | CRUD materiales, categorías, unidades, búsqueda, paginación |
 | UC-22 | **Crear Asignación** | Analista/Técnico | Múltiples ítems, precio momento, validación stock, transacción ACID |
 | UC-23 | **Registrar Consumo** | Técnico | Múltiples ítems, precio real, validación vs asignación, transacción ACID |
 | UC-24 | **Ver Dashboard Materiales** | Analista/Jefe/Director | Resumen, distribución, saldo lógico, alertas, exportación |
