@@ -106,6 +106,52 @@ services:
     networks:
       - sisgad5-network
 
+  # ============ PREDICTION SERVICE STACK ============
+  prediction-service:
+    build: ./prediction-service
+    container_name: sisgad5-prediction
+    ports:
+      - "5005:5005"
+    env_file: .env
+    environment:
+      - ENVIRONMENT=development
+      - PORT=5005
+      - PREDICTION_DB_NAME=${PREDICTION_DB_NAME}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - USERS_SERVICE_URL=http://backend-users:5001
+      - MP_SERVICE_URL=http://backend-mp:5002
+      - MATERIALES_SERVICE_URL=http://backend-materiales:5003
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - MLFLOW_TRACKING_URI=http://mlflow:5006
+    volumes:
+      - ./prediction-service/app:/app/app
+      - ./logs/prediction-service:/app/logs
+    depends_on:
+      - postgres
+    networks:
+      - sisgad5-network
+    restart: unless-stopped
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:2.14.0
+    container_name: sisgad5-mlflow
+    ports:
+      - "5006:5006"
+    environment:
+      - BACKEND_STORE_URI=sqlite:///mlflow.db
+      - ARTIFACT_ROOT=/mlflow/artifacts
+    volumes:
+      - mlflow_data:/mlflow
+    networks:
+      - sisgad5-network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
   api-gateway:
     build: ./api-gateway
     container_name: sisgad5-gateway
@@ -116,8 +162,10 @@ services:
       - PORT=5000
       - USERS_SERVICE_URL=http://backend-users:5001
       - MP_SERVICE_URL=http://backend-mp:5002
+      - MATERIALES_SERVICE_URL=http://backend-materiales:5003
+      - PREDICTION_SERVICE_URL=http://prediction-service:5005
       - FRONTEND_URL=${FRONTEND_URL}
-      - CORS_ORIGIN=${FRONTEND_URL}
+      - CORS_ORIGIN=${CORS_ORIGIN}
     # En desarrollo, instala dependencias al arrancar para evitar módulos faltantes
     command: sh -c "npm install --silent && npm run dev"
     volumes:
@@ -127,6 +175,8 @@ services:
     depends_on:
       - backend-users
       - backend-mp
+      - backend-materiales
+      - prediction-service
     networks:
       - sisgad5-network
     logging:
@@ -212,6 +262,7 @@ services:
 
 volumes:
   postgres_data:
+  mlflow_data:
   loki-data:
   grafana-data:
 
