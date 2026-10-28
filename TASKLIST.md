@@ -10,7 +10,7 @@
 
 > **Autor:** Ing. Botet S.Y. (Tesis de Maestría — RTU MIREA)
 
-> **Última actualización:** 2026-10-27
+> **Última actualización:** 2026-10-28
 
 > **Estado:** En progreso (~59% completado — 100/295)
 
@@ -180,11 +180,11 @@
 
 | Estado | Prioridad | Esfuerzo | ID            | Descripción                                                      | Criterio de Aceptación                                |
 | ------ | --------- | -------- | ------------- | ---------------------------------------------------------------- | ----------------------------------------------------- |
-| ⏳      | 🔴       | 🏗️    | TASK-D-01     | Crear estructura `prediction-service/`                           | Carpeta completa                                      |
-| ⏳      | 🔴       | 🔨      | TASK-D-02     | Configurar FastAPI + dependencias                                | `poetry install` + `uvicorn` funcional                |
-| ⏳      | 🔴       | 🔨      | TASK-D-03     | Configurar BD `bd_predictions`                                   | Docker Compose funcional                              |
-| ⏳      | 🟡       | 🏗️    | TASK-D-04     | Feature engineering (quejas)                                     | Features documentadas                                 |
-| ⏳      | 🟡       | 🏗️    | TASK-D-05     | Feature engineering (materiales)                                 | Features documentadas                                 |
+| ✅      | 🔴       | 🏗️    | TASK-D-01     | Crear estructura `prediction-service/`                           | Carpeta completa                                      |
+| ✅      | 🔴       | 🔨      | TASK-D-02     | Configurar FastAPI + dependencias                                | `poetry install` + `uvicorn` funcional                |
+| ✅      | 🔴       | 🔨      | TASK-D-03     | Configurar BD `bd_predictions`                                   | Docker Compose funcional                              |
+| ✅      | 🟡       | 🏗️    | TASK-D-04     | Feature engineering (quejas)                                     | Features documentadas                                 |
+| ✅      | 🟡       | 🏗️    | TASK-D-05     | Feature engineering (materiales)                                 | Features documentadas                                 |
 | ⏳      | 🔴       | 🏛️    | TASK-D-06     | Modelo: predicción de demanda de materiales                      | MAE < 15%                                             |
 | ⏳      | 🟡       | 🏛️    | TASK-D-07     | Modelo: predicción de tiempo de resolución                       | MAE < 20%                                             |
 | ⏳      | 🟡       | 🏛️    | TASK-D-08     | Modelo: detección de anomalías                                   | Precision > 85%                                       |
@@ -489,8 +489,8 @@
 | ------ | --------- | -------- | ------------ | -------------------------------- | --------------- | -------------------------- |
 | ⏳      | 🔴       | 🔨      | TASK-1300-01 | Definir casos de uso predictivos | Fase D          | 6 casos priorizados        |
 | ⏳      | 🔴       | 🔨      | TASK-1300-02 | Diseñar arquitectura del módulo  | Fase D          | Diagrama Mermaid + ADR     |
-| ⏳      | 🔴       | 🔨      | TASK-1300-03 | Configurar Python + FastAPI      | Fase D          | `poetry install` funcional |
-| ⏳      | 🔴       | 🔨      | TASK-1300-04 | Configurar BD `bd_predictions`   | Fase D          | Docker Compose funcional   |
+| ✅      | 🔴       | 🔨      | TASK-1300-03 | Configurar Python + FastAPI      | Fase D          | `poetry install` funcional |
+| ✅      | 🔴       | 🔨      | TASK-1300-04 | Configurar BD `bd_predictions`   | Fase D          | Docker Compose funcional   |
 | ⏳      | 🟡       | 🏗️    | TASK-1300-05 | Feature engineering (quejas)     | Fase D          | Features documentadas      |
 | ⏳      | 🟡       | 🏗️    | TASK-1300-06 | Feature engineering (materiales) | Fase D          | Features documentadas      |
 | ⏳      | 🟡       | 🏗️    | TASK-1300-07 | Feature engineering (trabajos)   | Fase D          | Features documentadas      |

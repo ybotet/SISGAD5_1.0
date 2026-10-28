@@ -26,7 +26,7 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 | API Gateway        | Node.js + Express + http-proxy-middleware                  | 5000   |
 | Users Service      | Node.js + Express + Sequelize                              | 5001   |
 | MP Service         | Node.js + Express + Sequelize + Zod                        | 5002   |
-| Materials Service  | Go + gorilla/mux + GORM                                            | 5003   |
+| Materials Service  | Go + gorilla/mux + GORM                                    | 5003   |
 | Prediction Service | Python 3.11+ + FastAPI + scikit-learn                      | 5005   |
 | PostgreSQL         | 17+ (3 BD: bd_users, bd_mp, bd_materiales, bd_predictions) | 5432   |
 | Redis              | 7+                                                         | 6379   |
@@ -99,7 +99,7 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 4. Implementar
 5. Verificar (tests + seguridad)
 6. Registrar en memory.md
-7. Marcar tarea como completada en TASKLIST.md
+7. Marcar tarea como completada en TASKLIST.md y actualizar las cantidades y porcientos en las tablas resumenes al final del TASKLIST.md
 8. Commit con Conventional Commits
 
 
@@ -132,18 +132,18 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 
 ### Hallazgos Altos (🟠) — Resolver en Fase B
 
-| ID     | Hallazgo                                      | Tarea     | Prohibido mientras tanto                                  |
-| ------ | --------------------------------------------- | --------- | --------------------------------------------------------- |
-| SEC-04 | ✅ CORS con lista blanca                      | TASK-B-16 | `CORS_ORIGIN` obligatorio en prod                         |
-| SEC-05 | ✅ Gateway verifica JWT (middleware)          | TASK-B-15 | N/A — resuelto                                            |
-| SEC-06 | ✅ RBAC aplicado en MP                        | TASK-B-17 | `tienePermiso` aplicado en quejas, trabajos, asignaciones |
-| SEC-07 | ✅ Parametrizado con Sequelize replacements   | TASK-B-18 | No interpolar strings en SQL                              |
-| ARC-01 | ✅ Docs alineadas: gorilla/mux (no Gin), Prediction Service (5005), Redis/Prometheus "planned" | TASK-C-11 | Docs = código |
-| ARC-02 | ✅ Gateway propaga claims via headers         | TASK-B-15 | N/A — mitigado (claims en JWT, no llamadas síncronas)     |
-| ARC-03 | ✅ Cerrar queja orquesta consumo en Materials | TASK-B-22 | Saga con compensación — rollback si Materials falla       |
-| BUS-02 | ✅ Rutas `/dashboard/*` antes de `/:id`       | TASK-B-19 | No añadir rutas después de `/:id`                         |
-| DAT-01 | ✅ Migraciones + índices creados              | TASK-B-20 | No añadir modelos sin migración                           |
-| QA-01  | ✅ `npm test` passes (27 MP + 11 Users)       | TASK-B-21 | Confiar en CI                                             |
+| ID     | Hallazgo                                                                                       | Tarea     | Prohibido mientras tanto                                  |
+| ------ | ---------------------------------------------------------------------------------------------- | --------- | --------------------------------------------------------- |
+| SEC-04 | ✅ CORS con lista blanca                                                                       | TASK-B-16 | `CORS_ORIGIN` obligatorio en prod                         |
+| SEC-05 | ✅ Gateway verifica JWT (middleware)                                                           | TASK-B-15 | N/A — resuelto                                            |
+| SEC-06 | ✅ RBAC aplicado en MP                                                                         | TASK-B-17 | `tienePermiso` aplicado en quejas, trabajos, asignaciones |
+| SEC-07 | ✅ Parametrizado con Sequelize replacements                                                    | TASK-B-18 | No interpolar strings en SQL                              |
+| ARC-01 | ✅ Docs alineadas: gorilla/mux (no Gin), Prediction Service (5005), Redis/Prometheus "planned" | TASK-C-11 | Docs = código                                             |
+| ARC-02 | ✅ Gateway propaga claims via headers                                                          | TASK-B-15 | N/A — mitigado (claims en JWT, no llamadas síncronas)     |
+| ARC-03 | ✅ Cerrar queja orquesta consumo en Materials                                                  | TASK-B-22 | Saga con compensación — rollback si Materials falla       |
+| BUS-02 | ✅ Rutas `/dashboard/*` antes de `/:id`                                                        | TASK-B-19 | No añadir rutas después de `/:id`                         |
+| DAT-01 | ✅ Migraciones + índices creados                                                               | TASK-B-20 | No añadir modelos sin migración                           |
+| QA-01  | ✅ `npm test` passes (27 MP + 11 Users)                                                        | TASK-B-21 | Confiar en CI                                             |
 
 ### Reglas derivadas de la auditoría
 
