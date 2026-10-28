@@ -25,8 +25,8 @@ graph TB
     subgraph "Application Tier"
         US[Users Service :5001\n(Node.js + Express + Sequelize)]
         MS[MP Service :5002\n(Node.js + Express + Sequelize + Zod)]
-        MAT[Materials Service :5003\n(Go + Gin + GORM)]
-        PRED[Prediction Service :5004\n(Python + FastAPI + sklearn)]
+        MAT[Materials Service :5003\n(Go + gorilla/mux + GORM)]
+        PRED[Prediction Service :5005\n(Python + FastAPI + sklearn)]
     end
 
     subgraph "Data Tier"
@@ -188,7 +188,7 @@ services:
   prediction_service:
     image: sisgad5/prediction-service:latest
     ports:
-      - "${PORT_PREDICTION:-5004}:5004"
+      - "${PORT_PREDICTION:-5005}:5005"
     env_file:
       - .env.production
     volumes:
@@ -201,7 +201,7 @@ services:
     networks:
       - app_net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5004/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5005/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -512,7 +512,7 @@ jobs:
 | Users Service | 5001 | HTTP | Solo Gateway |
 | MP Service | 5002 | HTTP | Solo Gateway |
 | Materials Service | 5003 | HTTP | Solo Gateway |
-| Prediction Service | 5004 | HTTP | Solo Gateway |
+| Prediction Service | 5005 | HTTP | Solo Gateway |
 | PostgreSQL | 5432 | SQL | Solo внутри сети |
 | Redis | 6379 | TCP | Solo внутри сети |
 | Grafana | 3000 | HTTPS | Entrada desde DMZ + auth |

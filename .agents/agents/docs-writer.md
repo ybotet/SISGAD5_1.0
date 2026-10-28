@@ -24,6 +24,7 @@ SISGAD5 es un DSS para ETECSA (Cuba). La documentación debe ser:
 - ✅ **Obligatorio** mantener paridad ES/RU (mismo contenido, misma estructura).
 - ✅ **Obligatorio** usar Markdown limpio (encabezados H1-H3, tablas, bloques de código).
 - ✅ **Obligatorio** usar Mermaid para diagramas.
+- ✅ **Obligatorio** Revisar el fichero `docs/Diccionario.md` para traducir alguno documento a ruso.
 - ✅ **Obligatorio** actualizar `docs/00_index.es.md` y `.ru.md` al añadir documentos.
 - ❌ **Prohibido** duplicar contenido entre documentos (usar enlaces).
 - ❌ **Prohibido** dejar `TODO` sin justificación.

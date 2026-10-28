@@ -14,14 +14,17 @@ Sistema de gestión de quejas y servicios de telecomunicaciones. Proyecto de Mae
 | API Gateway | 5000 | Node.js + Express | Enrutamiento, auth centralizada, rate-limiting |
 | Users Service | 5001 | Node.js + Express + Sequelize | Autenticación, usuarios, roles, permisos |
 | MP Service | 5002 | Node.js + Express + Sequelize + Zod | Quejas, pruebas, trabajos, cables, líneas |
-| Materials Service | 5003 | Go + Gin | Inventario, entregas, asignación de materiales |
+| Materials Service | 5003 | Go + gorilla/mux + GORM | Inventario, entregas, asignación de materiales |
 | Frontend | 5004 | React + Vite + TypeScript + Tailwind | Interfaz de usuario, dashboards |
+| Prediction Service | 5005 | Python 3.11 + FastAPI + scikit-learn | Modelado predictivo, MLOps |
 
 ## Bases de Datos
 - `bd_users` → Users Service
 - `bd_mp` → MP Service
 - `bd_materiales` → Materials Service
+- `bd_predictions` → Prediction Service (Python/FastAPI)
 - PostgreSQL 17+ con extensiones `pg_stat_statements` y `uuid-ossp`.
+- Redis (caché/sesiones) y Prometheus (métricas) — planeados, no en docker-compose actual.
 
 ## Estructura de Carpetas
 SISGAD5_1.0/

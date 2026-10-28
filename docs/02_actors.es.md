@@ -8,15 +8,15 @@
 
 ## 1. Resumen de Actores
 
-| ID | Actor | Descripción | Responsabilidades Principales |
-|----|-------|-------------|-------------------------------|
-| A1 | **Administrador del Sistema** | Gestión completa de la plataforma | Usuarios, roles, permisos, configuración global |
-| A2 | **Técnico de Campo** | Ejecución de trabajos en campo | Pruebas, órdenes de trabajo, consumos de materiales |
-| A3 | **Operador de Mesa de Ayuda** | Primer contacto con quejas | Registro, clasificación, derivación de quejas |
-| A4 | **Jefe de Departamento** | Supervisión operativa | Asignación de técnicos, seguimiento de KPIs |
-| A5 | **Analista de Materiales** | Gestión de inventario | Catálogo, asignaciones, consumos, stock |
-| A6 | **Director** | Visión estratégica | Dashboards ejecutivos, toma de decisiones |
-| A7 | **Auditor** | Trazabilidad y cumplimiento | Historiales, logs de auditoría, reportes |
+| ID  | Actor                         | Descripción                       | Responsabilidades Principales                          |
+| --- | ----------------------------- | --------------------------------- | ------------------------------------------------------ |
+| A1  | **Administrador del Sistema** | Gestión completa de la plataforma | Usuarios, roles, permisos, configuración global        |
+| A2  | **Probador**                  | Primer contacto con quejas        | Registro, clasificación, derivación de quejas, Pruebas |
+| A3  | **Editor**                    | Trabajo con nomencladores         | Corrección de errores, consolidación de estadísticas   |
+| A4  | **Supervisor**                | Supervisión operativa             | Asignación de técnicos, seguimiento de KPIs            |
+| A5  | **Analista de Materiales**    | Gestión de materiales             | Catálogo, asignaciones, consumos, stock                |
+| A6  | **Director**                  | Visión estratégica                | Dashboards ejecutivos, toma de decisiones              |
+
 
 ---
 
@@ -27,58 +27,54 @@
 **Permisos:** CRUD completo en Users Service, configuración de RBAC  
 **Casos de uso:** UC-01 a UC-08 (Gestión de usuarios y roles)
 
-### A2 - Técnico de Campo
-**Accesos:** MP Service (Quejas, Pruebas, Trabajos), Materials Service (Consumos)  
-**Permisos:** Lectura/escritura en asignaciones propias  
-**Casos de uso:** UC-09 a UC-16 (Ejecución técnica)
-
-### A3 - Operador de Mesa de Ayuda
+### A2 - Probador
 **Accesos:** MP Service (Quejas, Teléfonos, Líneas, Pizarras)  
 **Permisos:** Crear, clasificar, derivar quejas  
-**Casos de uso:** UC-17 a UC-20 (Gestión de quejas)
+**Casos de uso:** UC-09 a UC-15, UC-17 a UC-20 (Gestión de quejas)
 
-### A4 - Jefe de Departamento
+### A3 - Editor
+**Accesos:** MP Service (Quejas, Teléfonos, Líneas, Pizarras, Nomencladores).
+**Permisos:** Crear, modificar y eliminar datos.
+**Casos de uso:** UC-01 a UC-20
+
+### A4 - Supervisor
 **Accesos:** MP Service (Todos), Materials Service (Dashboard), Estadísticas  
 **Permisos:** Asignar técnicos, cambiar estados, ver reportes  
-**Casos de uso:** UC-21 a UC-23 (Supervisión)
+**Casos de uso:** UC-16, UC-20, UC-21 a UC-23 (Supervisión), UC-24, 
 
 ### A5 - Analista de Materiales
 **Accesos:** Materials Service (Todos), MP Service (Lectura)  
 **Permisos:** CRUD catálogo, crear asignaciones/consumos  
-**Casos de uso:** UC-24 (Gestión de materiales)
+**Casos de uso:** UC-21 a UC-24 (Gestión de materiales)
 
 ### A6 - Director
 **Accesos:** Solo lectura - Dashboards y reportes ejecutivos  
 **Permisos:** Visualización de KPIs, exportación de reportes  
 **Casos de uso:** Consulta de métricas estratégicas
 
-### A7 - Auditor
-**Accesos:** Solo lectura - Logs de auditoría, historiales completos  
-**Permisos:** Consulta de trazabilidad, exportación de evidencias  
-**Casos de uso:** Verificación de cumplimiento
 
 ---
 
 ## 3. Matriz Actor × Módulo
 
-| Módulo | Admin | Técnico | Operador | Jefe | Analista | Director | Auditor |
-|--------|-------|---------|----------|------|----------|----------|---------|
-| Autenticación | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Usuarios/Roles | ✅ | ❌ | ❌ | 👁️ | ❌ | 👁️ | 👁️ |
-| Teléfonos | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ | 👁️ |
-| Líneas | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ | 👁️ |
-| Pizarras | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ | 👁️ |
-| Quejas | ✅ | ✅ | ✅ | ✅ | 👁️ | 👁️ | 👁️ |
-| Pruebas | ✅ | ✅ | 👁️ | ✅ | ❌ | 👁️ | 👁️ |
-| Trabajos | ✅ | ✅ | 👁️ | ✅ | ❌ | 👁️ | 👁️ |
-| Materiales | ✅ | 👁️ | ❌ | 👁️ | ✅ | 👁️ | 👁️ |
-| Asignaciones | ✅ | ✅ | ❌ | 👁️ | ✅ | 👁️ | 👁️ |
-| Consumos | ✅ | ✅ | ❌ | 👁️ | ✅ | 👁️ | 👁️ |
-| Dashboard MP | ✅ | 👁️ | 👁️ | ✅ | 👁️ | ✅ | 👁️ |
-| Dashboard Mat | ✅ | 👁️ | ❌ | 👁️ | ✅ | ✅ | 👁️ |
-| Auditoría | ✅ | 👁️ | 👁️ | 👁️ | 👁️ | 👁️ | ✅ |
+| Módulo                     | Admin | Probador | Editor | Supervisor | Analista | Director |
+| :------------------------- | :---- | :------- | :----- | :--------- | :------- | :------- |
+| Autenticación              | ✅    | ✅       | ✅     | ✅         | ✅       | ✅       |
+| Usuarios/Roles             | ✅    | ❌       | ❌     | ❌         | ❌       | ❌       |
+| Teléfonos                  | ✅    | ✅       | ✅     | 👁️      | ❌       | ❌       |
+| Líneas                     | ✅    | ✅       | ✅     | 👁️      | ❌       | ❌       |
+| Pizarras                   | ✅    | ✅       | ✅     | 👁️      | ❌       | ❌       |
+| Quejas                     | ✅    | ⚠️     | ✅     | ⚠️       | 👁️    | 👁️    |
+| Pruebas                    | ✅    | ✅       | ✅     | 👁️      | ❌       | ❌       |
+| Trabajos                   | ✅    | ⚠️     | ✅     | 👁️      | ❌       | 👁️    |
+| Materiales                 | ✅    | 👁️    | ❌     | 👁️      | ✅       | 👁️    |
+| Asignaciones de materiales | ✅    | ❌       | ❌     | 👁️      | ✅       | 👁️    |
+| Consumos                   | ✅    | ❌       | ❌     | 👁️      | ✅       | 👁️    |
+| Dashboard MP               | ✅    | 👁️    | 👁️  | ✅         | 👁️    | ✅       |
+| Dashboard Mat              | ✅    | 👁️    | ❌     | ✅         | ✅       | ✅       |
+| Auditoría                  | ✅    | 👁️    | 👁️  | ✅         | 👁️    | 👁️    | ✅
 
-**Leyenda:** ✅ = CRUD completo | 👁️ = Solo lectura | ❌ = Sin acceso
+**Leyenda:** ✅ = CRUD completo | ⚠️ = Crud Parcial | 👁️ = Solo lectura | ❌ = Sin acceso
 
 ---
 

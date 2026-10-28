@@ -20,7 +20,7 @@ graph LR
         US[Users Service\n(Node.js:5001)]
         MS[MP Service\n(Node.js:5002)]
         MAT[Materials Service\n(Go:5003)]
-        PRED[Prediction Service\n(Python:5004)]
+        PRED[Prediction Service\n(Python:5005)]
     end
     
     subgraph "Зона данных"
@@ -72,8 +72,8 @@ graph LR
 |--------|-----------------|-----------|------|----------|-----------|
 | **Users Service** | Пользователи, Roles, Permisos, Auth | `bd_users` | 5001 | JS/TS | Express + Sequelize |
 | **MP Service** | Quejas, Técnicos, Trabajos, Tests, Inf-telecom | `bd_mp` | 5002 | JS/TS | Express + Sequelize + Zod |
-| **Materials Service** | Materiales, Categorías, Asignaciones, Consumos | `bd_materiales` | 5003 | Go | Gin + GORM |
-| **Prediction Service** | ML модели, Прогнозы | `bd_predictions` | 5004 | Python | FastAPI + scikit-learn |
+| **Materials Service** | Materiales, Categorías, Asignaciones, Consumos | `bd_materiales` | 5003 | Go | gorilla/mux + GORM |
+| **Prediction Service** | ML модели, Прогнозы | `bd_predictions` | 5005 | Python | FastAPI + scikit-learn |
 | **API Gateway** | Агрегация, аутентификация, маршрутизация | - | 5000 | JS/TS | Express + http-proxy-middleware |
 
 ### 2.2. Data flow per service

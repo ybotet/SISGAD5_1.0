@@ -282,6 +282,113 @@ activityDiagram-v2
 
 ---
 
+## 4.3. Saga: Cierre de Queja con Registro de Consumo (Distribuido)
+
+Cuando se cierra una queja, el MP Service debe:
+1. Actualizar el estado de la queja a `"Cerrada"` (local, en `bd_mp`).
+2. Registrar un consumo de materiales asociado al trabajo (remoto, en `bd_materiales` vía Materials Service).
+
+Estas dos operaciones abarcan **dos bases de datos distintas** (`bd_mp` y `bd_materiales`), por lo que no se puede usar una transacción ACID distribuida. Se aplica el patrón **Saga orquestada** con compensación:
+
+- **Orquestador:** `CierreQuejaSaga` (en MP Service, archivo `backend-mp/src/shared/services/cierreQuejaSaga.js`).
+- Coordina una transacción local (Sequelize) y, al finalizar con éxito, llama al Materials Service vía REST (`POST /api/materiales/consumos`).
+- Si el Materials Service falla, **compensa** revirtiendo el cierre de la queja (pasándola de vuelta a `"Resuelta"`).
+- **Idempotencia:** la queja ya cerrada retorna `compensación: { motivo: "YA_CERRADA" }` sin acciones.
+- **Quejas sin trabajos:** no generan consumo de materiales (optimización).
+
+### Diagrama de Secuencia — Saga Cierre de Queja
+
+```mermaid
+sequenceDiagram
+    participant GW as API Gateway
+    participant MPS as MP Service
+    participant SAGA as CierreQuejaSaga (Orquestador)
+    participant MPDB as BD_MP (local)
+    participant MS as Materials Service
+    participant MADB as BD_Materiales (remota)
+
+    GW->>MPS: POST /api/mp/queja/{id}/cerrar (JWT válido)
+    MPS->>SAGA: execute(quejaId, ctx)
+    SAGA->>MPDB: BEGIN (transacción Sequelize)
+    SAGA->>MPDB: SELECT queja WHERE id = {id}
+    alt Queja no existe
+        SAGA-->>MPS: compensación: QUEJA_NO_ENCONTRADA
+        SAGA->>MPDB: ROLLBACK
+    else Ya está cerrada
+        SAGA-->>MPS: compensación: YA_CERRADA
+        SAGA->>MPDB: ROLLBACK
+    else Estado inválido (no Resuelta/Probada)
+        SAGA-->>MPS: compensación: ESTADO_INVALIDO
+        SAGA->>MPDB: ROLLBACK
+    else Estado válido
+        SAGA->>MPDB: UPDATE queja SET estado='Cerrada', fechaok=NOW()
+        SAGA->>MPDB: SELECT trabajos WHERE id_queja = {id}
+        alt No hay trabajos
+            SAGA->>MPDB: COMMIT
+            SAGA-->>MPS: success (sin consumo)
+        else Hay trabajos
+            SAGA->>MS: POST /api/materiales/consumos\n(Authorization: Bearer <token>)
+            MS->>MADB: BEGIN (transacción GORM)
+            MS->>MADB: INSERT consumo + UPDATE stock
+            alt Materiales éxito
+                MS->>MADB: COMMIT
+                MS-->>SAGA: 201 Created (consumo)
+                SAGA->>MPDB: COMMIT
+                SAGA-->>MPS: success (con consumo)
+            else Materiales falla
+                MS->>MADB: ROLLBACK
+                MS-->>SAGA: Error (HTTP 5xx / timeout)
+                SAGA->>MPDB: UPDATE queja SET estado='Resuelta' (compensación)
+                SAGA->>MPDB: ROLLBACK
+                SAGA-->>MPS: compensación: MATERIALES_FALLA + REVERTIR_CIERRE
+            end
+        end
+    end
+    MPS-->>GW: Resultado (success o compensación)
+```
+
+### Código: Orquestador `CierreQuejaSaga.execute()`
+
+```javascript
+// backend-mp/src/shared/services/cierreQuejaSaga.js
+async execute(quejaId, { id_clavecierre, fechaok, userId, token }) {
+  const t = await sequelize.transaction();          // T1: transacción local
+  // ... validaciones de estado ...
+
+  result.queja = await this._cerrarQuejaEnDB(...); // UPDATE local
+
+  const trabajos = await Trabajo.findAll({ where: { id_queja: quejaId }, transaction: t });
+  if (trabajos.length > 0) {
+    const payload = this._buildConsumoPayload(queja, trabajos, userId, fechaok);
+    try {
+      result.consumo = await this.materialesService.registrarConsumo(payload, token); // HTTP remoto
+    } catch (materialesError) {
+      // Compensación: revertir cierre
+      await this._revertirCierre(quejaId, { transaction: t });
+      await t.rollback();
+      result.compensacion = { motivo: "MATERIALES_FALLA", accion: "REVERTIR_CIERRE" };
+      return result;
+    }
+  }
+  await t.commit();   // Confirmar localmente
+  result.success = true;
+  return result;
+}
+```
+
+### Tests (`cierreSaga.test.js`)
+
+| Escenario | Resultado esperado |
+|-----------|-------------------|
+| Queja no encontrada | `success: false`, `compensacion.motivo: "QUEJA_NO_ENCONTRADA"` |
+| Queja ya cerrada | `success: false`, `compensacion.motivo: "YA_CERRADA"` |
+| Estado inválido (`Abierta`) | `success: false`, `compensacion.motivo: "ESTADO_INVALIDO"` |
+| Cierre sin trabajos | `success: true`, `consumo: null` (no llama a Materials) |
+| Cierre con trabajos (éxito) | `success: true`, `consumo` registrado |
+| Cierre con trabajos (Materials falla) | `success: false`, `compensacion.motivo: "MATERIALES_FALLA"`, queja revertida |
+
+---
+
 ## 5. Mapa de Secuencia (Diagrama de Interacción)
 
 ### Escenario: Queja → Prueba → Trabajo → Cierre (4 fases)

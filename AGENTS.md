@@ -26,7 +26,7 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 | API Gateway        | Node.js + Express + http-proxy-middleware                  | 5000   |
 | Users Service      | Node.js + Express + Sequelize                              | 5001   |
 | MP Service         | Node.js + Express + Sequelize + Zod                        | 5002   |
-| Materials Service  | Go + Gin + GORM                                            | 5003   |
+| Materials Service  | Go + gorilla/mux + GORM                                            | 5003   |
 | Prediction Service | Python 3.11+ + FastAPI + scikit-learn                      | 5005   |
 | PostgreSQL         | 17+ (3 BD: bd_users, bd_mp, bd_materiales, bd_predictions) | 5432   |
 | Redis              | 7+                                                         | 6379   |
@@ -112,7 +112,8 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 3. **Nunca** eliminar tests existentes.
 4. **Siempre** ejecutar tests antes de commitear.
 5. **Siempre** documentar cambios en `CHANGELOG.md`.
-6. **Siempre** preguntar al autor si hay ambigüedad.
+6. **Siempre** preguntar al autor si hay ambigüedad o duda.
+7. Para tomar alguna desición muestra las opciones y yo elijo.
 
 ---
 
@@ -123,25 +124,26 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 
 ### Hallazgos Críticos (🔴) — Resolver en Fase A
 
-| ID     | Hallazgo                                | Tarea           | Prohibido mientras tanto                           |
-| ------ | --------------------------------------- | --------------- | -------------------------------------------------- |
-| SEC-01 | ✅ JWT con fallback `"secreto"` | TASK-A-08 | Eliminado fallback; validación de arranque en Users y MP |
-| SEC-02 | ✅ Materials con JWT middleware + puerto 5003 cerrado en prod | TASK-A-09, A-10 (✅) | Materials accesible solo vía Gateway en prod        |
-| SEC-03 | ✅ Grafana admin/admin reemplazado por `${GRAFANA_ADMIN_PASSWORD}` | TASK-A-11 | Usar contraseña externa, no hardcodeada |
+| ID     | Hallazgo                                                           | Tarea                | Prohibido mientras tanto                                 |
+| ------ | ------------------------------------------------------------------ | -------------------- | -------------------------------------------------------- |
+| SEC-01 | ✅ JWT con fallback `"secreto"`                                    | TASK-A-08            | Eliminado fallback; validación de arranque en Users y MP |
+| SEC-02 | ✅ Materials con JWT middleware + puerto 5003 cerrado en prod      | TASK-A-09, A-10 (✅) | Materials accesible solo vía Gateway en prod             |
+| SEC-03 | ✅ Grafana admin/admin reemplazado por `${GRAFANA_ADMIN_PASSWORD}` | TASK-A-11            | Usar contraseña externa, no hardcodeada                  |
 
 ### Hallazgos Altos (🟠) — Resolver en Fase B
 
-| ID     | Hallazgo                            | Tarea     | Prohibido mientras tanto                          |
-| ------ | ----------------------------------- | --------- | ------------------------------------------------- |
-| SEC-04 | ✅ CORS con lista blanca | TASK-B-16 | `CORS_ORIGIN` obligatorio en prod |
-| SEC-05 | ✅ Gateway verifica JWT (middleware) | TASK-B-15 | N/A — resuelto                                    |
-| SEC-06 | ✅ RBAC aplicado en MP | TASK-B-17 | `tienePermiso` aplicado en quejas, trabajos, asignaciones |
-| SEC-07 | ✅ Parametrizado con Sequelize replacements | TASK-B-18 | No interpolar strings en SQL                     |
-| ARC-02 | ✅ Gateway propaga claims via headers | TASK-B-15 | N/A — mitigado (claims en JWT, no llamadas síncronas)    |
-| ARC-03 | ✅ Cerrar queja orquesta consumo en Materials | TASK-B-22 | Saga con compensación — rollback si Materials falla     |
-| BUS-02 | ✅ Rutas `/dashboard/*` antes de `/:id` | TASK-B-19 | No añadir rutas después de `/:id`                  |
-| DAT-01 | ✅ Migraciones + índices creados | TASK-B-20 | No añadir modelos sin migración            |
-| QA-01  | ✅ `npm test` passes (27 MP + 11 Users) | TASK-B-21 | Confiar en CI                   |
+| ID     | Hallazgo                                      | Tarea     | Prohibido mientras tanto                                  |
+| ------ | --------------------------------------------- | --------- | --------------------------------------------------------- |
+| SEC-04 | ✅ CORS con lista blanca                      | TASK-B-16 | `CORS_ORIGIN` obligatorio en prod                         |
+| SEC-05 | ✅ Gateway verifica JWT (middleware)          | TASK-B-15 | N/A — resuelto                                            |
+| SEC-06 | ✅ RBAC aplicado en MP                        | TASK-B-17 | `tienePermiso` aplicado en quejas, trabajos, asignaciones |
+| SEC-07 | ✅ Parametrizado con Sequelize replacements   | TASK-B-18 | No interpolar strings en SQL                              |
+| ARC-01 | ✅ Docs alineadas: gorilla/mux (no Gin), Prediction Service (5005), Redis/Prometheus "planned" | TASK-C-11 | Docs = código |
+| ARC-02 | ✅ Gateway propaga claims via headers         | TASK-B-15 | N/A — mitigado (claims en JWT, no llamadas síncronas)     |
+| ARC-03 | ✅ Cerrar queja orquesta consumo en Materials | TASK-B-22 | Saga con compensación — rollback si Materials falla       |
+| BUS-02 | ✅ Rutas `/dashboard/*` antes de `/:id`       | TASK-B-19 | No añadir rutas después de `/:id`                         |
+| DAT-01 | ✅ Migraciones + índices creados              | TASK-B-20 | No añadir modelos sin migración                           |
+| QA-01  | ✅ `npm test` passes (27 MP + 11 Users)       | TASK-B-21 | Confiar en CI                                             |
 
 ### Reglas derivadas de la auditoría
 
@@ -243,6 +245,6 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 
 ---
 
-> **Última actualización:** 2026-10-27
+> **Última actualización:** 2026-10-28
 > **Mantenido por:** Ing. Botet S.Y.
 > **Licencia:** Uso académico — Tesis de Maestría RTU MIREA

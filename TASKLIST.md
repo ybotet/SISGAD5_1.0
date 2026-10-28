@@ -167,7 +167,7 @@
 | ⏳      | 🟡       | 🔨      | TASK-C-08     | Renombrar `docs/thesis/*.md` a `*.es.md` y crear `*.ru.md`                                   | Tesis bilingüe                                     |
 | ✅     | 🟡       | 🔨      | TASK-C-09     | Verificar enlaces internos (`scripts/validate_docs.sh`)                                      | 0 enlaces rotos (*.es.md)                          |
 | ✅     | 🟡       | 🔨      | TASK-C-10     | Commit + PR + merge                                                                          | Docs consolidadas                                  |
-| ⏳      | 🟠       | 🔨      | **TASK-C-11** | **Alinear `ARCHITECTURE.md` con código real (mux, no Gin; sin Redis/Prometheus en compose)** | **Auditoría ARC-01**                               | Docs = código
+| ✅     | 📌      | ✅      | **TASK-C-11** | **Alinear `ARCHITECTURE.md` con código real (mux, no Gin; sin Redis/Prometheus en compose)** | **Auditoría ARC-01**                               | Docs = código
 | ⏳      | 🟠       | 🔨      | **TASK-C-12** | **Actualizar `AGENTS.md` con hallazgos de auditoría**                                        | **Auditoría**                                      | Sección 8 actualizada
 
 **Total Fase C:** 12 tareas
@@ -614,7 +614,7 @@
 | SEC-06 | 🟠 Alto    | RBAC incompleto en MP                                      | TASK-B-17                      | ✅     |
 | SEC-07 | 🟠 Alto    | SQL injection en dashboard                                 | TASK-B-18                      | ✅     |
 | SEC-08 | 🟡 Medio   | DebugLogin con credenciales fijas                          | (Fase B, dentro de frontend)   | ⏳      |
-| ARC-01 | 🟠 Alto    | Docs ≠ código (Gin vs mux)                                 | TASK-C-11                      | ⏳      |
+| ARC-01 | 🟠 Alto    | Docs ≠ código (Gin vs mux)                                 | TASK-C-11                      | ✅     |
 | ARC-02 | 🟠 Alto    | MP llama a Users en cada request                           | TASK-B-15 (claims en JWT)      | ✅     |
 | ARC-03 | 🟠 Alto    | Cerrar queja no orquesta materiales                        | TASK-B-22                      | ✅     |
 | ARC-04 | 🟠 Alto    | `MP_DB_NAME` mal inyectado                                 | TASK-A-12 (✅)                 | ✅     |
