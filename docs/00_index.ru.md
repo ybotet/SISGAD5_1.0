@@ -101,11 +101,12 @@ docs/practices/
 
 ```
 docs/manuals/
-├── manual_explotacion_general.md
-├── manual_dashboard_materiales.md
-├── manual_dashboard_quejas.md
-├── manual_administracion.md
-└── manual_tecnico.md
+├── manual_explotacion_general.ru.md
+├── manual_dashboard_materiales.ru.md
+├── manual_dashboard_quejas.ru.md
+├── manual_administracion.ru.md
+├── manual_tecnico.ru.md
+└── manual_operativo.ru.md
 ```
 
 ---

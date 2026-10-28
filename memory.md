@@ -49,6 +49,8 @@
 | 2026-10-27 | TASK-C-06 | Crear `.es.md`/`.ru.md` para manuales (docs/manuals/) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-06-crear-es-mdru-md-para-manuales-docsmanuals) |
 | 2026-10-27 | TASK-C-07 | Completar docs/practices/ (`.es.md`/`.ru.md`) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-07-completar-docspractices-es-mderu-md) |
 | 2026-10-27 | TASK-C-09 | Verificar enlaces internos (`scripts/validate_docs.sh`) | [ver](docs/memory/2026-10-27.md#2026-10-27--task-c-09-verificar-enlaces-internos-scriptssvalidate_docssh) |
+| 2026-10-28 | TASK-C-10 | Commit + PR + merge de documentación consolidada | [ver](docs/memory/2026-10-28.md#2026-10-28--task-c-10-commit--pr--merge-de-documentación-consolidada) |
+| 2026-10-28 | TASK-C-06 | Actualizar índices de manuales | [ver](docs/memory/2026-10-28.md#2026-10-28--task-c-06-update-actualizar-índices-de-manuales) |
 
 ---
 
