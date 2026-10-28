@@ -1,1 +1,1 @@
-# Scripts de entrenamiento (TASK-D-06, D-07, D-08)
+# Training scripts for ML models (TASK-D-06 a D-10)

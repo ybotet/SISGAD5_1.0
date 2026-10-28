@@ -12,7 +12,7 @@
 
 > **Última actualización:** 2026-10-28
 
-> **Estado:** En progreso (~59% completado — 100/295)
+> **Estado:** En progreso (~40% completado — 119/295)
 
 ---
 
@@ -185,9 +185,9 @@
 | ✅      | 🔴       | 🔨      | TASK-D-03     | Configurar BD `bd_predictions`                                   | Docker Compose funcional                              |
 | ✅      | 🟡       | 🏗️    | TASK-D-04     | Feature engineering (quejas)                                     | Features documentadas                                 |
 | ✅      | 🟡       | 🏗️    | TASK-D-05     | Feature engineering (materiales)                                 | Features documentadas                                 |
-| ⏳      | 🔴       | 🏛️    | TASK-D-06     | Modelo: predicción de demanda de materiales                      | MAE < 15%                                             |
-| ⏳      | 🟡       | 🏛️    | TASK-D-07     | Modelo: predicción de tiempo de resolución                       | MAE < 20%                                             |
-| ⏳      | 🟡       | 🏛️    | TASK-D-08     | Modelo: detección de anomalías                                   | Precision > 85%                                       |
+| ✅      | 🔴       | 🏛️    | TASK-D-06     | Modelo: predicción de demanda de materiales                      | MAE < 15%                                             |
+| ✅      | 🟡       | 🏛️    | TASK-D-07     | Modelo: predicción de tiempo de resolución                       | MAE < 20%                                             |
+| ✅      | 🟡       | 🏛️    | TASK-D-08     | Modelo: detección de anomalías                                   | Precision > 85%                                       |
 | ⏳      | 🔴       | 🏗️    | TASK-D-09     | API REST de predicciones                                         | Endpoints funcionales                                 |
 | ⏳      | 🔴       | 🔨      | TASK-D-10     | Integrar con API Gateway                                         | Proxy `/api/predictions/*`                            |
 | ⏳      | 🔴       | 🏗️    | TASK-D-11     | Dashboard de predicciones (Frontend)                             | Gráficos con Recharts                                 |
@@ -487,18 +487,18 @@
 
 | Estado | Prioridad | Esfuerzo | ID           | Descripción                      | Depende de Fase | Criterio de Aceptación     |
 | ------ | --------- | -------- | ------------ | -------------------------------- | --------------- | -------------------------- |
-| ⏳      | 🔴       | 🔨      | TASK-1300-01 | Definir casos de uso predictivos | Fase D          | 6 casos priorizados        |
-| ⏳      | 🔴       | 🔨      | TASK-1300-02 | Diseñar arquitectura del módulo  | Fase D          | Diagrama Mermaid + ADR     |
+| ✅ | 🔴       | 🔨      | TASK-1300-01 | Definir casos de uso predictivos | Fase D          | 6 casos priorizados        |
+| ✅ | 🔴       | 🔨      | TASK-1300-02 | Diseñar arquitectura del módulo  | Fase D          | Diagrama Mermaid + ADR     |
 | ✅      | 🔴       | 🔨      | TASK-1300-03 | Configurar Python + FastAPI      | Fase D          | `poetry install` funcional |
 | ✅      | 🔴       | 🔨      | TASK-1300-04 | Configurar BD `bd_predictions`   | Fase D          | Docker Compose funcional   |
-| ⏳      | 🟡       | 🏗️    | TASK-1300-05 | Feature engineering (quejas)     | Fase D          | Features documentadas      |
-| ⏳      | 🟡       | 🏗️    | TASK-1300-06 | Feature engineering (materiales) | Fase D          | Features documentadas      |
-| ⏳      | 🟡       | 🏗️    | TASK-1300-07 | Feature engineering (trabajos)   | Fase D          | Features documentadas      |
-| ⏳      | 🔴       | 🏛️    | TASK-1300-08 | Modelo: demanda materiales       | Fase D          | MAE < 15%                  |
-| ⏳      | 🟡       | 🏛️    | TASK-1300-09 | Modelo: tiempo resolución        | Fase D          | MAE < 20%                  |
-| ⏳      | 🟡       | 🏛️    | TASK-1300-10 | Modelo: anomalías consumo        | Fase D          | Precision > 85%            |
-| ⏳      | 🟢       | 🏛️    | TASK-1300-11 | Modelo: prioridad quejas         | Fase D          | Accuracy > 80%             |
-| ⏳      | 🟢       | 🏛️    | TASK-1300-12 | Modelo: fallos infraestructura   | Fase D          | Recall > 75%               |
+| ✅      | 🟡       | 🏗️    | TASK-1300-05 | Feature engineering (quejas)     | Fase D          | Features documentadas      |
+| ✅      | 🟡       | 🏗️    | TASK-1300-06 | Feature engineering (materiales) | Fase D          | Features documentadas      |
+| ✅      | 🟡       | 🏗️    | TASK-1300-07 | Feature engineering (trabajos)   | Fase D          | Features documentadas      |
+| ✅      | 🔴       | 🏛️    | TASK-1300-08 | Modelo: demanda materiales       | Fase D          | MAE < 15%                  |
+| ✅      | 🟡       | 🏛️    | TASK-1300-09 | Modelo: tiempo resolución        | Fase D          | MAE < 20%                  |
+| ✅      | 🟡       | 🏛️    | TASK-1300-10 | Modelo: anomalías consumo        | Fase D          | Precision > 85%            |
+| ✅      | 🟢       | 🏛️    | TASK-1300-11 | Modelo: prioridad quejas         | Fase D          | Accuracy > 80%             |
+| ✅      | 🟢       | 🏛️    | TASK-1300-12 | Modelo: fallos infraestructura   | Fase D          | Recall > 75%               |
 | ⏳      | 🔴       | 🏗️    | TASK-1300-13 | API REST de predicciones         | Fase D          | Endpoints funcionales      |
 | ⏳      | 🔴       | 🔨      | TASK-1300-14 | Integrar con Gateway             | Fase D          | Proxy `/api/predictions/*` |
 | ⏳      | 🟡       | 🏗️    | TASK-1300-15 | MLflow (model registry)          | Fase D          | Modelos versionados        |
@@ -655,19 +655,19 @@
 | 8 — Testing                  | 8       | 1           | 13%     |
 | 9 — Despliegue               | 7       | 0           | 0%      |
 | 10 — Analítica               | 8       | 0           | 0%      |
-| 11 — Predictivo              | 22      | 0           | 0%      |
+| 11 — Predictivo              | 22      | 12          | 55%     |
 | 12 — Documentación Final     | 6       | 0           | 0%      |
 | 13 — Mantenimiento           | 6       | 0           | 0%      |
 | **14 — Informe de Práctica** | **22**  | **0**       | **0%**  |
-| **TOTAL PARTE II**           | **230** | **59**      | **26%** |
+| **TOTAL PARTE II**           | **230** | **71**      | **31%** |
 
 ### Total General
 
 | Parte     | Tareas  | Completadas | %        |
 | --------- | ------- | ----------- | -------- |
-| Parte I   | 65      | 40          | 62%      |
-| Parte II  | 230     | 59          | 26%      |
-| **TOTAL** | **295** | **100**     | **~34%** |
+| Parte I   | 65      | 48          | 74%      |
+| Parte II  | 230     | 71          | 31%      |
+| **TOTAL** | **295** | **119**     | **~40%** |
 
 > **Mantenido por:** Ing. Botet C.Y.
 
