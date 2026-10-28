@@ -12,7 +12,7 @@
 
 > **Última actualización:** 2026-10-28
 
-> **Estado:** En progreso (~40% completado — 119/295)
+> **Estado:** En progreso (~41% completado — 122/295)
 
 ---
 
@@ -170,7 +170,7 @@
 | ✅     | 📌      | ✅      | **TASK-C-11** | **Alinear `ARCHITECTURE.md` con código real (mux, no Gin; sin Redis/Prometheus en compose)** | **Auditoría ARC-01**                               | Docs = código
 | ⏳      | 🟠       | 🔨      | **TASK-C-12** | **Actualizar `AGENTS.md` con hallazgos de auditoría**                                        | **Auditoría**                                      | Sección 8 actualizada
 
-**Total Fase C:** 12 tareas
+**Total Fase C:** 12 tareas (9 completadas — 75%)
 
 ## FASE D — Módulo Predictivo + Tesis
 
@@ -200,7 +200,7 @@
 | ⏳      | 🟡       | 🔨      | **TASK-D-21** | **Validar modelos con datos sintéticos y reportar métricas**     | Reporte de métricas                                   |
 | ⏳      | 🟡       | 🔨      | TASK-D-19     | Commit + PR + merge                                              | Merge completo                                        |
 
-**Total Fase D:** 19 tareas
+**Total Fase D:** 19 tareas (8 completadas — 42%)
 
 ## Resumen Parte I
 
@@ -208,9 +208,9 @@
 | --------------------------------- | ------ | ----------- | ------- |
 | A — Limpieza y Seguridad          | 12     | 12          | 100%    |
 | B — Reorganización y Correcciones | 22     | 22          | 100%    |
-| C — Documentación                 | 12     | 6           | 50%     |
-| D — Predictivo + Tesis            | 19     | 0           | 0%      |
-| **TOTAL PARTE I**                 | **65** | **40**      | **62%** |
+| C — Documentación                 | 12     | 9           | 75%     |
+| D — Predictivo + Tesis            | 19     | 8           | 42%     |
+| **TOTAL PARTE I**                 | **65** | **51**      | **78%** |
 
 # PARTE II — INVENTARIO FUNCIONAL
 
@@ -665,9 +665,9 @@
 
 | Parte     | Tareas  | Completadas | %        |
 | --------- | ------- | ----------- | -------- |
-| Parte I   | 65      | 48          | 74%      |
+| Parte I   | 65      | 51          | 78%      |
 | Parte II  | 230     | 71          | 31%      |
-| **TOTAL** | **295** | **119**     | **~40%** |
+| **TOTAL** | **295** | **122**     | **~41%** |
 
 > **Mantenido por:** Ing. Botet C.Y.
 
