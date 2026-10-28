@@ -36,20 +36,21 @@ La **Dirección No. 5** es una unidad organizativa responsable de la infraestruc
 ## 3. Alcance del Sistema
 
 ### Módulos Funcionales
-| Módulo           | Descripción                                       | Servicio          |
-| ---------------- | ------------------------------------------------- | ----------------- |
-| Autenticación    | Login, registro, JWT, refresh tokens              | Users Service     |
-| Usuarios y Roles | CRUD usuarios, RBAC, permisos                     | Users Service     |
-| Teléfonos        | CRUD, estados, historial                          | MP Service        |
-| Líneas           | CRUD, estados, historial                          | MP Service        |
-| Pizarras         | CRUD, puertos, conexiones, ubicación              | MP Service        |
-| Quejas           | Registro, flujo de estados, asignación, auditoría | MP Service        |
-| Pruebas          | Registro, resultados, vinculación                 | MP Service        |
-| Trabajos         | Órdenes, asignación, tiempos, cierre              | MP Service        |
-| Materiales       | Catálogo, categorías, unidades                    | Materials Service |
-| Asignaciones     | Múltiples ítems, precio momento, stock            | Materials Service |
-| Consumos         | Registro, validación vs asignación                | Materials Service |
-| Dashboard        | KPIs, distribución, alertas, exportación          | Materials Service |
+| Módulo           | Descripción                                       | Servicio                      |
+| ---------------- | ------------------------------------------------- | ----------------------------- |
+| Autenticación    | Login, registro, JWT, refresh tokens              | Users Service                 |
+| Usuarios y Roles | CRUD usuarios, RBAC, permisos                     | Users Service                 |
+| Teléfonos        | CRUD, estados, historial                          | MP Service                    |
+| Líneas           | CRUD, estados, historial                          | MP Service                    |
+| Pizarras         | CRUD, puertos, conexiones, ubicación              | MP Service                    |
+| Quejas           | Registro, flujo de estados, asignación, auditoría | MP Service                    |
+| Pruebas          | Registro, resultados, vinculación                 | MP Service                    |
+| Trabajos         | Órdenes, asignación, tiempos, cierre              | MP Service                    |
+| Materiales       | Catálogo, categorías, unidades                    | Materials Service             |
+| Asignaciones     | Múltiples ítems, precio momento, stock            | Materials Service             |
+| Consumos         | Registro, validación vs asignación                | Materials Service             |
+| Dashboard        | KPIs, distribución, alertas, exportación          | Materials Service, MP Service |
+| Prediccion       | Analítica y Estadísticas predictivas              | Prediction Service            |
 
 ---
 
@@ -62,17 +63,18 @@ La **Dirección No. 5** es una unidad organizativa responsable de la infraestruc
 - **Autenticación centralizada** JWT con refresh tokens
 
 ### Stack Tecnológico
-| Capa              | Tecnología                              |
-| ----------------- | --------------------------------------- |
-| API Gateway       | Node.js + Express                       |
-| Users Service     | Node.js + Express + Sequelize           |
-| MP Service        | Node.js + Express + Sequelize + Zod     |
-| Materials Service | Go + Gin + GORM                         |
-| Frontend          | React 18 + Vite + TypeScript + Tailwind |
-| Base de Datos     | PostgreSQL 15+                          |
-| Contenerización   | Docker + Docker Compose                 |
-| CI/CD             | GitHub Actions                          |
-| Monitoreo         | Prometheus + Grafana + Loki             |
+| Capa               | Tecnología                              |
+| ------------------ | --------------------------------------- |
+| API Gateway        | Node.js + Express                       |
+| Users Service      | Node.js + Express + Sequelize           |
+| MP Service         | Node.js + Express + Sequelize + Zod     |
+| Materials Service  | Go + Gin + GORM                         |
+| Frontend           | React 18 + Vite + TypeScript + Tailwind |
+| Base de Datos      | PostgreSQL 15+                          |
+| Prediction Service | Python 3.11 + FastAPI + scikit-learn    |
+| Contenerización    | Docker + Docker Compose                 |
+| CI/CD              | GitHub Actions                          |
+| Monitoreo          | Prometheus + Grafana + Loki             |
 
 ---
 
