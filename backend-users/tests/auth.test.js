@@ -45,6 +45,17 @@ jest.mock("../src/features/auth/refresh_token.model", () => {
   return mockRefreshTokenModel;
 });
 
+jest.mock("../src/features/auth/session.model", () => {
+  const mockSesionModel = jest.fn();
+  mockSesionModel.mockImplementation(() => mockSesionModel);
+  mockSesionModel.belongsTo = jest.fn().mockReturnThis();
+  mockSesionModel.hasMany = jest.fn().mockReturnThis();
+  mockSesionModel.findOne = jest.fn();
+  mockSesionModel.findByPk = jest.fn();
+  mockSesionModel.create = jest.fn().mockResolvedValue(true);
+  return mockSesionModel;
+});
+
 process.env.JWT_SECRET = "00f7d9f46b0fe16ff92419e9f0f8ee0510d6249374a267e68dd071851808b38e";
 process.env.JWT_EXPIRES_IN = "15m";
 process.env.JWT_REFRESH_EXPIRES_IN = "7d";
@@ -56,7 +67,7 @@ process.env.USERS_DB_NAME = "bd_sisgad5_users";
 process.env.NODE_ENV = "test";
 
 const { generateAccessToken, generateRefreshToken } = require("../src/shared/config/jwt");
-const { RefreshToken } = require("../src/features");
+const { RefreshToken, Sesion } = require("../src/features");
 const app = require("../src/server");
 
 describe("Health endpoints", () => {
@@ -162,5 +173,18 @@ describe("Route protection", () => {
   it("GET /api/user with invalid token returns 401", async () => {
     const res = await request(app).get("/api/user").set("Authorization", "Bearer invalid.token.here");
     expect(res.status).toBe(401);
+  });
+});
+
+describe("Session tracking (tb_sesiones)", () => {
+  it("Sesion model is registered in features index", () => {
+    expect(Sesion).toBeDefined();
+    expect(typeof Sesion.create).toBe("function");
+  });
+
+  it("GET /health does not create session records (solo endpoints públicos)", async () => {
+    Sesion.create.mockClear();
+    await request(app).get("/health");
+    expect(Sesion.create).not.toHaveBeenCalled();
   });
 });

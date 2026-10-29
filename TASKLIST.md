@@ -281,7 +281,7 @@
 | ⏳      | 🟡       | 🔨      | TASK-300-05 | Recuperación de contraseña    | Fase A          | Flujo con email              |
 | ⏳      | 🟡       | 🔨      | TASK-300-06 | Cambio de contraseña          | Fase A          | `PUT /api/users/me/password` |
 | ⏳      | 🟢       | 🔨      | TASK-300-07 | Bloqueo por intentos fallidos | Fase A          | Bloqueo tras 5 intentos      |
-| ⏳      | 🟢       | 🔨      | TASK-300-08 | Historial de sesiones         | Fase A          | Registro de sesiones         |
+| ✅     | 🟢       | 🔨      | TASK-300-08 | Historial de sesiones         | Fase A          | Registro de sesiones         |
 | ✅     | 🔴       | 🔨      | TASK-310-01 | CRUD de usuarios (admin)      | Fase B          | Endpoints con paginación     |
 | ✅     | 🔴       | 🔨      | TASK-310-02 | Gestión de roles (RBAC)       | Fase B          | Asignación funcional         |
 | ✅     | 🟡       | 🔨      | TASK-310-03 | Middleware de autorización    | Fase B          | Middleware reutilizable      |
@@ -647,7 +647,7 @@
 | 0 — Planificación            | 8       | 8           | 100%    |
 | 1 — Diseño                   | 14      | 8           | 57%     |
 | 2 — Infraestructura          | 15      | 4           | 27%     |
-| 3 — Users                    | 12      | 9           | 75%     |
+| 3 — Users                    | 12      | 10          | 83%     |
 | 4 — MP                       | 36      | 10          | 28%     |
 | 5 — Materials                | 34      | 22          | 65%     |
 | 6 — Gateway                  | 10      | 3           | 30%     |
@@ -659,15 +659,16 @@
 | 12 — Documentación Final     | 6       | 0           | 0%      |
 | 13 — Mantenimiento           | 6       | 0           | 0%      |
 | **14 — Informe de Práctica** | **22**  | **0**       | **0%**  |
-| **TOTAL PARTE II**           | **230** | **80**      | **35%**    |
+| **TOTAL PARTE II**           | **230** | **81**      | **35%**   |
+| **TOTAL** | **295** | **133**     | **~45%** |
 
 ### Total General
 
 | Parte     | Tareas  | Completadas | %        |
 | --------- | ------- | ----------- | -------- |
 | Parte I   | 65      | 52          | 80%      |
-| Parte II  | 230     | 80          | 35%      |
-| **TOTAL** | **295** | **132**     | **~45%** |
+| Parte II  | 230     | 81          | 35%      |
+| **TOTAL** | **295** | **133**     | **~45%** |
 
 > **Mantenido por:** Ing. Botet C.Y.
 

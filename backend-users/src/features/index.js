@@ -6,6 +6,7 @@ const TbPermiso = require("./permiso/permiso.model")(sequelize);
 const User_Roles = require("./user_rol/user_rol.model")(sequelize);
 const Roles_Permisos = require("./roles_permiso/roles_permiso.model")(sequelize);
 const RefreshToken = require("./auth/refresh_token.model")(sequelize);
+const Sesion = require("./auth/session.model")(sequelize);
 
 // Configurar relaciones
 TbUser.belongsToMany(TbRol, {
@@ -40,6 +41,12 @@ RefreshToken.belongsTo(TbUser, {
   as: "usuario",
 });
 
+// Sesion → TbUser (belongs to)
+Sesion.belongsTo(TbUser, {
+  foreignKey: "id_usuario",
+  as: "usuario",
+});
+
 // Configurar asociaciones explícitas (los modelos en esta base no usan .associate;
 // todas las relaciones se definen directamente arriba, evitando aliased association conflicts)
 
@@ -62,4 +69,5 @@ module.exports = {
   User_Roles,
   Roles_Permisos,
   RefreshToken,
+  Sesion,
 };

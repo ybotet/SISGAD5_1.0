@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { TbUser, TbRol, TbPermiso, RefreshToken } = require("../../features");
+const { TbUser, TbRol, TbPermiso, RefreshToken, Sesion } = require("../../features");
 const {
   requireJwtSecret,
   generateAccessToken,
@@ -61,6 +61,35 @@ function validarPassword(password) {
 }
 
 /**
+ * Registra un evento de sesión en tb_sesiones.
+ * @param {number} idUsuario — ID del usuario
+ * @param {string} evento — "login" | "refresh" | "logout"
+ * @param {object} req — Objeto request de Express (para IP y User-Agent)
+ * @param {boolean} exitoso — Si el evento fue exitoso
+ * @param {string} [detalle] — Detalle opcional (error, etc.)
+ */
+async function registrarSesion(idUsuario, evento, req, exitoso = true, detalle = null) {
+  try {
+    const ip =
+      req.headers["x-forwarded-for"] ||
+      req.connection?.remoteAddress ||
+      req.socket?.remoteAddress ||
+      null;
+
+    await Sesion.create({
+      id_usuario: idUsuario,
+      evento,
+      ip,
+      user_agent: req.headers["user-agent"] || null,
+      exitoso,
+      detalle,
+    });
+  } catch (error) {
+    console.warn("⚠️ No se pudo registrar sesión:", error.message);
+  }
+}
+
+/**
  * Crea un refresh token, lo almacena (hasheado) en BD y devuelve el token original
  * (que se envía al cliente para que lo almacene).
  * @param {object} usuario — Instancia del usuario
@@ -96,13 +125,19 @@ async function crearRefreshToken(usuario) {
 }
 
 const authController = {
-  // Login — genera access token (15 min) + refresh token (7 días)
+  // Login — genera access token (15 min) + refresh token (7 días) y registra sesión
   login: async (req, res) => {
     try {
       const { email, password } = req.body;
 
       const errorEmail = validarEmail(email);
       if (errorEmail) {
+        if (email) {
+          const usuarioTemp = await TbUser.findOne({ where: { email } });
+          if (usuarioTemp) {
+            await registrarSesion(usuarioTemp.id_usuario, "login", req, false, errorEmail);
+          }
+        }
         return res.status(400).json({
           success: false,
           message: errorEmail,
@@ -110,6 +145,12 @@ const authController = {
       }
       const errorPassword = validarPassword(password);
       if (errorPassword) {
+        if (email) {
+          const usuarioTemp = await TbUser.findOne({ where: { email } });
+          if (usuarioTemp) {
+            await registrarSesion(usuarioTemp.id_usuario, "login", req, false, errorPassword);
+          }
+        }
         return res.status(400).json({
           success: false,
           message: errorPassword,
@@ -145,6 +186,7 @@ const authController = {
 
       if (!usuario.activo) {
         console.log("❌ Usuario inactivo:", email);
+        await registrarSesion(usuario.id_usuario, "login", req, false, "Usuario inactivo");
         return res.status(401).json({
           success: false,
           message: "Usuario inactivo",
@@ -154,6 +196,7 @@ const authController = {
       // Verificar contraseña
       const esPasswordValido = await usuario.verificarPassword(password);
       if (!esPasswordValido) {
+        await registrarSesion(usuario.id_usuario, "login", req, false, "Contraseña inválida");
         return res.status(401).json({
           success: false,
           message: "Credenciales inválidas",
@@ -168,6 +211,9 @@ const authController = {
 
       // Generar y almacenar refresh token (7 días)
       const refreshToken = await crearRefreshToken(usuario);
+
+      // Registrar sesión exitosa
+      await registrarSesion(usuario.id_usuario, "login", req, true);
 
       // Omitir password_hash en la respuesta
       const { password_hash, ...usuarioSinPassword } = usuario.toJSON();
@@ -192,7 +238,7 @@ const authController = {
     }
   },
 
-  // Refrescar token — rota refresh token y emite nuevo access + refresh
+  // Refrescar token — rota refresh token y emite nuevos tokens
   refresh: async (req, res) => {
     try {
       const { refreshToken } = req.body;
@@ -209,6 +255,7 @@ const authController = {
       try {
         decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
       } catch (err) {
+        await registrarSesion(null, "refresh", req, false, "Token inválido");
         return res.status(401).json({
           success: false,
           message: "Refresh token inválido o expirado",
@@ -226,6 +273,7 @@ const authController = {
 
       // Validar que existe, no está revocado y no expiró
       if (!storedToken || !storedToken.isValid()) {
+        await registrarSesion(decoded.id, "refresh", req, false, "Token no encontrado o inválido");
         return res.status(401).json({
           success: false,
           message: "Refresh token inválido, expirado o revocado",
@@ -235,6 +283,7 @@ const authController = {
       // Buscar usuario
       const usuario = await TbUser.findByPk(decoded.id);
       if (!usuario || !usuario.activo) {
+        await registrarSesion(decoded.id, "refresh", req, false, "Usuario inactivo");
         return res.status(401).json({
           success: false,
           message: "Token inválido o usuario inactivo",
@@ -250,6 +299,9 @@ const authController = {
         email: usuario.email,
       });
       const newRefreshToken = await crearRefreshToken(usuario);
+
+      // Registrar sesión de refresh
+      await registrarSesion(usuario.id_usuario, "refresh", req, true);
 
       res.json({
         success: true,
@@ -268,7 +320,7 @@ const authController = {
     }
   },
 
-  // Logout — revoca el refresh token
+  // Logout — revoca el refresh token y registra la sesión
   logout: async (req, res) => {
     try {
       const { refreshToken } = req.body;
@@ -288,6 +340,7 @@ const authController = {
 
       if (storedToken) {
         await storedToken.update({ revoked: true });
+        await registrarSesion(storedToken.id_usuario, "logout", req, true);
       }
 
       res.json({
