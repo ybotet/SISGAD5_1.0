@@ -1,17 +1,18 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-// Importar y usar todas las rutas automáticamente
-router.use('/auth', require('./auth'));
-router.use('/user', require('./user'));
-router.use('/roles', require('./roles'));
+router.use("/auth", require("../features/auth/auth.routes"));
+router.use("/user", require("../features/user/user.routes"));
+router.use("/roles", require("../features/rol/rol.routes"));
+router.use("/permisos", require("../features/permiso/permiso.routes"));
+router.use("/user-rol", require("../features/user_rol/user_rol.routes"));
+router.use("/roles-permisos", require("../features/roles_permiso/roles_permiso.routes"));
 
-// Ruta de fallback para APIs no encontradas
 router.use((req, res) => {
   res.status(404).json({
     success: false,
-    error: 'Endpoint de API no encontrado',
-    path: req.originalUrl
+    error: "Endpoint de API no encontrado",
+    path: req.originalUrl,
   });
 });
 

@@ -1,43 +1,57 @@
 const express = require("express");
-// const cors = require("cors"); // ❌ ELIMINAR CORS
 const helmet = require("helmet");
-const morgan = require("morgan");
-const requestLogger = require("./middleware/requestLogger");
-const logger = require("./config/logger");
 const path = require("path");
 const dotenv = require("dotenv");
-// require("dotenv").config();
+const config = require("./shared/config/env");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./shared/config/swagger");
+
+const requestLogger = require("./shared/middleware/requestLogger");
+const securityMiddleware = require("./shared/config/security");
+const usersLimiter = require("./shared/config/rateLimit");
+const authMiddleware = require("./shared/middleware/auth");
+
 dotenv.config({ path: path.join(__dirname, "../../.env.local") });
 
-// 🔒 Validar JWT_SECRET al arranque (SEC-01: fail if missing or < 32 chars)
-const { requireJwtSecret } = require("./config/jwt");
-requireJwtSecret();
-
-const { testConnection } = require("./config/database");
+const { testConnection } = require("./shared/config/database");
 
 const app = express();
 
-// ❌ NO USAR CORS AQUÍ - El API Gateway maneja CORS
-// Solo seguridad básica
+// 1️⃣ Body parsers (SIEMPRE primero)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// 2️⃣ Seguridad base (Helmet)
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+
+// 3️⃣ Rate limiting
+app.use("/api", usersLimiter);
+
+// 4️⃣ Swagger docs
 app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+  "/api/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "SISGAD5 API Docs - Users Service",
   }),
 );
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-// Registrar peticiones con Winston
+// 5️⃣ Logger personalizado
 app.use(requestLogger);
 
-// Test database connection
+// 6️⃣ Security middleware adicional
+app.use(securityMiddleware);
+
+// 7️⃣ Test DB
 testConnection();
 
-// Cargar todas las rutas automáticamente
+// 8️⃣ Rutas (después de middlewares)
 const apiRoutes = require("./routes");
 app.use("/api", apiRoutes);
 
-// Ruta raíz
+// 9️⃣ Rutas públicas (health, root)
 app.get("/", (req, res) => {
   res.json({
     message: "🚀 SISGAD5 Microservicio Usuarios funcionando!",
@@ -46,16 +60,15 @@ app.get("/", (req, res) => {
   });
 });
 
-// Health check route
 app.get("/health", (req, res) => {
   res.json({
-    status: "OK",
+    status: "UP",
     message: "Microservicio Usuarios funcionando correctamente",
     timestamp: new Date().toISOString(),
   });
 });
 
-// Manejo de errores 404
+// 🔟 Manejo de errores 404
 app.use((req, res) => {
   res.status(404).json({
     error: "Ruta no encontrada",
@@ -64,22 +77,17 @@ app.use((req, res) => {
   });
 });
 
-// Manejo de errores global
-app.use((error, req, res, next) => {
-  console.error("Error:", error);
-  res.status(500).json({
-    error: "Error interno del servidor",
-    message: process.env.NODE_ENV === "development" ? error.message : "Contacte al administrador",
-  });
-});
+// 1️⃣1️⃣ Manejo de errores global
+const errorHandler = require("./shared/middleware/errorHandler");
+app.use(errorHandler);
 
-const PORT = process.env.PORT || 5001;
+const PORT = config.USERS_PORT || 5001;
 
 // Only start server when run directly (not required by tests)
 if (require.main === module) {
   app.listen(PORT, () => {
-    logger.informacion(`🚀 Microservicio Usuarios ejecutándose en puerto ${PORT}`);
-    logger.informacion(`📊 Entorno: ${process.env.NODE_ENV || "development"}`);
+    console.log(`🚀 Microservicio Usuarios ejecutándose en puerto ${PORT}`);
+    console.log(`📊 Entorno: ${process.env.NODE_ENV || "development"}`);
   });
 }
 

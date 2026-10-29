@@ -1,1 +1,0 @@
-// Middleware para roles - vacío por ahora

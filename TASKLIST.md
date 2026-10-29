@@ -12,7 +12,7 @@
 
 > **Última actualización:** 2026-10-29
 
-> **Estado:** En progreso (~41% completado — 120/295)
+> **Estado:** En progreso (~45% completado — 132/295)
 
 ---
 
@@ -210,7 +210,7 @@
 | B — Reorganización y Correcciones | 22     | 22          | 100%    |
 | C — Documentación                 | 12     | 9           | 75%     |
 | D — Predictivo + Tesis            | 19     | 9          | 47%     |
-| **TOTAL PARTE I**                 | **65** | **49**      | **75%** |
+| **TOTAL PARTE I**                 | **65** | **52**      | **80%** |
 
 # PARTE II — INVENTARIO FUNCIONAL
 
@@ -276,16 +276,16 @@
 | ------ | --------- | -------- | ----------- | ----------------------------- | --------------- | ---------------------------- |
 | ✅     | 🔴       | 🔨      | TASK-300-01 | Registro de usuarios          | —               | `POST /api/auth/register`    |
 | ✅     | 🔴       | 🔨      | TASK-300-02 | Login con JWT                 | —               | Access + refresh token       |
-| ⏳      | 🔴       | 🔨      | TASK-300-03 | Refresh tokens                | Fase A          | `POST /api/auth/refresh`     |
-| ⏳      | 🔴       | 🔨      | TASK-300-04 | Logout                        | Fase A          | Token invalidado             |
+| ✅     | 🔴       | 🔨      | TASK-300-03 | Refresh tokens                | Fase A          | `POST /api/auth/refresh`     |
+| ✅     | 🔴       | 🔨      | TASK-300-04 | Logout                        | Fase A          | Token invalidado             |
 | ⏳      | 🟡       | 🔨      | TASK-300-05 | Recuperación de contraseña    | Fase A          | Flujo con email              |
 | ⏳      | 🟡       | 🔨      | TASK-300-06 | Cambio de contraseña          | Fase A          | `PUT /api/users/me/password` |
 | ⏳      | 🟢       | 🔨      | TASK-300-07 | Bloqueo por intentos fallidos | Fase A          | Bloqueo tras 5 intentos      |
 | ⏳      | 🟢       | 🔨      | TASK-300-08 | Historial de sesiones         | Fase A          | Registro de sesiones         |
-| ⏳      | 🔴       | 🔨      | TASK-310-01 | CRUD de usuarios (admin)      | Fase B          | Endpoints con paginación     |
-| ⏳      | 🔴       | 🔨      | TASK-310-02 | Gestión de roles (RBAC)       | Fase B          | Asignación funcional         |
-| ⏳      | 🟡       | 🔨      | TASK-310-03 | Middleware de autorización    | Fase B          | Middleware reutilizable      |
-| ⏳      | 🟢       | 🔨      | TASK-310-04 | Endpoint `/health`            | Fase A          | `{status: "UP"}`             |
+| ✅     | 🔴       | 🔨      | TASK-310-01 | CRUD de usuarios (admin)      | Fase B          | Endpoints con paginación     |
+| ✅     | 🔴       | 🔨      | TASK-310-02 | Gestión de roles (RBAC)       | Fase B          | Asignación funcional         |
+| ✅     | 🟡       | 🔨      | TASK-310-03 | Middleware de autorización    | Fase B          | Middleware reutilizable      |
+| ✅     | 🟢       | 🔨      | TASK-310-04 | Endpoint `/health`            | Fase A          | `{status: "UP"}`             |
 
 ## FASE 4 — MP Service
 
@@ -647,7 +647,7 @@
 | 0 — Planificación            | 8       | 8           | 100%    |
 | 1 — Diseño                   | 14      | 8           | 57%     |
 | 2 — Infraestructura          | 15      | 4           | 27%     |
-| 3 — Users                    | 12      | 2           | 17%     |
+| 3 — Users                    | 12      | 9           | 75%     |
 | 4 — MP                       | 36      | 10          | 28%     |
 | 5 — Materials                | 34      | 22          | 65%     |
 | 6 — Gateway                  | 10      | 3           | 30%     |
@@ -659,15 +659,15 @@
 | 12 — Documentación Final     | 6       | 0           | 0%      |
 | 13 — Mantenimiento           | 6       | 0           | 0%      |
 | **14 — Informe de Práctica** | **22**  | **0**       | **0%**  |
-| **TOTAL PARTE II**           | **230** | **74**      | **32%** |
+| **TOTAL PARTE II**           | **230** | **80**      | **35%**    |
 
 ### Total General
 
 | Parte     | Tareas  | Completadas | %        |
 | --------- | ------- | ----------- | -------- |
 | Parte I   | 65      | 52          | 80%      |
-| Parte II  | 230     | 74          | 32%      |
-| **TOTAL** | **295** | **123**     | **~42%** |
+| Parte II  | 230     | 80          | 35%      |
+| **TOTAL** | **295** | **132**     | **~45%** |
 
 > **Mantenido por:** Ing. Botet C.Y.
 
