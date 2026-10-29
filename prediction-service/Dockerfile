@@ -1,20 +1,29 @@
-FROM python:3.11-slim AS base
+FROM python:3.11-slim
 
 WORKDIR /app
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+# Dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade pip && \
-    pip install poetry
+# Instalar Poetry
+RUN pip install --no-cache-dir --timeout=300 poetry==1.8.3
 
-COPY pyproject.toml ./
+# Configurar Poetry para no crear virtualenvs
+ENV POETRY_VIRTUALENVS_CREATE=false
 
-RUN poetry export -f requirements.txt --output requirements.txt --without-hashes && \
-    pip install -r requirements.txt
+# Copiar pyproject.toml y poetry.lock
+COPY pyproject.toml poetry.lock* ./
 
-COPY ./app ./app
+# Instalar dependencias con timeout largo y índice alternativo
+RUN poetry config installer.parallel true && \
+    poetry install --no-interaction --no-ansi --no-root || \
+    (pip install --no-cache-dir --timeout=300 -i https://pypi.org/simple \
+     fastapi uvicorn pydantic pydantic-settings scikit-learn xgboost prophet pandas numpy mlflow sqlalchemy httpx joblib)
+
+# Código
+COPY . .
 
 EXPOSE 5005
 

@@ -37,3 +37,8 @@ build-backend = "poetry.core.masonry.api"
 [tool.uvicorn]
 host = "0.0.0.0"
 port = 5005
+
+[[tool.poetry.source]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple/"
+priority = "primary"
