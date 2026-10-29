@@ -167,6 +167,19 @@ app.use(
   }),
 );
 
+// ----------------------------------------
+// 🔹 PREDICTION SERVICE -> /api/predictions
+// ----------------------------------------
+app.use(
+  "/api/predictions",
+  createServiceProxy(process.env.PREDICTION_SERVICE_URL || "http://prediction-service:5005", "PREDICTION", {
+    pathRewrite: (path) => {
+      if (path.startsWith("/api/predictions")) return path;
+      return `/api/predictions${path}`;
+    },
+  }),
+);
+
 // ========================================
 // 🏥 HEALTH CHECKS
 // ========================================
@@ -187,6 +200,7 @@ app.get("/health/services", async (req, res) => {
     users: process.env.USERS_SERVICE_URL,
     mp: process.env.MP_SERVICE_URL,
     materiales: process.env.MATERIALES_SERVICE_URL,
+    prediction: process.env.PREDICTION_SERVICE_URL,
   };
 
   const results = {};
@@ -253,6 +267,11 @@ app.get("/", (req, res) => {
         url: process.env.MP_SERVICE_URL,
         endpoints: ["/api/mp/*"],
       },
+      prediction: {
+        url: process.env.PREDICTION_SERVICE_URL,
+        endpoints: ["/api/predictions/*"],
+        language: "Python/FastAPI",
+      },
     },
     health: "/health",
     healthDetailed: "/health/services",
@@ -284,6 +303,7 @@ const server = app.listen(PORT, "0.0.0.0", () => {
     `   📦 Materiales: ${process.env.MATERIALES_SERVICE_URL || "http://backend-materiales:5003"} (Go)`,
   );
   logger.informacion(`   🛠️  MP:        ${process.env.MP_SERVICE_URL || "http://backend-mp:5002"}`);
+  logger.informacion(`   🔮 Prediction: ${process.env.PREDICTION_SERVICE_URL || "http://prediction-service:5005"} (Python/FastAPI)`);
   logger.informacion(`\n🔗 Endpoints:`);
   logger.informacion(`   • GET /health          → Estado del gateway`);
   logger.informacion(`   • GET /health/services → Estado de todos los servicios`);

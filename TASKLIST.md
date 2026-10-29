@@ -10,7 +10,7 @@
 
 > **Autor:** Ing. Botet S.Y. (Tesis de Maestría — RTU MIREA)
 
-> **Última actualización:** 2026-10-28
+> **Última actualización:** 2026-10-29
 
 > **Estado:** En progreso (~41% completado — 120/295)
 
@@ -188,9 +188,9 @@
 | 🔄    | 🔴       | 🏛️    | TASK-D-06     | Modelo: predicción de demanda de materiales                      | MAE < 15% (actual: 16.63% FAIL)                       |
 | ✅     | 🟡       | 🏛️    | TASK-D-07     | Modelo: predicción de tiempo de resolución                       | MAE < 20% (actual: 16.46% PASS)                       |
 | 🔄    | 🟡       | 🏛️    | TASK-D-08     | Modelo: detección de anomalías                                   | Precision > 85% (actual: 52.33% FAIL)                 |
-| ⏳      | 🔴       | 🏗️    | TASK-D-09     | API REST de predicciones                                         | Endpoints funcionales                                 |
-| ⏳      | 🔴       | 🔨      | TASK-D-10     | Integrar con API Gateway                                         | Proxy `/api/predictions/*`                            |
-| ⏳      | 🔴       | 🏗️    | TASK-D-11     | Dashboard de predicciones (Frontend)                             | Gráficos con Recharts                                 |
+| ✅     | 🔴       | 🏗️    | TASK-D-09     | API REST de predicciones                                         | 5 endpoints con modelos .joblib                       |
+| ✅     | 🔴       | 🔨      | TASK-D-10     | Integrar con API Gateway                                         | Proxy `/api/predictions/*` configurado                |
+| ✅     | 🔴       | 🏗️    | TASK-D-11     | Dashboard de predicciones (Frontend)                             | Página PredictionsPage con 5 tabs                     |
 | ⏳      | 🟡       | 🏗️    | TASK-D-12     | MLflow (model registry)                                          | Modelos versionados                                   |
 | ⏳      | 🟡       | 🏛️    | TASK-D-13     | Airflow (pipelines)                                              | DAG funcional                                         |
 | ⏳      | 🟡       | 🏗️    | TASK-D-14     | Tests del módulo predictivo                                      | Cobertura ≥ 80%                                       |
@@ -200,7 +200,7 @@
 | ⏳      | 🟡       | 🔨      | **TASK-D-21** | **Validar modelos con datos sintéticos y reportar métricas**     | Reporte de métricas                                   |
 | ⏳      | 🟡       | 🔨      | TASK-D-19     | Commit + PR + merge                                              | Merge completo                                        |
 
-**Total Fase D:** 19 tareas (6 completadas — 32%)
+**Total Fase D:** 19 tareas (9 completadas — 47%)
 
 ## Resumen Parte I
 
@@ -209,7 +209,7 @@
 | A — Limpieza y Seguridad          | 12     | 12          | 100%    |
 | B — Reorganización y Correcciones | 22     | 22          | 100%    |
 | C — Documentación                 | 12     | 9           | 75%     |
-| D — Predictivo + Tesis            | 19     | 6           | 32%     |
+| D — Predictivo + Tesis            | 19     | 9          | 47%     |
 | **TOTAL PARTE I**                 | **65** | **49**      | **75%** |
 
 # PARTE II — INVENTARIO FUNCIONAL
@@ -499,11 +499,11 @@
 | 🔄    | 🟡       | 🏛️    | TASK-1300-10 | Modelo: anomalías consumo        | Fase D          | Precision > 85% (actual: 52.33% FAIL) |
 | ✅     | 🟢       | 🏛️    | TASK-1300-11 | Modelo: prioridad quejas         | Fase D          | Accuracy > 80% (actual: 99.25% PASS)  |
 | 🔄    | 🟢       | 🏛️    | TASK-1300-12 | Modelo: fallos infraestructura   | Fase D          | Recall > 75% (actual: 67.26% FAIL)    |
-| ⏳      | 🔴       | 🏗️    | TASK-1300-13 | API REST de predicciones         | Fase D          | Endpoints funcionales                 |
-| ⏳      | 🔴       | 🔨      | TASK-1300-14 | Integrar con Gateway             | Fase D          | Proxy `/api/predictions/*`            |
-| ⏳      | 🟡       | 🏗️    | TASK-1300-15 | MLflow (model registry)          | Fase D          | Modelos versionados                   |
+| ✅     | 🔴       | 🏗️    | TASK-1300-13 | API REST de predicciones         | Fase D          | 5 endpoints funcionales                  |
+| ✅     | 🔴       | 🔨      | TASK-1300-14 | Integrar con Gateway             | Fase D          | Proxy `/api/predictions/*`            |
+| ⏳      | 🟡       | 🏃      | TASK-1300-15 | MLflow (model registry)          | Fase D          | Modelos versionados                   |
 | ⏳      | 🟡       | 🏛️    | TASK-1300-16 | Airflow (pipelines)              | Fase D          | DAG funcional                         |
-| ⏳      | 🔴       | 🏗️    | TASK-1300-17 | Dashboard de predicciones        | Fase D          | Gráficos funcionales                  |
+| ✅     | 🟡       | 🏗️    | TASK-1300-17 | Dashboard de predicciones        | Fase D          | Gráficos funcionales                  |
 | ⏳      | 🟡       | 🏗️    | TASK-1300-18 | Monitoreo de modelos             | Fase D          | Drift + alertas                       |
 | ⏳      | 🔴       | 🏗️    | TASK-1300-19 | Tests del módulo predictivo      | Fase D          | Cobertura ≥ 80%                       |
 | ⏳      | 🟡       | 🏗️    | TASK-1300-20 | Tests de validación de modelos   | Fase D          | Métricas pasadas                      |
@@ -659,15 +659,15 @@
 | 12 — Documentación Final     | 6       | 0           | 0%      |
 | 13 — Mantenimiento           | 6       | 0           | 0%      |
 | **14 — Informe de Práctica** | **22**  | **0**       | **0%**  |
-| **TOTAL PARTE II**           | **230** | **71**      | **31%** |
+| **TOTAL PARTE II**           | **230** | **74**      | **32%** |
 
 ### Total General
 
 | Parte     | Tareas  | Completadas | %        |
 | --------- | ------- | ----------- | -------- |
-| Parte I   | 65      | 49          | 75%      |
-| Parte II  | 230     | 71          | 31%      |
-| **TOTAL** | **295** | **120**     | **~41%** |
+| Parte I   | 65      | 52          | 80%      |
+| Parte II  | 230     | 74          | 32%      |
+| **TOTAL** | **295** | **123**     | **~42%** |
 
 > **Mantenido por:** Ing. Botet C.Y.
 

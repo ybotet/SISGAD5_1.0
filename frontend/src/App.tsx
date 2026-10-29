@@ -40,6 +40,9 @@ import RolesPage from "./pages/auth/admin/RolesPage";
 //Stats
 import StatsPage from "./pages/StatsPage";
 
+// Predictions
+import PredictionsPage from "./pages/PredictionsPage";
+
 // Materiales
 import UnidadMedidaPage from "./pages/nomencladores/UnidadMedida";
 import CategoriaMaterialPage from "./pages/nomencladores/CategoriaMaterial";
@@ -89,6 +92,14 @@ export default function App() {
           element={
             <ProtectedRoute permission="estadisticas.ver">
               <StatsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="predicciones"
+          element={
+            <ProtectedRoute permission="estadisticas.ver">
+              <PredictionsPage />
             </ProtectedRoute>
           }
         />
