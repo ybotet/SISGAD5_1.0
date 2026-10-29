@@ -12,7 +12,7 @@
 
 > **Última actualización:** 2026-10-28
 
-> **Estado:** En progreso (~41% completado — 122/295)
+> **Estado:** En progreso (~41% completado — 120/295)
 
 ---
 
@@ -167,7 +167,7 @@
 | ⏳      | 🟡       | 🔨      | TASK-C-08     | Renombrar `docs/thesis/*.md` a `*.es.md` y crear `*.ru.md`                                   | Tesis bilingüe                                     |
 | ✅     | 🟡       | 🔨      | TASK-C-09     | Verificar enlaces internos (`scripts/validate_docs.sh`)                                      | 0 enlaces rotos (*.es.md)                          |
 | ✅     | 🟡       | 🔨      | TASK-C-10     | Commit + PR + merge                                                                          | Docs consolidadas                                  |
-| ✅     | 📌      | ✅      | **TASK-C-11** | **Alinear `ARCHITECTURE.md` con código real (mux, no Gin; sin Redis/Prometheus en compose)** | **Auditoría ARC-01**                               | Docs = código
+| ✅     | 📌       | ✅       | **TASK-C-11** | **Alinear `ARCHITECTURE.md` con código real (mux, no Gin; sin Redis/Prometheus en compose)** | **Auditoría ARC-01**                               | Docs = código
 | ⏳      | 🟠       | 🔨      | **TASK-C-12** | **Actualizar `AGENTS.md` con hallazgos de auditoría**                                        | **Auditoría**                                      | Sección 8 actualizada
 
 **Total Fase C:** 12 tareas (9 completadas — 75%)
@@ -180,14 +180,14 @@
 
 | Estado | Prioridad | Esfuerzo | ID            | Descripción                                                      | Criterio de Aceptación                                |
 | ------ | --------- | -------- | ------------- | ---------------------------------------------------------------- | ----------------------------------------------------- |
-| ✅      | 🔴       | 🏗️    | TASK-D-01     | Crear estructura `prediction-service/`                           | Carpeta completa                                      |
-| ✅      | 🔴       | 🔨      | TASK-D-02     | Configurar FastAPI + dependencias                                | `poetry install` + `uvicorn` funcional                |
-| ✅      | 🔴       | 🔨      | TASK-D-03     | Configurar BD `bd_predictions`                                   | Docker Compose funcional                              |
-| ✅      | 🟡       | 🏗️    | TASK-D-04     | Feature engineering (quejas)                                     | Features documentadas                                 |
-| ✅      | 🟡       | 🏗️    | TASK-D-05     | Feature engineering (materiales)                                 | Features documentadas                                 |
-| ✅      | 🔴       | 🏛️    | TASK-D-06     | Modelo: predicción de demanda de materiales                      | MAE < 15%                                             |
-| ✅      | 🟡       | 🏛️    | TASK-D-07     | Modelo: predicción de tiempo de resolución                       | MAE < 20%                                             |
-| ✅      | 🟡       | 🏛️    | TASK-D-08     | Modelo: detección de anomalías                                   | Precision > 85%                                       |
+| ✅     | 🔴       | 🏗️    | TASK-D-01     | Crear estructura `prediction-service/`                           | Carpeta completa                                      |
+| ✅     | 🔴       | 🔨      | TASK-D-02     | Configurar FastAPI + dependencias                                | `poetry install` + `uvicorn` funcional                |
+| ✅     | 🔴       | 🔨      | TASK-D-03     | Configurar BD `bd_predictions`                                   | Docker Compose funcional                              |
+| ✅     | 🟡       | 🏗️    | TASK-D-04     | Feature engineering (quejas)                                     | Features documentadas                                 |
+| ✅     | 🟡       | 🏗️    | TASK-D-05     | Feature engineering (materiales)                                 | Features documentadas                                 |
+| 🔄    | 🔴       | 🏛️    | TASK-D-06     | Modelo: predicción de demanda de materiales                      | MAE < 15% (actual: 16.63% FAIL)                       |
+| ✅     | 🟡       | 🏛️    | TASK-D-07     | Modelo: predicción de tiempo de resolución                       | MAE < 20% (actual: 16.46% PASS)                       |
+| 🔄    | 🟡       | 🏛️    | TASK-D-08     | Modelo: detección de anomalías                                   | Precision > 85% (actual: 52.33% FAIL)                 |
 | ⏳      | 🔴       | 🏗️    | TASK-D-09     | API REST de predicciones                                         | Endpoints funcionales                                 |
 | ⏳      | 🔴       | 🔨      | TASK-D-10     | Integrar con API Gateway                                         | Proxy `/api/predictions/*`                            |
 | ⏳      | 🔴       | 🏗️    | TASK-D-11     | Dashboard de predicciones (Frontend)                             | Gráficos con Recharts                                 |
@@ -200,7 +200,7 @@
 | ⏳      | 🟡       | 🔨      | **TASK-D-21** | **Validar modelos con datos sintéticos y reportar métricas**     | Reporte de métricas                                   |
 | ⏳      | 🟡       | 🔨      | TASK-D-19     | Commit + PR + merge                                              | Merge completo                                        |
 
-**Total Fase D:** 19 tareas (8 completadas — 42%)
+**Total Fase D:** 19 tareas (6 completadas — 32%)
 
 ## Resumen Parte I
 
@@ -209,8 +209,8 @@
 | A — Limpieza y Seguridad          | 12     | 12          | 100%    |
 | B — Reorganización y Correcciones | 22     | 22          | 100%    |
 | C — Documentación                 | 12     | 9           | 75%     |
-| D — Predictivo + Tesis            | 19     | 8           | 42%     |
-| **TOTAL PARTE I**                 | **65** | **51**      | **78%** |
+| D — Predictivo + Tesis            | 19     | 6           | 32%     |
+| **TOTAL PARTE I**                 | **65** | **49**      | **75%** |
 
 # PARTE II — INVENTARIO FUNCIONAL
 
@@ -485,30 +485,30 @@
 
 > **Nota:** Esta fase es equivalente a FASE D de la Parte I. Se mantiene aquí por compatibilidad con la numeración original. **Ejecutar en Fase D.**
 
-| Estado | Prioridad | Esfuerzo | ID           | Descripción                      | Depende de Fase | Criterio de Aceptación     |
-| ------ | --------- | -------- | ------------ | -------------------------------- | --------------- | -------------------------- |
-| ✅ | 🔴       | 🔨      | TASK-1300-01 | Definir casos de uso predictivos | Fase D          | 6 casos priorizados        |
-| ✅ | 🔴       | 🔨      | TASK-1300-02 | Diseñar arquitectura del módulo  | Fase D          | Diagrama Mermaid + ADR     |
-| ✅      | 🔴       | 🔨      | TASK-1300-03 | Configurar Python + FastAPI      | Fase D          | `poetry install` funcional |
-| ✅      | 🔴       | 🔨      | TASK-1300-04 | Configurar BD `bd_predictions`   | Fase D          | Docker Compose funcional   |
-| ✅      | 🟡       | 🏗️    | TASK-1300-05 | Feature engineering (quejas)     | Fase D          | Features documentadas      |
-| ✅      | 🟡       | 🏗️    | TASK-1300-06 | Feature engineering (materiales) | Fase D          | Features documentadas      |
-| ✅      | 🟡       | 🏗️    | TASK-1300-07 | Feature engineering (trabajos)   | Fase D          | Features documentadas      |
-| ✅      | 🔴       | 🏛️    | TASK-1300-08 | Modelo: demanda materiales       | Fase D          | MAE < 15%                  |
-| ✅      | 🟡       | 🏛️    | TASK-1300-09 | Modelo: tiempo resolución        | Fase D          | MAE < 20%                  |
-| ✅      | 🟡       | 🏛️    | TASK-1300-10 | Modelo: anomalías consumo        | Fase D          | Precision > 85%            |
-| ✅      | 🟢       | 🏛️    | TASK-1300-11 | Modelo: prioridad quejas         | Fase D          | Accuracy > 80%             |
-| ✅      | 🟢       | 🏛️    | TASK-1300-12 | Modelo: fallos infraestructura   | Fase D          | Recall > 75%               |
-| ⏳      | 🔴       | 🏗️    | TASK-1300-13 | API REST de predicciones         | Fase D          | Endpoints funcionales      |
-| ⏳      | 🔴       | 🔨      | TASK-1300-14 | Integrar con Gateway             | Fase D          | Proxy `/api/predictions/*` |
-| ⏳      | 🟡       | 🏗️    | TASK-1300-15 | MLflow (model registry)          | Fase D          | Modelos versionados        |
-| ⏳      | 🟡       | 🏛️    | TASK-1300-16 | Airflow (pipelines)              | Fase D          | DAG funcional              |
-| ⏳      | 🔴       | 🏗️    | TASK-1300-17 | Dashboard de predicciones        | Fase D          | Gráficos funcionales       |
-| ⏳      | 🟡       | 🏗️    | TASK-1300-18 | Monitoreo de modelos             | Fase D          | Drift + alertas            |
-| ⏳      | 🔴       | 🏗️    | TASK-1300-19 | Tests del módulo predictivo      | Fase D          | Cobertura ≥ 80%            |
-| ⏳      | 🟡       | 🏗️    | TASK-1300-20 | Tests de validación de modelos   | Fase D          | Métricas pasadas           |
-| ⏳      | 🟡       | 🔨      | TASK-1300-21 | Documentar módulo predictivo     | Fase D          | OpenAPI + fichas           |
-| ⏳      | 🟢       | 🔨      | TASK-1300-22 | Manual de explotación predictivo | Fase D          | Manual bilingüe            |
+| Estado | Prioridad | Esfuerzo | ID           | Descripción                      | Depende de Fase | Criterio de Aceptación                |
+| ------ | --------- | -------- | ------------ | -------------------------------- | --------------- | ------------------------------------- |
+| ✅     | 🔴       | 🔨      | TASK-1300-01 | Definir casos de uso predictivos | Fase D          | 6 casos priorizados                   |
+| ✅     | 🔴       | 🔨      | TASK-1300-02 | Diseñar arquitectura del módulo  | Fase D          | Diagrama Mermaid + ADR                |
+| ✅     | 🔴       | 🔨      | TASK-1300-03 | Configurar Python + FastAPI      | Fase D          | `poetry install` funcional            |
+| ✅     | 🔴       | 🔨      | TASK-1300-04 | Configurar BD `bd_predictions`   | Fase D          | Docker Compose funcional              |
+| ✅     | 🟡       | 🏗️    | TASK-1300-05 | Feature engineering (quejas)     | Fase D          | Features documentadas                 |
+| ✅     | 🟡       | 🏗️    | TASK-1300-06 | Feature engineering (materiales) | Fase D          | Features documentadas                 |
+| ✅     | 🟡       | 🏗️    | TASK-1300-07 | Feature engineering (trabajos)   | Fase D          | Features documentadas                 |
+| 🔄    | 🔴       | 🏛️    | TASK-1300-08 | Modelo: demanda materiales       | Fase D          | MAE < 15% (actual: 16.63% FAIL)       |
+| ✅     | 🟡       | 🏛️    | TASK-1300-09 | Modelo: tiempo resolución        | Fase D          | MAE < 20% (actual: 16.46% PASS)       |
+| 🔄    | 🟡       | 🏛️    | TASK-1300-10 | Modelo: anomalías consumo        | Fase D          | Precision > 85% (actual: 52.33% FAIL) |
+| ✅     | 🟢       | 🏛️    | TASK-1300-11 | Modelo: prioridad quejas         | Fase D          | Accuracy > 80% (actual: 99.25% PASS)  |
+| 🔄    | 🟢       | 🏛️    | TASK-1300-12 | Modelo: fallos infraestructura   | Fase D          | Recall > 75% (actual: 67.26% FAIL)    |
+| ⏳      | 🔴       | 🏗️    | TASK-1300-13 | API REST de predicciones         | Fase D          | Endpoints funcionales                 |
+| ⏳      | 🔴       | 🔨      | TASK-1300-14 | Integrar con Gateway             | Fase D          | Proxy `/api/predictions/*`            |
+| ⏳      | 🟡       | 🏗️    | TASK-1300-15 | MLflow (model registry)          | Fase D          | Modelos versionados                   |
+| ⏳      | 🟡       | 🏛️    | TASK-1300-16 | Airflow (pipelines)              | Fase D          | DAG funcional                         |
+| ⏳      | 🔴       | 🏗️    | TASK-1300-17 | Dashboard de predicciones        | Fase D          | Gráficos funcionales                  |
+| ⏳      | 🟡       | 🏗️    | TASK-1300-18 | Monitoreo de modelos             | Fase D          | Drift + alertas                       |
+| ⏳      | 🔴       | 🏗️    | TASK-1300-19 | Tests del módulo predictivo      | Fase D          | Cobertura ≥ 80%                       |
+| ⏳      | 🟡       | 🏗️    | TASK-1300-20 | Tests de validación de modelos   | Fase D          | Métricas pasadas                      |
+| ⏳      | 🟡       | 🔨      | TASK-1300-21 | Documentar módulo predictivo     | Fase D          | OpenAPI + fichas                      |
+| ⏳      | 🟢       | 🔨      | TASK-1300-22 | Manual de explotación predictivo | Fase D          | Manual bilingüe                       |
 
 ## FASE 12 — Documentación Final y Defensa
 
@@ -665,9 +665,9 @@
 
 | Parte     | Tareas  | Completadas | %        |
 | --------- | ------- | ----------- | -------- |
-| Parte I   | 65      | 51          | 78%      |
+| Parte I   | 65      | 49          | 75%      |
 | Parte II  | 230     | 71          | 31%      |
-| **TOTAL** | **295** | **122**     | **~41%** |
+| **TOTAL** | **295** | **120**     | **~41%** |
 
 > **Mantenido por:** Ing. Botet C.Y.
 

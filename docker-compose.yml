@@ -116,7 +116,7 @@ services:
     environment:
       - ENVIRONMENT=development
       - PORT=5005
-      - PREDICTION_DB_NAME=${PREDICTION_DB_NAME}
+      - DB_NAME=${PREDICTION_DB_NAME}
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=postgres
