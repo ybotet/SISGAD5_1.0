@@ -52,6 +52,7 @@
 | 2026-10-28 | TASK-C-10 | Commit + PR + merge de documentación consolidada | [ver](docs/memory/2026-10-28.md#2026-10-28--task-c-10-commit--pr--merge-de-documentación-consolidada) |
 | 2026-10-28 | TASK-C-06 | Actualizar índices de manuales | [ver](docs/memory/2026-10-28.md#2026-10-28--task-c-06-update-actualizar-índices-de-manuales) |
 | 2026-10-30 | TASK-600-04 | Verificación de JWT + infraestructura de tests gateway | [ver](docs/memory/2026-10-30.md#2026-10-30--task-600-04-verificación-de-jwt--infraestructura-de-tests-gateway) |
+| 2026-10-30 | TASK-410-03 | Historial completo líneas (quejas, recorridos, movimientos) + rediseño moderno | [ver](docs/memory/2026-10-30.md#2026-10-30--task-410-03-historial-completo-líneas) |
 | 2026-10-27 | TASK-C-12 | Actualizar AGENTS.md §8 (Deuda Técnica Activa) | [ver](docs/memory/2026-10-30.md#2026-10-30--task-c-12-actualizar-agentsmd-8-deuda-técnica-activa) |
 
 ---

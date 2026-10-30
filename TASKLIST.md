@@ -168,7 +168,7 @@
 | ✅     | 🟡       | 🔨      | TASK-C-09     | Verificar enlaces internos (`scripts/validate_docs.sh`)                                      | 0 enlaces rotos (*.es.md)                          |
 | ✅     | 🟡       | 🔨      | TASK-C-10     | Commit + PR + merge                                                                          | Docs consolidadas                                  |
 | ✅     | 📌       | ✅       | **TASK-C-11** | **Alinear `ARCHITECTURE.md` con código real (mux, no Gin; sin Redis/Prometheus en compose)** | **Auditoría ARC-01**                               | Docs = código
-| ✅     | 📌       | ✅      | **TASK-C-12** | **Actualizar `AGENTS.md` con hallazgos de auditoría**                                        | **Auditoría**                                      | Sección 8 actualizada
+| ✅     | 📌       | ✅       | **TASK-C-12** | **Actualizar `AGENTS.md` con hallazgos de auditoría**                                        | **Auditoría**                                      | Sección 8 actualizada
 
 **Total Fase C:** 12 tareas (12 completadas — 100%)
 
@@ -208,9 +208,9 @@
 | --------------------------------- | ------ | ----------- | ------- |
 | A — Limpieza y Seguridad          | 12     | 12          | 100%    |
 | B — Reorganización y Correcciones | 22     | 22          | 100%    |
-| C — Documentación                 | 12     | 12          | 100%     |
-| D — Predictivo + Tesis            | 19     | 9           | 47%      |
-| **TOTAL PARTE I**                 | **65** | **53**      | **82%**  |
+| C — Documentación                 | 12     | 12          | 100%    |
+| D — Predictivo + Tesis            | 19     | 9           | 47%     |
+| **TOTAL PARTE I**                 | **65** | **53**      | **82%** |
 
 # PARTE II — INVENTARIO FUNCIONAL
 
@@ -297,7 +297,7 @@
 | ------ | --------- | -------- | ----------- | ------------------------------ | --------------- | ------------------------------------ |
 | ✅     | 🔴       | 🔨      | TASK-400-01 | CRUD teléfonos                 | —               | Endpoints funcionales                |
 | ⏳      | 🔴       | 🔨      | TASK-400-02 | Cambio de estado (activo/baja) | Fase B          | `PATCH /api/mp/telefonos/:id/estado` |
-| ⏳      | 🔴       | 🔨      | TASK-400-03 | Historial completo             | Fase B          | Quejas, recorridos, movimientos      |
+| ✅     | 🔴       | 🔨      | TASK-400-03 | Historial completo             | Fase B          | Quejas, recorridos, movimientos      |
 | ⏳      | 🟡       | 🔨      | TASK-400-04 | Búsqueda y filtrado            | Fase B          | `?search=...`                        |
 
 ### 4.2. Líneas
@@ -306,7 +306,7 @@
 | ------ | --------- | -------- | ----------- | ------------------- | --------------- | --------------------------------- |
 | ✅     | 🔴       | 🔨      | TASK-410-01 | CRUD líneas         | —               | Endpoints funcionales             |
 | ⏳      | 🔴       | 🔨      | TASK-410-02 | Cambio de estado    | Fase B          | `PATCH /api/mp/lineas/:id/estado` |
-| ⏳      | 🔴       | 🔨      | TASK-410-03 | Historial completo  | Fase B          | Quejas, recorridos, movimientos   |
+| ✅     | 🔴       | 🔨      | TASK-410-03 | Historial completo  | Fase B          | Quejas, recorridos, movimientos   |
 | ⏳      | 🟡       | 🔨      | TASK-410-04 | Búsqueda y filtrado | Fase B          | `?search=...`                     |
 
 ### 4.3. Pizarras
@@ -403,18 +403,18 @@
 
 ## FASE 6 — API Gateway
 
-| Estado | Prioridad | Esfuerzo | ID          | Descripción                 | Depende de Fase | Criterio de Aceptación |
-| ------ | --------- | -------- | ----------- | --------------------------- | --------------- | ---------------------- |
-| ✅     | 🔴       | 🔨      | TASK-600-01 | Enrutamiento a Users        | —               | Proxy funcional        |
-| ✅     | 🔴       | 🔨      | TASK-600-02 | Enrutamiento a MP           | —               | Proxy funcional        |
-| ✅     | 🔴       | 🔨      | TASK-600-03 | Enrutamiento a Materials    | —               | Proxy funcional        |
+| Estado | Prioridad | Esfuerzo | ID              | Descripción                 | Depende de Fase | Criterio de Aceptación |
+| ------ | --------- | -------- | --------------- | --------------------------- | --------------- | ---------------------- |
+| ✅     | 🔴       | 🔨      | TASK-600-01     | Enrutamiento a Users        | —               | Proxy funcional        |
+| ✅     | 🔴       | 🔨      | TASK-600-02     | Enrutamiento a MP           | —               | Proxy funcional        |
+| ✅     | 🔴       | 🔨      | TASK-600-03     | Enrutamiento a Materials    | —               | Proxy funcional        |
 | ✅     | 🔴       | 🔨      | **TASK-600-04** | Verificación de JWT         | Fase A          | Middleware de auth     |
-| ⏳      | 🟡       | 🔨      | TASK-600-05 | Rate limiting               | Fase A          | Límite por IP          |
-| ⏳      | 🟡       | 🔨      | TASK-600-06 | CORS                        | Fase A          | Orígenes permitidos    |
-| ⏳      | 🟡       | 🔨      | TASK-600-07 | Logging centralizado        | Fase B          | Logs JSON              |
-| ⏳      | 🟡       | 🔨      | TASK-600-08 | Health checks agregados     | Fase B          | `GET /health`          |
-| ⏳      | 🟡       | 🔨      | TASK-600-09 | Manejo de errores unificado | Fase B          | Formato consistente    |
-| ⏳      | 🟢       | 🔨      | TASK-600-10 | Documentación de rutas      | Fase C          | OpenAPI del Gateway    |
+| ⏳      | 🟡       | 🔨      | TASK-600-05     | Rate limiting               | Fase A          | Límite por IP          |
+| ⏳      | 🟡       | 🔨      | TASK-600-06     | CORS                        | Fase A          | Orígenes permitidos    |
+| ⏳      | 🟡       | 🔨      | TASK-600-07     | Logging centralizado        | Fase B          | Logs JSON              |
+| ⏳      | 🟡       | 🔨      | TASK-600-08     | Health checks agregados     | Fase B          | `GET /health`          |
+| ⏳      | 🟡       | 🔨      | TASK-600-09     | Manejo de errores unificado | Fase B          | Formato consistente    |
+| ⏳      | 🟢       | 🔨      | TASK-600-10     | Documentación de rutas      | Fase C          | OpenAPI del Gateway    |
 
 ## FASE 7 — Frontend
 
@@ -648,7 +648,7 @@
 | 1 — Diseño                   | 14      | 8           | 57%      |
 | 2 — Infraestructura          | 15      | 4           | 27%      |
 | 3 — Users                    | 12      | 10          | 83%      |
-| 4 — MP                       | 36      | 10          | 28%      |
+| 4 — MP                       | 36      | 11          | 31%      |
 | 5 — Materials                | 34      | 22          | 65%      |
 | 6 — Gateway                  | 10      | 4           | 40%      |
 | 7 — Frontend                 | 22      | 1           | 5%       |
@@ -659,16 +659,16 @@
 | 12 — Documentación Final     | 6       | 0           | 0%       |
 | 13 — Mantenimiento           | 6       | 0           | 0%       |
 | **14 — Informe de Práctica** | **22**  | **0**       | **0%**   |
-| **TOTAL PARTE II**           | **230** | **82**      | **36%**  |
-| **TOTAL**                    | **295** | **135**     | **~46%** |
+| **TOTAL PARTE II**           | **230** | **83**      | **36%**  |
+| **TOTAL**                    | **295** | **136**     | **~46%** |
 
 ### Total General
 
 | Parte     | Tareas  | Completadas | %        |
 | --------- | ------- | ----------- | -------- |
 | Parte I   | 65      | 53          | 82%      |
-| Parte II  | 230     | 82          | 36%      |
-| **TOTAL** | **295** | **135**     | **~46%** |
+| Parte II  | 230     | 83          | 36%      |
+| **TOTAL** | **295** | **136**     | **~46%** |
 
 > **Mantenido por:** Ing. Botet C.Y.
 
