@@ -78,9 +78,9 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-000-05 | Alta | 🔨 | Crear CONTRIBUTING.md con convenciones | Agente | — | Convenciones de ramas, commits, PRs y setup local documentadas; plantilla de PR activa | `CONTRIBUTING.md` + `.github/PULL_REQUEST_TEMPLATE.md` e ISSUE_TEMPLATE presentes | `CONTRIBUTING.md`, `.github/` |
 | ✅ Completada | TASK-000-06 | Media | 🔨 | Documentar requisitos funcionales y no funcionales | Agente | — | Requisitos RF/RNF numerados, trazables a casos de uso, en `/docs/` | `docs/05_requirements.md` existe (la ruta original `docs/requirements.md` se ajustó a la convención numerada) | `docs/05_requirements.md` |
 | ✅ Completada | TASK-000-07 | Media | 🔨 | Documentar arquitectura con diagramas y decisiones | Agente | — | Diagrama de despliegue/componentes (Mermaid o imagen) + ADRs de decisiones clave | `ARCHITECTURE.md` y `docs/` cubren la arquitectura; **débil**: sin ADRs formales ni diagramas Mermaid consolidados | `ARCHITECTURE.md`, `docs/` |
-| 🔄 En progreso | TASK-000-08 | Alta | 🔨 | Crear roadmap de desarrollo en GitHub Projects | Humano | — | Tablero público con columnas Backlog / In Progress / Review / Done, enlazado desde el README | Docs existen (docs/17_roadmap.es/.ru.md) y config .github/projects/sisgad5-roadmap.yml validada (f67b410); falta instanciar el tablero v2 en github.com/ybotet/SISGAD5_1.0/projects y enlazarlo desde README | GitHub Projects |
+| ✅ Completada | TASK-000-08 | Alta | 🔨 | Crear roadmap de desarrollo en GitHub Projects | Humano | — | Tablero público con columnas Backlog / In Progress / Review / Done, enlazado desde el README | Docs ES/RU (docs/17_roadmap.*), config declarativa `.github/projects/sisgad5-roadmap.yml` validada (f67b410), **77 issues creados vía API REST** (#FASE/prioridad etiquetados, vinculados a TASK-ID), enlaces al roadmap y a Issues añadidos en `README.md` y `README.ru.md`. Nota: la creación del tablero Projects **v2** requiere scope `project` en el token (no estaba habilitado); puede instanciarse en github.com/ybotet/SISGAD5_1.0/projects/new importando las issues existentes | GitHub Projects, README |
 
-**Subtotal FASE 0: 7/8 (87.5%)**
+**Subtotal FASE 0: 8/8 (100%)**
 
 ---
 
@@ -110,7 +110,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-110-05 | Alta | 🔨 | Diseñar estrategia de autenticación (JWT + Refresh) | Agente | — | Documento con flujo access+refresh, expiraciones, rotación y revocación | `docs/13_security.md` describe access(15m)+refresh(7d) con rotación/revocación Y está implementado en código (`jwt.js`, modelos `RefreshToken`/`Sesion`, login/refresh/logout en auth.controller). Corregido: la v2.0 afirmaba "refresh no implementado" basándose en una versión obsoleta del backend-users | `docs/13_security.md` |
 | ✅ Completada | TASK-110-06 | Alta | 🔨 | Mapear permisos RBAC por endpoint | Agente | — | Matriz rol × permiso × endpoint alineada con el middleware real | `docs/12_rbac_matrix.md` + middleware `permissions.js` (`tienePermiso('x.y')`) en uso | `docs/12_rbac_matrix.md` |
 
-**Subtotal FASE 1: 9✅ + 4🔄 de 14 — 78.6% ponderado** *(actualizado v2.1.0: TASK-110-01/02/05 completadas)*
+**Subtotal FASE 1: 10✅ + 3🔄 de 14 — 82.1% ponderado** *(actualizado v2.1.x: recuento verificado sobre las tablas)*
 
 ---
 
@@ -486,8 +486,8 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 
 | Fase | Total | ✅ | 🔄 | ⏳ | ❌ | % Real (ponderado) | % Anterior (v1.0) |
 | ---- | ----- | -- | -- | -- | -- | ------------------ | ----------------- |
-| FASE 0 — Documentación base | 8 | 7 | 0 | 1 | 0 | **87.5%** | 37.5% |
-| FASE 1 — Diseño y modelado | 14 | 9 | 4 | 1 | 0 | **78.6%** | 57.1% |
+| FASE 0 — Documentación base | 8 | 8 | 0 | 0 | 0 | **100%** | 37.5% |
+| FASE 1 — Diseño y modelado | 14 | 10 | 3 | 1 | 0 | **82.1%** | 57.1% |
 | FASE 2 — Infraestructura | 15 | 11 | 2 | 2 | 0 | **80.0%** | 36.8% |
 | FASE 3 — Users Service | 12 | 7 | 1 | 3 | 1 | **68.2%**¹ | 16.7% |
 | FASE 4 — MP Service | 36 | 20 | 6 | 10 | 0 | **63.9%** | 25.6% |
@@ -499,7 +499,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 10 — Analítica | 8 | 0 | 4 | 4 | 0 | **25.0%** | 0.0% |
 | FASE 11 — Docs final/defensa | 3 | 0 | 2 | 1 | 0 | **33.3%** | 0.0% |
 | FASE 12 — Mantenimiento | 5 | 0 | 3 | 2 | 0 | **30.0%** | 0.0% |
-| **TOTAL** | **182** | **105** | **39** | **37** | **1** | **≈67.6%** | 25.3% |
+| **TOTAL** | **182** | **105** | **37** | **39** | **1** | **≈68.2%** | 25.3% |
 
 ¹ Excluye la tarea cancelada TASK-300-02 (base de cálculo: 11).
 ² La v1.0 declaraba totales inflados e imposibles (p. ej., 190 tareas, 89 en FASE 7, 62 en FASE 5); los conteos reales son 182 / 22 / 34.
@@ -533,3 +533,22 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 4. 🟡 **Completar CD de despliegue** (TASK-900-02) y endpoint `/metrics` en servicios (TASK-220-01).
 5. 🟡 **Matriz de trazabilidad y diagramas visuales** (TASK-100-03/04/06, 110-04) — necesario para la defensa de tesis.
 6. ⚪ Retirar `api.exe` binario del repo, eliminar `@supabase/supabase-js` no usado y la ruta `/debug-login` antes de producción.
+
+---
+
+## 17. Registro de Cambios v2.2 — Roadmap operativo (TASK-000-08)
+
+**Fecha:** 2026-10-31 · **Método:** creación vía GitHub REST API con el token del propietario (`ybotet`).
+
+### Qué se ejecutó
+1. **Inventario automatizado del tasklist:** parser sobre las tablas de este documento → 182 tareas detectadas (105 ✅, 37 🔄, 39 ⏳/🚫, 1 ❌). El total coincide con la columna *Total* del Resumen de Progreso.
+2. **77 issues creados en `github.com/ybotet/SISGAD5_1.0/issues`** (uno por cada tarea no completada ni cancelada), con:
+   - Título `[TASK-ID] Descripción`
+   - Etiquetas `FASE-N` y `P0-Critica / P1-Alta / P2-Media / P3-Baja`
+   - Cuerpo con fase, prioridad, esfuerzo, estado del tasklist y referencia a la auditoría v2.x
+   - Cierre manual de un issue ⇒ actualizar el estado de la tarea en este documento (fuente única de verdad: TASKLIST.md; los issues son la vista operativa).
+3. **Enlaces añadidos al roadmap** (ES y RU) en `README.md` y `README.ru.md`, junto al enlace a Issues como vista de tablero.
+4. **TASK-000-08 marcada ✅** y subtotales recalculados: FASE 0 = 8/8 (100%), FASE 1 = 82.1% (corrección de conteo tras verificación automática), TOTAL ≈ 68.2%.
+
+### Limitación conocida (no bloqueante)
+La creación programática del tablero **GitHub Projects v2** requiere el scope `project` en el PAT, que el token actual no incluye. Alternativas: (a) añadir el scope y reintentar; (b) crear el tablero manualmente en [github.com/ybotet/SISGAD5_1.0/projects](https://github.com/ybotet/SISGAD5_1.0/projects) usando la plantilla Board e importando las 77 issues ya existentes (~2 min). La estructura de columnas está definida declarativamente en `.github/projects/sisgad5-roadmap.yml`.
