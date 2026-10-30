@@ -2,26 +2,23 @@ openapi: 3.0.3
 info:
   title: SISGAD5 - Users Service API
   description: |
-    API para la gestión de usuarios, autenticación y autorización (RBAC).
-    
-    **Servicio:** backend-users (Node.js + Express + Sequelize)  
-    **Base de datos:** bd_users (PostgreSQL)
-    
-    Ver documentación completa en [docs/01_introduction.md](../thesis/01_introduction.md)
-  version: 1.0.0
+    Contrato **al día** (v2.1.0) generado desde el código real de `backend-users`
+    (`src/features/*/*.routes.js`, montados en `/api`). Incluye además la sección
+    **"Planificado"** con endpoints aún no implementados.
+
+    **Servicio:** backend-users (Node.js + Express + Sequelize) — Puerto 5001
+    **Base de datos:** bd_sisgad5_users (PostgreSQL)
+  version: 2.1.0
   contact:
     name: SISGAD5 Team
     url: https://github.com/ybotet/SISGAD5_1.0
-
 servers:
   - url: http://localhost:5000/api
-    description: API Gateway (local)
-  - url: https://api.sisgad5.com/api
-    description: Producción
-
+    description: API Gateway (namespace /api/users -> /api, /api/auth directo)
+  - url: http://localhost:5001/api
+    description: Servicio directo (desarrollo)
 security:
   - bearerAuth: []
-
 components:
   securitySchemes:
     bearerAuth:
@@ -29,92 +26,550 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    LoginRequest:
-      type: object
-      required: [email, password]
-      properties:
-        email: { type: string, format: email }
-        password: { type: string, minLength: 8 }
-    LoginResponse:
+    ApiResponse:
       type: object
       properties:
-        accessToken: { type: string }
-        refreshToken: { type: string }
-        user: { $ref: '#/components/schemas/User' }
-    User:
+        success: {type: boolean}
+        data: {type: object}
+    Error:
       type: object
       properties:
-        id: { type: string, format: uuid }
-        email: { type: string }
-        nombre: { type: string }
-        apellido: { type: string }
-        activo: { type: boolean }
-        roles: { type: array, items: { type: string } }
-
+        success: {type: boolean, example: false}
+        error: {type: string}
 paths:
   /auth/login:
     post:
-      summary: Login de usuario
+      summary: Valida credenciales (bcrypt) y emite access token JWT + refresh token persistido.
+      operationId: post_auth_login
+      security: []
       requestBody:
         required: true
-        content: { application/json: { schema: { $ref: '#/components/schemas/LoginRequest' } } }
+        content:
+          application/json:
+            schema: {type: object}
       responses:
-        '200': { description: Login exitoso, content: { application/json: { schema: { $ref: '#/components/schemas/LoginResponse' } } } }
-        '429': { description: Rate limit exceeded }
-        '423': { description: Account locked }
-
-  /auth/refresh:
-    post:
-      summary: Renovar access token
-      responses:
-        '200': { description: Token renovado }
-
-  /auth/logout:
-    post:
-      summary: Logout y revocación de sesión
-      responses:
-        '200': { description: Sesión revocada }
-
-  /auth/me:
-    get:
-      summary: Perfil del usuario actual
-      responses:
-        '200': { description: Usuario autenticado }
-
-  /users:
-    get:
-      summary: Listar usuarios
-      parameters:
-        - in: query, name: page, schema: { type: integer }
-        - in: query, name: limit, schema: { type: integer }
-      responses: { '200': { description: Lista paginada de usuarios } }
-    post:
-      summary: Crear usuario
-      responses: { '201': { description: Usuario creado } }
-
-  /users/{id}:
-    get:
-      summary: Ver usuario
-      responses: { '200': { description: Usuario } }
-    put:
-      summary: Actualizar usuario
-      responses: { '200': { description: Usuario actualizado } }
-
-  /roles:
-    get:
-      summary: Listar roles
-      responses: { '200': { description: Lista de roles } }
-    post:
-      summary: Crear rol
-      responses: { '201': { description: Rol creado } }
-
-  /health:
-    get:
-      summary: Health check
-      description: Verifica disponibilidad del servicio
-      responses:
-        '200':
-          description: Servicio saludable
+        "200":
+          description: OK — envoltura {success, data}
           content:
             application/json:
-              example: { status: "ok", service: "backend-users" }
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /auth/refresh:
+    post:
+      summary: Rota el refresh token y emite nuevos pares de tokens.
+      operationId: post_auth_refresh
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "201":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /auth/logout:
+    post:
+      summary: Revoca el refresh token proporcionado en BD.
+      operationId: post_auth_logout
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "201":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /auth/perfil:
+    get:
+      summary: Devuelve el perfil del usuario autenticado (claims del JWT).
+      operationId: get_auth_perfil
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /user:
+    get:
+      summary: Obtiene el listado del recurso con paginación y filtros.
+      operationId: get_user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+    post:
+      summary: Crea usuario (alta exclusiva vía admin; no existe auto-registro público).
+      operationId: post_user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "201":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /user/{id}:
+    get:
+      summary: Obtiene el listado del recurso con paginación y filtros.
+      operationId: get_user_id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+    put:
+      summary: Actualiza un registro existente por ID.
+      operationId: put_user_id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+    delete:
+      summary: Elimina un registro por ID.
+      operationId: delete_user_id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /roles:
+    get:
+      summary: Obtiene el listado del recurso con paginación y filtros.
+      operationId: get_roles
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+    post:
+      summary: Crea un nuevo registro del recurso.
+      operationId: post_roles
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "201":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /roles/{id}:
+    get:
+      summary: Obtiene el listado del recurso con paginación y filtros.
+      operationId: get_roles_id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+    put:
+      summary: Actualiza un registro existente por ID.
+      operationId: put_roles_id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+    delete:
+      summary: Elimina un registro por ID.
+      operationId: delete_roles_id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /permisos:
+    get:
+      summary: Obtiene el listado del recurso con paginación y filtros.
+      operationId: get_permisos
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+    post:
+      summary: Crea un nuevo registro del recurso.
+      operationId: post_permisos
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "201":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /permisos/{id}:
+    get:
+      summary: Obtiene el listado del recurso con paginación y filtros.
+      operationId: get_permisos_id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+    put:
+      summary: Actualiza un registro existente por ID.
+      operationId: put_permisos_id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+    delete:
+      summary: Elimina un registro por ID.
+      operationId: delete_permisos_id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /user-rol:
+    get:
+      summary: Obtiene el listado del recurso con paginación y filtros.
+      operationId: get_user-rol
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+    post:
+      summary: Crea un nuevo registro del recurso.
+      operationId: post_user-rol
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "201":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /user-rol/{id_usuario}/{id_rol}:
+    delete:
+      summary: Elimina un registro por ID.
+      operationId: delete_user-rol_id_usuario_id_rol
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_usuario
+          in: path
+          required: true
+          schema: {type: string}
+        - name: id_rol
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /roles-permisos:
+    get:
+      summary: Obtiene el listado del recurso con paginación y filtros.
+      operationId: get_roles-permisos
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+    post:
+      summary: Crea un nuevo registro del recurso.
+      operationId: post_roles-permisos
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        "201":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+  /roles-permisos/{id_rol}/{id_permiso}:
+    get:
+      summary: Obtiene el listado del recurso con paginación y filtros.
+      operationId: get_roles-permisos_id_rol_id_permiso
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_rol
+          in: path
+          required: true
+          schema: {type: string}
+        - name: id_permiso
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+    delete:
+      summary: Elimina un registro por ID.
+      operationId: delete_roles-permisos_id_rol_id_permiso
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_rol
+          in: path
+          required: true
+          schema: {type: string}
+        - name: id_permiso
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: OK — envoltura {success, data}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Joi fallida
+        "401":
+          description: No autenticado
+
+  # ============================================================
+  # PLANIFICADO (no implementado aún — ver TASKLIST.md Fase Users)
+  # ============================================================
+  # PATCH /api/user/{id}/password : cambio de contraseña self-service
+  # POST  /api/auth/forgot-password / reset-password : recuperación
+  # PATCH /api/user/{id}/bloqueo  : bloqueo/desbloqueo de cuenta
+

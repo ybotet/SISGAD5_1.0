@@ -1,35 +1,58 @@
 # Modelo de Dominio - SISGAD5
 
-> **Versión:** 1.0  
-> **Fecha:** 2026-09-25  
-> **Total:** 28 clases en 5 contextos delimitados  
-> **Fuente:** [SISGAD5_doc/docs/03-07](https://github.com/ybotet/SISGAD5_doc)
+> **Versión:** 2.0
+> **Fecha:** 2026-10-31
+> **Total:** 28 clases + modelos ML en 7 contextos delimitados (4 implementados, 2 planificados, 1 shared kernel)
+> **Fuente:** [SISGAD5_doc/docs/03-07](https://github.com/ybotet/SISGAD5_doc), actualizado según código real del monorepo
 
 ---
 
 ## 1. Contextos Delimitados (Bounded Contexts)
 
+### 1.1 Mapa de contextos (vista funcional — alineada con el análisis original)
+
+| # | Contexto Delimitado | Responsabilidad | Agregados / Entidades principales | Servicio técnico | Estado |
+|---|---------------------|-----------------|-----------------------------------|------------------|--------|
+| 1 | Autenticación | Login, JWT, sesiones | Usuario, Sesión, Rol, Permiso | `backend-users` (Node.js) | ✅ Implementado |
+| 2 | Gestión de usuarios y roles | Datos maestros de usuarios, RBAC | Usuario, Rol, Permiso | `backend-users` (Node.js) | ✅ Implementado |
+| 3 | Quejas y trabajos (Mesa de Parte) | Ciclo completo de la queja: registro → prueba → trabajo → cierre | Queja, Prueba, Trabajo, Teléfono, Línea, Pizarra, Puerto | `backend-mp` (Node.js) | ✅ Implementado |
+| 4 | Gestión de materiales | Control transaccional de stock, asignaciones y consumos | Material, Asignación(+Items), Consumo(+Items), Categoría, UnidadMedida | `backend-materiales-go` (Go) | ✅ Implementado |
+| 5 | Predicción y analítica (IA) | Modelado predictivo MLOps: demanda, tiempos, anomalías, prioridad, fallos | Modelos ML (5), Predicción, Métricas de modelo | `prediction-service` (Python + FastAPI + scikit-learn) | ✅ Implementado (read-only, sin BD propia aún) |
+| 6 | Seguridad e infraestructura | Gateway, observabilidad, backups, mantenimiento | Sistema de monitoreo, Registro de auditoría | `api-gateway` + Loki/Grafana/Prometheus + scripts | 🟡 Parcial (sin gestión de backups como dominio) |
+| 7 | Nomencladores y auditoría | Información de referencia (catálogos) y trazabilidad de cambios | Nomenclador (Clave, TipoQueja, Servicio, Ubicación…), Auditoría | Distribuido en `backend-mp` / `backend-users` | 🟡 Sin contexto propio dedicado |
+| 8 | Integración SAP ERP | Adaptador de exportación compatible con SAP | — (capa de adaptación) | Planificado (`RF-MAT-27`) | 🔵 Planificado |
+| 9 | Integración GLPI | Adaptador REST/webhook para tickets externos | — (capa de adaptación) | Planificado (no hay requisito RF asignado aún) | 🔵 Planificado |
+
+> **Nota metodológica:** los contextos 8 y 9 no son Bounded Contexts de dominio sino **capas de adaptación (Anti-Corruption Layer)** hacia sistemas externos; se listan aquí por coherencia con el mapa funcional original (8 contextos + Shared Kernel).
+
+### 1.2 Diagrama de contextos
+
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        SISGAD5                                  │
-├─────────────┬─────────────┬─────────────┬─────────────┬────────┤
-│   Auth      │    Users    │     MP      │  Materials  │ Shared │
-│  Context    │  Context    │  Context    │  Context    │ Kernel │
-├─────────────┼─────────────┼─────────────┼─────────────┼────────┤
-│ User        │ User        │ Telefono    │ Material    │ Value  │
-│ Sesion      │ Rol         │ Linea       │ Categoria   │ Objects│
-│ Rol         │ Permiso     │ Pizarra     │ UnidadMedida│        │
-│ Permiso     │             │ Puerto      │ Asignacion  │        │
-│             │             │ Queja       │ AsignacionIt│        │
-│             │             │ Prueba      │ Consumo     │        │
-│             │             │ Trabajo     │ ConsumoItem │        │
-│             │             │ Clave       │             │        │
-│             │             │ TipoQueja   │             │        │
-└─────────────┴─────────────┴─────────────┴─────────────┴────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                SISGAD5                                   │
+├──────────────┬──────────────┬──────────────┬──────────────┬─────────────┤
+│   Auth       │    Users     │      MP      │  Materials   │ Prediction  │
+│  Context     │   Context    │   Context    │   Context    │  Context    │
+│  (✅)        │   (✅)       │   (✅)       │   (✅ Go)    │  (🐍 ✅)    │
+├──────────────┼──────────────┼──────────────┼──────────────┼─────────────┤
+│ User         │ User         │ Telefono     │ Material     │ ModeloML    │
+│ Sesion       │ Rol          │ Linea        │ Categoria    │ Prediccion  │
+│ Rol          │ Permiso      │ Pizarra      │ UnidadMedida │ Metricas    │
+│ Permiso      │              │ Puerto       │ Asignacion   │ (Demanda,   │
+│              │              │ Queja        │ AsignacionIt │  Tiempo,    │
+│              │              │ Prueba       │ Consumo      │  Anomalias, │
+│              │              │ Trabajo      │ ConsumoItem  │  Prioridad, │
+│              │              │ Clave        │              │  Fallos)    │
+│              │              │ TipoQueja    │              │             │
+├──────────────┴──────────────┴──────────────┴──────────────┴─────────────┤
+│ Infra & Seguridad (🟡): Gateway · Observabilidad · Backups · Auditoria  │
+│ ACL externas (🔵): Adaptador SAP ERP · Adaptador GLPI                   │
+├──────────────────────────────────────────────────────────────────────────┤
+│                     Shared Kernel (Value Objects)                        │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
-
 ## 2. Contexto Auth (Autenticación)
 
 ### User (Agregado Raíz)
@@ -332,7 +355,40 @@
 
 ---
 
-## 6. Shared Kernel (Value Objects Compartidos)
+## 6. Contexto Prediction (Analítica Predictiva / IA)
+
+> Servicio: `prediction-service` (Python 3.11 + FastAPI + scikit-learn, puerto 5005). Read-only respecto a los datos de MP/Materials; persistirá en `bd_predictions`.
+
+### Modelos ML cargados (artefactos `.joblib`, 5 modelos)
+
+| Modelo | Endpoint REST | Entradas principales | Salida |
+|--------|---------------|----------------------|--------|
+| Demanda de materiales | `GET /api/v1/demanda-materiales` | categoria, periodo, zona | Predicción de demanda + intervalo |
+| Tiempo de resolución | `GET /api/v1/tiempo-resolucion/{queja_id}` | Features de la queja (MP) | Horas estimadas de resolución |
+| Anomalías de consumo | `GET /api/v1/anomalias-consumo` | Serie de consumos (Materials) | Ítems anómalos + score |
+| Prioridad de queja | `GET /api/v1/prioridad-queja/{queja_id}` | Features de la queja | Prioridad sugerida (1-4) + confianza |
+| Fallos de infraestructura | `GET /api/v1/fallos-infraestructura` | Pizarra/puerto, historial | Probabilidad de fallo + riesgo |
+
+### Value Objects / Schemas (Pydantic)
+
+| Objeto | Descripción |
+|--------|-------------|
+| `PredictionResult` | valor, confianza, modelo_version, timestamp |
+| `ModelMetrics` | MAE, RMSE, Accuracy, Precision, Recall por modelo |
+| `ModelRegistryEntry` | nombre, ruta .joblib, versión, fecha de entrenamiento |
+
+**Relaciones:**
+```
+Queja (MP) ──(lee vía API)──> TiempoResolucion, PrioridadQueja
+Consumo (Materials) ──(lee vía API)──> AnomaliasConsumo
+Material/Categoria ──> DemandaMateriales
+Pizarra/Puerto (MP) ──> FallosInfraestructura
+ModeloML 1 ── * Prediccion ; ModeloML ── 1 ModelMetrics
+```
+
+---
+
+## 7. Shared Kernel (Value Objects Compartidos)
 
 | Value Object | Atributos | Usado en |
 |--------------|-----------|----------|
@@ -348,7 +404,7 @@
 
 ---
 
-## 7. Relaciones Principales
+## 8. Relaciones Principales
 
 ```
 User 1 ── * Sesion
@@ -394,13 +450,13 @@ ConsumoItem * ── 1 Material
 
 ---
 
-## 8. Diagramas de Clases
+## 9. Diagramas de Clases
 
 Ver diagrama fuente en: [`docs/diagrams/class_diagrams/`](../diagrams/class_diagrams/)
 
 ---
 
-## 9. Referencias
+## 10. Referencias
 
 - [Casos de Uso](03_use_cases.es.md)
 - [Glosario](04_glossary.es.md)

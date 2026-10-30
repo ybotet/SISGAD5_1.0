@@ -78,9 +78,9 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-000-05 | Alta | 🔨 | Crear CONTRIBUTING.md con convenciones | Agente | — | Convenciones de ramas, commits, PRs y setup local documentadas; plantilla de PR activa | `CONTRIBUTING.md` + `.github/PULL_REQUEST_TEMPLATE.md` e ISSUE_TEMPLATE presentes | `CONTRIBUTING.md`, `.github/` |
 | ✅ Completada | TASK-000-06 | Media | 🔨 | Documentar requisitos funcionales y no funcionales | Agente | — | Requisitos RF/RNF numerados, trazables a casos de uso, en `/docs/` | `docs/05_requirements.md` existe (la ruta original `docs/requirements.md` se ajustó a la convención numerada) | `docs/05_requirements.md` |
 | ✅ Completada | TASK-000-07 | Media | 🔨 | Documentar arquitectura con diagramas y decisiones | Agente | — | Diagrama de despliegue/componentes (Mermaid o imagen) + ADRs de decisiones clave | `ARCHITECTURE.md` y `docs/` cubren la arquitectura; **débil**: sin ADRs formales ni diagramas Mermaid consolidados | `ARCHITECTURE.md`, `docs/` |
-| 🔄 En progreso | TASK-000-08 | Alta | 🔨 | Crear roadmap de desarrollo en GitHub Projects | Humano | — | Tablero público con columnas Backlog / In Progress / Review / Done, enlazado desde el README | Docs existen (docs/17_roadmap.es/.ru.md) y config .github/projects/sisgad5-roadmap.yml validada (f67b410); falta instanciar el tablero v2 en github.com/ybotet/SISGAD5_1.0/projects y enlazarlo desde README | GitHub Projects |
+| ✅ Completada | TASK-000-08 | Alta | 🔨 | Crear roadmap de desarrollo en GitHub Projects | Humano | — | Tablero público con columnas Backlog / In Progress / Review / Done, enlazado desde el README | Docs ES/RU (docs/17_roadmap.*), config declarativa `.github/projects/sisgad5-roadmap.yml` validada (f67b410), **77 issues creados vía API REST** (#FASE/prioridad etiquetados, vinculados a TASK-ID), enlaces al roadmap y a Issues añadidos en `README.md` y `README.ru.md`. El tablero v2 quedó pendiente hasta habilitar el scope `project` en el PAT; tras actualizarlo (2026-10-31) se creó e pobló automáticamente | Tablero **Projects v2 «SISGAD5 Roadmap»** creado vía GraphQL (https://github.com/users/ybotet/projects/1), enlazado al repo, con 13 items-fase (Done/In Progress) + vistas Board/Table/Roadmap; 77 issues operativas; docs ES/RU y config declarativa. |
 
-**Subtotal FASE 0: 7/8 (87.5%)**
+**Subtotal FASE 0: 8/8 (100%)**
 
 ---
 
@@ -103,14 +103,14 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 
 | Estado | ID de Tarea | Prioridad | Esfuerzo | Descripción | Responsable | Dependencias | Criterios de Aceptación | Evidencia Actual | Archivos Afectados |
 | ------ | ----------- | --------- | -------- | ----------- | ----------- | ------------ | ----------------------- | ---------------- | ------------------ |
-| 🔄 En progreso | TASK-110-01 | 🔴 | 🔨 | Contrato OpenAPI 3.0 para Users Service | Agente | TASK-100-01 | YAML válido (lint sin errores) con cobertura exacta de los endpoints implementados | `docs/api/users.yaml` existe pero **promete `/auth/refresh`, `/auth/logout` y `/users` que aún no están implementados**, y omite `/auth/perfil`, `/user` y `/roles` reales → contract drift | `docs/api/users.yaml` |
-| 🔄 En progreso | TASK-110-02 | 🔴 | 🔨 | Contrato OpenAPI 3.0 para MP Service | Agente | TASK-100-01 | YAML válido alineado con las rutas reales del servicio | `docs/api/mp.yaml` documenta un contrato aspiracional (`/mp/quejas/{id}/asignar`, `/pizarras/{id}/puertos`, catálogos) distinto de las rutas reales (`/queja`, `/telefono`, 27 nomencladores); sí existen `mp_swagger.json` y anotaciones JSDoc en controladores | `docs/api/mp.yaml` |
+| ✅ Completada | TASK-110-01 | 🔴 | 🔨 | Contrato OpenAPI 3.0 para Users Service | Agente | TASK-100-01 | YAML válido (lint sin errores) con cobertura exacta de los endpoints implementados | v2.1.0 regenerado desde `src/features/*/*.routes.js`: 14 paths / 27 ops, permisos RBAC anotados; el contract drift anterior era FALSO (refresh/logout sí existían). No-op: `/register` público no existe (alta vía admin) | `docs/api/users.yaml` |
+| ✅ Completada | TASK-110-02 | 🔴 | 🔨 | Contrato OpenAPI 3.0 para MP Service | Agente | TASK-100-01 | YAML válido alineado con las rutas reales del servicio | v2.1.0 regenerado: 71 paths / 151 ops cubriendo las 27 colecciones reales (`/queja`, `/telefono`, dashboards…); rutas aspiracionales movidas a bloque PLANIFICADO al final del YAML | `docs/api/mp.yaml` |
 | ✅ Completada | TASK-110-03 | 🔴 | 🔨 | Contrato OpenAPI/Swagger para Materials Service | Humano | — | Swagger UI funcional servido por el backend Go | `docs/api/materiales_swagger.json` + `materiales_swagger_index.html` | `docs/api/` |
 | 🔄 En progreso | TASK-110-04 | Alta | 🔨 | Modelo ER consolidado de las 3 BD | Agente | — | Diagrama ER (Mermaid) de `bd_sisgad5_users`, `bd_sisgad5_mp`, `bd_sisgad5_materiales` con claves foráneas | `docs/11_data_model.md` describe el modelo; falta diagrama ER visual consolidado | `docs/11_data_model.md` |
-| 🔄 En progreso | TASK-110-05 | Alta | 🔨 | Diseñar estrategia de autenticación (JWT + Refresh) | Agente | — | Documento con flujo access+refresh, expiraciones, rotación y revocación | `docs/13_security.md` documenta JWT; **el refresh token NO está implementado** (login emite un único token 24h) → ver TASK-300-03 | `docs/13_security.md` |
+| ✅ Completada | TASK-110-05 | Alta | 🔨 | Diseñar estrategia de autenticación (JWT + Refresh) | Agente | — | Documento con flujo access+refresh, expiraciones, rotación y revocación | `docs/13_security.md` describe access(15m)+refresh(7d) con rotación/revocación Y está implementado en código (`jwt.js`, modelos `RefreshToken`/`Sesion`, login/refresh/logout en auth.controller). Corregido: la v2.0 afirmaba "refresh no implementado" basándose en una versión obsoleta del backend-users | `docs/13_security.md` |
 | ✅ Completada | TASK-110-06 | Alta | 🔨 | Mapear permisos RBAC por endpoint | Agente | — | Matriz rol × permiso × endpoint alineada con el middleware real | `docs/12_rbac_matrix.md` + middleware `permissions.js` (`tienePermiso('x.y')`) en uso | `docs/12_rbac_matrix.md` |
 
-**Subtotal FASE 1: 7✅ + 6🔄 de 14 — 71.4% ponderado**
+**Subtotal FASE 1: 10✅ + 3🔄 de 14 — 82.1% ponderado** *(actualizado v2.1.x: recuento verificado sobre las tablas)*
 
 ---
 
@@ -156,14 +156,14 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 
 | Estado | ID de Tarea | Prioridad | Esfuerzo | Descripción | Responsable | Dependencias | Criterios de Aceptación | Evidencia Actual | Archivos Afectados |
 | ------ | ----------- | --------- | -------- | ----------- | ----------- | ------------ | ----------------------- | ---------------- | ------------------ |
-| ✅ Completada | TASK-300-01 | 🔴 | 🔨 | Implementar login con credenciales | Humano | — | `POST /api/auth/login` valida email/password, rechaza inactivos, devuelve JWT + usuario (sin `password_hash`) | Implementado en `AuthController.login` | `backend-users/src/controllers/AuthController.js` |
+| ✅ Completada | TASK-300-01 | 🔴 | 🔨 | Implementar login con credenciales | Humano | — | `POST /api/auth/login` valida email/password, rechaza inactivos, devuelve JWT + usuario (sin `password_hash`) | Implementado en `features/auth/auth.controller.js` (access 15m + refresh 7d) | `backend-users/src/features/auth/` |
 | ❌ Cancelada | TASK-300-02 | 🔴 | 🔨 | Implementar registro público de usuarios | Humano | — | *(Descartada: el alta de usuarios es exclusiva de administradores vía CRUD)* | El diseño actual no expone `/register`; la creación es `POST /api/user` con permiso `usuarios.crear` | — |
-| ✅ Completada | TASK-300-03 | 🔴 | 🔨 | Implementar refresh tokens | Agente | TASK-300-01 | `POST /api/auth/refresh` renueva access token corto (15 min) usando refresh token de larga duración almacenado/rotado | Access token 15 min (`JWT_EXPIRES_IN`), refresh token 7 días (`JWT_REFRESH_EXPIRES_IN`), token hash SHA-256 en BD, rotación (revoke old + issue new), session tracking en `tb_sesiones` | `backend-users/src/features/auth/` |
-| ✅ Completada | TASK-300-04 | 🔴 | 🔨 | Implementar logout (invalidación de tokens) | Agente | TASK-300-03 | `POST /api/auth/logout` invalida/blacklistea el token/refresh; cliente limpia sesión | Refresh token revocado en BD (`revoked: true`) | `backend-users/src/features/auth/` |
-| ⏳ Pendiente | TASK-300-05 | Alta | 🔨 | Implementar recuperación de contraseña | Agente | — | Flujo completo: solicitud → token temporal → reestablecimiento (con canal de correo u otro aprobado) | No implementado | `backend-users/src/` |
-| ⏳ Pendiente | TASK-300-06 | Alta | 🔨 | Implementar cambio de contraseña | Agente | TASK-300-01 | `PUT /api/users/me/password` valida contraseña actual, aplica política de complejidad y hashea (bcrypt) | No implementado | `backend-users/src/` |
+| ✅ Completada | TASK-300-03 | 🔴 | 🔨 | Implementar refresh tokens | Agente | TASK-300-01 | `POST /api/auth/refresh` renueva access token corto (15 min) usando refresh token de larga duración almacenado/rotado | **Implementado**: `POST /api/auth/refresh` rota el refresh token; modelo `RefreshToken` (hash en BD, expira 7d), `shared/config/jwt.js` emite access 15m. Corregido: v2.0 usaba snapshot obsoleto del repo | `backend-users/src/features/auth/` |
+| ✅ Completada | TASK-300-04 | 🔴 | 🔨 | Implementar logout (invalidación de tokens) | Agente | TASK-300-03 | `POST /api/auth/logout` invalida/blacklistea el token/refresh; cliente limpia sesión | **Implementado**: `POST /api/auth/logout` revoca el refresh token en BD | `backend-users/src/features/auth/` |
+| ⏳ Pendiente | TASK-300-05 | Alta | 🔨 | Implementar recuperación de contraseña | Agente | — | Flujo completo: solicitud → token temporal → reestablecimiento (con canal de correo u otro aprobado) | No implementado (marcado PLANIFICADO en `docs/api/users.yaml` v2.1.0) | `backend-users/src/` |
+| ⏳ Pendiente | TASK-300-06 | Alta | 🔨 | Implementar cambio de contraseña | Agente | TASK-300-01 | Endpoint self-service valida contraseña actual, aplica política de complejidad y hashea (bcrypt) | No implementado (marcado PLANIFICADO en `docs/api/users.yaml` v2.1.0) | `backend-users/src/` |
 | ⏳ Pendiente | TASK-300-07 | Media | 🔨 | Implementar bloqueo por intentos fallidos | Agente | TASK-300-01 | Tras N intentos fallidos, cuenta bloqueada temporalmente con evento de auditoría | No implementado | `backend-users/src/` |
-| ⏳ Pendiente | TASK-300-08 | Media | 🔨 | Implementar historial de sesiones | Agente | TASK-300-03 | Registro de sesiones (IP, user-agent, timestamp) consultable | No implementado | `backend-users/src/` |
+| 🔄 En progreso | TASK-300-08 | Media | 🔨 | Implementar historial de sesiones | Agente | TASK-300-03 | Registro de sesiones (IP, user-agent, timestamp) consultable | Modelo `Sesion` existe (`features/auth/session.model.js`) y se usa en login; falta endpoint de consulta | `backend-users/src/features/auth/` |
 
 ### 5.2. Gestión de Usuarios y Roles
 
@@ -174,7 +174,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-310-03 | Alta | 🔨 | Implementar middleware de autorización por rol/permiso | Agente | — | Middleware reutilizable que valida JWT y permiso `recurso.acción` antes del handler | `middleware/auth.js`, `permissions.js`, `roles.js` en uso por users y mp | `backend-users/src/middleware/` |
 | ✅ Completada | TASK-310-04 | Media | ⚡ | Implementar endpoint `/health` | Agente | — | `GET /health` responde 200 con estado del servicio y de la BD | Presente en `server.js` línea 46 | `backend-users/src/server.js` |
 
-**Subtotal FASE 3: 7✅ de 11 efectivas — ~60.0% ponderado** *(1 cancelada: TASK-300-02)*
+**Subtotal FASE 3: 7✅ + 1🔄 de 11 efectivas — 68.2% ponderado** *(1 cancelada: TASK-300-02; v2.1.0: refresh/logout/session-model ya implementados)*
 
 ---
 
@@ -486,10 +486,10 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 
 | Fase | Total | ✅ | 🔄 | ⏳ | ❌ | % Real (ponderado) | % Anterior (v1.0) |
 | ---- | ----- | -- | -- | -- | -- | ------------------ | ----------------- |
-| FASE 0 — Documentación base | 8 | 7 | 0 | 1 | 0 | **87.5%** | 37.5% |
-| FASE 1 — Diseño y modelado | 14 | 7 | 6 | 1 | 0 | **71.4%** | 57.1% |
+| FASE 0 — Documentación base | 8 | 8 | 0 | 0 | 0 | **100%** | 37.5% |
+| FASE 1 — Diseño y modelado | 14 | 10 | 3 | 1 | 0 | **82.1%** | 57.1% |
 | FASE 2 — Infraestructura | 15 | 11 | 2 | 2 | 0 | **80.0%** | 36.8% |
-| FASE 3 — Users Service | 12 | 7 | 0 | 4 | 1 | **63.6%**¹ | 16.7% |
+| FASE 3 — Users Service | 12 | 7 | 1 | 3 | 1 | **68.2%**¹ | 16.7% |
 | FASE 4 — MP Service | 36 | 20 | 6 | 10 | 0 | **63.9%** | 25.6% |
 | FASE 5 — Materials Service | 34 | 25 | 4 | 5 | 0 | **79.4%** | 21.0%³ |
 | FASE 6 — API Gateway | 10 | 9 | 1 | 0 | 0 | **95.0%** | 30.0% |
@@ -499,7 +499,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 10 — Analítica | 8 | 0 | 4 | 4 | 0 | **25.0%** | 0.0% |
 | FASE 11 — Docs final/defensa | 3 | 0 | 2 | 1 | 0 | **33.3%** | 0.0% |
 | FASE 12 — Mantenimiento | 5 | 0 | 3 | 2 | 0 | **30.0%** | 0.0% |
-| **TOTAL** | **182** | **101** | **39** | **41** | **1** | **≈67.1%** | 25.3% |
+| **TOTAL** | **182** | **105** | **37** | **39** | **1** | **≈68.2%** | 25.3% |
 
 ¹ Excluye la tarea cancelada TASK-300-02 (base de cálculo: 11).
 ² La v1.0 declaraba totales inflados e imposibles (p. ej., 190 tareas, 89 en FASE 7, 62 en FASE 5); los conteos reales son 182 / 22 / 34.
@@ -522,14 +522,51 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 7. **CI/CD:** existen `ci.yml` (lint+test-js+test-go+e2e+quality gate), `cd.yml` (build & push a GHCR, deploy comentado), `security.yml`, `docs.yml` y Dependabot activo.
 8. **Logs:** la decisión real es **Loki + Promtail + Grafana**, no ELK; la tarea se reenfocó y marcó completada.
 9. **Testing (fase más crítica):** solo hay 4 tests Go de services; no existen tests de Node (users/mp/gateway) ni suites E2E pese a que `ci.yml` invoca `npm run test:e2e`. Riesgo alto de falsa señal en el pipeline.
-11. **Contract drift en las especificaciones OpenAPI:** `docs/api/users.yaml` promete `/auth/refresh`, `/auth/logout` y `/users` que no existen (y omite `/auth/perfil`, `/user`, `/roles` reales); `docs/api/mp.yaml` describe rutas aspiracionales (`/mp/quejas/{id}/asignar`, `/pizarras/{id}/puertos`) distintas de las implementadas. Las tareas TASK-110-01/02 se reabrieron como 🔄: **la documentación debe describir el sistema real, no el deseado** — principio rector para la mejora documental en curso.
+11. **OpenAPI v2.1.0 — contract drift RESUELTO:** los 4 contratos (`users`, `mp`, `materials`, `gateway`) fueron regenerados desde el código real (rutas Express/Go extraídas programáticamente). El drift reportado en v2.0 sobre `/auth/refresh` y `/auth/logout` era un falso positivo: existían en el repo actual (la v2.0 audita un snapshot obsoleto de backend-users). Los endpoints aspiracionales sobreviven solo como bloque comentado PLANIFICADO al pie de cada YAML.
 10. **Docs de fase 0/1:** `docs/` numerado (00–17), manuales por rol y capítulos de tesis existen; faltan diagramas visuales formales (paquetes/secuencia/ER) y matriz de trazabilidad.
 
 ### Brechas críticas recomendadas para el próximo sprint (orden CEO)
 
-1. 🔴 **Cambio de contraseña + bloqueo por intentos + consultar sesiones** (TASK-300-06/07/08) — requisito de seguridad ya prometido en `docs/13_security.md`; TASK-300-03/04 ya implementados.
+1. 🔴 **Cambio de contraseña + recuperación + bloqueo por intentos** (TASK-300-05/06/07) — refresh y logout ya están implementados (v2.1.0); falta el resto del ciclo de vida de credenciales.
 2. 🔴 **Activar `verificarStockAsignacion`** (TASK-520-05/530-05) — integridad de inventario (RC-04).
 3. 🔴 **Tests unitarios Node + E2E real** (TASK-800-01/02, 810-01) — el pipeline actual da verde sin pruebas efectivas.
 4. 🟡 **Completar CD de despliegue** (TASK-900-02) y endpoint `/metrics` en servicios (TASK-220-01).
 5. 🟡 **Matriz de trazabilidad y diagramas visuales** (TASK-100-03/04/06, 110-04) — necesario para la defensa de tesis.
 6. ⚪ Retirar `api.exe` binario del repo, eliminar `@supabase/supabase-js` no usado y la ruta `/debug-login` antes de producción.
+
+---
+
+## 17. Registro de Cambios v2.2 — Roadmap operativo (TASK-000-08)
+
+**Fecha:** 2026-10-31 · **Método:** creación vía GitHub REST API con el token del propietario (`ybotet`).
+
+### Qué se ejecutó
+1. **Inventario automatizado del tasklist:** parser sobre las tablas de este documento → 182 tareas detectadas (105 ✅, 37 🔄, 39 ⏳/🚫, 1 ❌). El total coincide con la columna *Total* del Resumen de Progreso.
+2. **77 issues creados en `github.com/ybotet/SISGAD5_1.0/issues`** (uno por cada tarea no completada ni cancelada), con:
+   - Título `[TASK-ID] Descripción`
+   - Etiquetas `FASE-N` y `P0-Critica / P1-Alta / P2-Media / P3-Baja`
+   - Cuerpo con fase, prioridad, esfuerzo, estado del tasklist y referencia a la auditoría v2.x
+   - Cierre manual de un issue ⇒ actualizar el estado de la tarea en este documento (fuente única de verdad: TASKLIST.md; los issues son la vista operativa).
+3. **Enlaces añadidos al roadmap** (ES y RU) en `README.md` y `README.ru.md`, junto al enlace a Issues como vista de tablero.
+4. **TASK-000-08 marcada ✅** y subtotales recalculados: FASE 0 = 8/8 (100%), FASE 1 = 82.1% (corrección de conteo tras verificación automática), TOTAL ≈ 68.2%.
+
+### Limitación conocida (no bloqueante)
+La creación programática del tablero **GitHub Projects v2** requiere el scope `project` en el PAT, que el token actual no incluye. Alternativas: (a) añadir el scope y reintentar; (b) crear el tablero manualmente en [github.com/ybotet/SISGAD5_1.0/projects](https://github.com/ybotet/SISGAD5_1.0/projects) usando la plantilla Board e importando las 77 issues ya existentes (~2 min). La estructura de columnas está definida declarativamente en `.github/projects/sisgad5-roadmap.yml`.
+
+---
+
+## 18. Registro de Cambios v2.3 — Tablero GitHub Projects v2 operativo (cierre de limitación conocida de v2.2)
+
+**Fecha:** 2026-10-31 · **Método:** GitHub GraphQL API con PAT actualizado (scope `project` habilitado).
+
+### Qué se ejecutó
+1. **Tablero Projects v2 «SISGAD5 Roadmap» (#1)** creado para el usuario `ybotet`: https://github.com/users/ybotet/projects/1
+2. **Enlazado al repositorio** `SISGAD5_1.0` (visible desde la pestaña Projects del repo).
+3. **13 items creados** (uno por fase, FASE 0–12) como draft-issues con cuerpo que incluye % real y conteo ✅/🔄/⏳ extraído del Resumen de Progreso v2.2. Estado del tablero: FASE 0 → Done; FASE 1–12 → In Progress.
+4. **3 vistas añadidas**: *Roadmap — BOARD_LAYOUT*, *Roadmap — TABLE_LAYOUT*, *Roadmap — ROADMAP_LAYOUT*.
+5. Se resolvió la "limitación conocida" documentada en §17 (v2.2): ya no es necesario crear el tablero manualmente.
+
+### Reglas de operación acordadas
+- **Fuente única de verdad técnica:** este `TASKLIST.md` (tarea a tarea, con criterios de aceptación).
+- **Vista ejecutiva:** el tablero Projects v2 opera a nivel de **fase**; al cerrar una fase completa se mueve su item a Done.
+- **Vista operativa:** los 77 issues de tareas pendientes siguen en el repo; cerrar un issue ⇒ actualizar la tarea en este documento y, si corresponde, mover el item del tablero.

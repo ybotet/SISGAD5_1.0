@@ -1,35 +1,58 @@
 # Модель домена - SISGAD5
 
-> **Версия:** 1.0
-> **Дата:** 2026-09-25
-> **Всего:** 28 классов в 5 ограниченных контекстах
-> **Источник:** [SISGAD5_doc/docs/03-07](https://github.com/ybotet/SISGAD5_doc)
+> **Версия:** 2.0
+> **Дата:** 2026-10-31
+> **Всего:** 28 классов + модели ML в 7 ограниченных контекстах (4 реализовано, 2 запланированы, 1 shared kernel)
+> **Источник:** [SISGAD5_doc/docs/03-07](https://github.com/ybotet/SISGAD5_doc), обновлено по фактическому коду монорепо
 
 ---
 
 ## 1. Ограниченные контексты (Bounded Contexts)
 
+### 1.1 Карта контекстов (функциональный взгляд — согласован с исходным анализом)
+
+| # | Ограниченный контекст | Ответственность | Агрегаты / основные сущности | Технический сервис | Статус |
+|---|----------------------|-----------------|------------------------------|--------------------|--------|
+| 1 | Аутентификация | Login, JWT, сессии | Пользователь, Сессия, Роль, Разрешение | `backend-users` (Node.js) | ✅ Реализовано |
+| 2 | Управление пользователями и ролями | Мастер-данные пользователей, RBAC | Пользователь, Роль, Разрешение | `backend-users` (Node.js) | ✅ Реализовано |
+| 3 | Жалобы и работы (Mesa de Parte) | Полный цикл жалобы: регистрация → тест → работа → закрытие | Жалоба, Тест, Работа, Телефон, Линия, Доска, Порт | `backend-mp` (Node.js) | ✅ Реализовано |
+| 4 | Управление материалами | Транзакционный контроль запасов, назначений и списаний | Материал, Назначение(+Позиции), Списание(+Позиции), Категория, ЕдИзмерения | `backend-materiales-go` (Go) | ✅ Реализовано |
+| 5 | Предиктивная аналитика (ИИ) | MLOps-моделирование: спрос, сроки, аномалии, приоритет, отказы | Модели ML (5), Прогноз, Метрики модели | `prediction-service` (Python + FastAPI + scikit-learn) | ✅ Реализовано (read-only, без собственной БД пока) |
+| 6 | Безопасность и инфраструктура | Gateway, наблюдаемость, резервные копии, обслуживание | Система мониторинга, Журнал аудита | `api-gateway` + Loki/Grafana/Prometheus + скрипты | 🟡 Частично (бэкапы не выделены как домен) |
+| 7 | Номенклатуры и аудит | Справочная информация и трассируемость изменений | Номенклатура (Ключ, ТипЖалобы, Сервис, Расположение…), Аудит | Распределён между `backend-mp` / `backend-users` | 🟡 Без выделенного контекста |
+| 8 | Интеграция с SAP ERP | Адаптер экспорта, совместимый с SAP | — (адаптерный слой) | Запланировано (`RF-MAT-27`) | 🔵 Запланировано |
+| 9 | Интеграция с GLPI | REST/webhook адаптер для внешних тикетов | — (адаптерный слой) | Запланировано (без приписанного RF) | 🔵 Запланировано |
+
+> **Методологическая заметка:** контексты 8 и 9 — не ограниченные контексты предметной области, а **адаптерные слои (Anti-Corruption Layer)** к внешним системам; приведены здесь для согласованности с исходной функциональной картой (8 контекстов + Shared Kernel).
+
+### 1.2 Диаграмма контекстов
+
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        SISGAD5                                  │
-├─────────────┬─────────────┬─────────────┬─────────────┬────────┤
-│   Auth      │    Users    │     MP      │  Materials  │ Shared │
-│  Context    │  Context    │  Context    │  Context    │ Kernel │
-├─────────────┼─────────────┼─────────────┼─────────────┼────────┤
-│ User        │ User        │ Telefono    │ Material    │ Value  │
-│ Sesion      │ Rol         │ Linea       │ Categoria   │ Objects│
-│ Rol         │ Permiso     │ Pizarra     │ UnidadMedida│        │
-│ Permiso     │             │ Puerto      │ Asignacion  │        │
-│             │             │ Queja       │ AsignacionIt│        │
-│             │             │ Prueba      │ Consumo     │        │
-│             │             │ Trabajo     │ ConsumoItem │        │
-│             │             │ Clave       │             │        │
-│             │             │ TipoQueja   │             │        │
-└─────────────┴─────────────┴─────────────┴─────────────┴────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                SISGAD5                                   │
+├──────────────┬──────────────┬──────────────┬──────────────┬─────────────┤
+│   Auth       │    Users     │      MP      │  Materials   │ Prediction  │
+│  Context     │   Context    │   Context    │   Context    │  Context    │
+│  (✅)        │   (✅)       │   (✅)       │   (✅ Go)    │  (🐍 ✅)    │
+├──────────────┼──────────────┼──────────────┼──────────────┼─────────────┤
+│ User         │ User         │ Telefono     │ Material     │ ModeloML    │
+│ Sesion       │ Rol          │ Linea        │ Categoria    │ Prediccion  │
+│ Rol          │ Permiso      │ Pizarra      │ UnidadMedida │ Metricas    │
+│ Permiso      │              │ Puerto       │ Asignacion   │ (Demanda,   │
+│              │              │ Queja        │ AsignacionIt │  Tiempo,    │
+│              │              │ Prueba       │ Consumo      │  Anomalias, │
+│              │              │ Trabajo      │ ConsumoItem  │  Prioridad, │
+│              │              │ Clave        │              │  Fallos)    │
+│              │              │ TipoQueja    │              │             │
+├──────────────┴──────────────┴──────────────┴──────────────┴─────────────┤
+│ Infra & Seguridad (🟡): Gateway · Observabilidad · Backups · Auditoria  │
+│ ACL externas (🔵): Adaptador SAP ERP · Adaptador GLPI                   │
+├──────────────────────────────────────────────────────────────────────────┤
+│                     Shared Kernel (Value Objects)                        │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
-
 ## 2. Контекст Auth (Аутентификация)
 
 ### User (Корень агрегата)
@@ -332,7 +355,40 @@
 
 ---
 
-## 6. Shared Kernel (Разделяемые объекты-значения)
+## 6. Контекст Prediction (Предиктивная аналитика / ИИ)
+
+> Сервис: `prediction-service` (Python 3.11 + FastAPI + scikit-learn, puerto 5005). Read-only respecto a los datos de MP/Materials; будет сохранять в `bd_predictions`.
+
+### Загруженные модели ML (артефакты `.joblib`, 5 моделей)
+
+| Модель | REST-эндпоинт | Основные входы | Выход |
+|--------|---------------|----------------------|--------|
+| Demanda de materiales | `GET /api/v1/demanda-materiales` | categoria, periodo, zona | Прогноз спроса + интервал |
+| Tiempo de resolución | `GET /api/v1/tiempo-resolucion/{queja_id}` | Фичи жалобы (MP) | Оценка часов решения |
+| Anomalías de consumo | `GET /api/v1/anomalias-consumo` | Серия списаний (Materials) | Аномальные позиции + score |
+| Prioridad de queja | `GET /api/v1/prioridad-queja/{queja_id}` | Features de la queja | Предложенный приоритет (1-4) + уверенность |
+| Fallos de infraestructura | `GET /api/v1/fallos-infraestructura` | Доска/порт, история | Вероятность отказа + риск |
+
+### Value Objects / Схемы (Pydantic)
+
+| Objeto | Descripción |
+|--------|-------------|
+| `PredictionResult` | значение, уверенность, версия модели, timestamp |
+| `ModelMetrics` | MAE, RMSE, Accuracy, Precision, Recall по модели |
+| `ModelRegistryEntry` | имя, путь .joblib, версия, дата обучения |
+
+**Связи:**
+```
+Queja (MP) ──(читает через API)──> TiempoResolucion, PrioridadQueja
+Consumo (Materials) ──(читает через API)──> AnomaliasConsumo
+Material/Categoria ──> DemandaMateriales
+Pizarra/Puerto (MP) ──> FallosInfraestructura
+ModeloML 1 ── * Prediccion ; ModeloML ── 1 ModelMetrics
+```
+
+---
+
+## 7. Shared Kernel (Разделяемые объекты-значения)
 
 | Объект-значение | Атрибуты | Используется в |
 |-----------------|----------|----------------|
@@ -348,7 +404,7 @@
 
 ---
 
-## 7. Основные связи
+## 8. Основные связи
 
 ```
 User 1 ── * Sesion
@@ -394,13 +450,13 @@ ConsumoItem * ── 1 Material
 
 ---
 
-## 8. Диаграммы классов
+## 9. Диаграммы классов
 
 См. исходную диаграмму: [`docs/diagrams/class_diagrams/`](../diagrams/class_diagrams/)
 
 ---
 
-## 9. Ссылки
+## 10. Ссылки
 
 - [Варианты использования](03_use_cases.ru.md)
 - [Глоссарий](04_glossary.ru.md)
