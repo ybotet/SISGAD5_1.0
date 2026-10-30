@@ -1,28 +1,31 @@
 openapi: 3.0.3
 info:
-  title: SISGAD5 - MP Service API
-  description: |
-    API para la gestión de infraestructura (teléfonos, líneas, pizarras), quejas, pruebas y trabajos.
-    
-    **Servicio:** backend-mp (Node.js + Express + Sequelize + Zod)  
-    **Base de datos:** bd_mp (PostgreSQL)
-    
-    Ver documentación completa en [docs/03_use_cases.md](./docs/03_use_cases.md)  
-    Swagger UI: [mp_swagger.json](./mp_swagger.json)
-  version: 1.0.0
+  title: SISGAD5 - Mesa de Parte (MP) Service API
+  description: 'Contrato al dia (v2.1.0) generado desde el codigo real de backend-mp
+
+    (src/features/*/*.routes.js, montados bajo /api/mp). Refleja las 27 colecciones
+
+    implementadas (CRUD + dashboards). Las rutas de la version anterior que no existen
+
+    en el codigo fueron movidas a la seccion final PLANIFICADO (comentarios).
+
+
+    Servicio: backend-mp (Node.js + Express + Sequelize) - Puerto 5002
+
+    Base de datos: bd_sisgad5_mp (PostgreSQL)
+
+    Prefijo via gateway: /api/mp/* (JWT obligatorio, verificado tambien en gateway)'
+  version: 2.1.0
   contact:
     name: SISGAD5 Team
     url: https://github.com/ybotet/SISGAD5_1.0
-
 servers:
-  - url: http://localhost:5000/api/mp
-    description: API Gateway (local)
-  - url: https://api.sisgad5.com/api/mp
-    description: Producción
-
+- url: http://localhost:5000/api/mp
+  description: API Gateway
+- url: http://localhost:5002/api/mp
+  description: Servicio directo (desarrollo)
 security:
-  - bearerAuth: []
-
+- bearerAuth: []
 components:
   securitySchemes:
     bearerAuth:
@@ -30,182 +33,3303 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    Queja:
+    ApiResponse:
       type: object
       properties:
-        id: { type: integer }
-        num_reporte: { type: integer }
-        tipo_queja_id: { type: integer }
-        servicio_id: { type: integer }
-        prioridad: { type: integer, minimum: 1, maximum: 4 }
-        estado: { type: string, enum: [Abierta, Probada, Asignada, Pendiente, Resuelta, Cerrada] }
-        tecnico_asignado_id: { type: string, format: uuid, nullable: true }
-        fecha: { type: string, format: date-time }
-    Telefono:
+        success:
+          type: boolean
+        data:
+          type: object
+    Error:
       type: object
       properties:
-        id: { type: integer }
-        numero: { type: string }
-        cliente_id: { type: integer }
-        estado: { type: string, enum: [activo, baja] }
-        ubicacion: { type: string }
-        observaciones: { type: string, nullable: true }
-    Linea:
-      type: object
-      properties:
-        id: { type: integer }
-        numero: { type: string }
-        cliente_id: { type: integer }
-        estado: { type: string, enum: [activo, baja] }
-        tipo_linea_id: { type: integer, nullable: true }
-    Pizarra:
-      type: object
-      properties:
-        id: { type: integer }
-        nombre: { type: string }
-        tipo_pizarra_id: { type: integer }
-        ubicacion_fisica: { type: string }
-        latitud: { type: number, format: float, nullable: true }
-        longitud: { type: number, format: float, nullable: true }
-        estado: { type: string, enum: [activo, baja] }
-    Trabajo:
-      type: object
-      properties:
-        id: { type: integer }
-        queja_id: { type: integer, nullable: true }
-        descripcion: { type: string }
-        tecnico_asignado_id: { type: string, format: uuid, nullable: true }
-        tiempo_estimado: { type: number, format: float }
-        tiempo_real: { type: number, format: float, nullable: true }
-        estado: { type: string, enum: [Creada, Asignada, EnProgreso, Cerrada, Cancelada] }
-    Prueba:
-      type: object
-      properties:
-        id: { type: integer }
-        queja_id: { type: integer, nullable: true }
-        trabajo_id: { type: integer, nullable: true }
-        tecnico_id: { type: string, format: uuid }
-        fecha: { type: string, format: date-time }
-        exitoso: { type: boolean }
-        mediciones: { type: object }
-        observaciones: { type: string, nullable: true }
-
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+tags:
+- name: Asignaciones
+- name: Clasificacion
+- name: Clientes
+- name: Grupos W
+- name: Movimientos
+- name: Nomencladores
+- name: Pizarras
+- name: Pruebas
+- name: Quejas
+- name: Red externa
+- name: Telefonia
+- name: Trabajadores
+- name: Trabajos
+- name: Salud
 paths:
-  /mp/quejas:
-    get:
-      summary: Listar quejas
-      parameters:
-        - in: query, name: estado, schema: { type: string, enum: [Abierta, Probada, Asignada, Pendiente, Resuelta, Cerrada] }
-        - in: query, name: prioridad, schema: { type: integer, minimum: 1, maximum: 4 }
-        - in: query, name: servicio_id, schema: { type: integer }
-        - in: query, name: fecha_desde, schema: { type: string, format: date }
-        - in: query, name: fecha_hasta, schema: { type: string, format: date }
-        - in: query, name: page, schema: { type: integer, default: 1 }
-        - in: query, name: limit, schema: { type: integer, default: 20 }
-      responses: { '200': { description: Lista paginada de quejas } }
+  /asignacion:
     post:
-      summary: Reportar nueva queja
-      requestBody:
-        required: true
-        content: { application/json: { schema: { $ref: '#/components/schemas/Queja' } } }
-      responses: { '201': { description: Queja creada } }
-
-  /mp/quejas/{id}:
-    get:
-      summary: Ver detalle de queja
-      responses: { '200': { description: Queja } }
-  /mp/quejas/{id}/estado:
-    patch:
-      summary: Cambiar estado (FSM validado)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                nuevo_estado: { type: string }
-                observaciones: { type: string, nullable: true }
-      responses:
-        '200': { description: Estado actualizado }
-        '400': { description: Transición de estado inválida (FSM) }
-
-  /mp/quejas/{id}/asignar:
-    patch:
-      summary: Asignar técnico
-      responses: { '200': { description: Técnico asignado } }
-
-  /mp/pruebas:
-    post:
-      summary: Registrar prueba técnica
-      requestBody:
-        required: true
-        content: { application/json: { schema: { $ref: '#/components/schemas/Prueba' } } }
-      responses: { '201': { description: Prueba registrada } }
-
-  /mp/trabajos:
-    get:
-      summary: Listar órdenes de trabajo
-      responses: { '200': { description: Lista paginada } }
-    post:
-      summary: Crear orden de trabajo
-      requestBody:
-        required: true
-        content: { application/json: { schema: { $ref: '#/components/schemas/Trabajo' } } }
-      responses: { '201': { description: Trabajo creado } }
-
-  /mp/trabajos/{id}/iniciar:
-    patch:
-      summary: Iniciar trabajo en campo
-      responses: { '200': { description: Trabajo iniciado } }
-  /mp/trabajos/{id}/cerrar:
-    patch:
-      summary: Cerrar trabajo (requiere tiempo real)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties: { tiempo_real: { type: number, format: float } }
-      responses: { '200': { description: Trabajo cerrado } }
-
-  /mp/telefonos:
-    get: { summary: Listar teléfonos, responses: { '200': { description: Lista } } }
-    post: { summary: Crear teléfono, responses: { '201': { description: Teléfono creado } } }
-  /mp/lineas:
-    get: { summary: Listar líneas, responses: { '200': { description: Lista } } }
-    post: { summary: Crear línea, responses: { '201': { description: Línea creada } } }
-  /mp/pizarras:
-    get: { summary: Listar pizarras, responses: { '200': { description: Lista } } }
-    post: { summary: Crear pizarra, responses: { '201': { description: Pizarra creada } } }
-  /mp/pizarras/{id}/puertos:
-    post: { summary: Crear puerto en pizarra, responses: { '201': { description: Puerto creado } } }
-  /mp/pizarras/{id}/puertos/{puerto_id}/conexion:
-    put: { summary: Registrar conexión de puerto, responses: { '200': { description: Conexión registrada } } }
-
-  /mp/catalogos/tipos-queja:
-    get: { summary: Listar tipos de queja, responses: { '200': { description: Lista } } }
-  /mp/catalogos/servicios:
-    get: { summary: Listar servicios, responses: { '200': { description: Lista } } }
-  /mp/catalogos/ubicaciones:
-    get: { summary: Listar ubicaciones, responses: { '200': { description: Lista } } }
-
-  /mp/dashboard:
-    get:
-      summary: KPIs de MP
-      parameters:
-        - in: query, name: fecha_desde, schema: { type: string, format: date }
-        - in: query, name: fecha_hasta, schema: { type: string, format: date }
-        - in: query, name: servicio_id, schema: { type: integer }
-      responses: { '200': { description: Métricas agregadas } }
-
-  /health:
-    get:
-      summary: Health check
+      tags:
+      - Asignaciones
+      summary: Crea un nuevo registro.
+      operationId: post_asignacion
       responses:
         '200':
-          description: Servicio saludable
+          description: OK - envoltura {success,data}
           content:
             application/json:
-              example: { status: "ok", service: "backend-mp" }
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: asignaciones.crear'
+      description: 'Requiere permiso RBAC: asignaciones.crear'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    get:
+      tags:
+      - Asignaciones
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_asignacion
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: asignaciones.leer'
+      description: 'Requiere permiso RBAC: asignaciones.leer'
+  /asignacion/{id}:
+    get:
+      tags:
+      - Asignaciones
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_asignacion_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: asignaciones.leer'
+      description: 'Requiere permiso RBAC: asignaciones.leer'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+      - Asignaciones
+      summary: Elimina el registro por ID.
+      operationId: delete_asignacion_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: asignaciones.eliminar'
+      description: 'Requiere permiso RBAC: asignaciones.eliminar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /cable:
+    get:
+      tags:
+      - Telefonia
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_cable
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Telefonia
+      summary: Crea un nuevo registro.
+      operationId: post_cable
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /cable/{id}:
+    get:
+      tags:
+      - Telefonia
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_cable_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Telefonia
+      summary: Actualiza el registro por ID.
+      operationId: put_cable_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Telefonia
+      summary: Elimina el registro por ID.
+      operationId: delete_cable_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /clasificacion:
+    get:
+      tags:
+      - Clasificacion
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_clasificacion
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Clasificacion
+      summary: Crea un nuevo registro.
+      operationId: post_clasificacion
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /clasificacion/{id}:
+    get:
+      tags:
+      - Clasificacion
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_clasificacion_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Clasificacion
+      summary: Actualiza el registro por ID.
+      operationId: put_clasificacion_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Clasificacion
+      summary: Elimina el registro por ID.
+      operationId: delete_clasificacion_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /clasificadorclave:
+    get:
+      tags:
+      - Clasificacion
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_clasificadorclave
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Clasificacion
+      summary: Crea un nuevo registro.
+      operationId: post_clasificadorclave
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /clasificadorclave/{id}:
+    get:
+      tags:
+      - Clasificacion
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_clasificadorclave_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Clasificacion
+      summary: Actualiza el registro por ID.
+      operationId: put_clasificadorclave_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Clasificacion
+      summary: Elimina el registro por ID.
+      operationId: delete_clasificadorclave_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /clasifpizarra:
+    get:
+      tags:
+      - Pizarras
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_clasifpizarra
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Pizarras
+      summary: Crea un nuevo registro.
+      operationId: post_clasifpizarra
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /clasifpizarra/{id}:
+    get:
+      tags:
+      - Pizarras
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_clasifpizarra_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Pizarras
+      summary: Actualiza el registro por ID.
+      operationId: put_clasifpizarra_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Pizarras
+      summary: Elimina el registro por ID.
+      operationId: delete_clasifpizarra_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /clave:
+    get:
+      tags:
+      - Clasificacion
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_clave
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Clasificacion
+      summary: Crea un nuevo registro.
+      operationId: post_clave
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /clave/{id}:
+    get:
+      tags:
+      - Clasificacion
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_clave_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Clasificacion
+      summary: Actualiza el registro por ID.
+      operationId: put_clave_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Clasificacion
+      summary: Elimina el registro por ID.
+      operationId: delete_clave_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /grupow:
+    get:
+      tags:
+      - Grupos W
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_grupow
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Grupos W
+      summary: Crea un nuevo registro.
+      operationId: post_grupow
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /grupow/{id}:
+    get:
+      tags:
+      - Grupos W
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_grupow_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Grupos W
+      summary: Actualiza el registro por ID.
+      operationId: put_grupow_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Grupos W
+      summary: Elimina el registro por ID.
+      operationId: delete_grupow_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /linea:
+    get:
+      tags:
+      - Telefonia
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_linea
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Telefonia
+      summary: Crea un nuevo registro.
+      operationId: post_linea
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /linea/dashboard:
+    get:
+      tags:
+      - Telefonia
+      summary: Dashboard - agregados de linea.
+      operationId: get_linea_dashboard
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+  /linea/{id}:
+    get:
+      tags:
+      - Telefonia
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_linea_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Telefonia
+      summary: Actualiza el registro por ID.
+      operationId: put_linea_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Telefonia
+      summary: Elimina el registro por ID.
+      operationId: delete_linea_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /mando:
+    get:
+      tags:
+      - Red externa
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_mando
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Red externa
+      summary: Crea un nuevo registro.
+      operationId: post_mando
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /mando/{id}:
+    get:
+      tags:
+      - Red externa
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_mando_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Red externa
+      summary: Actualiza el registro por ID.
+      operationId: put_mando_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Red externa
+      summary: Elimina el registro por ID.
+      operationId: delete_mando_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /movimiento:
+    get:
+      tags:
+      - Movimientos
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_movimiento
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Movimientos
+      summary: Crea un nuevo registro.
+      operationId: post_movimiento
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /movimiento/linea/{linea}:
+    get:
+      tags:
+      - Movimientos
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_movimiento_linea_linea
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: linea
+        in: path
+        required: true
+        schema:
+          type: string
+  /movimiento/telefono/{telefono}:
+    get:
+      tags:
+      - Movimientos
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_movimiento_telefono_telefono
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: telefono
+        in: path
+        required: true
+        schema:
+          type: string
+  /movimiento/{id}:
+    get:
+      tags:
+      - Movimientos
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_movimiento_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Movimientos
+      summary: Actualiza el registro por ID.
+      operationId: put_movimiento_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Movimientos
+      summary: Elimina el registro por ID.
+      operationId: delete_movimiento_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /pizarra:
+    get:
+      tags:
+      - Pizarras
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_pizarra
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Pizarras
+      summary: Crea un nuevo registro.
+      operationId: post_pizarra
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /pizarra/{id}:
+    get:
+      tags:
+      - Pizarras
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_pizarra_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Pizarras
+      summary: Actualiza el registro por ID.
+      operationId: put_pizarra_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Pizarras
+      summary: Elimina el registro por ID.
+      operationId: delete_pizarra_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /planta:
+    get:
+      tags:
+      - Red externa
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_planta
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Red externa
+      summary: Crea un nuevo registro.
+      operationId: post_planta
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /planta/{id}:
+    get:
+      tags:
+      - Red externa
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_planta_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Red externa
+      summary: Actualiza el registro por ID.
+      operationId: put_planta_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Red externa
+      summary: Elimina el registro por ID.
+      operationId: delete_planta_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /propietario:
+    get:
+      tags:
+      - Clientes
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_propietario
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Clientes
+      summary: Crea un nuevo registro.
+      operationId: post_propietario
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /propietario/{id}:
+    get:
+      tags:
+      - Clientes
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_propietario_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Clientes
+      summary: Actualiza el registro por ID.
+      operationId: put_propietario_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Clientes
+      summary: Elimina el registro por ID.
+      operationId: delete_propietario_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /prueba:
+    get:
+      tags:
+      - Pruebas
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_prueba
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Pruebas
+      summary: Crea un nuevo registro.
+      operationId: post_prueba
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /prueba/{id}:
+    get:
+      tags:
+      - Pruebas
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_prueba_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Pruebas
+      summary: Actualiza el registro por ID.
+      operationId: put_prueba_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Pruebas
+      summary: Elimina el registro por ID.
+      operationId: delete_prueba_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /queja:
+    get:
+      tags:
+      - Quejas
+      summary: Lista quejas paginadas con filtros (estado, fecha, tipo).
+      operationId: get_queja
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Quejas
+      summary: Crea una queja nueva (estado inicial Abierta).
+      operationId: post_queja
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: quejas.crear'
+      description: 'Requiere permiso RBAC: quejas.crear'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /queja/dashboard/close_buckets:
+    get:
+      tags:
+      - Quejas
+      summary: Dashboard MP - metrica close_buckets (agregados de quejas).
+      operationId: get_queja_dashboard_close_buckets
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+  /queja/dashboard/funnel:
+    get:
+      tags:
+      - Quejas
+      summary: Dashboard MP - metrica funnel (agregados de quejas).
+      operationId: get_queja_dashboard_funnel
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+  /queja/dashboard/heatmap:
+    get:
+      tags:
+      - Quejas
+      summary: Dashboard MP - metrica heatmap (agregados de quejas).
+      operationId: get_queja_dashboard_heatmap
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+  /queja/dashboard/historic:
+    get:
+      tags:
+      - Quejas
+      summary: Dashboard MP - metrica historic (agregados de quejas).
+      operationId: get_queja_dashboard_historic
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+  /queja/dashboard/mttr:
+    get:
+      tags:
+      - Quejas
+      summary: Dashboard MP - metrica mttr (agregados de quejas).
+      operationId: get_queja_dashboard_mttr
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+  /queja/dashboard/recurrentes:
+    get:
+      tags:
+      - Quejas
+      summary: Dashboard MP - metrica recurrentes (agregados de quejas).
+      operationId: get_queja_dashboard_recurrentes
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+  /queja/dashboard/sankey:
+    get:
+      tags:
+      - Quejas
+      summary: Dashboard MP - metrica sankey (agregados de quejas).
+      operationId: get_queja_dashboard_sankey
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+  /queja/dashboard/summary:
+    get:
+      tags:
+      - Quejas
+      summary: Dashboard MP - metrica summary (agregados de quejas).
+      operationId: get_queja_dashboard_summary
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+  /queja/{id}:
+    get:
+      tags:
+      - Quejas
+      summary: Obtiene una queja por ID con relaciones.
+      operationId: get_queja_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: quejas.crear'
+      description: 'Requiere permiso RBAC: quejas.crear'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Quejas
+      summary: Actualiza los datos de una queja.
+      operationId: put_queja_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: quejas.actualizar'
+      description: 'Requiere permiso RBAC: quejas.actualizar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Quejas
+      summary: Elimina una queja.
+      operationId: delete_queja_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: quejas.eliminar'
+      description: 'Requiere permiso RBAC: quejas.eliminar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /queja/{id}/cerrar:
+    patch:
+      tags:
+      - Quejas
+      summary: Cierra una queja (transicion a Cerrada).
+      operationId: patch_queja_id_cerrar
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: quejas.cerrar'
+      description: 'Requiere permiso RBAC: quejas.cerrar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /recorrido:
+    get:
+      tags:
+      - Red externa
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_recorrido
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Red externa
+      summary: Crea un nuevo registro.
+      operationId: post_recorrido
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /recorrido/{id}:
+    get:
+      tags:
+      - Red externa
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_recorrido_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Red externa
+      summary: Actualiza el registro por ID.
+      operationId: put_recorrido_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Red externa
+      summary: Elimina el registro por ID.
+      operationId: delete_recorrido_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /resultadoprueba:
+    get:
+      tags:
+      - Pruebas
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_resultadoprueba
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Pruebas
+      summary: Crea un nuevo registro.
+      operationId: post_resultadoprueba
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /resultadoprueba/{id}:
+    get:
+      tags:
+      - Pruebas
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_resultadoprueba_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Pruebas
+      summary: Actualiza el registro por ID.
+      operationId: put_resultadoprueba_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Pruebas
+      summary: Elimina el registro por ID.
+      operationId: delete_resultadoprueba_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /senalizacion:
+    get:
+      tags:
+      - Red externa
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_senalizacion
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Red externa
+      summary: Crea un nuevo registro.
+      operationId: post_senalizacion
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /senalizacion/{id}:
+    get:
+      tags:
+      - Red externa
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_senalizacion_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Red externa
+      summary: Actualiza el registro por ID.
+      operationId: put_senalizacion_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Red externa
+      summary: Elimina el registro por ID.
+      operationId: delete_senalizacion_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /sistema:
+    get:
+      tags:
+      - Red externa
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_sistema
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Red externa
+      summary: Crea un nuevo registro.
+      operationId: post_sistema
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /sistema/{id}:
+    get:
+      tags:
+      - Red externa
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_sistema_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Red externa
+      summary: Actualiza el registro por ID.
+      operationId: put_sistema_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Red externa
+      summary: Elimina el registro por ID.
+      operationId: delete_sistema_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /telefono:
+    get:
+      tags:
+      - Telefonia
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_telefono
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Telefonia
+      summary: Crea un nuevo registro.
+      operationId: post_telefono
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /telefono/darbaja/{id}:
+    get:
+      tags:
+      - Telefonia
+      summary: Proceso de dar de baja un telefono.
+      operationId: get_telefono_darbaja_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /telefono/dashboard:
+    get:
+      tags:
+      - Telefonia
+      summary: Dashboard - agregados de telefono.
+      operationId: get_telefono_dashboard
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+  /telefono/{id}:
+    get:
+      tags:
+      - Telefonia
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_telefono_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Telefonia
+      summary: Actualiza el registro por ID.
+      operationId: put_telefono_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Telefonia
+      summary: Elimina el registro por ID.
+      operationId: delete_telefono_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /tipolinea:
+    get:
+      tags:
+      - Nomencladores
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_tipolinea
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Nomencladores
+      summary: Crea un nuevo registro.
+      operationId: post_tipolinea
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /tipolinea/{id}:
+    get:
+      tags:
+      - Nomencladores
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_tipolinea_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Nomencladores
+      summary: Actualiza el registro por ID.
+      operationId: put_tipolinea_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Nomencladores
+      summary: Elimina el registro por ID.
+      operationId: delete_tipolinea_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /tipomovimiento:
+    get:
+      tags:
+      - Nomencladores
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_tipomovimiento
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Nomencladores
+      summary: Crea un nuevo registro.
+      operationId: post_tipomovimiento
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /tipomovimiento/{id}:
+    get:
+      tags:
+      - Nomencladores
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_tipomovimiento_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Nomencladores
+      summary: Actualiza el registro por ID.
+      operationId: put_tipomovimiento_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Nomencladores
+      summary: Elimina el registro por ID.
+      operationId: delete_tipomovimiento_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /tipopizarra:
+    get:
+      tags:
+      - Pizarras
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_tipopizarra
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Pizarras
+      summary: Crea un nuevo registro.
+      operationId: post_tipopizarra
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /tipopizarra/{id}:
+    get:
+      tags:
+      - Pizarras
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_tipopizarra_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Pizarras
+      summary: Actualiza el registro por ID.
+      operationId: put_tipopizarra_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Pizarras
+      summary: Elimina el registro por ID.
+      operationId: delete_tipopizarra_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /tipoqueja:
+    get:
+      tags:
+      - Nomencladores
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_tipoqueja
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Nomencladores
+      summary: Crea un nuevo registro.
+      operationId: post_tipoqueja
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /tipoqueja/{id}:
+    get:
+      tags:
+      - Nomencladores
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_tipoqueja_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Nomencladores
+      summary: Actualiza el registro por ID.
+      operationId: put_tipoqueja_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Nomencladores
+      summary: Elimina el registro por ID.
+      operationId: delete_tipoqueja_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: nomencladores.gestionar'
+      description: 'Requiere permiso RBAC: nomencladores.gestionar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /trabajador:
+    get:
+      tags:
+      - Trabajadores
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_trabajador
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Trabajadores
+      summary: Crea un nuevo registro.
+      operationId: post_trabajador
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /trabajador/dashboard:
+    get:
+      tags:
+      - Trabajadores
+      summary: Dashboard - agregados de trabajador.
+      operationId: get_trabajador_dashboard
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+  /trabajador/getProbadores:
+    get:
+      tags:
+      - Trabajadores
+      summary: Lista de trabajadores con rol probador.
+      operationId: get_trabajador_getprobadores
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+  /trabajador/{id}:
+    get:
+      tags:
+      - Trabajadores
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_trabajador_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Trabajadores
+      summary: Actualiza el registro por ID.
+      operationId: put_trabajador_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Trabajadores
+      summary: Elimina el registro por ID.
+      operationId: delete_trabajador_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /trabajo:
+    get:
+      tags:
+      - Trabajos
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_trabajo
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Trabajos
+      summary: Crea un nuevo registro.
+      operationId: post_trabajo
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: trabajos.crear'
+      description: 'Requiere permiso RBAC: trabajos.crear'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /trabajo/{id}:
+    get:
+      tags:
+      - Trabajos
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_trabajo_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: trabajos.crear'
+      description: 'Requiere permiso RBAC: trabajos.crear'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Trabajos
+      summary: Actualiza el registro por ID.
+      operationId: put_trabajo_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: trabajos.actualizar'
+      description: 'Requiere permiso RBAC: trabajos.actualizar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Trabajos
+      summary: Elimina el registro por ID.
+      operationId: delete_trabajo_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '403':
+          description: 'Sin permiso: trabajos.eliminar'
+      description: 'Requiere permiso RBAC: trabajos.eliminar'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /trabajo_trabajadores:
+    get:
+      tags:
+      - Trabajos
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_trabajo_trabajadores
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+    post:
+      tags:
+      - Trabajos
+      summary: Crea un nuevo registro.
+      operationId: post_trabajo_trabajadores
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /trabajo_trabajadores/{id}:
+    get:
+      tags:
+      - Trabajos
+      summary: Listado del recurso con paginacion y filtros.
+      operationId: get_trabajo_trabajadores_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Trabajos
+      summary: Actualiza el registro por ID.
+      operationId: put_trabajo_trabajadores_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+    delete:
+      tags:
+      - Trabajos
+      summary: Elimina el registro por ID.
+      operationId: delete_trabajo_trabajadores_id
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /health:
+    get:
+      tags:
+      - Salud
+      summary: Health check del servicio backend-mp (estado, uptime).
+      operationId: get_health
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+
+# ============================================================
+# PLANIFICADO (documentado en v1.0, aun NO implementado - TASKLIST.md Fase MP)
+# - POST  /queja/{id}/estado  : transiciones dedicadas (hoy: PUT general + PATCH cerrar)
+# - POST  /queja/{id}/asignar : asignacion dedicada a trabajo/trabajador
+# - GET   /pizarra/{id}/puertos
+# - POST  /pizarra/{id}/puertos/{puerto_id}/conexion
+# - GET   /catalogos/servicios , /catalogos/ubicaciones
+# - GET   /dashboard          : dashboard consolidado (hoy distribuido en /queja/dashboard/*)
+# ============================================================
