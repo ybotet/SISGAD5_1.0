@@ -12,7 +12,7 @@
 
 > **Última actualización:** 2026-10-29
 
-> **Estado:** En progreso (~45% completado — 132/295)
+> **Estado:** En progreso (~45% completado — 134/295)
 
 ---
 
@@ -164,13 +164,13 @@
 | ✅     | 🟡       | 🔨      | TASK-C-05     | Fusionar `docs/roadmap.md` en `docs/17_roadmap.es.md`                                        | Sin duplicados                                     |
 | ✅     | 🟡       | 🔨      | TASK-C-06     | Renombrar `docs/manuals/*.md` a `*.es.md` y crear `*.ru.md`                                  | Manuales bilingües                                 |
 | ✅     | 🟡       | 🔨      | TASK-C-07     | Renombrar `docs/practices/*.md` a `*.es.md` y crear `*.ru.md`                                | Prácticas bilingües                                |
-| ⏳      | 🟡       | 🔨      | TASK-C-08     | Renombrar `docs/thesis/*.md` a `*.es.md` y crear `*.ru.md`                                   | Tesis bilingüe                                     |
+| ✅     | 🟡       | 🔨      | TASK-C-08     | Renombrar `docs/thesis/*.md` a `*.es.md` y crear `*.ru.md`                                   | Tesis bilingüe                                     |
 | ✅     | 🟡       | 🔨      | TASK-C-09     | Verificar enlaces internos (`scripts/validate_docs.sh`)                                      | 0 enlaces rotos (*.es.md)                          |
 | ✅     | 🟡       | 🔨      | TASK-C-10     | Commit + PR + merge                                                                          | Docs consolidadas                                  |
 | ✅     | 📌       | ✅       | **TASK-C-11** | **Alinear `ARCHITECTURE.md` con código real (mux, no Gin; sin Redis/Prometheus en compose)** | **Auditoría ARC-01**                               | Docs = código
-| ⏳      | 🟠       | 🔨      | **TASK-C-12** | **Actualizar `AGENTS.md` con hallazgos de auditoría**                                        | **Auditoría**                                      | Sección 8 actualizada
+| ✅     | 📌       | ✅      | **TASK-C-12** | **Actualizar `AGENTS.md` con hallazgos de auditoría**                                        | **Auditoría**                                      | Sección 8 actualizada
 
-**Total Fase C:** 12 tareas (9 completadas — 75%)
+**Total Fase C:** 12 tareas (12 completadas — 100%)
 
 ## FASE D — Módulo Predictivo + Tesis
 
@@ -208,9 +208,9 @@
 | --------------------------------- | ------ | ----------- | ------- |
 | A — Limpieza y Seguridad          | 12     | 12          | 100%    |
 | B — Reorganización y Correcciones | 22     | 22          | 100%    |
-| C — Documentación                 | 12     | 9           | 75%     |
-| D — Predictivo + Tesis            | 19     | 9          | 47%     |
-| **TOTAL PARTE I**                 | **65** | **52**      | **80%** |
+| C — Documentación                 | 12     | 12          | 100%     |
+| D — Predictivo + Tesis            | 19     | 9           | 47%      |
+| **TOTAL PARTE I**                 | **65** | **53**      | **82%**  |
 
 # PARTE II — INVENTARIO FUNCIONAL
 
@@ -499,7 +499,7 @@
 | 🔄    | 🟡       | 🏛️    | TASK-1300-10 | Modelo: anomalías consumo        | Fase D          | Precision > 85% (actual: 52.33% FAIL) |
 | ✅     | 🟢       | 🏛️    | TASK-1300-11 | Modelo: prioridad quejas         | Fase D          | Accuracy > 80% (actual: 99.25% PASS)  |
 | 🔄    | 🟢       | 🏛️    | TASK-1300-12 | Modelo: fallos infraestructura   | Fase D          | Recall > 75% (actual: 67.26% FAIL)    |
-| ✅     | 🔴       | 🏗️    | TASK-1300-13 | API REST de predicciones         | Fase D          | 5 endpoints funcionales                  |
+| ✅     | 🔴       | 🏗️    | TASK-1300-13 | API REST de predicciones         | Fase D          | 5 endpoints funcionales               |
 | ✅     | 🔴       | 🔨      | TASK-1300-14 | Integrar con Gateway             | Fase D          | Proxy `/api/predictions/*`            |
 | ⏳      | 🟡       | 🏃      | TASK-1300-15 | MLflow (model registry)          | Fase D          | Modelos versionados                   |
 | ⏳      | 🟡       | 🏛️    | TASK-1300-16 | Airflow (pipelines)              | Fase D          | DAG funcional                         |
@@ -642,33 +642,33 @@
 
 ### Parte II — Inventario Funcional
 
-| Fase                         | Tareas  | Completadas | %       |
-| ---------------------------- | ------- | ----------- | ------- |
-| 0 — Planificación            | 8       | 8           | 100%    |
-| 1 — Diseño                   | 14      | 8           | 57%     |
-| 2 — Infraestructura          | 15      | 4           | 27%     |
-| 3 — Users                    | 12      | 10          | 83%     |
-| 4 — MP                       | 36      | 10          | 28%     |
-| 5 — Materials                | 34      | 22          | 65%     |
-| 6 — Gateway                  | 10      | 3           | 30%     |
-| 7 — Frontend                 | 22      | 1           | 5%      |
-| 8 — Testing                  | 8       | 1           | 13%     |
-| 9 — Despliegue               | 7       | 0           | 0%      |
-| 10 — Analítica               | 8       | 0           | 0%      |
-| 11 — Predictivo              | 22      | 12          | 55%     |
-| 12 — Documentación Final     | 6       | 0           | 0%      |
-| 13 — Mantenimiento           | 6       | 0           | 0%      |
-| **14 — Informe de Práctica** | **22**  | **0**       | **0%**  |
-| **TOTAL PARTE II**           | **230** | **81**      | **35%**   |
-| **TOTAL** | **295** | **133**     | **~45%** |
+| Fase                         | Tareas  | Completadas | %        |
+| ---------------------------- | ------- | ----------- | -------- |
+| 0 — Planificación            | 8       | 8           | 100%     |
+| 1 — Diseño                   | 14      | 8           | 57%      |
+| 2 — Infraestructura          | 15      | 4           | 27%      |
+| 3 — Users                    | 12      | 10          | 83%      |
+| 4 — MP                       | 36      | 10          | 28%      |
+| 5 — Materials                | 34      | 22          | 65%      |
+| 6 — Gateway                  | 10      | 3           | 30%      |
+| 7 — Frontend                 | 22      | 1           | 5%       |
+| 8 — Testing                  | 8       | 1           | 13%      |
+| 9 — Despliegue               | 7       | 0           | 0%       |
+| 10 — Analítica               | 8       | 0           | 0%       |
+| 11 — Predictivo              | 22      | 12          | 55%      |
+| 12 — Documentación Final     | 6       | 0           | 0%       |
+| 13 — Mantenimiento           | 6       | 0           | 0%       |
+| **14 — Informe de Práctica** | **22**  | **0**       | **0%**   |
+| **TOTAL PARTE II**           | **230** | **81**      | **35%**  |
+| **TOTAL**                    | **295** | **134**     | **~45%** |
 
 ### Total General
 
 | Parte     | Tareas  | Completadas | %        |
 | --------- | ------- | ----------- | -------- |
-| Parte I   | 65      | 52          | 80%      |
+| Parte I   | 65      | 53          | 82%      |
 | Parte II  | 230     | 81          | 35%      |
-| **TOTAL** | **295** | **133**     | **~45%** |
+| **TOTAL** | **295** | **134**     | **~45%** |
 
 > **Mantenido por:** Ing. Botet C.Y.
 

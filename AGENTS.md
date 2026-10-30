@@ -132,18 +132,44 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 
 ### Hallazgos Altos (🟠) — Resolver en Fase B
 
-| ID     | Hallazgo                                                                                       | Tarea     | Prohibido mientras tanto                                  |
-| ------ | ---------------------------------------------------------------------------------------------- | --------- | --------------------------------------------------------- |
-| SEC-04 | ✅ CORS con lista blanca                                                                       | TASK-B-16 | `CORS_ORIGIN` obligatorio en prod                         |
-| SEC-05 | ✅ Gateway verifica JWT (middleware)                                                           | TASK-B-15 | N/A — resuelto                                            |
-| SEC-06 | ✅ RBAC aplicado en MP                                                                         | TASK-B-17 | `tienePermiso` aplicado en quejas, trabajos, asignaciones |
-| SEC-07 | ✅ Parametrizado con Sequelize replacements                                                    | TASK-B-18 | No interpolar strings en SQL                              |
-| ARC-01 | ✅ Docs alineadas: gorilla/mux (no Gin), Prediction Service (5005), Redis/Prometheus "planned" | TASK-C-11 | Docs = código                                             |
-| ARC-02 | ✅ Gateway propaga claims via headers                                                          | TASK-B-15 | N/A — mitigado (claims en JWT, no llamadas síncronas)     |
-| ARC-03 | ✅ Cerrar queja orquesta consumo en Materials                                                  | TASK-B-22 | Saga con compensación — rollback si Materials falla       |
-| BUS-02 | ✅ Rutas `/dashboard/*` antes de `/:id`                                                        | TASK-B-19 | No añadir rutas después de `/:id`                         |
-| DAT-01 | ✅ Migraciones + índices creados                                                               | TASK-B-20 | No añadir modelos sin migración                           |
-| QA-01  | ✅ `npm test` passes (27 MP + 11 Users)                                                        | TASK-B-21 | Confiar en CI                                             |
+| ID     | Hallazgo                                                                                       | Tarea         | Prohibido mientras tanto                                  |
+| ------ | ---------------------------------------------------------------------------------------------- | ------------- | --------------------------------------------------------- |
+| SEC-04 | ✅ CORS con lista blanca                                                                       | TASK-B-16     | `CORS_ORIGIN` obligatorio en prod                         |
+| SEC-05 | ✅ Gateway verifica JWT (middleware)                                                           | TASK-B-15     | N/A — resuelto                                            |
+| SEC-06 | ✅ RBAC aplicado en MP                                                                         | TASK-B-17     | `tienePermiso` aplicado en quejas, trabajos, asignaciones |
+| SEC-07 | ✅ Parametrizado con Sequelize replacements                                                    | TASK-B-18     | No interpolar strings en SQL                              |
+| ARC-01 | ✅ Docs alineadas: gorilla/mux (no Gin), Prediction Service (5005), Redis/Prometheus "planned" | TASK-C-11     | Docs = código                                             |
+| ARC-02 | ✅ Gateway propaga claims via headers                                                          | TASK-B-15     | N/A — mitigado (claims en JWT, no llamadas síncronas)     |
+| ARC-03 | ✅ Cerrar queja orquesta consumo en Materials                                                  | TASK-B-22     | Saga con compensación — rollback si Materials falla       |
+| ARC-04 | ✅ `MP_DB_NAME` corregido en docker-compose                                                    | TASK-A-12     | No asumir `DB_NAME=${MP_DB_NAME}` sin pasar la var         |
+| BUS-01 | ⏳ Stock real comentado en Go — `verificarStockAsignacion` es placeholder                      | TASK-520-05   | No descontar stock sin validación; riesgo de stock negativo |
+| BUS-02 | ✅ Rutas `/dashboard/*` antes de `/:id`                                                        | TASK-B-19     | No añadir rutas después de `/:id`                         |
+| DAT-01 | ✅ Migraciones + índices creados                                                               | TASK-B-20     | No añadir modelos sin migración                           |
+| QA-01  | ✅ `npm test` passes (27 MP + 11 Users)                                                        | TASK-B-21     | Confiar en CI                                             |
+
+### Hallazgos Medios (🟡)
+
+| ID     | Hallazgo                                                                 | Tarea                | Prohibido mientras tanto                          |
+| ------ | ------------------------------------------------------------------------ | ------------------- | ------------------------------------------------- |
+| SEC-08 | ⏳ `DebugLogin` con credenciales fijas en frontend                       | (Fase B, frontend)  | No exponer DebugLogin en builds de producción     |
+| ARC-05 | ⏳ Health checks no prueban PostgreSQL                                   | (Fase B)            | No asumir readiness sin ping a BD                 |
+| ARC-06 | ⏳ `X-Request-Id` se genera por servicio, no se propaga en el proxy      | (Fase B)            | No añadir servicios sin propagación de trace ID   |
+| ARC-07 | ⏳ Gateway no declara `MATERIALES_SERVICE_URL` ni `depends_on`           | (Fase B)            | No confiar en DNS implícito en prod               |
+| BUS-03 | ⏳ Máquina de estados más laxa que SPEC (p.ej. `Probada → Resuelta`)    | (Fase B)            | No saltar estados en producción                   |
+| BUS-04 | ⏳ `fecha` de queja es `STRING`, no `DATE`/`TIMESTAMP`                   | (Fase B)            | No añadir índices de fecha sin tipo correcto      |
+| DAT-02 | ⏳ `SkipDefaultTransaction: true` en GORM                                | (Fase A, revisar)   | No escribir stock fuera de `Transaction()`        |
+| DAT-03 | ⏳ N+1: carga de detalles de consumo en bucle                            | (Fase B)            | No usar loops de carga secundaria; usar `Preload` |
+| QA-02  | ⏳ Pocos tests de Node/Frontend                                          | TASK-800-01, 800-02 | No confiar en CI sin cobertura ≥ 70%              |
+| QA-03  | ⏳ Código muerto: `AuthController` MP, `useAuth` hook                    | (Fase B)            | No añadir más código muerto                       |
+
+### Hallazgos Bajos (🟢)
+
+| ID     | Hallazgo                                                                 | Tarea         | Prohibido mientras tanto                          |
+| ------ | ------------------------------------------------------------------------ | ------------- | ------------------------------------------------- |
+| QA-04  | ⏳ Duplicación de `authLimiter` en el gateway                            | (Fase B)      | No duplicar middleware                            |
+| QA-05  | ⏳ Comentario de rutas Go dice `/api/v1/`; rutas son `/api/materiales`   | (Fase B)      | Alinear logs y docs                              |
+| QA-06  | ✅ `tienePermiso` recorre roles en `forEach` sin retorno                 | TASK-B-17     | Limpiar `forEach` → `some()`/return explícito     |
+| QA-07  | ⏳ Tipo `User` del hook muerto incluye `password_hash`                  | (Fase B)      | No modelar hashes en el cliente                   |
 
 ### Reglas derivadas de la auditoría
 
@@ -245,6 +271,6 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 
 ---
 
-> **Última actualización:** 2026-10-28
+> **Última actualización:** 2026-10-29
 > **Mantenido por:** Ing. Botet S.Y.
 > **Licencia:** Uso académico — Tesis de Maestría RTU MIREA
