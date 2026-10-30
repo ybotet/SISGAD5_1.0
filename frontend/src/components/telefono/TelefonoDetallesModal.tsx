@@ -10,7 +10,6 @@ import type {
 import { telefonoService } from "../../services/telefonoService";
 import type { MovimientoItem } from "../../services/movimientoService";
 import { movimientoService } from "../../services/movimientoService";
-// import { quejaService } from '../../services/quejaService';
 import { useState, useEffect } from "react";
 
 interface TelefonoDetallesModalProps {
@@ -21,8 +20,9 @@ interface TelefonoDetallesModalProps {
   loading: boolean;
   onClose: () => void;
   onDataUpdated?: () => void;
-  movimientos?: MovimientoItem[];
 }
+
+const TABS = ["datos", "movimientos", "recorridos", "quejas"] as const;
 
 export default function TelefonoDetallesModal({
   show,
@@ -33,7 +33,6 @@ export default function TelefonoDetallesModal({
   onClose,
   onDataUpdated,
 }: TelefonoDetallesModalProps) {
-  // Estados para gestión de recorridos
   const [showNuevoRecorrido, setShowNuevoRecorrido] = useState(false);
   const [editandoRecorrido, setEditandoRecorrido] =
     useState<RecorridoItem | null>(null);
@@ -42,24 +41,20 @@ export default function TelefonoDetallesModal({
   );
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
-
-  // Estado local para recorridos - ¡ESTO ES LO IMPORTANTE!
-  const [movimientosLocales, setMovimientosLocales] = useState<
-    MovimientoItem[]
-  >([]);
+  const [movimientosLocales, setMovimientosLocales] = useState<MovimientoItem[]>(
+    [],
+  );
   const [loadingMovimientos, setLoadingMovimientos] = useState(false);
   const [recorridosLocales, setRecorridosLocales] = useState<RecorridoItem[]>(
     [],
   );
 
-  // Estados para combos
   const [cables, setCables] = useState<Cable[]>([]);
   const [plantas, setPlantas] = useState<Planta[]>([]);
   const [propietarios, setPropietarios] = useState<Propietario[]>([]);
   const [sistemas, setSistemas] = useState<Sistema[]>([]);
   const [loadingCombos, setLoadingCombos] = useState(false);
 
-  // Estado para formulario de recorrido
   const [formRecorrido, setFormRecorrido] = useState({
     numero: "",
     par: "",
@@ -75,14 +70,12 @@ export default function TelefonoDetallesModal({
     id_propietario: "",
   });
 
-  // Inicializar recorridosLocales con los props cuando cambian
+  const [tabActiva, setTabActiva] = useState("datos");
+
   useEffect(() => {
-    if (recorridos) {
-      setRecorridosLocales(recorridos);
-    }
+    if (recorridos) setRecorridosLocales(recorridos);
   }, [recorridos]);
 
-  // Cargar combos y movimientos al abrir el modal o cambiar de teléfono
   useEffect(() => {
     if (show && telefono) {
       loadCombos();
@@ -90,23 +83,23 @@ export default function TelefonoDetallesModal({
     }
   }, [show, telefono]);
 
-  // Resetear formulario cuando se cierra o cambia el estado
   useEffect(() => {
-    if (!showNuevoRecorrido && !editandoRecorrido) {
-      resetFormRecorrido();
-    }
+    if (!showNuevoRecorrido && !editandoRecorrido) resetFormRecorrido();
   }, [showNuevoRecorrido, editandoRecorrido]);
 
   const loadCombos = async () => {
     try {
       setLoadingCombos(true);
-      const cablesData = await telefonoService.getCables();
+      const [cablesData, plantasData, propietariosData, sistemasData] =
+        await Promise.all([
+          telefonoService.getCables(),
+          telefonoService.getPlantas(),
+          telefonoService.getPropietarios(),
+          telefonoService.getSistemas(),
+        ]);
       setCables(cablesData);
-      const plantasData = await telefonoService.getPlantas();
       setPlantas(plantasData);
-      const propietariosData = await telefonoService.getPropietarios();
       setPropietarios(propietariosData);
-      const sistemasData = await telefonoService.getSistemas();
       setSistemas(sistemasData);
     } catch (err) {
       console.error("Error cargando combos:", err);
@@ -120,19 +113,14 @@ export default function TelefonoDetallesModal({
     if (!telefono) return;
     try {
       setLoadingMovimientos(true);
-      // Use the telefono-specific endpoint which includes the tipo_movimiento association
       const response = await movimientoService.getMovimientosTelefono(
         telefono.id_telefono,
         1,
         100,
       );
-      console.log("movimientos response", response);
-      // the specialized endpoint returns { success: true, data: [...] }
-      // fall back to plain array if the service is still returning the old shape
-      const arr =
-        Array.isArray(response.data)
-          ? response.data
-          : Array.isArray(response.data?.data)
+      const arr = Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response.data?.data)
           ? response.data.data
           : [];
       setMovimientosLocales(arr);
@@ -143,28 +131,20 @@ export default function TelefonoDetallesModal({
     }
   };
 
-  // Función para recargar los recorridos desde el servidor
   const recargarRecorridos = async () => {
     if (!telefono) return;
-
     try {
       const response = await telefonoService.getRecorridosTelefono(
         telefono.id_telefono,
-        1, // página
-        100, // límite alto para obtener todos
+        1,
+        100,
       );
-
       if (response.data && Array.isArray(response.data)) {
         setRecorridosLocales(response.data);
-      } else if (response.data && Array.isArray(response.data)) {
-        // Si la respuesta está dentro de data.data
-        setRecorridosLocales(response.data);
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
+        setRecorridosLocales(response.data.data);
       }
-
-      // También notificar al componente padre
-      if (onDataUpdated) {
-        onDataUpdated();
-      }
+      if (onDataUpdated) onDataUpdated();
     } catch (err) {
       console.error("Error recargando recorridos:", err);
     }
@@ -189,9 +169,7 @@ export default function TelefonoDetallesModal({
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
+    if (e.target === e.currentTarget) onClose();
   };
 
   const handleCloseClick = () => {
@@ -201,7 +179,6 @@ export default function TelefonoDetallesModal({
     setError("");
   };
 
-  // Configurar formulario para edición
   const handleEditarRecorrido = (recorrido: RecorridoItem) => {
     setEditandoRecorrido(recorrido);
     setFormRecorrido({
@@ -221,7 +198,8 @@ export default function TelefonoDetallesModal({
     setShowNuevoRecorrido(true);
   };
 
-  // Manejar creación/actualización de recorrido
+  const parseCampoInt = (val: string) => (val ? parseInt(val, 10) : null);
+
   const handleGuardarRecorrido = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!telefono) return;
@@ -240,18 +218,10 @@ export default function TelefonoDetallesModal({
         soporte: formRecorrido.soporte || null,
         canal: formRecorrido.canal || null,
         id_telefono: telefono.id_telefono,
-        id_cable: formRecorrido.id_cable
-          ? parseInt(formRecorrido.id_cable)
-          : null,
-        id_planta: formRecorrido.id_planta
-          ? parseInt(formRecorrido.id_planta)
-          : null,
-        id_sistema: formRecorrido.id_sistema
-          ? parseInt(formRecorrido.id_sistema)
-          : null,
-        id_propietario: formRecorrido.id_propietario
-          ? parseInt(formRecorrido.id_propietario)
-          : null,
+        id_cable: parseCampoInt(formRecorrido.id_cable),
+        id_planta: parseCampoInt(formRecorrido.id_planta),
+        id_sistema: parseCampoInt(formRecorrido.id_sistema),
+        id_propietario: parseCampoInt(formRecorrido.id_propietario),
       };
 
       if (editandoRecorrido) {
@@ -263,10 +233,7 @@ export default function TelefonoDetallesModal({
         await telefonoService.createRecorrido(recorridoData);
       }
 
-      // ¡IMPORTANTE! Recargar los recorridos después de guardar
       await recargarRecorridos();
-
-      // Cerrar formulario y resetear
       setShowNuevoRecorrido(false);
       resetFormRecorrido();
     } catch (err: any) {
@@ -283,7 +250,6 @@ export default function TelefonoDetallesModal({
     }
   };
 
-  // Manejar eliminación de recorrido
   const handleEliminarRecorrido = async (id: number) => {
     if (
       !confirm(
@@ -295,10 +261,7 @@ export default function TelefonoDetallesModal({
     try {
       setEliminandoRecorrido(id);
       setError("");
-
       await telefonoService.deleteRecorrido(id);
-
-      // ¡IMPORTANTE! Recargar los recorridos después de eliminar
       await recargarRecorridos();
     } catch (err: any) {
       setError(err?.response?.data?.error || "Error al eliminar el recorrido");
@@ -308,7 +271,6 @@ export default function TelefonoDetallesModal({
     }
   };
 
-  // Manejar cambios en formulario
   const handleRecorridoChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -316,44 +278,45 @@ export default function TelefonoDetallesModal({
     setFormRecorrido((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Renderizar campo relacionado (planta o sistema)
   const renderCampoRelacionado = (recorrido: RecorridoItem) => {
     const campos = [];
-
-    // Nota: Asegúrate de que tu interfaz RecorridoItem incluya tb_planta y tb_sistema
-    // Si no están incluidos, necesitarás actualizar la interfaz en telefonoService.ts
-
     if (recorrido.tb_planta?.planta) {
       campos.push(
-        <div key="planta">
-          <span className="font-medium">Planta:</span>{" "}
-          {recorrido.tb_planta.planta}
+        <div key="planta" className="flex items-center gap-1">
+          <i className="ri-building-line text-gray-400 text-xs" />
+          <span className="text-xs text-gray-600">Planta:</span>
+          <span className="text-xs text-gray-900">
+            {recorrido.tb_planta.planta}
+          </span>
         </div>,
       );
     }
-
     if (recorrido.tb_sistema?.sistema) {
       campos.push(
-        <div key="sistema">
-          <span className="font-medium">Sistema:</span>{" "}
-          {recorrido.tb_sistema.sistema}
+        <div key="sistema" className="flex items-center gap-1">
+          <i className="ri-server-line text-gray-400 text-xs" />
+          <span className="text-xs text-gray-600">Sistema:</span>
+          <span className="text-xs text-gray-900">
+            {recorrido.tb_sistema.sistema}
+          </span>
         </div>,
       );
     }
-
     if (recorrido.tb_propietario?.nombre) {
       campos.push(
-        <div key="propietario">
-          <span className="font-medium">Propietario:</span>{" "}
-          {recorrido.tb_propietario.nombre}
+        <div key="propietario" className="flex items-center gap-1">
+          <i className="ri-user-line text-gray-400 text-xs" />
+          <span className="text-xs text-gray-600">Propietario:</span>
+          <span className="text-xs text-gray-900">
+            {recorrido.tb_propietario.nombre}
+          </span>
         </div>,
       );
     }
-
     return campos.length > 0 ? (
-      <div className="space-y-1">{campos}</div>
+      <div className="space-y-0.5">{campos}</div>
     ) : (
-      "N/A"
+      <span className="text-xs text-gray-400">N/A</span>
     );
   };
 
@@ -361,9 +324,9 @@ export default function TelefonoDetallesModal({
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-8 text-center">
-          <i className="ri-loader-4-line animate-spin text-2xl text-blue-600 mb-2"></i>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-8 text-center shadow-xl">
+          <i className="ri-loader-4-line animate-spin text-3xl text-blue-600 mb-3" />
           <p className="text-gray-600">Cargando detalles...</p>
         </div>
       </div>
@@ -372,127 +335,153 @@ export default function TelefonoDetallesModal({
 
   if (!telefono) return null;
 
+  const tabs = [
+    { id: "datos", label: "Datos del Teléfono", icon: "ri-information-line" },
+    { id: "movimientos", label: "Movimientos", icon: "ri-arrow-left-right-line" },
+    { id: "recorridos", label: "Recorridos", icon: "ri-route-line" },
+    { id: "quejas", label: "Quejas", icon: "ri-bug-line" },
+  ];
+
   return (
     <div className="fixed inset-0 z-[9999]">
-      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black bg-opacity-50"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={handleBackdropClick}
       />
 
-      {/* Contenido del modal */}
       <div className="relative flex items-center justify-center min-h-screen p-4">
-        <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-          {/* Header fijo */}
-          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 sticky top-0 z-10">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Detalles del Teléfono: {telefono.telefono || "N/A"}
-                <br />
+        <div className="bg-gray-50 rounded-xl w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl">
+          {/* Header moderno */}
+          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 px-6 py-4 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+                <i className="ri-smartphone-line text-2xl text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">
+                  {telefono.telefono || "Sin teléfono"}
+                </h3>
+                <p className="text-sm text-gray-300">
+                  {telefono.nombre || "Sin nombre"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${
+                  telefono.esbaja
+                    ? "bg-red-100 text-red-800"
+                    : "bg-green-100 text-green-800"
+                }`}
+              >
                 <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    telefono.esbaja
-                      ? "bg-red-100 text-red-800"
-                      : "bg-green-100 text-green-800"
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    telefono.esbaja ? "bg-red-500" : "bg-green-500"
                   }`}
-                >
-                  {telefono.esbaja ? "Baja" : "Activo"}
-                </span>
-              </h3>
+                />
+                {telefono.esbaja ? "Baja" : "Activo"}
+              </span>
               <button
                 onClick={handleCloseClick}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-300 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-700"
               >
-                <i className="ri-close-line text-xl"></i>
+                <i className="ri-close-line text-xl" />
               </button>
             </div>
           </div>
 
-          <div className="p-6">
-            {/* Mensaje de error */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center">
-                  <i className="ri-error-warning-line text-red-500 mr-2"></i>
-                  <span className="text-red-700 text-sm">{error}</span>
-                  <button
-                    onClick={() => setError("")}
-                    className="ml-auto text-red-500 hover:text-red-700"
-                  >
-                    <i className="ri-close-line"></i>
-                  </button>
+          {/* Error banner */}
+          {error && (
+            <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <i className="ri-error-warning-line" />
+                <span className="text-sm">{error}</span>
+              </div>
+              <button
+                onClick={() => setError("")}
+                className="text-red-500 hover:text-red-700 p-1"
+              >
+                <i className="ri-close-line" />
+              </button>
+            </div>
+          )}
+
+          {/* Navegación por pestañas */}
+          <div className="border-b border-gray-200 bg-white">
+            <nav className="flex gap-2 px-6" role="tablist">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  onClick={() => setTabActiva(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all ${
+                    tabActiva === tab.id
+                      ? "border-blue-600 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  <i className={tab.icon} />
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* Contenido de pestañas */}
+          <div className="p-6 overflow-y-auto max-h-[calc(90vh-170px)]">
+            {/* TAB: Datos del Teléfono */}
+            {tabActiva === "datos" && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <InfoCard
+                    icon="ri-user-line"
+                    label="Nombre"
+                    value={telefono.nombre || "N/A"}
+                  />
+                  <InfoCard
+                    icon="ri-map-pin-line"
+                    label="Dirección"
+                    value={telefono.direccion || "N/A"}
+                  />
+                  <InfoCard
+                    icon="ri-edit-license-line"
+                    label="LIC"
+                    value={telefono.lic || "N/A"}
+                  />
+                  <InfoCard
+                    icon="ri-zone-line"
+                    label="Zona"
+                    value={telefono.zona || "N/A"}
+                  />
+                </div>
+                <div className="space-y-4">
+                  <InfoCard
+                    icon="ri-classification-line"
+                    label="Clasificación"
+                    value={telefono.tb_clasificacion?.nombre || "N/A"}
+                  />
+                  <InfoCard
+                    icon="ri-number-1-line"
+                    label="Extensiones"
+                    value={telefono.extensiones?.toString() || "0"}
+                  />
+                  <InfoCard
+                    icon="ri-bill-line"
+                    label="Facturado"
+                    value={telefono.facturado || "N/A"}
+                  />
+                  <InfoCard
+                    icon="ri-store-line"
+                    label="Sector"
+                    value={telefono.sector || "N/A"}
+                  />
                 </div>
               </div>
             )}
 
-            {/* Información del Teléfono */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Nombre</h4>
-                  <p className="text-sm text-gray-900">
-                    {telefono.nombre || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">
-                    Dirección
-                  </h4>
-                  <p className="text-sm text-gray-900">
-                    {telefono.direccion || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">LIC</h4>
-                  <p className="text-sm text-gray-900">
-                    {telefono.lic || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Zona</h4>
-                  <p className="text-sm text-gray-900">
-                    {telefono.zona || "N/A"}
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">
-                    Clasificación
-                  </h4>
-                  <p className="text-sm text-gray-900">
-                    {telefono.tb_clasificacion?.nombre || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">
-                    Extensiones
-                  </h4>
-                  <p className="text-sm text-gray-900">
-                    {telefono.extensiones}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Mando</h4>
-                  <p className="text-sm text-gray-900">
-                    {telefono.tb_mando?.mando || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Sector</h4>
-                  <p className="text-sm text-gray-900">
-                    {telefono.sector || "N/A"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Sección de Movimientos */}
-            <div className="mb-8">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                Movimientos
-              </h4>
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            {/* TAB: Movimientos */}
+            {tabActiva === "movimientos" && (
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -510,14 +499,11 @@ export default function TelefonoDetallesModal({
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200">
                     {loadingMovimientos ? (
                       <tr>
-                        <td
-                          colSpan={4}
-                          className="px-4 py-4 text-center text-sm text-gray-500"
-                        >
-                          <i className="ri-loader-4-line animate-spin mr-2"></i>
+                        <td colSpan={4} className="px-4 py-8 text-center">
+                          <i className="ri-loader-4-line animate-spin mr-2" />
                           Cargando movimientos...
                         </td>
                       </tr>
@@ -525,26 +511,28 @@ export default function TelefonoDetallesModal({
                       <tr>
                         <td
                           colSpan={4}
-                          className="px-4 py-4 text-center text-sm text-gray-500"
+                          className="px-4 py-8 text-center text-gray-500"
                         >
+                          <i className="ri-inbox-line text-3xl mb-2 block" />
                           No hay movimientos registrados
                         </td>
                       </tr>
                     ) : (
                       movimientosLocales.map((movimiento, index) => (
-                        <tr key={movimiento.id_movimiento}>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <tr key={movimiento.id_movimiento} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm text-gray-900">
                             {index + 1}
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {movimiento.tb_tipomovimiento?.movimiento || "desconocido"}
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {movimiento.tb_tipomovimiento?.movimiento ||
+                              "desconocido"}
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-4 py-3 text-sm text-gray-900">
                             {movimiento.fecha
                               ? new Date(movimiento.fecha).toLocaleDateString()
                               : "N/A"}
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-900">
+                          <td className="px-4 py-3 text-sm text-gray-900">
                             {movimiento.motivo || "N/A"}
                           </td>
                         </tr>
@@ -553,355 +541,271 @@ export default function TelefonoDetallesModal({
                   </tbody>
                 </table>
               </div>
-            </div>
+            )}
 
-            {/* Sección de Recorridos */}
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <h4 className="text-lg font-semibold text-gray-900">
-                  Recorridos
-                </h4>
-                <button
-                  onClick={() => {
-                    resetFormRecorrido();
-                    setShowNuevoRecorrido(!showNuevoRecorrido);
-                  }}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg flex items-center space-x-2"
-                >
-                  <i
-                    className={
-                      showNuevoRecorrido ? "ri-close-line" : "ri-add-line"
-                    }
-                  ></i>
-                  <span>
+            {/* TAB: Recorridos */}
+            {tabActiva === "recorridos" && (
+              <>
+                {/* Toolbar de recorridos */}
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <i className="ri-route-line text-blue-600" />
+                    Recorridos
+                  </h4>
+                  <button
+                    onClick={() => {
+                      resetFormRecorrido();
+                      setShowNuevoRecorrido(!showNuevoRecorrido);
+                    }}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition ${
+                      showNuevoRecorrido
+                        ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
+                  >
+                    <i
+                      className={
+                        showNuevoRecorrido ? "ri-close-line" : "ri-add-line"
+                      }
+                    />
                     {showNuevoRecorrido ? "Cancelar" : "Nuevo Recorrido"}
-                  </span>
-                </button>
-              </div>
-
-              {/* Formulario para nuevo/editar recorrido */}
-              {showNuevoRecorrido && (
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h5 className="text-sm font-semibold text-blue-800 mb-3">
-                    <i className="ri-add-circle-line mr-1"></i>
-                    {editandoRecorrido ? "Editar Recorrido" : "Nuevo Recorrido"}
-                  </h5>
-                  <form onSubmit={handleGuardarRecorrido} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Número *
-                        </label>
-                        <input
-                          type="number"
-                          name="numero"
-                          value={formRecorrido.numero}
-                          onChange={handleRecorridoChange}
-                          required
-                          disabled={guardando}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100"
-                          placeholder="Ej: 238971"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Par
-                        </label>
-                        <input
-                          type="text"
-                          name="par"
-                          value={formRecorrido.par}
-                          onChange={handleRecorridoChange}
-                          disabled={guardando}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100"
-                          placeholder="Ej: 52"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Terminal
-                        </label>
-                        <input
-                          type="text"
-                          name="terminal"
-                          value={formRecorrido.terminal}
-                          onChange={handleRecorridoChange}
-                          disabled={guardando}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100"
-                          placeholder="Ej: 8Q"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          De
-                        </label>
-                        <input
-                          type="text"
-                          name="de"
-                          value={formRecorrido.de}
-                          onChange={handleRecorridoChange}
-                          disabled={guardando}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100"
-                          placeholder="Ej: 1"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          A
-                        </label>
-                        <input
-                          type="text"
-                          name="a"
-                          value={formRecorrido.a}
-                          onChange={handleRecorridoChange}
-                          disabled={guardando}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100"
-                          placeholder="Ej: 100"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Dirección Terminal
-                        </label>
-                        <input
-                          type="text"
-                          name="dirter"
-                          value={formRecorrido.dirter}
-                          onChange={handleRecorridoChange}
-                          disabled={guardando}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100"
-                          placeholder="Ej: DAAFAR"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Cable
-                        </label>
-                        <select
-                          name="id_cable"
-                          value={formRecorrido.id_cable}
-                          onChange={handleRecorridoChange}
-                          disabled={guardando || loadingCombos}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100"
-                        >
-                          <option value="">Seleccionar cable</option>
-                          {cables.map((cable) => (
-                            <option key={cable.id_cable} value={cable.id_cable}>
-                              {cable.numero}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Soporte
-                        </label>
-                        <input
-                          type="text"
-                          name="soporte"
-                          value={formRecorrido.soporte}
-                          onChange={handleRecorridoChange}
-                          disabled={guardando}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100"
-                          placeholder="Ej: Soporte técnico"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Canal
-                        </label>
-                        <input
-                          type="text"
-                          name="canal"
-                          value={formRecorrido.canal}
-                          onChange={handleRecorridoChange}
-                          disabled={guardando}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100"
-                          placeholder="Ej: Canal de comunicación"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Planta
-                        </label>
-                        <select
-                          name="id_planta"
-                          value={formRecorrido.id_planta}
-                          onChange={handleRecorridoChange}
-                          disabled={guardando || loadingCombos}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100"
-                        >
-                          <option value="">Seleccionar planta</option>
-                          {plantas.map((planta) => (
-                            <option
-                              key={planta.id_planta}
-                              value={planta.id_planta}
-                            >
-                              {planta.planta}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Propietario
-                        </label>
-                        <select
-                          name="id_propietario"
-                          value={formRecorrido.id_propietario}
-                          onChange={handleRecorridoChange}
-                          disabled={guardando || loadingCombos}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100"
-                        >
-                          <option value="">Seleccionar propietario</option>
-                          {propietarios.map((propietario) => (
-                            <option
-                              key={propietario.id_propietario}
-                              value={propietario.id_propietario}
-                            >
-                              {propietario.nombre}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Sistema
-                        </label>
-                        <select
-                          name="id_sistema"
-                          value={formRecorrido.id_sistema}
-                          onChange={handleRecorridoChange}
-                          disabled={guardando || loadingCombos}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:bg-gray-100"
-                        >
-                          <option value="">Seleccionar sistema</option>
-                          {sistemas.map((sistema) => (
-                            <option
-                              key={sistema.id_sistema}
-                              value={sistema.id_sistema}
-                            >
-                              {sistema.sistema}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="flex justify-end space-x-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowNuevoRecorrido(false);
-                          resetFormRecorrido();
-                        }}
-                        disabled={guardando}
-                        className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm transition-colors disabled:opacity-50"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={guardando}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg flex items-center space-x-2 disabled:opacity-50"
-                      >
-                        {guardando && (
-                          <i className="ri-loader-4-line animate-spin"></i>
-                        )}
-                        <span>
-                          {editandoRecorrido ? "Actualizar" : "Guardar"}{" "}
-                          Recorrido
-                        </span>
-                      </button>
-                    </div>
-                  </form>
+                  </button>
                 </div>
-              )}
 
-              {/* Tabla de Recorridos - ¡AHORA USA recorridosLocales! */}
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        No.
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Terminal
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Cable/Par
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Dir. Ter. /Soporte/Canal
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        De/A
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Relaciones
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Acciones
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {recorridosLocales.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="px-4 py-4 text-center text-sm text-gray-500"
+                {/* Formulario de recorrido */}
+                {showNuevoRecorrido && (
+                  <div className="mb-6 p-5 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h5 className="text-sm font-semibold text-blue-800 mb-4 flex items-center gap-2">
+                      <i
+                        className={
+                          editandoRecorrido
+                            ? "ri-edit-line"
+                            : "ri-add-circle-line"
+                        }
+                      />
+                      {editandoRecorrido
+                        ? "Editar Recorrido"
+                        : "Nuevo Recorrido"}
+                    </h5>
+                    <form
+                      onSubmit={handleGuardarRecorrido}
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                    >
+                      <FormField
+                        label="Número *"
+                        name="numero"
+                        type="number"
+                        value={formRecorrido.numero}
+                        onChange={handleRecorridoChange}
+                        required
+                        disabled={guardando}
+                        placeholder="Ej: 238971"
+                      />
+                      <FormField
+                        label="Par"
+                        name="par"
+                        value={formRecorrido.par}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando}
+                        placeholder="Ej: 52"
+                      />
+                      <FormField
+                        label="Terminal"
+                        name="terminal"
+                        value={formRecorrido.terminal}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando}
+                        placeholder="Ej: 8Q"
+                      />
+                      <FormField
+                        label="De"
+                        name="de"
+                        value={formRecorrido.de}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando}
+                        placeholder="Ej: 1"
+                      />
+                      <FormField
+                        label="A"
+                        name="a"
+                        value={formRecorrido.a}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando}
+                        placeholder="Ej: 100"
+                      />
+                      <FormField
+                        label="Dir. Ter."
+                        name="dirter"
+                        value={formRecorrido.dirter}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando}
+                        placeholder="Ej: DAAFAR"
+                      />
+                      <FormField
+                        label="Soporte"
+                        name="soporte"
+                        value={formRecorrido.soporte}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando}
+                        placeholder="Ej: Soporte técnico"
+                      />
+                      <FormField
+                        label="Canal"
+                        name="canal"
+                        value={formRecorrido.canal}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando}
+                        placeholder="Ej: Canal de comunicación"
+                      />
+                      <SelectField
+                        label="Cable"
+                        name="id_cable"
+                        value={formRecorrido.id_cable}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando || loadingCombos}
+                        placeholder="Seleccionar cable"
+                        options={cables.map((c) => ({
+                          value: c.id_cable,
+                          label: c.numero,
+                        }))}
+                      />
+                      <SelectField
+                        label="Planta"
+                        name="id_planta"
+                        value={formRecorrido.id_planta}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando || loadingCombos}
+                        placeholder="Seleccionar planta"
+                        options={plantas.map((p) => ({
+                          value: p.id_planta,
+                          label: p.planta,
+                        }))}
+                      />
+                      <SelectField
+                        label="Propietario"
+                        name="id_propietario"
+                        value={formRecorrido.id_propietario}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando || loadingCombos}
+                        placeholder="Seleccionar propietario"
+                        options={propietarios.map((p) => ({
+                          value: p.id_propietario,
+                          label: p.nombre,
+                        }))}
+                      />
+                      <SelectField
+                        label="Sistema"
+                        name="id_sistema"
+                        value={formRecorrido.id_sistema}
+                        onChange={handleRecorridoChange}
+                        disabled={guardando || loadingCombos}
+                        placeholder="Seleccionar sistema"
+                        options={sistemas.map((s) => ({
+                          value: s.id_sistema,
+                          label: s.sistema,
+                        }))}
+                      />
+
+                      <div className="md:col-span-3 flex justify-end gap-3 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowNuevoRecorrido(false);
+                            resetFormRecorrido();
+                          }}
+                          disabled={guardando}
+                          className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm transition disabled:opacity-50"
                         >
-                          No hay recorridos registrados
-                        </td>
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={guardando}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2 disabled:opacity-50"
+                        >
+                          {guardando && (
+                            <i className="ri-loader-4-line animate-spin" />
+                          )}
+                          {editandoRecorrido ? "Actualizar" : "Guardar"} Recorrido
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* Tabla de Recorridos */}
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          No.
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Terminal
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Cable/Par
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          De/A
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Relaciones
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Acciones
+                        </th>
                       </tr>
-                    ) : (
-                      recorridosLocales.map((recorrido, index) => (
-                        <tr key={recorrido.id_recorrido}>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {index + 1}
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {recorridosLocales.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="px-4 py-8 text-center text-gray-500"
+                          >
+                            <i className="ri-inbox-line text-3xl mb-2 block" />
+                            No hay recorridos registrados
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {recorrido.terminal || "N/A"}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <div className="flex flex-col">
-                              <span>
-                                Cable: {recorrido.tb_cable?.numero || "N/A"}
-                              </span>
-                              <span>Par: {recorrido.par || "N/A"}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <div className="flex flex-col">
-                              <span>Dir.Ter: {recorrido.dirter || "N/A"}</span>
-                              <span>Soporte: {recorrido.soporte || "N/A"}</span>
-                              <span>Canal: {recorrido.canal || "N/A"}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <div className="flex flex-col">
-                              <span>De: {recorrido.de || "N/A"}</span>
-                              <span>A: {recorrido.a || "N/A"}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 text-sm text-gray-900">
-                            {renderCampoRelacionado(recorrido)}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm">
-                            <div className="flex space-x-2">
+                        </tr>
+                      ) : (
+                        recorridosLocales.map((recorrido, index) => (
+                          <tr key={recorrido.id_recorrido} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 text-sm text-gray-900">
+                              {index + 1}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-900">
+                              {recorrido.terminal || "N/A"}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-900">
+                              <div className="flex flex-col">
+                                <span>
+                                  Cable: {recorrido.tb_cable?.numero || "N/A"}
+                                </span>
+                                <span>Par: {recorrido.par || "N/A"}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-900">
+                              <div className="flex flex-col">
+                                <span>De: {recorrido.de || "N/A"}</span>
+                                <span>A: {recorrido.a || "N/A"}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-sm">
+                              {renderCampoRelacionado(recorrido)}
+                            </td>
+                            <td className="px-4 py-3 text-right space-x-1">
                               <button
                                 onClick={() => handleEditarRecorrido(recorrido)}
                                 className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 transition-colors"
                                 title="Editar recorrido"
                               >
-                                <i className="ri-edit-line"></i>
+                                <i className="ri-edit-line" />
                               </button>
                               <button
                                 onClick={() =>
-                                  handleEliminarRecorrido(
-                                    recorrido.id_recorrido,
-                                  )
+                                  handleEliminarRecorrido(recorrido.id_recorrido)
                                 }
                                 disabled={
                                   eliminandoRecorrido === recorrido.id_recorrido
@@ -909,29 +813,25 @@ export default function TelefonoDetallesModal({
                                 className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors disabled:opacity-50"
                                 title="Eliminar recorrido"
                               >
-                                {eliminandoRecorrido ===
-                                recorrido.id_recorrido ? (
-                                  <i className="ri-loader-4-line animate-spin"></i>
+                                {eliminandoRecorrido === recorrido.id_recorrido ? (
+                                  <i className="ri-loader-4-line animate-spin" />
                                 ) : (
-                                  <i className="ri-delete-bin-line"></i>
+                                  <i className="ri-delete-bin-line" />
                                 )}
                               </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
 
-            {/* Tabla de Quejas */}
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                Quejas
-              </h4>
-              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            {/* TAB: Quejas */}
+            {tabActiva === "quejas" && (
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -955,39 +855,43 @@ export default function TelefonoDetallesModal({
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200">
                     {quejas.length === 0 ? (
                       <tr>
                         <td
                           colSpan={6}
-                          className="px-4 py-4 text-center text-sm text-gray-500"
+                          className="px-4 py-8 text-center text-gray-500"
                         >
+                          <i className="ri-inbox-line text-3xl mb-2 block" />
                           No hay quejas registradas
                         </td>
                       </tr>
                     ) : (
                       quejas.map((queja) => (
-                        <tr key={queja.num_reporte}>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <a href={`./quejas/${queja.num_reporte}`}>
+                        <tr key={queja.num_reporte} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            <a
+                              href={`./quejas/${queja.num_reporte}`}
+                              className="text-blue-600 hover:text-blue-800 hover:underline"
+                            >
                               {queja.num_reporte}
                             </a>
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-4 py-3 text-sm text-gray-900">
                             {new Date(queja.fecha).toLocaleDateString()}
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-4 py-3 text-sm text-gray-900">
                             {queja.tb_trabajador?.clave_trabajador || "N/A"}
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-4 py-3 text-sm text-gray-900">
                             {queja.claveok || "N/A"}
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-4 py-3 text-sm text-gray-900">
                             {queja.fechaok
                               ? new Date(queja.fechaok).toLocaleDateString()
                               : "N/A"}
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm">
+                          <td className="px-4 py-3">
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                 queja.red
@@ -1004,10 +908,112 @@ export default function TelefonoDetallesModal({
                   </tbody>
                 </table>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function InfoCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+      <div className="flex items-start gap-3">
+        <i className={`${icon} text-gray-400 text-lg mt-0.5`} />
+        <div className="flex-1">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+            {label}
+          </p>
+          <p className="text-sm text-gray-900 mt-1 break-words">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FormField({
+  label,
+  name,
+  type = "text",
+  value,
+  onChange,
+  required = false,
+  disabled = false,
+  placeholder = "",
+}: {
+  label: string;
+  name: string;
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  required?: boolean;
+  disabled?: boolean;
+  placeholder?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+      </label>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        required={required}
+        disabled={disabled}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+        placeholder={placeholder}
+      />
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  name,
+  value,
+  onChange,
+  disabled = false,
+  placeholder = "",
+  options,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  disabled?: boolean;
+  placeholder?: string;
+  options: { value: number; label: string }[];
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+      </label>
+      <select
+        name={name}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

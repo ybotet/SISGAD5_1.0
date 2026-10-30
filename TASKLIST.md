@@ -12,7 +12,7 @@
 
 > **Última actualización:** 2026-10-29
 
-> **Estado:** En progreso (~45% completado — 134/295)
+> **Estado:** En progreso (~46% completado — 135/295)
 
 ---
 
@@ -408,7 +408,7 @@
 | ✅     | 🔴       | 🔨      | TASK-600-01 | Enrutamiento a Users        | —               | Proxy funcional        |
 | ✅     | 🔴       | 🔨      | TASK-600-02 | Enrutamiento a MP           | —               | Proxy funcional        |
 | ✅     | 🔴       | 🔨      | TASK-600-03 | Enrutamiento a Materials    | —               | Proxy funcional        |
-| ⏳      | 🔴       | 🔨      | TASK-600-04 | Verificación de JWT         | Fase A          | Middleware de auth     |
+| ✅     | 🔴       | 🔨      | **TASK-600-04** | Verificación de JWT         | Fase A          | Middleware de auth     |
 | ⏳      | 🟡       | 🔨      | TASK-600-05 | Rate limiting               | Fase A          | Límite por IP          |
 | ⏳      | 🟡       | 🔨      | TASK-600-06 | CORS                        | Fase A          | Orígenes permitidos    |
 | ⏳      | 🟡       | 🔨      | TASK-600-07 | Logging centralizado        | Fase B          | Logs JSON              |
@@ -650,7 +650,7 @@
 | 3 — Users                    | 12      | 10          | 83%      |
 | 4 — MP                       | 36      | 10          | 28%      |
 | 5 — Materials                | 34      | 22          | 65%      |
-| 6 — Gateway                  | 10      | 3           | 30%      |
+| 6 — Gateway                  | 10      | 4           | 40%      |
 | 7 — Frontend                 | 22      | 1           | 5%       |
 | 8 — Testing                  | 8       | 1           | 13%      |
 | 9 — Despliegue               | 7       | 0           | 0%       |
@@ -659,16 +659,16 @@
 | 12 — Documentación Final     | 6       | 0           | 0%       |
 | 13 — Mantenimiento           | 6       | 0           | 0%       |
 | **14 — Informe de Práctica** | **22**  | **0**       | **0%**   |
-| **TOTAL PARTE II**           | **230** | **81**      | **35%**  |
-| **TOTAL**                    | **295** | **134**     | **~45%** |
+| **TOTAL PARTE II**           | **230** | **82**      | **36%**  |
+| **TOTAL**                    | **295** | **135**     | **~46%** |
 
 ### Total General
 
 | Parte     | Tareas  | Completadas | %        |
 | --------- | ------- | ----------- | -------- |
 | Parte I   | 65      | 53          | 82%      |
-| Parte II  | 230     | 81          | 35%      |
-| **TOTAL** | **295** | **134**     | **~45%** |
+| Parte II  | 230     | 82          | 36%      |
+| **TOTAL** | **295** | **135**     | **~46%** |
 
 > **Mantenido por:** Ing. Botet C.Y.
 

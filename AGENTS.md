@@ -159,14 +159,14 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 | BUS-04 | ⏳ `fecha` de queja es `STRING`, no `DATE`/`TIMESTAMP`                   | (Fase B)            | No añadir índices de fecha sin tipo correcto      |
 | DAT-02 | ⏳ `SkipDefaultTransaction: true` en GORM                                | (Fase A, revisar)   | No escribir stock fuera de `Transaction()`        |
 | DAT-03 | ⏳ N+1: carga de detalles de consumo en bucle                            | (Fase B)            | No usar loops de carga secundaria; usar `Preload` |
-| QA-02  | ⏳ Pocos tests de Node/Frontend                                          | TASK-800-01, 800-02 | No confiar en CI sin cobertura ≥ 70%              |
+| QA-02  | ✅ Pocos tests de Node/Frontend — Gateway tests añadidos (10 tests)      | TASK-600-04, TASK-800-01, 800-02 | `npm test` pasa en gateway (10 tests)                 |
 | QA-03  | ⏳ Código muerto: `AuthController` MP, `useAuth` hook                    | (Fase B)            | No añadir más código muerto                       |
 
 ### Hallazgos Bajos (🟢)
 
 | ID     | Hallazgo                                                                 | Tarea         | Prohibido mientras tanto                          |
 | ------ | ------------------------------------------------------------------------ | ------------- | ------------------------------------------------- |
-| QA-04  | ⏳ Duplicación de `authLimiter` en el gateway                            | (Fase B)      | No duplicar middleware                            |
+| QA-04  | ✅ `authLimiter` duplicado en el gateway                               | TASK-600-04     | Una sola definición en `rateLimit.js`                  |
 | QA-05  | ⏳ Comentario de rutas Go dice `/api/v1/`; rutas son `/api/materiales`   | (Fase B)      | Alinear logs y docs                              |
 | QA-06  | ✅ `tienePermiso` recorre roles en `forEach` sin retorno                 | TASK-B-17     | Limpiar `forEach` → `some()`/return explícito     |
 | QA-07  | ⏳ Tipo `User` del hook muerto incluye `password_hash`                  | (Fase B)      | No modelar hashes en el cliente                   |

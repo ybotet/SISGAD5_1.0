@@ -160,6 +160,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=5000
+      - JWT_SECRET=${JWT_SECRET}
       - USERS_SERVICE_URL=http://backend-users:5001
       - MP_SERVICE_URL=http://backend-mp:5002
       - MATERIALES_SERVICE_URL=http://backend-materiales:5003
