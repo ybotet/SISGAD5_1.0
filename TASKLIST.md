@@ -158,8 +158,8 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ------ | ----------- | --------- | -------- | ----------- | ----------- | ------------ | ----------------------- | ---------------- | ------------------ |
 | ✅ Completada | TASK-300-01 | 🔴 | 🔨 | Implementar login con credenciales | Humano | — | `POST /api/auth/login` valida email/password, rechaza inactivos, devuelve JWT + usuario (sin `password_hash`) | Implementado en `AuthController.login` | `backend-users/src/controllers/AuthController.js` |
 | ❌ Cancelada | TASK-300-02 | 🔴 | 🔨 | Implementar registro público de usuarios | Humano | — | *(Descartada: el alta de usuarios es exclusiva de administradores vía CRUD)* | El diseño actual no expone `/register`; la creación es `POST /api/user` con permiso `usuarios.crear` | — |
-| 🔄 En progreso | TASK-300-03 | 🔴 | 🔨 | Implementar refresh tokens | Agente | TASK-300-01 | `POST /api/auth/refresh` renueva access token corto (15 min) usando refresh token de larga duración almacenado/rotado | **No implementado**: login emite un único JWT con `expiresIn: "24h"`; no existe endpoint `/refresh` | `backend-users/src/` |
-| ⏳ Pendiente | TASK-300-04 | 🔴 | 🔨 | Implementar logout (invalidación de tokens) | Agente | TASK-300-03 | `POST /api/auth/logout` invalida/blacklistea el token/refresh; cliente limpia sesión | No existe ruta de logout | `backend-users/src/` |
+| ✅ Completada | TASK-300-03 | 🔴 | 🔨 | Implementar refresh tokens | Agente | TASK-300-01 | `POST /api/auth/refresh` renueva access token corto (15 min) usando refresh token de larga duración almacenado/rotado | Access token 15 min (`JWT_EXPIRES_IN`), refresh token 7 días (`JWT_REFRESH_EXPIRES_IN`), token hash SHA-256 en BD, rotación (revoke old + issue new), session tracking en `tb_sesiones` | `backend-users/src/features/auth/` |
+| ✅ Completada | TASK-300-04 | 🔴 | 🔨 | Implementar logout (invalidación de tokens) | Agente | TASK-300-03 | `POST /api/auth/logout` invalida/blacklistea el token/refresh; cliente limpia sesión | Refresh token revocado en BD (`revoked: true`) | `backend-users/src/features/auth/` |
 | ⏳ Pendiente | TASK-300-05 | Alta | 🔨 | Implementar recuperación de contraseña | Agente | — | Flujo completo: solicitud → token temporal → reestablecimiento (con canal de correo u otro aprobado) | No implementado | `backend-users/src/` |
 | ⏳ Pendiente | TASK-300-06 | Alta | 🔨 | Implementar cambio de contraseña | Agente | TASK-300-01 | `PUT /api/users/me/password` valida contraseña actual, aplica política de complejidad y hashea (bcrypt) | No implementado | `backend-users/src/` |
 | ⏳ Pendiente | TASK-300-07 | Media | 🔨 | Implementar bloqueo por intentos fallidos | Agente | TASK-300-01 | Tras N intentos fallidos, cuenta bloqueada temporalmente con evento de auditoría | No implementado | `backend-users/src/` |
@@ -174,7 +174,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-310-03 | Alta | 🔨 | Implementar middleware de autorización por rol/permiso | Agente | — | Middleware reutilizable que valida JWT y permiso `recurso.acción` antes del handler | `middleware/auth.js`, `permissions.js`, `roles.js` en uso por users y mp | `backend-users/src/middleware/` |
 | ✅ Completada | TASK-310-04 | Media | ⚡ | Implementar endpoint `/health` | Agente | — | `GET /health` responde 200 con estado del servicio y de la BD | Presente en `server.js` línea 46 | `backend-users/src/server.js` |
 
-**Subtotal FASE 3: 5✅ + 1🔄 de 11 efectivas — 50.0% ponderado** *(1 cancelada: TASK-300-02)*
+**Subtotal FASE 3: 7✅ de 11 efectivas — ~60.0% ponderado** *(1 cancelada: TASK-300-02)*
 
 ---
 
@@ -489,7 +489,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 0 — Documentación base | 8 | 7 | 0 | 1 | 0 | **87.5%** | 37.5% |
 | FASE 1 — Diseño y modelado | 14 | 7 | 6 | 1 | 0 | **71.4%** | 57.1% |
 | FASE 2 — Infraestructura | 15 | 11 | 2 | 2 | 0 | **80.0%** | 36.8% |
-| FASE 3 — Users Service | 12 | 5 | 1 | 5 | 1 | **50.0%**¹ | 16.7% |
+| FASE 3 — Users Service | 12 | 7 | 0 | 4 | 1 | **63.6%**¹ | 16.7% |
 | FASE 4 — MP Service | 36 | 20 | 6 | 10 | 0 | **63.9%** | 25.6% |
 | FASE 5 — Materials Service | 34 | 25 | 4 | 5 | 0 | **79.4%** | 21.0%³ |
 | FASE 6 — API Gateway | 10 | 9 | 1 | 0 | 0 | **95.0%** | 30.0% |
@@ -499,7 +499,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 10 — Analítica | 8 | 0 | 4 | 4 | 0 | **25.0%** | 0.0% |
 | FASE 11 — Docs final/defensa | 3 | 0 | 2 | 1 | 0 | **33.3%** | 0.0% |
 | FASE 12 — Mantenimiento | 5 | 0 | 3 | 2 | 0 | **30.0%** | 0.0% |
-| **TOTAL** | **182** | **99** | **40** | **42** | **1** | **≈65.7%** | 25.3% |
+| **TOTAL** | **182** | **101** | **39** | **41** | **1** | **≈67.1%** | 25.3% |
 
 ¹ Excluye la tarea cancelada TASK-300-02 (base de cálculo: 11).
 ² La v1.0 declaraba totales inflados e imposibles (p. ej., 190 tareas, 89 en FASE 7, 62 en FASE 5); los conteos reales son 182 / 22 / 34.
@@ -515,7 +515,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 
 1. **Conteos imposibles:** el resumen anterior declaraba 89 tareas en FASE 7 y 62 en FASE 5, cuando las tablas contienen 22 y 27 respectivamente; el total real de tareas es 186, no 190.
 2. **Frontend subestimado (1.1% → ≈88.6%):** existen login, dashboard, módulos de teléfonos, líneas, pizarras, quejas (incluido dashboard de quejas), materiales (asignaciones/consumos/stock), estadísticas con Recharts, i18n ES/RU, protección de rutas por permiso y contexts de auth/errores.
-3. **Users Service sobrevalorado en varias ✅ y subestimado en otras:** no existe `/auth/register` (se canceló TASK-300-02), **no hay refresh tokens** (JWT único de 24h — contradice `docs/13_security.md`), ni logout, ni recuperación/cambio de contraseña. Sí están el CRUD de usuarios con permisos, roles (lectura), middleware RBAC y `/health`.
+3. **Users Service sobrevalorado en varias ✅ y subestimado en otras:** no existe `/auth/register` (se canceló TASK-300-02); **refresh tokens Y logout YA implementados** (TASK-300-03/04); no hay cambio de contraseña (TASK-300-06), bloqueo por intentos (TASK-300-07), ni endpoint de consulta de sesiones (TASK-300-08). Sí están: login, CRUD usuarios con permisos, roles (lectura), middleware RBAC y `/health`.
 4. **Gateway casi completo (30% → 95%):** rate limiting, CORS, logging, health agregado, manejo de errores y documentación (`docs/api/gateway.yaml`) ya existen; solo falta verificación JWT en el borde (hoy delegada a los backends).
 5. **Materials Service:** concurrencia con goroutines **sí está activa** (era marcada pendiente); el stub de validación de stock contra asignación permanece comentado (`verificarStockAsignacion`); `AlertasGlobales` devuelve datos de ejemplo.
 6. **Dockerfiles:** los 5 servicios tienen Dockerfile; la v1.0 marcaba pendientes 4 de ellos.
@@ -527,7 +527,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 
 ### Brechas críticas recomendadas para el próximo sprint (orden CEO)
 
-1. 🔴 **Refresh + logout + cambio de contraseña** (TASK-300-03/04/06) — requisito de seguridad ya prometido en `docs/13_security.md`.
+1. 🔴 **Cambio de contraseña + bloqueo por intentos + consultar sesiones** (TASK-300-06/07/08) — requisito de seguridad ya prometido en `docs/13_security.md`; TASK-300-03/04 ya implementados.
 2. 🔴 **Activar `verificarStockAsignacion`** (TASK-520-05/530-05) — integridad de inventario (RC-04).
 3. 🔴 **Tests unitarios Node + E2E real** (TASK-800-01/02, 810-01) — el pipeline actual da verde sin pruebas efectivas.
 4. 🟡 **Completar CD de despliegue** (TASK-900-02) y endpoint `/metrics` en servicios (TASK-220-01).
