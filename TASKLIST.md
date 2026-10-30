@@ -78,7 +78,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-000-05 | Alta | 🔨 | Crear CONTRIBUTING.md con convenciones | Agente | — | Convenciones de ramas, commits, PRs y setup local documentadas; plantilla de PR activa | `CONTRIBUTING.md` + `.github/PULL_REQUEST_TEMPLATE.md` e ISSUE_TEMPLATE presentes | `CONTRIBUTING.md`, `.github/` |
 | ✅ Completada | TASK-000-06 | Media | 🔨 | Documentar requisitos funcionales y no funcionales | Agente | — | Requisitos RF/RNF numerados, trazables a casos de uso, en `/docs/` | `docs/05_requirements.md` existe (la ruta original `docs/requirements.md` se ajustó a la convención numerada) | `docs/05_requirements.md` |
 | ✅ Completada | TASK-000-07 | Media | 🔨 | Documentar arquitectura con diagramas y decisiones | Agente | — | Diagrama de despliegue/componentes (Mermaid o imagen) + ADRs de decisiones clave | `ARCHITECTURE.md` y `docs/` cubren la arquitectura; **débil**: sin ADRs formales ni diagramas Mermaid consolidados | `ARCHITECTURE.md`, `docs/` |
-| ✅ Completada | TASK-000-08 | Alta | 🔨 | Crear roadmap de desarrollo en GitHub Projects | Humano | — | Tablero público con columnas Backlog / In Progress / Review / Done, enlazado desde el README | Docs ES/RU (docs/17_roadmap.*), config declarativa `.github/projects/sisgad5-roadmap.yml` validada (f67b410), **77 issues creados vía API REST** (#FASE/prioridad etiquetados, vinculados a TASK-ID), enlaces al roadmap y a Issues añadidos en `README.md` y `README.ru.md`. Nota: la creación del tablero Projects **v2** requiere scope `project` en el token (no estaba habilitado); puede instanciarse en github.com/ybotet/SISGAD5_1.0/projects/new importando las issues existentes | GitHub Projects, README |
+| ✅ Completada | TASK-000-08 | Alta | 🔨 | Crear roadmap de desarrollo en GitHub Projects | Humano | — | Tablero público con columnas Backlog / In Progress / Review / Done, enlazado desde el README | Docs ES/RU (docs/17_roadmap.*), config declarativa `.github/projects/sisgad5-roadmap.yml` validada (f67b410), **77 issues creados vía API REST** (#FASE/prioridad etiquetados, vinculados a TASK-ID), enlaces al roadmap y a Issues añadidos en `README.md` y `README.ru.md`. El tablero v2 quedó pendiente hasta habilitar el scope `project` en el PAT; tras actualizarlo (2026-10-31) se creó e pobló automáticamente | Tablero **Projects v2 «SISGAD5 Roadmap»** creado vía GraphQL (https://github.com/users/ybotet/projects/1), enlazado al repo, con 13 items-fase (Done/In Progress) + vistas Board/Table/Roadmap; 77 issues operativas; docs ES/RU y config declarativa. |
 
 **Subtotal FASE 0: 8/8 (100%)**
 
@@ -552,3 +552,21 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 
 ### Limitación conocida (no bloqueante)
 La creación programática del tablero **GitHub Projects v2** requiere el scope `project` en el PAT, que el token actual no incluye. Alternativas: (a) añadir el scope y reintentar; (b) crear el tablero manualmente en [github.com/ybotet/SISGAD5_1.0/projects](https://github.com/ybotet/SISGAD5_1.0/projects) usando la plantilla Board e importando las 77 issues ya existentes (~2 min). La estructura de columnas está definida declarativamente en `.github/projects/sisgad5-roadmap.yml`.
+
+---
+
+## 18. Registro de Cambios v2.3 — Tablero GitHub Projects v2 operativo (cierre de limitación conocida de v2.2)
+
+**Fecha:** 2026-10-31 · **Método:** GitHub GraphQL API con PAT actualizado (scope `project` habilitado).
+
+### Qué se ejecutó
+1. **Tablero Projects v2 «SISGAD5 Roadmap» (#1)** creado para el usuario `ybotet`: https://github.com/users/ybotet/projects/1
+2. **Enlazado al repositorio** `SISGAD5_1.0` (visible desde la pestaña Projects del repo).
+3. **13 items creados** (uno por fase, FASE 0–12) como draft-issues con cuerpo que incluye % real y conteo ✅/🔄/⏳ extraído del Resumen de Progreso v2.2. Estado del tablero: FASE 0 → Done; FASE 1–12 → In Progress.
+4. **3 vistas añadidas**: *Roadmap — BOARD_LAYOUT*, *Roadmap — TABLE_LAYOUT*, *Roadmap — ROADMAP_LAYOUT*.
+5. Se resolvió la "limitación conocida" documentada en §17 (v2.2): ya no es necesario crear el tablero manualmente.
+
+### Reglas de operación acordadas
+- **Fuente única de verdad técnica:** este `TASKLIST.md` (tarea a tarea, con criterios de aceptación).
+- **Vista ejecutiva:** el tablero Projects v2 opera a nivel de **fase**; al cerrar una fase completa se mueve su item a Done.
+- **Vista operativa:** los 77 issues de tareas pendientes siguen en el repo; cerrar un issue ⇒ actualizar la tarea en este documento y, si corresponde, mover el item del tablero.
