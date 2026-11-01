@@ -471,7 +471,88 @@ ConsumoItem * ── 1 Material
 
 ## 9. Diagramas de Clases
 
-Ver diagrama fuente en: [`docs/diagrams/class_diagrams/`](../diagrams/class_diagrams/)
+> **Archivo fuente (PlantUML completo, 39 entidades):** [`docs/diagrams/class_diagrams/domain_model_classes.puml`](../diagrams/class_diagrams/domain_model_classes.puml) — instrucciones de renderizado en el [README de la carpeta](../diagrams/class_diagrams/README.md).
+> A continuación se incluye una versión resumida en Mermaid, renderizada directamente por GitHub, con los agregados raíz y relaciones principales de cada contexto.
+
+```mermaid
+classDiagram
+    direction LR
+
+    %% ===== Usuarios y Autenticación (backend-users) =====
+    class User { +username String +email Email +passwordHash PasswordHash +estado String }
+    class Sesion { +tokenAcceso TokenJWT +tokenRefresco RefreshToken +expiraEn DateTime }
+    class Rol { +nombre String }
+    class Permiso { +codigo String +recurso String +accion String }
+    User "1" --> "*" Sesion
+    User "1" --> "*" Rol : User_Roles
+    Rol "1" --> "*" Permiso : Roles_Permisos
+
+    %% ===== Quejas y Trabajos — Mesa de Prueba (backend-mp) =====
+    class Telefono { +numero String +estado String }
+    class Linea { +numero String +tipo String }
+    class Pizarra { +nombre String +ubicacion Coordinates }
+    class Puerto { +numero Integer +estado String }
+    class Queja { +folio String +prioridad Priority +estado String }
+    class FlujoEstadoQueja { +estadoAnterior String +estadoNuevo String }
+    class Prueba { +resultado String }
+    class Trabajo { +descripcion String +estado String }
+    Pizarra "1" --> "*" Puerto
+    Queja --> "0..1" Telefono
+    Queja --> "0..1" Linea
+    Queja --> "0..1" Pizarra
+    Queja "1" --> "*" FlujoEstadoQueja
+    Queja --> "0..1" User : técnico asignado
+    Prueba --> "0..1" Queja
+    Trabajo --> "0..1" Queja
+    Trabajo --> User : técnico
+
+    %% ===== Gestión de Materiales (backend-materiales-go) =====
+    class Material { +codigo String +precio Money +stockActual Quantity }
+    class Categoria { +nombre String }
+    class UnidadMedida { +abreviatura String }
+    class Asignacion { +folio String +estado String }
+    class AsignacionItem { +cantidad Quantity }
+    class Consumo { +folio String }
+    class ConsumoItem { +cantidad Quantity }
+    Material --> Categoria
+    Material --> UnidadMedida
+    Asignacion "1" --> "*" AsignacionItem
+    AsignacionItem --> Material
+    Consumo "1" --> "*" ConsumoItem
+    ConsumoItem --> Material
+    Asignacion --> User : trabajador
+    Consumo --> Trabajo
+
+    %% ===== Predicción y Analítica (prediction-service, Python) =====
+    class ModeloML { +nombre String +version String }
+    class Prediccion { +valor Float +confianza Float }
+    class ModelMetrics { +mae Float +rmse Float +accuracy Float }
+    ModeloML "1" --> "1" ModelMetrics
+    ModeloML "1" --> "*" Prediccion
+    Queja ..> Prediccion : prioridad / tiempo-resolución
+    Consumo ..> Prediccion : anomalías
+    Material ..> Prediccion : demanda
+
+    %% ===== Seguridad e Infraestructura (técnico) =====
+    class SistemaMonitoreo { +servicio String +estado String }
+    class RegistroAuditoria { +accion String +entidad String +cambios JSON }
+
+    %% ===== Shared Kernel — Catálogos y Value Objects =====
+    class Clave
+    class TipoQueja
+    class Servicio
+    class Ubicacion
+    class Money <<ValueObject>>
+    class Quantity <<ValueObject>>
+    class Priority <<ValueObject>>
+    class Coordinates <<ValueObject>>
+    Queja --> Clave
+    Queja --> TipoQueja
+    Queja --> Servicio
+    Queja --> Ubicacion
+
+    note for ModeloML "ACL planificadas (no modeladas):\nSAP ERP (RF-MAT-27) · GLPI (sin RF)"
+```
 
 ---
 
