@@ -32,6 +32,7 @@ const ClasificadorclaveController = {
         }
 
         // Forzar valores seguros (nunca undefined/NaN)
+        const ALLOWED_SORT = ["clasificador", "created_at", "updated_at"];
         const sortByRaw = req.query.sortBy;
         const sortByValue =
           typeof sortByRaw === "string" && ALLOWED_SORT.includes(sortByRaw)

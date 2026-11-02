@@ -17,7 +17,8 @@
     "swagger:export": "node -e \"const swagger=require('./src/config/swagger');const fs=require('fs');fs.mkdirSync('docs',{recursive:true});fs.writeFileSync('docs/swagger.json',JSON.stringify(swagger,null,2));console.log('✅ Swagger exportado a docs/swagger.json')\"",
     "migrate:timezone": "node scripts/migrate-timezone.js",
     "fix:dates": "node scripts/fix-existing-dates.js",
-    "test:db": "node scripts/test-db.js"
+    "test:db": "node scripts/test-db.js",
+    "lint": "eslint ."
   },
   "keywords": [
     "express",
@@ -47,6 +48,9 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "sequelize-cli": "^6.6.5",
-    "supertest": "^7.3.1"
+    "supertest": "^7.3.1",
+    "eslint": "^9.36.0",
+    "@eslint/js": "^9.36.0",
+    "globals": "^15.12.0"
   }
 }
