@@ -92,8 +92,8 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ------ | ----------- | --------- | -------- | ----------- | ----------- | ------------ | ----------------------- | ---------------- | ------------------ |
 | ✅ Completada | TASK-100-01 | 🔴 | 🏗️ | Diagrama/documento de casos de uso (24 casos, 7 actores) | Humano | — | Catálogo completo de casos con actores, flujos principales/alternativos y relaciones include/extend | `docs/03_use_cases.md` y `docs/02_actors.md` documentados | `docs/02`, `docs/03` |
 | ✅ Completada | TASK-100-02 | 🔴 | 🏗️ | Diagrama de clases/modelo de dominio (28 clases, 5 contextos) | Humano | — | Modelo de dominio con atributos, relaciones y contextos delimitados | `docs/07_domain_model.md` + `docs/11_data_model.md` | `docs/07`, `docs/11` |
-| 🔄 En progreso | TASK-100-03 | 🔴 | 🏗️ | Diagrama de paquetes (5 paquetes/servicios) | Humano | — | Diagrama con dependencias entre gateway, servicios, frontend e infra | Cubierto parcialmente en texto por `ARCHITECTURE.md`/`ESTRUCTURA.md`; falta diagrama formal UML | `ARCHITECTURE.md`, `docs/` |
-| 🔄 En progreso | TASK-100-04 | 🔴 | 🏗️ | Diagramas de secuencia (3 escenarios críticos) | Humano | — | 3+ escenarios (registro de queja, asignación de materiales, autenticación) con mensajes numerados | `docs/08_sequence_diagrams.md` existe como texto; sin diagramas renderizables (Mermaid/PlantUML) | `docs/08_sequence_diagrams.md` |
+| ✅ Completada | TASK-100-03 | 🔴 | 🏗️ | Diagrama de paquetes (5 paquetes/servicios) | Humano | — | Diagrama con dependencias entre gateway, servicios, frontend e infra | Diagrama formal Mermaid + PlantUML verificado (v2.4) en `docs/diagrams/component_diagrams/package_diagram.md` | `docs/diagrams/component_diagrams/package_diagram.md` |
+| ✅ Completada | TASK-100-04 | 🔴 | 🏗️ | Diagramas de secuencia (3 escenarios críticos) | Humano | — | 3+ escenarios (registro de queja, asignación de materiales, autenticación) con mensajes numerados | Diagramas Mermaid renderizables con 3+ escenarios en `docs/diagrams/sequence_diagrams/sequence_diagrams.md` | `docs/diagrams/sequence_diagrams/sequence_diagrams.md` |
 | ✅ Completada | TASK-100-05 | 🔴 | 🔨 | Diccionario de términos (Ubiquitous Language) | Humano | — | Términos del dominio definidos y unificados (ES/RU) | `docs/04_glossary.md` presente | `docs/04_glossary.md` |
 | ⏳ Pendiente | TASK-100-06 | 🔴 | 🔨 | Matriz de trazabilidad | Humano | TASK-000-06, TASK-100-01 | Tabla Requisito → Caso de uso → Endpoint/Clase → Test, sin huérfanos | No existe documento de trazabilidad | `docs/` |
 | ✅ Completada | TASK-100-07 | 🔴 | 🔨 | User Story Map | Humano | — | Mapa de historias por actor con liberaciones (MVP/v1/v2) | `docs/practices/practice_02_user_story_map.md` | `docs/practices/` |
@@ -110,7 +110,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-110-05 | Alta | 🔨 | Diseñar estrategia de autenticación (JWT + Refresh) | Agente | — | Documento con flujo access+refresh, expiraciones, rotación y revocación | `docs/13_security.md` describe access(15m)+refresh(7d) con rotación/revocación Y está implementado en código (`jwt.js`, modelos `RefreshToken`/`Sesion`, login/refresh/logout en auth.controller). Corregido: la v2.0 afirmaba "refresh no implementado" basándose en una versión obsoleta del backend-users | `docs/13_security.md` |
 | ✅ Completada | TASK-110-06 | Alta | 🔨 | Mapear permisos RBAC por endpoint | Agente | — | Matriz rol × permiso × endpoint alineada con el middleware real | `docs/12_rbac_matrix.md` + middleware `permissions.js` (`tienePermiso('x.y')`) en uso | `docs/12_rbac_matrix.md` |
 
-**Subtotal FASE 1: 10✅ + 3🔄 de 14 — 82.1% ponderado** *(actualizado v2.1.x: recuento verificado sobre las tablas)*
+**Subtotal FASE 1: 12✅ + 1🔄 de 14 — 89.3% ponderado** *(v2.4: TASK-100-03/04 cerradas tras verificarse los diagramas Mermaid/PlantUML en `docs/diagrams/`)*
 
 ---
 
@@ -163,7 +163,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ⏳ Pendiente | TASK-300-05 | Alta | 🔨 | Implementar recuperación de contraseña | Agente | — | Flujo completo: solicitud → token temporal → reestablecimiento (con canal de correo u otro aprobado) | No implementado (marcado PLANIFICADO en `docs/api/users.yaml` v2.1.0) | `backend-users/src/` |
 | ⏳ Pendiente | TASK-300-06 | Alta | 🔨 | Implementar cambio de contraseña | Agente | TASK-300-01 | Endpoint self-service valida contraseña actual, aplica política de complejidad y hashea (bcrypt) | No implementado (marcado PLANIFICADO en `docs/api/users.yaml` v2.1.0) | `backend-users/src/` |
 | ⏳ Pendiente | TASK-300-07 | Media | 🔨 | Implementar bloqueo por intentos fallidos | Agente | TASK-300-01 | Tras N intentos fallidos, cuenta bloqueada temporalmente con evento de auditoría | No implementado | `backend-users/src/` |
-| 🔄 En progreso | TASK-300-08 | Media | 🔨 | Implementar historial de sesiones | Agente | TASK-300-03 | Registro de sesiones (IP, user-agent, timestamp) consultable | Modelo `Sesion` existe (`features/auth/session.model.js`) y se usa en login; falta endpoint de consulta | `backend-users/src/features/auth/` |
+| ✅ Completada | TASK-300-08 | Media | 🔨 | Implementar historial de sesiones | Agente | TASK-300-03 | Registro de sesiones (IP, user-agent, timestamp) consultable | **Implementado**: `_consultarSesiones()` en `auth.controller.js`; endpoints `GET /api/auth/sesiones` (propio) y `GET /api/auth/sesiones/usuario/:id_usuario` (auditoría, permiso RBAC `sesiones:read_all`) con filtros (evento, exitoso, desde/hasta) y paginación; validación Zod en `session.validation.js`; documentado en `docs/api/users.yaml` v2.2.0 | `backend-users/src/features/auth/` |
 
 ### 5.2. Gestión de Usuarios y Roles
 
@@ -174,7 +174,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-310-03 | Alta | 🔨 | Implementar middleware de autorización por rol/permiso | Agente | — | Middleware reutilizable que valida JWT y permiso `recurso.acción` antes del handler | `middleware/auth.js`, `permissions.js`, `roles.js` en uso por users y mp | `backend-users/src/middleware/` |
 | ✅ Completada | TASK-310-04 | Media | ⚡ | Implementar endpoint `/health` | Agente | — | `GET /health` responde 200 con estado del servicio y de la BD | Presente en `server.js` línea 46 | `backend-users/src/server.js` |
 
-**Subtotal FASE 3: 7✅ + 1🔄 de 11 efectivas — 68.2% ponderado** *(1 cancelada: TASK-300-02; v2.1.0: refresh/logout/session-model ya implementados)*
+**Subtotal FASE 3: 8✅ de 11 efectivas — 72.7% ponderado** *(1 cancelada: TASK-300-02; v2.4: TASK-300-08 cerrada — endpoints de consulta de sesiones implementados y documentados)*
 
 ---
 
@@ -487,9 +487,9 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | Fase | Total | ✅ | 🔄 | ⏳ | ❌ | % Real (ponderado) | % Anterior (v1.0) |
 | ---- | ----- | -- | -- | -- | -- | ------------------ | ----------------- |
 | FASE 0 — Documentación base | 8 | 8 | 0 | 0 | 0 | **100%** | 37.5% |
-| FASE 1 — Diseño y modelado | 14 | 10 | 3 | 1 | 0 | **82.1%** | 57.1% |
+| FASE 1 — Diseño y modelado | 14 | 12 | 1 | 1 | 0 | **89.3%** | 57.1% |
 | FASE 2 — Infraestructura | 15 | 11 | 2 | 2 | 0 | **80.0%** | 36.8% |
-| FASE 3 — Users Service | 12 | 7 | 1 | 3 | 1 | **68.2%**¹ | 16.7% |
+| FASE 3 — Users Service | 12 | 8 | 0 | 3 | 1 | **72.7%**¹ | 16.7% |
 | FASE 4 — MP Service | 36 | 20 | 6 | 10 | 0 | **63.9%** | 25.6% |
 | FASE 5 — Materials Service | 34 | 25 | 4 | 5 | 0 | **79.4%** | 21.0%³ |
 | FASE 6 — API Gateway | 10 | 9 | 1 | 0 | 0 | **95.0%** | 30.0% |
@@ -499,7 +499,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 10 — Analítica | 8 | 0 | 4 | 4 | 0 | **25.0%** | 0.0% |
 | FASE 11 — Docs final/defensa | 3 | 0 | 2 | 1 | 0 | **33.3%** | 0.0% |
 | FASE 12 — Mantenimiento | 5 | 0 | 3 | 2 | 0 | **30.0%** | 0.0% |
-| **TOTAL** | **182** | **105** | **37** | **39** | **1** | **≈68.2%** | 25.3% |
+| **TOTAL** | **182** | **108** | **34** | **39** | **1** | **≈69.2%** | 25.3% |
 
 ¹ Excluye la tarea cancelada TASK-300-02 (base de cálculo: 11).
 ² La v1.0 declaraba totales inflados e imposibles (p. ej., 190 tareas, 89 en FASE 7, 62 en FASE 5); los conteos reales son 182 / 22 / 34.
@@ -515,7 +515,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 
 1. **Conteos imposibles:** el resumen anterior declaraba 89 tareas en FASE 7 y 62 en FASE 5, cuando las tablas contienen 22 y 27 respectivamente; el total real de tareas es 186, no 190.
 2. **Frontend subestimado (1.1% → ≈88.6%):** existen login, dashboard, módulos de teléfonos, líneas, pizarras, quejas (incluido dashboard de quejas), materiales (asignaciones/consumos/stock), estadísticas con Recharts, i18n ES/RU, protección de rutas por permiso y contexts de auth/errores.
-3. **Users Service sobrevalorado en varias ✅ y subestimado en otras:** no existe `/auth/register` (se canceló TASK-300-02); **refresh tokens Y logout YA implementados** (TASK-300-03/04); no hay cambio de contraseña (TASK-300-06), bloqueo por intentos (TASK-300-07), ni endpoint de consulta de sesiones (TASK-300-08). Sí están: login, CRUD usuarios con permisos, roles (lectura), middleware RBAC y `/health`.
+3. **Users Service sobrevalorado en varias ✅ y subestimado en otras:** no existe `/auth/register` (se canceló TASK-300-02); **refresh tokens Y logout YA implementados** (TASK-300-03/04); no hay cambio de contraseña (TASK-300-06), bloqueo por intentos (TASK-300-07). Sí están: login, CRUD usuarios con permisos, roles (lectura), middleware RBAC, `/health` y —desde v2.4— consulta de historial de sesiones (TASK-300-08).
 4. **Gateway casi completo (30% → 95%):** rate limiting, CORS, logging, health agregado, manejo de errores y documentación (`docs/api/gateway.yaml`) ya existen; solo falta verificación JWT en el borde (hoy delegada a los backends).
 5. **Materials Service:** concurrencia con goroutines **sí está activa** (era marcada pendiente); el stub de validación de stock contra asignación permanece comentado (`verificarStockAsignacion`); `AlertasGlobales` devuelve datos de ejemplo.
 6. **Dockerfiles:** los 5 servicios tienen Dockerfile; la v1.0 marcaba pendientes 4 de ellos.
@@ -531,7 +531,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 2. 🔴 **Activar `verificarStockAsignacion`** (TASK-520-05/530-05) — integridad de inventario (RC-04).
 3. 🔴 **Tests unitarios Node + E2E real** (TASK-800-01/02, 810-01) — el pipeline actual da verde sin pruebas efectivas.
 4. 🟡 **Completar CD de despliegue** (TASK-900-02) y endpoint `/metrics` en servicios (TASK-220-01).
-5. 🟡 **Matriz de trazabilidad y diagramas visuales** (TASK-100-03/04/06, 110-04) — necesario para la defensa de tesis.
+5. 🟡 **Matriz de trazabilidad y diagramas visuales restantes** (TASK-100-06, 110-04) — necesario para la defensa de tesis. *(v2.4: diagramas de paquetes y secuencia ya cerrados — TASK-100-03/04 ✅; historial de sesiones cerrado — TASK-300-08 ✅)*
 6. ⚪ Retirar `api.exe` binario del repo, eliminar `@supabase/supabase-js` no usado y la ruta `/debug-login` antes de producción.
 
 ---
@@ -570,3 +570,23 @@ La creación programática del tablero **GitHub Projects v2** requiere el scope 
 - **Fuente única de verdad técnica:** este `TASKLIST.md` (tarea a tarea, con criterios de aceptación).
 - **Vista ejecutiva:** el tablero Projects v2 opera a nivel de **fase**; al cerrar una fase completa se mueve su item a Done.
 - **Vista operativa:** los 77 issues de tareas pendientes siguen en el repo; cerrar un issue ⇒ actualizar la tarea en este documento y, si corresponde, mover el item del tablero.
+
+---
+
+## 19. Registro de Cambios v2.4 — Cierre TASK-300-08 (historial de sesiones) + verificación TASK-100-03/04
+
+**Fecha:** 2026-11-02 · **Responsable:** Agente (implementación) · **Método:** inspección del código real y de `docs/diagrams/`.
+
+### Qué se ejecutó
+1. **TASK-300-08 ✅ (historial de sesiones consultable)** en `backend-users`:
+   - `auth.controller.js`: `_consultarSesiones()` con filtros (`evento`, `exitoso`, `desde`, `hasta`) y paginación (`page`/`limit`); handlers `consultarSesionesPropias` y `consultarSesionesUsuario`.
+   - `session.validation.js` (nuevo): esquemas Zod para los query params.
+   - `auth.routes.js`: `GET /api/auth/sesiones` (usuario autenticado) y `GET /api/auth/sesiones/usuario/:id_usuario` (auditoría, protegida por permiso RBAC `sesiones:read_all`).
+   - `docs/api/users.yaml` v2.2.0: ambos endpoints documentados (verificado sintaxis JS y YAML).
+2. **TASK-100-03 ✅ confirmada:** el diagrama de paquetes formal existe con Mermaid + PlantUML renderizables en `docs/diagrams/component_diagrams/package_diagram.md` (v2.4 del propio diagrama). La evidencia de la tabla ("falta diagrama formal") estaba obsoleta.
+3. **TASK-100-04 ✅ confirmada:** `docs/diagrams/sequence_diagrams/sequence_diagrams.md` contiene diagramas Mermaid de 3+ escenarios críticos (autenticación JWT, registro de queja, asignación de materiales) con tablas de mensajes numerados.
+4. **Subtotales recalculados:** FASE 1 = 12✅ + 1🔄 de 14 → **89.3%**; FASE 3 = 8✅ de 11 efectivas → **72.7%**; TOTAL = 108✅ + 34🔄 + 39⏳ + 1❌ de 182 → **≈69.2% ponderado**.
+5. **Pendiente operativo (bloqueado):** cierre de los issues GitHub correspondientes a TASK-300-08/100-03/100-04 y actualización del tablero Projects v2 — el token PAT embebido en la URL remota está revocado/expirado (`Invalid username or token` al hacer push); se requiere rotación del token por el propietario.
+
+### Regla recordada
+Fuente única de verdad: este documento; los issues/tablero son vistas operativas que deben sincronizarse cuando se restablezca el acceso API.
