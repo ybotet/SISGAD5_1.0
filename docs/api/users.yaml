@@ -8,7 +8,7 @@ info:
 
     **Servicio:** backend-users (Node.js + Express + Sequelize) — Puerto 5001
     **Base de datos:** bd_sisgad5_users (PostgreSQL)
-  version: 2.1.0
+  version: 2.2.0
   contact:
     name: SISGAD5 Team
     url: https://github.com/ybotet/SISGAD5_1.0
@@ -565,6 +565,84 @@ paths:
           description: Validación Joi fallida
         "401":
           description: No autenticado
+
+  /auth/sesiones:
+    get:
+      summary: "Historial de sesiones del usuario autenticado (IP, user-agent, timestamp). Filtros: evento (login|refresh|logout), exitoso, desde, hasta; paginación page/limit."
+      operationId: get_auth_sesiones
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: evento
+          in: query
+          schema: {type: string, enum: [login, refresh, logout]}
+        - name: exitoso
+          in: query
+          schema: {type: string, enum: ["true", "false"]}
+        - name: desde
+          in: query
+          schema: {type: string, format: date-time}
+        - name: hasta
+          in: query
+          schema: {type: string, format: date-time}
+        - name: page
+          in: query
+          schema: {type: integer, minimum: 1, default: 1}
+        - name: limit
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 100, default: 20}
+      responses:
+        "200":
+          description: OK — envoltura {success, data:{sesiones[], paginacion}}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Zod fallida
+        "401":
+          description: No autenticado
+
+  /auth/sesiones/usuario/{id_usuario}:
+    get:
+      summary: Historial de sesiones de un usuario específico (auditoría). Requiere permiso RBAC `sesiones:read_all`.
+      operationId: get_auth_sesiones_usuario
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id_usuario
+          in: path
+          required: true
+          schema: {type: integer}
+        - name: evento
+          in: query
+          schema: {type: string, enum: [login, refresh, logout]}
+        - name: exitoso
+          in: query
+          schema: {type: string, enum: ["true", "false"]}
+        - name: desde
+          in: query
+          schema: {type: string, format: date-time}
+        - name: hasta
+          in: query
+          schema: {type: string, format: date-time}
+        - name: page
+          in: query
+          schema: {type: integer, minimum: 1, default: 1}
+        - name: limit
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 100, default: 20}
+      responses:
+        "200":
+          description: OK — envoltura {success, data:{sesiones[], paginacion}}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación Zod fallida
+        "401":
+          description: No autenticado
+        "403":
+          description: Permiso denegado (se requiere `sesiones:read_all`)
 
   # ============================================================
   # PLANIFICADO (no implementado aún — ver TASKLIST.md Fase Users)
