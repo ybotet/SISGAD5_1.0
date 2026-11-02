@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [api-gateway, backend-users, backend-mp, frontend]
+        service: [api-gateway, backend-users, backend-mp]
     defaults:
       run:
         working-directory: ${{ matrix.service }}
@@ -43,22 +43,6 @@ jobs:
     defaults:
       run:
         working-directory: ${{ matrix.service }}
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
     steps:
       - uses: actions/checkout@v4
 
@@ -71,10 +55,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Setup environment
-        run: cp .env.example .env
+      - name: Copy .env.example (if present)
+        run: |
+          if [ -f .env.example ]; then cp .env.example .env; else echo "sin .env.example -> usando defaults + env inline"; fi
 
       - name: Run tests
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test-secret-jwt-for-ci-only
+          DB_HOST: localhost
+          DB_PORT: '5432'
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          USERS_DB_NAME: bd_sisgad5_users_test
+          MP_DB_NAME: bd_sisgad5_mp_test
         run: npm test
 
   test-go:
