@@ -1,0 +1,6 @@
+stateDiagram-v2
+    [*] --> Activo: Registro / activacion
+    Activo --> Bloqueado: 5 intentos fallidos
+    Bloqueado --> Activo: Expira bloqueo (15min) o desbloqueo admin
+    Activo --> Inactivo: Soft delete admin
+    Inactivo --> Activo: Reactivacion admin

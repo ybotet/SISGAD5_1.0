@@ -1,0 +1,8 @@
+stateDiagram-v2
+    [*] --> Instalada: Movimiento Alta / Instalacion
+    Instalada --> Trasladata: Movimiento Traslado
+    Trasladata --> Trasladata: Nuevo Traslado
+    Instalada --> Baja: Movimiento Baja
+    Trasladata --> Baja: Movimiento Baja
+    Baja --> Instalada: Reactivacion (nueva Alta)
+    Baja --> [*]: Fin de vida del recurso

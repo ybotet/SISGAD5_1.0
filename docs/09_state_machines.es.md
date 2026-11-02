@@ -262,12 +262,14 @@ Activo → Bloqueado → Activo
 
 ## 5. Diagramas Fuente
 
-Ver archivos Mermaid en: [`docs/diagrams/state_machines/`](../diagrams/state_machines/)
+Archivos Mermaid versionados en: [`docs/diagrams/state_machines/`](../diagrams/state_machines/)
 
-- `queja_state.mmd`
-- `movimiento_state.mmd` (Teléfono/Línea)
-- `sesion_state.mmd`
-- `usuario_state.mmd`
+| Archivo | Máquina | Documento |
+|---------|---------|-----------|
+| `queja_state.mmd` | Queja (MP Service) | §1 |
+| `movimiento_state.mmd` | Teléfono/Línea por Movimientos (MP Service) | §2 |
+| `sesion_state.mmd` | Sesión (Auth Context) | §3 |
+| `usuario_state.mmd` | Usuario (Users Context) | §4 |
 
 > ⚠️ Eliminados v3.0: `trabajo_state.mmd` y `asignacion_state.mmd` (sin máquina de estado propia).
 
