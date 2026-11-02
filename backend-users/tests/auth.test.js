@@ -302,3 +302,134 @@ describe("Cambio de contraseña (TASK-300-06)", () => {
     expect(res.body.success).toBe(false);
   });
 });
+
+describe("Bloqueo por intentos fallidos (TASK-300-07)", () => {
+  const { TbUser } = require("../src/features");
+  const validToken = jwt.sign({ id: 1, email: "test@example.com" }, process.env.JWT_SECRET);
+
+  const createMockUsuario = (overrides = {}) => ({
+    id_usuario: 1,
+    email: "test@example.com",
+    activo: true,
+    failed_attempts: 0,
+    locked_until: null,
+    verificarPassword: jest.fn(),
+    update: jest.fn().mockImplementation(async (data) => {
+      Object.assign(this, data);
+      return true;
+    }),
+    toJSON: jest.fn().mockReturnValue({
+      id_usuario: 1,
+      email: "test@example.com",
+      failed_attempts: 0,
+      locked_until: null,
+    }),
+    ...overrides,
+  });
+
+  let mockUsuario;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUsuario = createMockUsuario();
+    // Sobrescribir update para que realmente modifique las propiedades del mock
+    mockUsuario.update = jest.fn().mockImplementation(async (data) => {
+      Object.assign(mockUsuario, data);
+      return true;
+    });
+    TbUser.findOne.mockResolvedValue(mockUsuario);
+    RefreshToken.update.mockResolvedValue([1]);
+    Sesion.create.mockResolvedValue(true);
+  });
+
+  it("5 fallos consecutivos bloquean la cuenta (423)", async () => {
+    mockUsuario.verificarPassword.mockResolvedValue(false);
+
+    // 5 intentos fallidos
+    for (let i = 0; i < 5; i++) {
+      const res = await request(app)
+        .post("/api/auth/login")
+        .send({ email: "test@example.com", password: "WrongPass1!" });
+
+      if (i < 4) {
+        expect(res.status).toBe(401);
+        expect(res.body.message).toBe("Credenciales inválidas");
+      } else {
+        // El 5to intento alcanza el umbral y bloquea
+        expect(res.status).toBe(401);
+        expect(mockUsuario.update).toHaveBeenLastCalledWith({
+          failed_attempts: 5,
+          locked_until: expect.any(Date),
+        });
+      }
+    }
+
+    // Verificar que la cuenta quedó bloqueada
+    expect(mockUsuario.failed_attempts).toBe(5);
+    expect(mockUsuario.locked_until).toBeInstanceOf(Date);
+  });
+
+  it("Login durante bloqueo devuelve 423 con retry_after", async () => {
+    const blockedUntil = new Date();
+    blockedUntil.setMinutes(blockedUntil.getMinutes() + 15);
+    mockUsuario.locked_until = blockedUntil;
+    mockUsuario.failed_attempts = 5;
+
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({ email: "test@example.com", password: "CorrectPass1!" });
+
+    expect(res.status).toBe(423);
+    expect(res.body.success).toBe(false);
+    expect(res.body.retry_after).toBeGreaterThan(0);
+    expect(mockUsuario.verificarPassword).not.toHaveBeenCalled();
+  });
+
+  it("Login exitoso resetea intentos fallidos y bloqueo", async () => {
+    mockUsuario.failed_attempts = 5;
+    mockUsuario.locked_until = null; // no bloqueado, pero con intentos previos
+    mockUsuario.verificarPassword.mockResolvedValue(true);
+
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({ email: "test@example.com", password: "CorrectPass1!" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(mockUsuario.update).toHaveBeenLastCalledWith({
+      failed_attempts: 0,
+      locked_until: null,
+    });
+  });
+
+  it("Cuenta bloqueada expirada permite login exitoso", async () => {
+    const expiredLock = new Date();
+    expiredLock.setMinutes(expiredLock.getMinutes() - 5); // expirado hace 5 min
+    mockUsuario.locked_until = expiredLock;
+    mockUsuario.failed_attempts = 5;
+    mockUsuario.verificarPassword.mockResolvedValue(true);
+
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({ email: "test@example.com", password: "CorrectPass1!" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(mockUsuario.update).toHaveBeenLastCalledWith({
+      failed_attempts: 0,
+      locked_until: null,
+    });
+  });
+
+  it("Mensaje de error es genérico (no revela si el email existe)", async () => {
+    TbUser.findOne.mockResolvedValue(null);
+
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({ email: "nonexistent@example.com", password: "AnyPass1!" });
+
+    expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe("Credenciales inválidas");
+  });
+});

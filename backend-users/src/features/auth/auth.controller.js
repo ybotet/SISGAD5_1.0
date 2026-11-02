@@ -9,6 +9,10 @@ const {
 
 requireJwtSecret();
 
+// Umbral de intentos y duración de bloqueo (configurable via .env)
+const LOGIN_MAX_ATTEMPTS = parseInt(process.env.LOGIN_MAX_ATTEMPTS || "5", 10);
+const LOGIN_LOCK_MINUTES = parseInt(process.env.LOGIN_LOCK_MINUTES || "15", 10);
+
 /**
  * Registra un evento de sesión en tb_sesiones.
  * @param {number|null} idUsuario — ID del usuario (null si no se conoce)
@@ -104,31 +108,85 @@ const authController = {
         ],
       });
 
+      // Si el usuario no existe, devolvemos error genérico (no revelamos si el email existe)
       if (!usuario) {
-        console.log("❌ Usuario no encontrado:", email);
+        console.log("❌ Intento de login con email no registrado:", email);
+        await registrarSesion(null, "login", req, false, "Email no registrado");
         return res.status(401).json({
           success: false,
           message: "Credenciales inválidas",
         });
       }
 
-      if (!usuario.activo) {
-        console.log("❌ Usuario inactivo:", email);
-        await registrarSesion(usuario.id_usuario, "login", req, false, "Usuario inactivo");
-        return res.status(401).json({
+      // Verificar si la cuenta está bloqueada
+      if (usuario.locked_until && new Date(usuario.locked_until) > new Date()) {
+        const retryAfter = Math.ceil(
+          (new Date(usuario.locked_until) - new Date()) / 1000 / 60
+        );
+        console.log(
+          "🔒 Intento de login en cuenta bloqueada:",
+          { id_usuario: usuario.id_usuario, email, retry_after_min: retryAfter }
+        );
+        await registrarSesion(
+          usuario.id_usuario,
+          "login",
+          req,
+          false,
+          `Cuenta bloqueada (reintenta en ${retryAfter} min)`
+        );
+        return res.status(423).json({
           success: false,
-          message: "Usuario inactivo",
+          message: "Cuenta temporalmente bloqueada por intentos fallidos",
+          retry_after: retryAfter,
         });
       }
 
       // Verificar contraseña
       const esPasswordValido = await usuario.verificarPassword(password);
+
       if (!esPasswordValido) {
-        await registrarSesion(usuario.id_usuario, "login", req, false, "Contraseña inválida");
+        // Incrementar contador de intentos fallidos
+        const newFailedAttempts = (usuario.failed_attempts || 0) + 1;
+        const updateData = { failed_attempts: newFailedAttempts };
+
+        // Si se alcanza el umbral, bloquear la cuenta
+        if (newFailedAttempts >= LOGIN_MAX_ATTEMPTS) {
+          const lockedUntil = new Date();
+          lockedUntil.setMinutes(lockedUntil.getMinutes() + LOGIN_LOCK_MINUTES);
+          updateData.locked_until = lockedUntil;
+
+          console.log(
+            "🔒 Cuenta bloqueada por intentos fallidos:",
+            { id_usuario: usuario.id_usuario, email, failed_attempts: newFailedAttempts, locked_until: lockedUntil }
+          );
+          await registrarSesion(
+            usuario.id_usuario,
+            "login",
+            req,
+            false,
+            `Cuenta bloqueada por ${LOGIN_MAX_ATTEMPTS} intentos fallidos (${LOGIN_LOCK_MINUTES} min)`
+          );
+        } else {
+          await registrarSesion(
+            usuario.id_usuario,
+            "login",
+            req,
+            false,
+            `Contraseña inválida (intento ${newFailedAttempts}/${LOGIN_MAX_ATTEMPTS})`
+          );
+        }
+
+        await usuario.update(updateData);
+
         return res.status(401).json({
           success: false,
           message: "Credenciales inválidas",
         });
+      }
+
+      // Login exitoso: resetear intentos fallidos y bloqueo
+      if ((usuario.failed_attempts || 0) > 0 || usuario.locked_until) {
+        await usuario.update({ failed_attempts: 0, locked_until: null });
       }
 
       // Generar access token (15 min)
