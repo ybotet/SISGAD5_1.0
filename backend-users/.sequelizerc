@@ -1,0 +1,10 @@
+const path = require("path");
+
+// Apunta sequelize-cli a la configuración y migraciones reales del proyecto.
+// Sin este archivo, `npm run db:migrate` busca ./config/config.json y ./migrations
+// (que no existen) y falla o ignora las migraciones de src/migrations.
+module.exports = {
+  config: path.resolve(__dirname, "src", "config", "sequelize.config.js"),
+  "migrations-path": path.resolve(__dirname, "src", "migrations"),
+  "models-path": path.resolve(__dirname, "src", "features"),
+};

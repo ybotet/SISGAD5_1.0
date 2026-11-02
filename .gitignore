@@ -63,9 +63,10 @@ Continue/
   # ============================================
   # SISTEMA OPERATIVO
   # ============================================
-  # .sequelizerc (paths are env/workspace-specific)
-.sequelizerc
-**/.sequelizerc
+  # .sequelizerc — SE VERSIONA: apunta a src/config y src/migrations (rutas relativas al repo).
+  # Sin él, `npm run db:migrate` no encuentra las migraciones de tb_refresh_tokens/tb_sesiones.
+# .sequelizerc
+# **/.sequelizerc
 .DS_Store
 Thumbs.db
 
