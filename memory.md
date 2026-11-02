@@ -55,6 +55,7 @@
 | 2026-10-30 | TASK-410-03 | Historial completo líneas (quejas, recorridos, movimientos) + rediseño moderno | [ver](docs/memory/2026-10-30.md#2026-10-30--task-410-03-historial-completo-líneas) |
 | 2026-10-30 | TASK-300-03 | Implementar refresh tokens + logout (TASK-300-04) | [ver](docs/memory/2026-10-30.md#2026-10-30--task-300-03-implementar-refresh-tokens) |
 | 2026-10-27 | TASK-C-12 | Actualizar AGENTS.md §8 (Deuda Técnica Activa) | [ver](docs/memory/2026-10-30.md#2026-10-30--task-c-12-actualizar-agentsmd-8-deuda-técnica-activa) |
+| 2026-11-02b | [docs/memory/2026-11-02b.md](docs/memory/2026-11-02b.md) | Fusión diagramas de secuencia → documento canónico (7 escenarios) |
 | 2026-11-02 | TASK-300-08 | Historial de sesiones: endpoints de consulta + cierre TASK-100-03/04 (v2.4) | [ver](docs/memory/2026-11-02.md) |
 
 ---
