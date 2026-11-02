@@ -1,597 +1,537 @@
-# 🎯 PROMPTS.md — Sistema de Prompts por Fase para SISGAD5
+# 🎯 PROMPTS.md — Prompts para Tareas No Completadas (SISGAD5)
 
-> **Proyecto:** SISGAD5 — Sistema de Información para la Gestión y Soporte de la Dirección No. 5
-> **Repositorio:** https://github.com/ybotet/SISGAD5_doc
-> **Autor:** Ing. Botet S.Y. (Tesis de Maestría — RTU MIREA)
-> **Propósito:** Este archivo contiene los prompts de sistema que los agentes de IA deben usar en cada fase del proyecto. Cada prompt define un rol, contexto, tarea y formato de salida.
-> **Archivos de referencia obligatoria:** `AGENT.md`, `SPEC.md`, `TASKLIST.md`, `memory.md`
-
----
-
-## 📑 Tabla de Contenidos
-
-1. [Cómo usar este archivo](#1-cómo-usar-este-archivo)
-2. [FASE 0 — Generación de AGENT.md](#2-fase-0--generación-de-agentmd)
-3. [FASE 1 — Generación de SPEC.md](#3-fase-1--generación-de-specmd)
-4. [FASE 2 — Generación de ARCHITECTURE.md](#4-fase-2--generación-de-architecturemd)
-5. [FASE 3 — Planificación (Task Planner)](#5-fase-3--planificación-task-planner)
-6. [FASE 4 — Implementación (Implementer)](#6-fase-4--implementación-implementer)
-7. [FASE 5 — Verificación (Verifier)](#7-fase-5--verificación-verifier)
-8. [FASE 6 — Cierre y Memoria (Archiver)](#8-fase-6--cierre-y-memoria-archiver)
-9. [FASE 7 — Manual de Explotación](#9-fase-7--manual-de-explotación)
-10. [FASE 8 — Documentación Final y Defensa](#10-fase-8--documentación-final-y-defensa)
-11. [Flujo de Trabajo Completo](#11-flujo-de-trabajo-completo)
-12. [Plantilla de memory.md](#12-plantilla-de-memorymd)
+> **Proyecto:** SISGAD5_1.0 — https://github.com/ybotet/SISGAD5_1.0
+> **Generado:** 2026-11-02 · Basado en TASKLIST.md v2.4 (73 tareas no cerradas: 🔄/⏳)
+> **Uso:** copiar el bloque de código del prompt y ejecutarlo en Kilo Code con el agente indicado.
+> **Nota:** los prompts marcados 🔗 están agrupados porque comparten archivos/función (ejecutar en orden). Los marcados 👤 requieren acción humana (no hay prompt automatizable completo).
 
 ---
 
-## 1. Cómo usar este archivo
+## Bloque 1 — Frontend (Fase 7) — `frontend/`
 
-### 1.1. Flujo General
-
+### Prompt 1.1 — TASK-710-08 · Módulo de Trabajos 🔴🔄
+Agente: frontend-dev. Contexto verificado: existen `TrabajadorPage.tsx`, `MovimientoPage.tsx`, `components/queja/QuejaDetalleModal.tsx` (que muestra trabajos vinculados), pero NO hay página CRUD de órdenes de trabajo ni ruta dedicada en `App.tsx`. El backend expone `/api/trabajo` (routes+controller MP).
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  Para cada tarea del TASKLIST.md:                               │
-│                                                                 │
-│  1. Identificar la fase (0-8)                                   │
-│  2. Copiar el prompt de esa fase                                │
-│  3. Rellenar los placeholders [N], [Nombre], etc.               │
-│  4. Ejecutar en el agente de IA                                 │
-│  5. Verificar el resultado                                      │
-│  6. Registrar en memory.md (FASE 6)                             │
-│  7. Marcar la tarea como completada en TASKLIST.md              │
-└─────────────────────────────────────────────────────────────────┘
+Proyecto: SISGAD5. Tarea: TASK-710-08 — Módulo de Trabajos (frontend).
+Objetivo: CRUD de órdenes de trabajo conectado a /api/trabajo del backend-mp, con asignación de técnicos.
+Pasos:
+1. Inspeccionar backend-mp/src/routes/trabajo.js y su controller para confirmar endpoints, campos y respuestas reales (no asumir).
+2. Crear frontend/src/services/trabajoService.ts siguiendo el patrón de servicios existentes (axios instance de src/services/api.ts).
+3. Crear pages/trabajo/TrabajosPage.tsx (listado con search/page/limit vía patrón parseListParams del backend) y formulario crear/editar reutilizando componentes de components/queja como referencia de estilo.
+4. Panel de asignación de trabajadores (multi-select desde /api/trabajador) usando el modelo Trabajo_trabajadores.
+5. Registrar ruta protegida en App.tsx con ProtectedRoute por permiso, y enlace en la navegación lateral.
+6. Verificar: npm run lint && npm run build sin errores; probar flujo manualmente contra localhost:5004.
+Criterio de aceptación: pantalla de Trabajos completa (lista+CRUD+asignación). Al terminar actualizar TASKLIST.md (🔄→✅) y docs/memory/.
 ```
 
-### 1.2. Placeholders Comunes
-
-| Placeholder  | Descripción        | Ejemplo                                   |
-| ------------ | ------------------ | ----------------------------------------- |
-| `[N]`        | Número de tarea    | `TASK-520-05`                             |
-| `[Nombre]`   | Nombre de la tarea | "Validación de stock real"                |
-| `[Módulo]`   | Módulo afectado    | "Materials Service"                       |
-| `[Servicio]` | Servicio afectado  | `backend-materiales-go`                   |
-| `[Archivo]`  | Ruta del archivo   | `internal/services/asignacion_service.go` |
-
-### 1.3. Archivos de Referencia
-
-Antes de ejecutar cualquier prompt, el agente debe tener acceso a:
-- `@AGENT.md` — Reglas de oro del proyecto
-- `@SPEC.md` — Especificación técnica
-- `@ARCHITECTURE.md` — Arquitectura del sistema
-- `@TASKLIST.md` — Lista de tareas
-- `@memory.md` — Memoria persistente del proyecto
-
----
-
-## 2. FASE 0 — Generación de AGENT.md
-
-### 2.1. Prompt
-
+### Prompt 1.2 — TASK-710-11 + TASK-1000-05 · Gestión Usuarios/Roles + Panel admin RBAC 🔗🔴🔄
+Agente: frontend-dev. Contexto: `components/roles/` y `usuariosService.ts` ya existen; falta la pantalla integral de usuarios y un panel unificado. Dependen del backend-users (CRUD usuario + RBAC implementados).
 ```
-[1. ROL]
-Actúa como un Arquitecto de Software Senior y Experto en Sistemas de Microservicios, con especialización en Node.js, Go, PostgreSQL y arquitecturas de baja latencia.
+Proyecto: SISGAD5. Tareas: TASK-710-11 (UI gestión usuarios/roles) y TASK-1000-05 (Panel administración con control RBAC) — ejecutar juntas.
+Objetivo: página admin /admin que integre en pestañas: Usuarios (CRUD completo), Roles (existente, verificar cobertura de permisos) y Permisos.
+Pasos:
+1. Auditar qué existe ya en frontend/src/components/roles/ y usuariosService.ts vs endpoints reales de backend-users (auth.routes.js, user routes): listar en tabla gap antes de codificar.
+2. Completar UsuariosPage: tabla paginada, alta/edición con selector de rol, activar/desactivar usuario, reset de contraseña (solo si el endpoint existe; si no, dejar botón deshabilitado con tooltip).
+3. Gatear toda la sección con el permiso RBAC correspondiente (patrón ProtectedRoute existente); nunca ocultar solo en UI: documentar que el backend revalida.
+4. Unificar en AdminPage.tsx con <Tabs>; registrar ruta /admin protegida.
+5. npm run lint && npm run build en verde.
+Criterio: administrador gestiona usuarios/roles sin tocar BD. Actualizar TASKLIST.md ambas tareas y memoria al cerrar.
+```
 
-[2. CONTEXTO]
-Estamos construyendo SISGAD5, un sistema de microservicios para la gestión operativa de una empresa de telecomunicaciones cubana (ETECSA - Dirección No. 5). La arquitectura se divide en:
+### Prompt 1.3 — TASK-710-12 · Perfil de Usuario 🔄
+Agente: frontend-dev. Contexto: `/profile` existe pero es de solo lectura. El cambio de contraseña NO tiene endpoint aún (TASK-300-06 pendiente en backend-users) — coordinar dependencia.
+```
+Proyecto: SISGAD5. Tarea: TASK-710-12 — Perfil de Usuario (ver/editar + cambiar contraseña).
+Pasos:
+1. Revisar qué permite editar realmente backend-users (PUT en user routes) y AuthContext (refresh de datos tras edición).
+2. Hacer editable nombre/email/telefono con validación Zod igual que backend; recargar estado global tras guardar.
+3. Sección "Cambiar contraseña": si backend aún no expone PATCH /api/auth/password (TASK-300-06), implementar el formulario con el contrato definido en docs/api/users.yaml (PLANIFICADO) y mostrar aviso de indisponibilidad hasta que exista; NO inventar endpoint.
+4. lint+build en verde; actualizar TASKLIST.md/memoria.
+```
 
-- Frontend: React 18 + Vite + TypeScript + Tailwind
-- API Gateway: Node.js + Express + http-proxy-middleware
-- Users Service: Node.js + Express + Sequelize (autenticación, usuarios, RBAC)
-- MP Service: Node.js + Express + Sequelize + Zod (operaciones: teléfonos, líneas, pizarras, quejas, pruebas, trabajos)
-- Materials Service: Go + Gin + GORM (gestión de materiales con transacciones ACID y concurrencia)
-- PostgreSQL 17+ (3 bases de datos separadas)
-- Redis 7+ (caché)
+### Prompt 1.4 — TASK-700-04 · Estado global 🔄
+Agente: frontend-dev. Contexto: AuthContext + ErrorContext (Context API) funcionan; no hay store de datos de dominio. Decisión previa del proyecto: mantener Context API salvo dolor real.
+```
+Proyecto: SISGAD5. Tarea: TASK-700-04 — Manejo de estado global predecible.
+Antes de codificar, decidir y documentar (ADR corto en docs/adr/): ¿Zustand o ampliar Context? Evaluar: solo se necesita cache de listas (paginación) + notificaciones.
+Si la respuesta es Zustand (recomendado mínimo):
+1. npm i zustand; crear src/store/useNotificationStore.ts (toasts, véase prompt 1.6) y src/store/useAuthStore.ts migrando AuthContext SIN romper consumidores (export hook-compatible wrapper).
+2. Migrar gradualmente: primero notificaciones, luego auth. Prohibido big-bang.
+3. Verificar tests/e2e de login siguen pasando (o auto-skip si no hay navegador).
+Criterio: un único patrón de estado global documentado; cero regresiones visibles. Cerrar TASKLIST+memoria.
+```
 
-[3. TAREA EXACTA]
-Genera un archivo AGENT.md exhaustivo siguiendo el estándar de agents.md. Este archivo servirá como "fichero de reglas de oro" y prompt de sistema persistente para este proyecto.
+### Prompt 1.5 — TASK-720-02 · Responsive design 🔄
+Agente: frontend-dev + QA. Contexto: Tailwind activo pero uso irregular de breakpoints.
+```
+Proyecto: SISGAD5. Tarea: TASK-720-02 — Responsive design sistemático.
+1. Auditoría: recorrer las 12 páginas principales con viewport 375/768/1280px (Playwright screenshot o manual) y producir docs/audit-responsive.md con tabla página×problema.
+2. Corregir por lotes priorizando: Login, Dashboard, Quejas, Tablas de nomencladores. Patrones: contenedor max-w, tablas → card-view en móvil (hidden md:table + cards md:hidden), grids grid-cols-1 sm:grid-cols-2 lg:grid-cols-3.
+3. Estandarizar en components/ui/Table.tsx el colapso responsive una sola vez (no repetir por página).
+Criterio: las 3 vistas objetivo usables en móvil sin scroll horizontal. Cierre con evidencia de screenshots en memoria.
+```
 
-[4. RESTRICCIONES Y REGLAS]
-El documento debe incluir los siguientes apartados obligatorios:
-
-- **Stack Tecnológico:** Especificar Node.js (TS) para Users/MP/Gateway, Go para Materials, React para Frontend, PostgreSQL para BD.
-- **Reglas de Oro:**
-  - Prohibido acceder directamente a la BD de otro microservicio.
-  - Prohibido subir secretos o credenciales al código (usar variables de entorno).
-  - Prohibido mezclar lógica de negocio entre microservicios.
-  - Priorizar siempre transacciones ACID en operaciones críticas.
-- **Patrones de Arquitectura:** Uso de API Gateway como única puerta de entrada, comunicación REST/JSON, servicios stateless.
-- **Convenciones de Código:** Tipado estricto en TypeScript, snake_case en Go y BD, camelCase en JS/TS.
-- **Límite de Eficiencia:** Mantén el archivo resultante por debajo de las 500 líneas.
-
-[5. FORMATO DE SALIDA]
-Devuélveme exclusivamente el contenido del archivo en un bloque de código Markdown listo para ser copiado.
+### Prompt 1.6 — TASK-720-04 + TASK-720-05 · Loading states + Toasts 🔗🔄⏳
+Mismo agente, mismos archivos (components/ui/). Ejecutar juntos.
+```
+Proyecto: SISGAD5. Tareas: TASK-720-04 (loading uniformes) y TASK-720-05 (notificaciones toast).
+Stack elegido: react-hot-toast (liviano) + skeletons propios.
+1. npm i react-hot-toast; montar <Toaster/> en App.tsx.
+2. Crear components/ui/Skeleton.tsx (TableSkeleton, CardSkeleton, FormSkeleton).
+3. Crear helper src/utils/notify.ts: notifySuccess/notifyError(msg|ApiError) mapeando códigos de error del gateway a mensajes ES.
+4. Sustituir TODOS los spinners/loads ad-hoc y alert()/ErrorDisplay por Skeleton+toast en llamadas CRUD (buscar: grep -rn "spinner\|cargando\|alert(" src/). Los errores de mutación deben disparar toast automáticamente en services/api.ts interceptor.
+5. lint+build verde. Cerrar ambas tareas en TASKLIST.md.
 ```
 
 ---
 
-## 3. FASE 1 — Generación de SPEC.md
+## Bloque 2 — Backend Users (Fases 3, 6, 8) — `backend-users/`
 
-### 3.1. Prompt
-
+### Prompt 2.1 — TASK-300-06 · Cambio de contraseña ⏳ Alta
+Agente: backend-dev. Prerequisito natural antes de 1.3. Convención: features/auth/, Zod validations en shared/validation/, respuesta vía envoltorio estándar.
 ```
-[1. ROL]
-Actúa como un Product Owner y Arquitecto de Sistemas con experiencia en microservicios, APIs REST y documentación técnica.
-
-[2. CONTEXTO]
-Ya tenemos definido el AGENT.md que establece nuestro stack y reglas. Ahora necesitamos definir el SPEC.md para SISGAD5, un sistema de gestión operativa para una empresa de telecomunicaciones. El sistema debe cubrir:
-
-- Gestión de usuarios y autenticación (JWT + RBAC)
-- Gestión de teléfonos, líneas y pizarras
-- Gestión de quejas, pruebas y trabajos
-- Gestión de materiales (asignaciones y consumos con ACID)
-- Dashboards analíticos
-- API Gateway centralizado
-
-[3. TAREA EXACTA]
-Genera un archivo SPEC.md exhaustivo siguiendo la metodología Spec-First. El documento debe cubrir:
-
-1. **Visión General:** Descripción, contexto y problema que resuelve.
-2. **Objetivos y Alcance:** Objetivo general, específicos y qué queda fuera del alcance.
-3. **Arquitectura del Sistema:** Estilo arquitectónico, diagrama de componentes (Mermaid), reglas arquitectónicas.
-4. **Stack Tecnológico:** Backend, frontend, BD, infraestructura.
-5. **Modelo de Datos:** Entidades principales de las 3 BD.
-6. **Especificación de Módulos:** Users, MP, Materials, Frontend, Gateway, Analítica.
-7. **Contratos de API:** Convenciones y endpoints principales.
-8. **Seguridad:** Autenticación, autorización, protecciones.
-9. **Requisitos No Funcionales:** Rendimiento, disponibilidad, concurrencia, integridad.
-10. **Despliegue y Operación:** Hardware, software, comandos.
-11. **Testing y Calidad:** Estrategia, CI/CD, criterios de aceptación.
-12. **Roadmap y Evolución:** Corto, mediano y largo plazo.
-13. **Glosario:** Términos clave.
-14. **Referencias:** Documentación y bibliografía.
-
-[4. RESTRICCIONES Y REGLAS]
-- El diseño debe priorizar la separación de responsabilidades entre microservicios.
-- Define umbrales de rendimiento (ej. < 300 ms para lecturas, < 800 ms para transacciones).
-- Asegura que Materials Service use transacciones ACID y concurrencia con goroutines.
-- Usa diagramas Mermaid para la arquitectura y el modelo ER.
-
-[5. FORMATO DE SALIDA]
-Devuélveme el contenido en un bloque de código Markdown estructurado, listo para ser guardado como SPEC.md en la raíz del proyecto.
+Proyecto: SISGAD5. Tarea: TASK-300-06 — Endpoint self-service de cambio de contraseña.
+Implementar PATCH /api/auth/password (autenticado):
+1. body { password_actual, password_nueva } validado con Zod (crear password.validation.js; política complejidad = misma que USER_PASSWORD del registro: min 8, mayús, minús, dígito).
+2. Controller: bcrypt.compare del actual (si falla → 401 genérico + contador de intentos si existe TASK-300-07); rechazar nueva==actual; hashear bcrypt(rounds actuales) y UPDATE tb_user.
+3. Revocar TODOS los refresh tokens del usuario tras el cambio (modelo RefreshToken, campo revoked) — sesiones restantes invalidadas.
+4. Rutas: registrar en auth.routes.js; auditar en logs estructurados (sin contenido sensible).
+5. Tests Jest (supertest, patrón mock de sequelize ya usado en session.validation tests): éxito, password actual incorrecto, política insuficiente, revocación de tokens.
+6. Actualizar docs/api/users.yaml (dejar de marcar PLANIFICADO) y TASKLIST.md.
 ```
 
----
-
-## 4. FASE 2 — Generación de ARCHITECTURE.md
-
-### 4.1. Prompt
-
+### Prompt 2.2 — TASK-300-05 · Recuperación de contraseña ⏳ Alta
+Depende de decidir canal de correo (pendiente humano). Diseñar para proveedor plugable.
 ```
-[1. ROL]
-Actúa como un Arquitecto de Sistemas Cloud y Especialista en Infraestructura de Microservicios.
+Proyecto: SISGAD5. Tarea: TASK-300-05 — Recuperación de contraseña.
+Diseño (seguir patrón de refresh tokens: hash en BD, expiración):
+1. Nueva tabla via migración versionada (migrations/ + .sequelizerc YA configurado): tb_password_resets(id, id_usuario, token_hash unique, expires_at, used_at, created_at). Migración SIEMPRE reversible up/down.
+2. POST /api/auth/recuperar { email }: genera token aleatorio 32 bytes, guarda hash SHA-256, expira 30min, responde SIEMPRE 200 (anti user-enumeration). Canal de entrega: interfaz MailerPort con implementación ConsoleMailer (dev) y SMTPMailer configurable por env (SMTP_HOST…); NO hardcodear credenciales.
+3. POST /api/auth/reestablecer { token, password_nueva }: valida hash+vigencia+no-usado, aplica política TASK-300-06 (reutilizar validation), marca used_at, revoca refresh tokens.
+4. Rate-limit en estas 2 rutas (expres-rate-limit, bucket por IP).
+5. Tests: flujo feliz, token expirado, token reused, email inexistente (200).
+6. users.yaml + TASKLIST.md actualizados. Pendiente humano: aprobar proveedor SMTP real y DSN.
+```
 
-[2. CONTEXTO]
-Ya tenemos el AGENT.md (reglas) y el SPEC.md (intención). El proyecto es SISGAD5, un sistema de microservicios que separa:
+### Prompt 2.3 — TASK-300-07 · Bloqueo por intentos fallidos ⏳ Media
+```
+Proyecto: SISGAD5. Tarea: TASK-300-07 — Bloqueo temporal de cuenta por intentos fallidos.
+1. Columnas via migración en tb_user: failed_attempts int default 0, locked_until timestamptz null.
+2. En login (auth.controller.js): si locked_until > now() → 423 { retry_after }; credenciales inválidas → increment; aciertos → reset. Umbral N=5, bloqueo 15min (configurable env LOGIN_MAX_ATTEMPTS/LOGIN_LOCK_MINUTES).
+3. Evento de auditoría estructurado al bloquear (logger.warn con id_usuario, ip — nota: criterio original decía ip_usuario; confirmar nombre real de columna antes de escribir SQL).
+4. El mensaje de error NO debe revelar si el email existe (401 genérico).
+5. Tests Jest: 5 fallos→bloqueo, login durante bloqueo→423, éxito resetea, expiración libera.
+```
 
-- Lógica de negocio en Node.js (Users, MP, Gateway)
-- Lógica transaccional crítica en Go (Materials)
-- Interfaz de usuario en React (Frontend)
-
-[3. TAREA EXACTA]
-Genera un archivo ARCHITECTURE.md que describa la infraestructura técnica. Debe incluir:
-
-1. **Diagrama de Componentes (Mermaid):** Mostrando la comunicación entre frontend, API Gateway, microservicios y BD.
-2. **Diagrama de Secuencia (Mermaid):** Para el flujo crítico "Cierre de queja con consumo de materiales".
-3. **Diagrama de Despliegue (Mermaid):** Mostrando contenedores Docker, redes y volúmenes.
-4. **Decisiones Arquitectónicas (ADR):** Justificación de por qué microservicios, por qué Go para Materials, por qué 3 BD separadas.
-5. **Reglas de Comunicación:** REST/JSON, sin acceso cruzado a BD, autenticación centralizada en Gateway.
-6. **Estrategia de Escalabilidad:** Servicios stateless, réplicas horizontales, caché con Redis.
-
-[4. RESTRICCIONES]
-- Prioriza la separación total de responsabilidades entre lenguajes.
-- El diagrama debe reflejar claramente el uso del API Gateway como única puerta de entrada.
-- Asegura que la comunicación entre servicios sea vía REST/JSON.
-- Usa Mermaid para todos los diagramas.
-
-[5. FORMATO]
-Devuélveme el contenido en Markdown listo para guardar en la raíz del proyecto.
+### Prompt 2.4 — TASK-800-01 · Tests unitarios Users Service ⏳🔴
+Contexto real: backend-users SÍ tiene algunos tests parciales (auth/sesión) creados en v2.4; la fila del TASKLIST está obsoleta. Faltan controllers de usuario, middlewares, RBAC.
+```
+Proyecto: SISGAD5. Tarea: TASK-800-01 — Suite Jest ≥70% cobertura en backend-users.
+1. Configurar jest.config.js (collectCoverageFrom src/**, excluyendo node_modules/migrations) y script npm test real (revisar package.json; hay patrones ya usados en tests existentes — inspeccionar primero tests/ actuales y NO duplicar setups).
+2. Mockear sequelize con jest-mock-sequelize o mocks manuales de modelos (patrón de los tests de sesión existentes).
+3. Cubrir por prioridad: user.controller CRUD+RBAC, auth (login/refresh/logout/password si ya mergeado 2.1), middlewares auth/errores, validations Zod.
+4. npm test -- --coverage ≥70% statements en src/features y src/shared. Integrar en ci.yml job test-users (ya existe workflow lint/test JS — verificar nombre del job).
+5. Corregir la fila TASK-800-01 de TASKLIST.md (evidencia obsoleta) y marcar avance real.
 ```
 
 ---
 
-## 5. FASE 3 — Planificación (Task Planner)
+## Bloque 3 — Backend MP (Fase 4) — `backend-mp/`
 
-### 5.1. Prompt
-
+### Prompt 3.1 — TASK-410-02 · Baja de línea ⏳🔴 (esqueleto, completar en ejecución)
+Contexto: el equivalente existe en teléfonos (`darbaja`). Patrón: ruta PATCH dedicada antes de `/:id` genérica.
 ```
-[1. ROL]
-Actúa como un Technical Project Manager (TPM) experto en metodologías agénticas.
-
-[2. CONTEXTO]
-Basándote en el @SPEC.md y el @ARCHITECTURE.md, necesitamos desglosar la implementación de SISGAD5 en tareas atómicas y secuenciales.
-
-[3. TAREA EXACTA]
-Crea una lista de tareas técnica y secuencial en el archivo TASKLIST.md. Divide el proyecto en fases:
-
-- FASE 0: Planificación y documentación base
-- FASE 1: Diseño y modelado
-- FASE 2: Infraestructura y configuración
-- FASE 3: Users Service
-- FASE 4: MP Service
-- FASE 5: Materials Service
-- FASE 6: API Gateway
-- FASE 7: Frontend
-- FASE 8: Testing y QA
-- FASE 9: Despliegue y operación
-- FASE 10: Analítica y reportes
-- FASE 11: Documentación final y defensa
-- FASE 12: Mantenimiento y evolución
-
-Cada tarea debe incluir:
-- ID único (TASK-XXX-YY)
-- Prioridad (🔴 Crítica, 🟡 Alta, 🟢 Media, ⚪ Baja)
-- Esfuerzo (⚡ < 1h, 🔨 1-4h, 🏗️ 1-3d, 🏛️ > 3d)
-- Descripción breve
-- Módulo afectado
-- Dependencias
-- Criterio de aceptación
-- Archivos afectados
-
-[4. RESTRICCIONES]
-- Las tareas deben ser lo suficientemente pequeñas para que un agente las ejecute sin perder contexto (máximo 1 o 2 archivos por tarea).
-- Cada tarea debe incluir un criterio de aceptación técnico y verificable.
-- Respeta las dependencias entre tareas.
-
-[5. FORMATO]
-Una lista en Markdown dentro de un archivo llamado TASKLIST.md, con secciones por fase y tablas de resumen de progreso.
+Proyecto: SISGAD5. Tarea: TASK-410-02 — Cambio de estado (activo/baja) de línea.
+1. Leer TelefonoController darBaja y replicar semántica en LineaController: PATCH /api/linea/:id/baja y /reactivar (o PATCH /estado según convención real del teléfono — verificar primero).
+2. Validar relaciones: impedir baja de línea con puertos/pizarras conectadas activas si el modelo lo exige (confirmar FK reales en models/Linea.js).
+3. Rutas ANTES de /:id en linea.js (lección TASK-B-19). Test supertest de ambos estados. Actualizar swagger mp si existe.
 ```
 
----
-
-## 6. FASE 4 — Implementación (Implementer)
-
-### 6.1. Prompt (Node.js / TypeScript)
-
+### Prompt 3.2 — TASK-400-03 + 410-03 + 420-06 · Endpoints de historial unificado 🔗🔴🔄
+Comparten servicio de agregación; crear uno parametrizado.
 ```
-[1. ROL]
-Actúa como un Senior Software Engineer experto en Node.js, TypeScript, Express, Sequelize y Zod.
-
-[2. CONTEXTO]
-Estamos en la Fase de Implementación de SISGAD5. Lee el @AGENT.md, @SPEC.md, @ARCHITECTURE.md y @memory.md antes de comenzar.
-
-Módulo actual: [Módulo]
-Servicio: [Servicio]
-Archivo(s) a modificar: [Archivo]
-
-[3. TAREA EXACTA]
-Implementa la Tarea #[N]: [Nombre de la Tarea].
-
-Descripción: [Descripción de la tarea]
-Criterio de aceptación: [Criterio de aceptación]
-
-Realiza las ediciones multi-archivo necesarias y asegúrate de que el código compile. Genera para cada función comentarios en español, para tener claro lo que realiza.
-
-[4. RESTRICCIONES]
-- Prohibido subir llaves privadas o secretos (usa .env).
-- Sigue estrictamente los patrones de diseño del archivo de arquitectura.
-- No generes código que no sea necesario para esta tarea específica.
-- Usa tipado estricto en TypeScript.
-- Añade validaciones con Zod para entradas de API.
-- Maneja errores con códigos HTTP semánticos (400, 401, 403, 404, 409, 500).
-- Añade logs estructurados (JSON) para auditoría.
-
-[5. FORMATO]
-Aplica los cambios directamente en los archivos o devuélveme los bloques de código indicando la ruta del archivo.
+Proyecto: SISGAD5. Tareas: TASK-400-03 (teléfono), TASK-410-03 (línea), TASK-420-06 (pizarra) — historiales completos.
+1. Crear src/features/historial/HistorialService.js: firma getHistorial(tipoEntidad, id) que UNE (array merge ordenado por fecha desc): quejas (via FK telefono/linea/pizarra según exista), movimientos, recorridos/asignaciones aplicables. Usar SOLO modelos reales (inspeccionar models/ antes: Queja, Movimiento, Recorrido...).
+2. Endpoints: GET /api/telefono/:id/historial, GET /api/linea/:id/historial, GET /api/pizarra/:id/historial (respuesta { entidad, eventos[] } paginable ?limit=).
+3. Queries con include atajado (evitar N+1); explicar en comentario el índice necesario y crear migración de índice si la consulta es lenta en datos reales.
+4. Tests: cada endpoint devuelve eventos ordenados; entidad inexistente → 404.
+Ejecutar 420-06 después de TASK-420-02 (puertos), pues agrega líneas conectadas.
 ```
 
-### 6.2. Prompt (Go / Gin / GORM)
-
+### Prompt 3.3 — TASK-420-02 → 420-03 → 420-04 · Pizarras: puertos, conexiones, ubicación 🔗⏳
+Orden obligatorio (dependencias encadenadas).
 ```
-[1. ROL]
-Actúa como un Senior Software Engineer experto en Go, Gin, GORM y PostgreSQL.
-
-[2. CONTEXTO]
-Estamos en la Fase de Implementación de SISGAD5. Lee el @AGENT.md, @SPEC.md, @ARCHITECTURE.md y @memory.md antes de comenzar.
-
-Módulo actual: Materials Service
-Servicio: backend-materiales-go
-Archivo(s) a modificar: [Archivo]
-
-[3. TAREA EXACTA]
-Implementa la Tarea #[N]: [Nombre de la Tarea].
-
-Descripción: [Descripción de la tarea]
-Criterio de aceptación: [Criterio de aceptación]
-
-Realiza las ediciones multi-archivo necesarias y asegúrate de que el código compile con `go build`. Genera para cada función comentarios en español, para tener claro lo que realiza.
-
-[4. RESTRICCIONES]
-- Prohibido subir llaves privadas o secretos (usa .env).
-- Sigue estrictamente los patrones de diseño del archivo de arquitectura.
-- No generes código que no sea necesario para esta tarea específica.
-- Usa transacciones ACID con `db.Transaction()` para operaciones críticas.
-- Usa goroutines y canales para concurrencia cuando sea necesario.
-- Maneja errores con `fmt.Errorf("...: %w", err)`.
-- Añade logs estructurados con `zap` o `logrus`.
-
-[5. FORMATO]
-Aplica los cambios directamente en los archivos o devuélveme los bloques de código indicando la ruta del archivo.
+Proyecto: SISGAD5. Tareas: TASK-420-02 (CRUD puertos), TASK-420-03 (conexiones), TASK-420-04 (ubicación pizarra).
+Fase A — Puertos:
+1. Modelo Puerto (tb_* según convención REAL del repo — verificar nombres de tabla usados en models/ existentes y ser consistente) con FK pizarra_id, numero, tipo_pizarra_id opcional; migración + asociación Pizarra.hasMany.
+2. CRUD anidado: GET/POST /api/pizarra/:id/puertos, PUT/DELETE /api/puerto/:id. Validación Zod.
+Fase B — Conexiones:
+3. Modelo Conexion (origen_puerto_id, destino_puerto_id, cable_id FK al nomenclador Cable existente, tipo 'entrante'|'saliente'); impedir autofunción y puertos de la misma pizarra si no aplica.
+4. GET /api/puerto/:id/conexiones (entrantes y salientes).
+Fase C — Ubicación:
+5. Migración añade a Pizarra: planta_id (FK existente Planta), zona varchar, coordenadas jsonb null; expuestos en GET/PUT pizarra.
+Tests por fase; swagger/docs api mp actualizados al final.
 ```
 
-### 6.3. Prompt (React / TypeScript / Tailwind)
-
+### Prompt 3.4 — TASK-430-05 + TASK-450-02 + TASK-450-04 · Endpoints dedicados asignar/cerrar 🔗🔴🔄
+Los tres son rutas de estado que hoy van por PUT genérico. Mismo controller pattern.
 ```
-[1. ROL]
-Actúa como un Senior Frontend Engineer experto en React 18, TypeScript, Vite, Tailwind CSS y Axios.
+Proyecto: SISGAD5. Tareas: TASK-430-05 (PATCH /api/mp/quejas/:id/asignar), TASK-450-02 (PATCH /api/trabajos/:id/asignar), TASK-450-04 (PATCH /trabajos/:id/cerrar).
+1. Queja: PATCH /:id/asignar { trabajador_id } → crea Asignacion, estado → 'Asignada', transición válida según máquina de estados actual (leer constants de estados primero); 409 si estado origen inválido.
+2. Trabajo: PATCH /:id/asignar { trabajador_ids[] } sobre Trabajo_trabajadores (upsert múltiple en transacción).
+3. Trabajo: PATCH /:id/cerrar → estado 'Cerrado' + fecha_cierre now(); requiere todos los movimientos/condición real de cierre (verificar regla existente en update genérico y replicarla, no inventar).
+4. Mantener PUT genérico funcionando (retrocompatibilidad frontend); los nuevos endpoints los consumirá TASK-710-08.
+5. Tests supertest de transiciones válidas/inválidas.
+```
 
-[2. CONTEXTO]
-Estamos en la Fase de Implementación de SISGAD5. Lee el @AGENT.md, @SPEC.md, @ARCHITECTURE.md y @memory.md antes de comenzar.
+### Prompt 3.5 — TASK-430-06 + TASK-430-07 · Bitácora de transiciones + auditoría 🔗🔴
+Misma tabla sirve a ambos criterios.
+```
+Proyecto: SISGAD5. Tareas: TASK-430-06 (historial de cambios de queja) y TASK-430-07 (auditoría de acciones).
+1. Migración tb_auditoria(id, entidad, id_entidad, accion, desde_estado, hacia_estado, usuario_id, detalle jsonb, ip, created_at) — single audit trail para MP.
+2. Helper logAuditoria() llamado desde Queja/Trabajo/Línea/Pizarra controllers en create/update/delete/asignar/cerrar (no en GETs).
+3. GET /api/mp/quejas/:id/historial → filtra tb_auditoria entidad='Queja' (incluye quién/cuándo/desde-hacia) — satisface 430-06.
+4. GET /api/mp/auditoria (permiso admin, filtros fecha/entidad/usuario, paginado) — satisface 430-07.
+5. Tests: transición registra fila; historial ordenado; acceso sin permiso → 403.
+```
 
-Módulo actual: Frontend
-Servicio: frontend
-Archivo(s) a modificar: [Archivo]
+### Prompt 3.6 — TASK-440-04 · Historial de pruebas con filtros ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-440-04 — Listado de pruebas filtrable.
+1. Verificar ResultadoPrueba controller: añadir a GET list filters ?desde=&hasta=&resultado=&trabajador_id= combinables sobre parseListParams existente (Op.between fechas, Op.eq).
+2. Índice migrado sobre (fecha_prueba, resultado) si faltare.
+3. Test: combinación fecha+resultado devuelve subconjunto correcto. Documentar params en doc OpenAPI mp.
+```
 
-[3. TAREA EXACTA]
-Implementa la Tarea #[N]: [Nombre de la Tarea].
+### Prompt 3.7 — TASK-450-03 · Tiempo estimado vs real ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-450-03 — Campos de tiempo en Trabajo.
+1. Inspeccionar modelo Trabajo: si no existen, migración añade tiempo_estimado_horas numeric null, tiempo_real_horas numeric null (o derivar de fecha_inicio/fecha_cierre si ya existen — verificar ANTES de duplicar columnas).
+2. En PATCH /cerrar (prompt 3.4) calcular tiempo_real = cierre−inicio si aplica.
+3. Endpoint GET /api/trabajos/estadisticas-tiempo: media estimado vs real por mes (agregación SQL parametrizada). Test de cálculo.
+```
 
-Descripción: [Descripción de la tarea]
-Criterio de aceptación: [Criterio de aceptación]
+### Prompt 3.8 — TASK-450-05 · Historial de trabajos con filtros ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-450-05 — GET /api/trabajos con ?estado=&trabajador_id=&desde=&hasta= aplicados en la consulta (include Trabajo_trabajadores donde aplique), paginado estándar. Reutilizar helper de filtros del prompt 3.6. Test de combinación.
+```
 
-Realiza las ediciones multi-archivo necesarias y asegúrate de que el código compile. Genera para cada función comentarios en español, para tener claro lo que realiza.
+### Prompt 3.9 — TASK-430-10 · Notificaciones email ⏳
+Depende del MailerPort del prompt 2.2 — reutilizarlo, no crear segundo mecanismo.
+```
+Proyecto: SISGAD5. Tarea: TASK-430-10 — Email al asignar/cambiar estado de queja.
+1. Extraer MailerPort a shared/ (si 2.2 ya lo creó en backend-users, evaluar mover a lib común o duplicar puerto con impl propia en MP — decidir y anotar ADR corto).
+2. Cola simple sin infra nueva: tabla tb_notificaciones(pendiente) + worker setInterval o setImmediate fire-and-forget con reintento x3; NUNCA bloquear la respuesta HTTP.
+3. Disparadores: eventos de 3.4/3.5 (asignar, cerrar). Plantilla handlebars simple.
+4. Config SMTP por env; en dev console mailer. Test: evento encola notificación; fallo SMTP no rompe request.
+```
 
-[4. RESTRICCIONES]
-- Prohibido subir llaves privadas o secretos (usa .env con VITE_*).
-- Sigue estrictamente los patrones de diseño del archivo de arquitectura.
-- No generes código que no sea necesario para esta tarea específica.
-- Usa tipado estricto en TypeScript.
-- Usa Tailwind para estilos (no CSS inline).
-- Maneja estados de carga, error y vacío.
-- Usa Axios con interceptores para el token JWT.
-- Añade notificaciones toast para feedback al usuario.
-
-[5. FORMATO]
-Aplica los cambios directamente en los archivos o devuélveme los bloques de código indicando la ruta del archivo.
+### Prompt 3.10 — TASK-800-02 · Tests unitarios MP Service ⏳🔴
+Contexto corregido: backend-mp SÍ tiene tests (27/27 verdes desde fix ESLint/tests de 2026-11-01). La fila TASKLIST ("Sin archivos de test") está obsoleta. Falta cobertura ≥70%.
+```
+Proyecto: SISGAD5. Tarea: TASK-800-02 — Elevar cobertura MP a ≥70%.
+1. Corregir evidencia en TASKLIST.md (tests existentes: suite actual 27 casos).
+2. jest --coverage: identificar gaps (controllers de dominio: Queja/Trabajo/Línea/Pizarra, middlewares RBAC, servicios saga).
+3. Añadir suites por módulo siguiendo patrón de setup existente (env vars de test ya resueltas — reutilizar jest setup que fija DB/SECRET dummy).
+4. Meta: ≥70% statements; job test-mp en CI ya activo — confirmar que corre con coverage y publica resumen.
 ```
 
 ---
 
-## 7. FASE 5 — Verificación (Verifier)
+## Bloque 4 — Materials Go (Fase 5) — `backend-materiales-go/`
 
-### 7.1. Prompt
-
+### Prompt 4.1 — TASK-520-05 + TASK-530-05 · Validación stock/consumo (stub roto) 🔗🔴
+Misma función: `verificarStockAsignacion` en internal/services/consumo_service.go (~líneas 80, stub comentado, trabajadorID=0 hardcodeado). Cerrar ambas juntas.
 ```
-[1. ROL]
-Actúa como un QA Engineer y Auditor de Seguridad experto en microservicios, Node.js, Go y PostgreSQL.
-
-[2. CONTEXTO]
-Acabamos de implementar la Tarea #[N]: [Nombre de la Tarea] en el módulo [Módulo].
-Necesito verificar que cumple con los requerimientos del @SPEC.md y @TASKLIST.md.
-
-[3. TAREA EXACTA]
-Revisa el código generado. Ejecuta (o pide que se ejecuten) los tests correspondientes. Valida que:
-
-- La funcionalidad cumple con el criterio de aceptación.
-- El código sigue las reglas de @AGENT.md.
-- No hay vulnerabilidades de seguridad (inyección SQL, XSS, CSRF).
-- Las transacciones ACID funcionan correctamente (si aplica).
-- Los errores se manejan con códigos HTTP semánticos.
-- Los logs son estructurados y no exponen datos sensibles.
-
-[4. RESTRICCIONES]
-- Si encuentras una vulnerabilidad o un fallo en los tests, no lo ignores; detén el proceso y propón la corrección.
-- Verifica que no se hayan subido secretos al repositorio.
-- Verifica que no se acceda a la BD de otro microservicio.
-
-[5. FORMATO]
-Un reporte corto con "Checklist de Verificación" (Pasado/Fallido) y, si hay fallos, una propuesta de corrección.
+Proyecto: SISGAD5. Tarea: TASK-520-05 y TASK-530-05 — Activar validación real de stock en consumo.
+1. Leer consumo_service.go y asignacion_service.go: entender dónde se pierde el trabajadorID (hardcode 0) y cómo obtener el ID real del contexto/DTO.
+2. Implementar verificarStockAsignacion(): suma consumo acumulado por (trabajo/asignación, material) ≤ cantidad asignada; devolver AppError descriptivo con excedente exacto ("material X: solicitado N, disponible M").
+3. Descomentar/conectar la llamada en el flujo de registro de consumo dentro de la MISMA transacción GORM (rollback si excede).
+4. Tests testify: caso límite (=), excedido (error + rollback verificado con mock DB/sqlmock), acumulado multi-consumo.
+5. go vet ./... && go test ./... verde; actualizar ambas filas TASKLIST.
 ```
 
----
-
-## 8. FASE 6 — Cierre y Memoria (Archiver)
-
-### 8.1. Prompt
-
+### Prompt 4.2 — TASK-500-05 · Filtros categoría/unidad 🔄
 ```
-[1. ROL]
-Actúa como Technical Lead.
-
-[2. CONTEXTO]
-Hemos finalizado con éxito la implementación y verificación de la Tarea #[N]: [Nombre de la Tarea].
-
-[3. TAREA EXACTA]
-Genera un resumen de memoria técnica siguiendo el formato:
-
-- **Qué se hizo:** Descripción breve de la tarea completada.
-- **Por qué se hizo de esa forma:** Justificación técnica.
-- **Dónde están los cambios:** Archivos modificados y rutas.
-- **Qué hemos aprendido:** Errores detectados, soluciones aplicadas, decisiones tomadas.
-- **Dependencias desbloqueadas:** Tareas que ahora se pueden ejecutar.
-
-[4. RESTRICCIONES]
-- Sé breve y directo.
-- Evita explicaciones genéricas.
-- Incluye IDs de tareas y rutas de archivos exactas.
-
-[5. FORMATO]
-Un bloque Markdown para añadir al archivo memory.md.
+Proyecto: SISGAD5. Tarea: TASK-500-05 — Query params categoria/unidad en listado de materiales.
+1. Localizar material handler/service (internal/handlers|services): confirmar nombres reales de FK (categoria_id/unidad_id) leyendo models.
+2. Añadir filtros combinables entre sí y con búsqueda existente (GORM Where condicional, nunca string concat).
+3. Test de handler/table-test con sqlmock o el harness que ya usa asignacion_service_test.go.
 ```
 
----
-
-## 9. FASE 7 — Manual de Explotación
-
-### 9.1. Prompt
-
+### Prompt 4.3 — TASK-520-07 + TASK-530-07 · Historiales con filtros 🔗⏳
 ```
-[1. ROL]
-Actúa como un Senior Technical Writer y Arquitecto de Producto con amplia experiencia en documentación técnica, UX y guías de explotación operativa de software.
+Proyecto: SISGAD5. Tareas: TASK-520-07 (historial asignaciones) y TASK-530-07 (historial consumos).
+1. GET /api/v1/asignaciones?trabajador_id=&desde=&hasta=&estado= y GET /api/v1/consumos?trabajador_id=&desde=&hasta=, paginación estándar del proyecto (ver helper de paginación existente en handlers de materiales).
+2. Orden por fecha desc; incluir joins mínimos para nombre de material/trabajador (prevenir N+1 con Preload o select explícito).
+3. Swagger (/docs swaggo) regenerado; table-tests de filtros.
+```
 
-[2. CONTEXTO]
-Tenemos SISGAD5, una plataforma web destinada a operadores, probadores, editores y administradores de una empresa de telecomunicaciones. La pantalla principal muestra un dashboard con KPIs, gráficos en tiempo real y tablas de datos. Necesitamos un manual de explotación claro para que cualquier usuario entienda qué significa cada elemento de la pantalla, cómo interpretar la información y qué acciones tomar.
+### Prompt 4.4 — TASK-540-05 · Alertas stock bajo (datos hardcoded) 🔄
+```
+Proyecto: SISGAD5. Tarea: TASK-540-05 — Reemplazar AlertasGlobales fake (dashboard_handler.go ~126+) por ranking real.
+1. Query: stocks por trabajador/material donde cantidad ≤ umbral (definir umbral por material si existe campo; si no, constant configurable). Ranking por criticidad asc.
+2. Responder JSON estable { alerts: [{nivel, material, trabajador, disponible, umbral}] }.
+3. Test con fixture sqlmock; verificar que el frontend materials dashboard consume el mismo shape (grep en frontend/src/pages/materiales).
+```
 
-[3. TAREA EXACTA]
-Redacta un "Manual de Explotación y Guía de Usuario" exhaustivo y didáctico para la vista [nombre de la vista, ej. Dashboard de Materiales].
+### Prompt 4.5 — TASK-540-06 + TASK-1000-02 · Exportación CSV/JSON + reportes UI 🔗⏳
+```
+Proyecto: SISGAD5. Tareas: TASK-540-06 (Go ?format=csv) y TASK-1000-02 (exportación desde UI con filtros).
+Backend Go:
+1. Helper responding.WriteCSV(headers, rows) con BOM para Excel; aplicar en listados de materiales/asignaciones/consumos cuando ?format=csv (respetando TODOS los filtros activos).
+Frontend:
+2. Botón "Exportar" en las vistas de datos que ya tengan filtros aplicados: descarga vía fetch con blob usando los query params actuales (no exportar sin filtros implícitos).
+3. Content-Disposition filename con fecha. Tests: snapshot CSV en Go; en UI basta lint+build.
+```
 
-El manual debe incluir:
+### Prompt 4.6 — TASK-550-05 · Exportación SAP ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-550-05 — CSV layout SAP on-demand.
+NECESITA INPUT HUMANO: especificación del layout SAP (columnas, separador, encoding). Mientras tanto:
+1. Crear internal/export/sap.go con struct Layout configurable (header template file sap_layout.csv en configs/) y endpoint GET /api/v1/asignaciones/export/sap que usa ese layout sobre datos reales.
+2. Dejar TODO marcado donde falte la spec; test con layout fixture propio.
+```
 
-1. **Resumen Ejecutivo y Propósito:** Qué es, para qué sirve y qué decisiones permite tomar.
-2. **Glosario de Conceptos Clave:** Definición clara de términos técnicos.
-3. **Desglose Métrica por Métrica (KPIs):** Significado, fuente del dato y rangos normales vs. alerta.
-4. **Explicación Detallada de Gráficos:** Eje X, Eje Y, qué representa cada línea/barra y cómo interpretar tendencias.
-5. **Guía de Tablas de Datos:** Explicación de columnas, filtros, ordenación y significado de estados/colores.
-6. **Flujo de Trabajo Operativo:** Qué acciones tomar según los resultados observados.
+### Prompt 4.7 — TASK-540-07 · Tendencias básicas ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-540-07 — Serie histórica + estadística básica.
+1. GET /api/v1/dashboard/tendencias?meses=6: consumo mensual por categoría (GROUP BY date_trunc) + proyección naive (regresión lineal simple o promedio móvil 3) — sin ML, documentar limitación.
+2. Consumir desde StatsPage/dashboard materiales con Recharts (patrón existente TASK-710-10).
+3. Test de cálculo de proyección con serie conocida.
+```
 
-[4. RESTRICCIONES]
-- Idioma: Español claro, profesional y libre de jerga innecesaria.
-- Usa analogías o ejemplos prácticos para explicar gráficos complejos.
-- Incluye cajas de texto/alertas (usando blockquote de Markdown `>`) para resaltar advertencias críticas.
-- Si una métrica requiere cálculo, indica la fórmula matemática explícita.
-- Asume que el lector no participó en el desarrollo del software.
-
-[5. FORMATO DE SALIDA]
-Devuélveme el contenido estructurado en Markdown limpio y modular, organizado con encabezados jerárquicos (H1, H2, H3) e índice interno, listo para guardarse como MANUAL_EXPLOTACION.md en el repositorio.
+### Prompt 4.8 — TASK-800-03 · Cobertura Go ≥70% 👤🔄
+Agente puede escribir tests; la meta numérica requiere medir.
+```
+Proyecto: SISGAD5. Tarea: TASK-800-03 — Subir cobertura de internal/services (hoy 4 tests, 2 suites).
+1. go test ./... -coverprofile=coverage.out && go tool cover -func:coverage.out → informe de brechas por archivo.
+2. Priorizar: consumo_service (tras fix 4.1), asignacion_service restante, stock/inventario service, dtos validation. Table-tests + sqlmock o el harness actual.
+3. Meta ≥70% statements en internal/services; añadir step de coverage al job materials de ci.yml.
 ```
 
 ---
 
-## 10. FASE 8 — Documentación Final y Defensa
+## Bloque 5 — Gateway & Seguridad (Fases 6, 8) — `api-gateway/`
 
-### 10.1. Prompt
-
+### Prompt 5.1 — TASK-600-04 · Verificación JWT centralizada 🔄🔴
+Decisione de diseño REQUIRED antes de codificar: verificar-en-borde + propagar identidad, manteniendo validación descentralizada como defense-in-depth (no romper backends).
 ```
-[1. ROL]
-Actúa como un Technical Lead y Redactor Académico experto en documentación técnica y tesis de maestría.
-
-[2. CONTEXTO]
-Hemos finalizado el desarrollo de SISGAD5. Ahora necesitamos consolidar toda la documentación para la defensa de la tesis de maestría en "Ingeniería Industrial" en RTU MIREA.
-
-[3. TAREA EXACTA]
-Genera un documento consolidado que incluya:
-
-1. **Resumen Ejecutivo:** Qué se construyó, por qué y cuáles son los resultados.
-2. **Arquitectura Final:** Diagramas Mermaid actualizados.
-3. **Módulos Implementados:** Estado final de cada módulo (Users, MP, Materials, Gateway, Frontend).
-4. **Resultados de Testing:** Cobertura, tests pasados, métricas.
-5. **Despliegue:** Instrucciones de instalación y operación.
-6. **Lecciones Aprendidas:** Dificultades y soluciones.
-7. **Trabajo Futuro:** Roadmap de evolución.
-8. **Bibliografía:** Referencias según ГОСТ 7.0.5-2008.
-
-[4. RESTRICCIONES]
-- Sigue el formato de ГОСТ 19.201-78 y ГОСТ 19.402-78.
-- Incluye tablas de trazabilidad entre requisitos, tareas y código.
-- Sé conciso pero completo.
-- Usa diagramas Mermaid para arquitectura y flujos.
-
-[5. FORMATO]
-Devuélveme el contenido en Markdown listo para guardarse como `docs/thesis/FINAL_REPORT.md`.
+Proyecto: SISGAD5. Tarea: TASK-600-04 — Gateway valida JWT y propaga identidad.
+1. Nuevo middleware src/middlewares/auth.js: verifica Bearer con JWT_SECRET compartido (misma lib jwt, mismos claims), 401 uniforme { code:'UNAUTHORIZED' } para TODAS las rutas /api/* excepto whitelist pública (login, refresh, recuperar, reestablecer, health).
+2. Al validar: reescribir header X-User-Id / X-User-Rol hacia el backend (strip de cualquier valor entrante spoofeable del cliente).
+3. Backends: NO quitar su validación actual (defense in depth); documentar en ARCHITECTURE.md el modelo híbrido.
+4. Tests supertest: sin token→401, token vencido→401, válido→llega X-User-Id al mock upstream.
+5. Coherencia de 401 con frontend interceptor (verificar shape esperado en services/api.ts).
 ```
 
----
-
-## 11. Flujo de Trabajo Completo
-
-### 11.1. Diagrama de Flujo
-
-```mermaid
-graph TD
-    A[Inicio] --> B[FASE 0: Generar AGENT.md]
-    B --> C[FASE 1: Generar SPEC.md]
-    C --> D[FASE 2: Generar ARCHITECTURE.md]
-    D --> E[FASE 3: Generar TASKLIST.md]
-    E --> F{¿Hay tareas pendientes?}
-    F -->|Sí| G[Seleccionar tarea del TASKLIST]
-    G --> H[FASE 4: Implementar tarea]
-    H --> I[FASE 5: Verificar tarea]
-    I --> J{¿Verificación exitosa?}
-    J -->|No| K[Corregir errores]
-    K --> H
-    J -->|Sí| L[FASE 6: Registrar en memory.md]
-    L --> M[Marcar tarea como completada]
-    M --> F
-    F -->|No| N[FASE 7: Generar Manual de Explotación]
-    N --> O[FASE 8: Documentación Final]
-    O --> P[Fin]
+### Prompt 5.2 — TASK-800-04 · Tests unitarios API Gateway ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-800-04 — Suites Jest para middlewares del gateway.
+1. jest.config.js + script test real (verificar package.json gateway; patrón de otros servicios JS ya resuelto en nov-2026).
+2. Cubrir: rate-limit (falso timer), proxy routing (mock http-proxy-middleware target resolution), health, CORS lista blanca, y auth de 5.1 si ya mergeado.
+3. Sin red externa: every upstream mocked. CI job test-gateway activo.
 ```
 
-### 11.2. Ejemplo de Ejecución Completa
-
+### Prompt 5.3 — TASK-820-01 · Auditoría de seguridad y remediación 🔄
+Hallazgo conocido: security.yml roto (falta .gitleaks.toml) + dependencias vulnerables.
 ```
-1. FASE 4: Implementer → TASK-520-05 (Validación de stock real)
-   - Módulo: Materials Service
-   - Archivo: internal/services/asignacion_service.go
-   - Resultado: Función implementada
+Proyecto: SISGAD5. Tarea: TASK-820-01 — Dejar el pipeline de seguridad ACTIVO y con críticos resueltos.
+1. Crear .gitleaks.toml raíz (rules por defecto + allowlist para fixtures de test con strings pseudo-secret).
+2. Ejecutar localmente: npm audit en los 3 servicios JS y govulncheck en Go; actualizar dependencias con fixes mayores compatibles (changelog check); registrar breaking changes.
+3. Trivy: confirmar imágenes scanneadas en security.yml; severity gate critical=fail.
+4. Producir docs/security-report-2026-11.md (hallazgo→acción→estado). Workflow en verde en un push de prueba.
+```
 
-2. FASE 5: Verifier → Verificar TASK-520-05
-   - Tests: Pasar
-   - Seguridad: OK
-   - ACID: OK
-   - Resultado: Aprobado
+### Prompt 5.4 — TASK-820-02 + TASK-820-03 · Rendimiento y carga 🔗⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-820-02 (benchmark ≥1000 RPS gateway documentado) y TASK-820-03 (k6 500 usuarios estables).
+1. performance-tests/: vegeta o autocannon contra gateway docker-compose (modo standalone mock upstreams para medir overhead del gateway puro).
+2. load-tests/scenario.js k6: escenario login→listar quejas→crear consumo; stages 0→500 VUs ramp 2m, plateau 5m; thresholds p95<800ms, error rate<1%.
+3. Ejecutar contra compose local con datos seed; documentar métricas + captura en performance-tests/RESULTS-2026-11.md con hardware y versión de imagen.
+4. Si no se alcanza 1000 RPS: perfilar (keep-alive, conexión pool http-proxy) y reportar cuello de botella real — el criterio admite hallazgo negativo documentado.
+```
 
-3. FASE 6: Archiver → Registrar TASK-520-05
-   - Qué se hizo: Implementada validación de stock real
-   - Por qué: Completar stub para evitar asignaciones sin stock
-   - Dónde: internal/services/asignacion_service.go
-   - Aprendido: GORM permite SELECT FOR UPDATE para bloqueo
-
-4. Actualizar TASKLIST.md → TASK-520-05 [x]
+### Prompt 5.5 — TASK-810-01 · E2E ciclo completo 🔄
+CI ya auto-skippea si no hay suites. Objetivo: primera suite real.
+```
+Proyecto: SISGAD5. Tarea: TASK-810-01 — Playwright E2E login→queja→trabajo→materiales.
+1. playwright.config.ts: baseURL env, workers=1, webServer levantando compose de test (o mock server de gateway con MSW si Docker no disponible en runner — revisar runner de ci.yml y elegir viable).
+2. Spec tests/e2e/ciclo-completo.spec.ts: login usuario seed → crear queja → asignar técnico → cerrar trabajo → consumir material → verificar dashboard. Data-testid en componentes tocados (añadir mínimamente).
+3. Seed script e2e con usuario/estados conocidos. Quitar el auto-skip del job cuando exista ≥1 spec.
 ```
 
 ---
 
-## 12. Plantilla de memory.md
+## Bloque 6 — Observabilidad & DevOps (Fases 2, 9)
 
-```markdown
-# 🧠 memory.md — Memoria Persistente del Proyecto SISGAD5
+### Prompt 6.1 — TASK-220-01 · Prometheus /metrics en todos los servicios 🔗🔄
+Bloquea a 910-02 y 1200-03 (alertas). Es el punto crítico de esta área.
+```
+Proyecto: SISGAD5. Tarea: TASK-220-01 — Exponer /metrics en los 4 servicios.
+1. Node (gateway, users, mp): prom-client — métrica http_requests_total{service,route,method,status} + histograma duración; endpoint GET /metrics SIN auth interna (bloquear en gateway/compose por red, no exponer público).
+2. Go (materials): github.com/prometheus/client_golang con gin middleware + histogramas propios de negocio (consumos_registrados_total, asignaciones_total).
+3. prometheus.yml: scrape jobs de los 4 (targets de red compose); verificar con docker compose up + curl targets UP.
+4. Dashboard Grafana JSON commiteado en monitoring/grafana/dashboards/servicios.json (RPS, latencia p95, errores por servicio).
+Cerrar aquí habilita el prompt 6.2.
+```
 
-> **Propósito:** Registro acumulativo de todas las decisiones técnicas, cambios realizados y lecciones aprendidas durante el desarrollo.
-> **Última actualización:** [Fecha]
-> **Mantenido por:** Agentes de IA + Humano
+### Prompt 6.2 — TASK-910-02 + TASK-1200-03 · Alertas operativas 🔗🔄
+```
+Proyecto: SISGAD5. Tareas: TASK-910-02 (monitoreo productivo con alertas) y TASK-1200-03 (alertas de caídas/recursos). Requiere 6.1 merged.
+1. monitoring/prometheus/rules.yml: caída (up==0 2m), latencia p95>1s 5m, 5xx>5% 5m, CPU/mem container >85% 10m (via cAdvisor/node-exporter si presentes en compose monitoring).
+2. Alertmanager config: route por severidad; webhook placeholder a canal elegido por humano (documentar TODO).
+3. Cargar rules en prometheus.yml; test sintáctico promtool check rules; simular caída de contenedor y verificar alerta pending→firing (captura como evidencia).
+```
+
+### Prompt 6.3 — TASK-220-04 · Sentry ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-220-04 — SDK Sentry por servicio.
+1. Humano: crear proyectos Sentry y volcar DSNs a GH Secrets (SENTRY_DSN_USERS/_MP/_MATERIALS/_GATEWAY/_FRONTEND) — bloqueante.
+2. Node: @sentry/node init condicional (env presente), integrations express handler en cadena de errores AFTER logger; Go: getsentry/sentry-go con capture en middleware de error; Frontend: @sentry/react con environment release=git sha.
+3. sampleRate 0.1 prod, tracesSampleRate conservador; NO enviar PII (beforeSend scrub de headers Authorization/email).
+4. smoke test: endpoint /test-error detrás de flag dev, verificar evento en Sentry.
+```
+
+### Prompt 6.4 — TASK-210-04 · Branch protection 👤
+```
+Acción humana en GitHub Settings → Branches: rule para main: require PR, 1 review, checks obligatorios (lint-* , test-*), no force-push, no deletions. Opcional automatizar con gh CLI si restaurás acceso admin:
+gh api repos/ybotet/SISGAD5_1.0/branches/main/protection -X PUT ... (requiere token con scope admin:repo).
+Al aplicar, cerrar TASK-210-04 en TASKLIST.md con link al settings.
+```
+
+### Prompt 6.5 — TASK-900-01 + TASK-900-02 · CD deploy automático 🔗🔴
+```
+Proyecto: SISGAD5. Tareas: TASK-900-01 (descomentar/terminar deploy) y TASK-900-02 (SSH automation).
+Precondición humana: secrets SSH_DEPLOY_HOST/USER/KEY (strict key) + GHCR pull creds en servidor.
+1. cd.yml job deploy: despues de build&push, runner SSH (appleboy/ssh-action o ssh manual con known_hosts): docker login GHCR, compose -f docker-compose.prod.yml pull con tags SHA, docker compose up -d, healthcheck loop curl /health 60s, rollback automático a tag anterior si health falla (guardar CURRENT_TAG file en servidor).
+2. Parametrizar deploy.sh para aceptar IMAGE_TAG=<sha> (reutilizar lógica, no duplicar).
+3. Environment "production" con approval manual en GH env settings (humano 2 min).
+4. Dry-run: workflow_dispatch con tag existente. Evidencia run-link en TASKLIST.
+```
+
+### Prompt 6.6 — TASK-900-03 · Rollback versionado ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-900-03 — Estrategia de rollback.
+1. Basado en CURRENT_TAG del prompt 6.5: documentar en docs/14_deployment.md comando rollback.sh IMAGE_TAG=<sha-anterior> y procedimiento de verificación post-rollback (health + smoke login).
+2. Política de retención GHCR (settings → paquetes: conservar últimos 20) — capturar screenshot/config en docs.
+3. Test real en entorno staging/local compose: desplegar vN, rollback a vN-1, verificar.
+```
+
+### Prompt 6.7 — TASK-900-04 · Secrets management 👤⏳
+```
+Acción humana: auditar docker-compose.prod.yml — mover TODO valor real a .env en servidor (chmod 600, fuera del repo), rotar JWT_SECRET (≥256 bits) y contraseñas BD; verificar que ningún secreto histórico quedó legible en git log (si sí: rotación obligatoria + notas en docs/13_security.md). Marcar TASK-900-04 con checklist firmado.
+```
+
+### Prompt 6.8 — TASK-910-01 · Orquestación (ADR) ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-910-01 — Decisión K8s vs Compose.
+Redactar docs/adr/ADR-00X-orquestacion.md evaluando: escala actual (tesis, mononodo), costo operativo, monitoreo existente. Recomendación esperada: permanecer en Compose + documento de umbral de migración (cuándo reconsiderar K8s). No crear carpeta k8s/ salvo decisión contraria. Cierre = ADR aprobado por tutor.
+```
 
 ---
 
-## 📅 Registro Cronológico
+## Bloque 7 — Documentación & Proceso (Fases 1, 10, 11, 12)
 
-### [Fecha] — TASK-XXX-YY: [Nombre de la Tarea]
+### Prompt 7.1 — TASK-100-06 · Matriz de trazabilidad ⏳🔴
+```
+Proyecto: SISGAD5. Tarea: TASK-100-06 — Matriz Requisito→Caso de uso→Endpoint/Clase→Test.
+1. Fuentes: requisitos de docs/01/02 (o donde estén numerados), endpoints de docs/api/*.yaml, tests existentes (jest/go test/playwright).
+2. Generar docs/traceability_matrix.md tabla markdown con columna "huérfanos detectados" (requisitos sin test, tests sin requisito). Semi-automatizar con script scripts/gen-traceability.py (regex sobre yaml+tests) y revisar salida manualmente.
+3. Criterio de "sin huérfanos" aplicado a requisitos v1; los futuros se marcan GAP.
+Depende de que la revisión documental del humano (en curso, hasta 07_domain_model) haya fijado nombres definitivos.
+```
 
-**Módulo:** [Módulo]
-**Servicio:** [Servicio]
-**Estado:** ✅ Completada / ⚠️ Parcial / ❌ Fallida
+### Prompt 7.2 — TASK-110-04 · ER consolidado 🔄 — ⚠️ EN PAUSA POR DECISIÓN HUMANA
+```
+Estado: el humano está revisando docs archivo por archivo (actualmente 07_domain_model.es.md). NO ejecutar hasta indicación. Cuando llegue a 11_data_model: reconciliar divergencia de nomenclatura acordada (opción B: tablas tb_* en código son fuente de verdad → actualizar diagramas erDiagram existentes en docs/11_data_model.md l.24/151/310 a nombres tb_* y claves reales verificadas contra migrations/models de los 3 servicios), luego cerrar 🔄→✅.
+```
 
-#### Qué se hizo
-- [Descripción breve del cambio]
+### Prompt 7.3 — TASK-1100-01 · Documento de diseño reconciliado 🔄
+```
+Proyecto: SISGAD5. Tarea: TASK-1100-01 — Reconciliar docs/00–17 + thesis con código real.
+Solo DESPUÉS de completar la revisión humana archivo-por-archivo. Método: diff aserciones técnicas de docs vs código (endpoints, tablas, flujos) con checklist por documento; corregir docs (nunca código para "cuadrar" docs); registrar cada corrección en docs/memory/. Esta tarea es mayormente humana; el agente puede asistir generando el checklist de discrepancias por documento.
+```
 
-#### Por qué se hizo de esa forma
-- [Justificación técnica]
+### Prompt 7.4 — TASK-1100-02 · Vigencia de manuales 🔄
+```
+Verificar docs/manuals/ (6 roles) contra UI actual: comandos/rutas/pantallas obsoletos → corregir; añadir sección troubleshooting del error visto en producción (migraciones no aplicadas → db:migrate, referencia a fix .sequelizerc nov-2026). Cierre con matriz doc→última-validación.
+```
 
-#### Dónde están los cambios
-- `ruta/al/archivo1.go`
-- `ruta/al/archivo2.js`
+### Prompt 7.5 — TASK-1100-03 · Presentación de defensa 👤
+```
+Acción humana (Tutor): slides finales. Soporte IA posible bajo pedido explícito: generar outline desde docs/thesis + dashboards screenshots. No crear task de agente hasta definición de formato (Beamer/Slides/PowerPoint?).
+```
 
-#### Qué hemos aprendido
-- [Errores detectados]
-- [Soluciones aplicadas]
-- [Decisiones tomadas]
+### Prompt 7.6 — TASK-1200-01 · Proceso SLA 👤⏳
+```
+Acción humana: definir niveles SLA por severidad y flujo de triage; plantillas de issue ya existen (.github/ISSUE_TEMPLATE/). Entregable: docs/support_sla.md + labels GitHub. Agente puede borrador si el humano dicta niveles.
+```
 
-#### Dependencias desbloqueadas
-- TASK-XXX-ZZ: [Nombre]
+### Prompt 7.7 — TASK-1200-02 · Roadmap re-priorizado 👤🔄
+```
+Actualización de docs/17_roadmap.md con estado post-auditoría v2.4 (mover completadas, re-priorizar Fase 8 testing y 9 CD como críticas previas a defensa). Humano aprueba; agente propone diff.
+```
+
+### Prompt 7.8 — TASK-1200-05 · Cadencia de dependencias 🔄
+```
+Verificar Dependabot: frecuencia PRs, edad de PRs abiertos, regresiones. Proponer plan: mergear minors semanalmente tras CI verde; majors en rama dedicada. Reportar en docs/17_roadmap.md sección mantenimiento.
+```
+
+### Prompt 7.9 — TASK-1200-04 · Optimización rendimiento 👤⏳
+```
+Depende de baseline de 5.4 (820-02/03). Sin benchmark no hay "≥20%" medible. Bloqueada hasta tener RESULTS de rendimiento. No generar trabajo prematuro.
+```
 
 ---
 
-### [Fecha] — TASK-XXX-YY: [Nombre de la Tarea]
-...
+## Bloque 8 — Analytics transversal (Fase 10)
+
+### Prompt 8.1 — TASK-1000-04 · Segmentación unificada 🔗🔄
+```
+Unificar criterios de filtro (desde/hasta/area/servicio) en endpoints dashboard de MP y Materials (nombres de param idénticos, formatos fecha ISO). Refactor de helpers de query por servicio + tabla de mapeo en docs/api/analytics_params.md. Tests de regresión por dashboard.
+```
+
+### Prompt 8.2 — TASK-1000-07 · Tendencias históricas 🔄
+```
+Extender dashboard/historic de quejas (existe parcial) a series mensuales por categoría/servicio; alinear con TASK-540-07 (Go) bajo mismo contrato de respuesta {series:[{label,values[]}]}. Consumir en StatsPage.
+```
+
+### Prompt 8.3 — TASK-1000-06 · API análisis transversal ⏳
+```
+Decisión previa (ADR corto): agregación en gateway (BFF) vs servicio nuevo. Recomendado: capa ligera en api-gateway /api/analytics/* que compone responses de MP+Materials con JWT validado (usa 5.1). Sin BD nueva. Cache TTL 60s en memoria. Tests de composición.
+```
+
+### Prompt 8.4 — TASK-1000-03 · Alertas métricas configurables ⏳
+```
+Depende de 6.2 (reglas Prometheus) para infra + umbral real de 4.4. Implementar: reglas declaradas en monitoring/prometheus/rules.yml (fuente única versionada) + UI de solo-lectura que las lista desde Alertmanager API. Configuración editable = out of scope tesis (documentar).
+```
+
+### Prompt 8.5 — TASK-1000-08 · Comparación de períodos ⏳
+```
+Endpoint de comparación (por servicio donde exista dashboard): ?periodo=actual&vs=anterior devuelve varianza % por KPI. Implementar primero en MP quejas (menor esfuerzo), reutilizar para materiales. Test con datos fixture de dos meses.
+```
+
+### Prompt 8.6 — TASK-1000-01 · Cierre dashboards 🔄
+```
+Quedan detalles tras 8.1/8.2: pasar checklist KPI comprometidos vs visibles; evidenciar con screenshots en docs/memory; cerrar ✅.
+```
 
 ---
 
-## 📊 Estadísticas Acumuladas
+## 📌 Orden de ejecución recomendado (crítico → periférico)
 
-| Métrica | Valor |
-|---|---|
-| Tareas completadas | [N] |
-| Archivos modificados | [N] |
-| Tests implementados | [N] |
-| Bugs corregidos | [N] |
-| Decisiones arquitectónicas | [N] |
+| # | Prompt | Razón |
+|---|--------|-------|
+| 1 | 6.1 (Prometheus /metrics) | Desbloquea 6.2, 8.4, 1200-03 |
+| 2 | 4.1 (stub stock Go) | Bug funcional real, riesgo de datos |
+| 3 | 2.1 (cambio contraseña) → 1.3 | Feature prometida en API docs |
+| 4 | 5.3 (security pipeline) | Verde en CI previo a defensa |
+| 5 | 3.4 + 3.5 (asignar/cerrar + auditoría) | Núcleo de negocio MP |
+| 6 | 1.1 (UI Trabajos) | Consume endpoints de 3.4 |
+| 7 | 2.4 + 3.10 + 5.2 + 4.8 (tests cobertura) | Fase 8 completa, requisito de tesis |
+| 8 | 5.5 (E2E) | Depende de 3.4/1.1 |
+| 9 | 6.5/6.6 (CD deploy+rollback) | Requiere secretos humanos |
+| 10 | Resto | Mejoras continuas |
 
----
-
-## 🏛️ Decisiones Arquitectónicas Clave
-
-| ID | Decisión | Justificación | Fecha |
-|---|---|---|---|
-| ADR-001 | Usar Go para Materials Service | Concurrencia nativa, ACID, rendimiento | [Fecha] |
-| ADR-002 | 3 BD separadas | Desacoplamiento, escalabilidad | [Fecha] |
-| ADR-003 | API Gateway centralizado | Seguridad, punto único de entrada | [Fecha] |
-
+**Reglas transversales para TODOS los prompts:** (1) inspeccionar el código real antes de asumir nombres de tablas/columnas/endpoints — hubo varias filas de TASKLIST con evidencia obsoleta; (2) toda migración reversible; (3) cerrar cada tarea actualizando TASKLIST.md + docs/memory/ en el mismo commit; (4) lint+test+build en verde antes de push.

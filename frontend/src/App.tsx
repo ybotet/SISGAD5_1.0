@@ -34,11 +34,14 @@ import DashboardQuejaPage from "./pages/queja/DashboardQuejaPage";
 import PizarraPage from "./pages/PizarraPage";
 
 //Users y Roles
-import UsuariosPage from "./pages/auth/admin/UsuariosPage";
-import RolesPage from "./pages/auth/admin/RolesPage";
+import AdminPage from "./pages/auth/admin/AdminPage";
 
 //Stats
 import StatsPage from "./pages/StatsPage";
+import TrabajoFichaPage from "./pages/trabajos/TrabajoFichaPage";
+
+// Predictions
+import PredictionsPage from "./pages/PredictionsPage";
 
 // Materiales
 import UnidadMedidaPage from "./pages/nomencladores/UnidadMedida";
@@ -92,6 +95,14 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="predicciones"
+          element={
+            <ProtectedRoute permission="estadisticas.ver">
+              <PredictionsPage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="main/quejas"
@@ -110,6 +121,14 @@ export default function App() {
           }
         />
         <Route
+          path="main/trabajos/:id_trabajo"
+          element={
+            <ProtectedRoute permission="quejas.ver">
+              <TrabajoFichaPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="operarios"
           element={
             <ProtectedRoute permission="trabajadores.gestionar">
@@ -118,18 +137,10 @@ export default function App() {
           }
         />
         <Route
-          path="admin/usuarios"
+          path="admin/*"
           element={
             <ProtectedRoute permission="usuarios.ver">
-              <UsuariosPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="admin/roles"
-          element={
-            <ProtectedRoute permission="roles.ver">
-              <RolesPage />
+              <AdminPage />
             </ProtectedRoute>
           }
         />

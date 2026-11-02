@@ -15,8 +15,10 @@ import (
 	"github.com/rs/cors"
 
 	// Importar nuestros paquetes internos
+	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/config"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/handlers"
 	slog "github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/logger"
+	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/middleware"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/repositories/postgres"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/services"
 )
@@ -35,6 +37,12 @@ func main() {
     // ========================================
     if err := godotenv.Load(); err != nil {
         slog.Alerta("⚠️  Archivo .env no encontrado, usando variables del sistema")
+    }
+
+    // 🔒 Validar JWT_SECRET al arranque (SEC-02: falla si falta o tiene < 32 chars)
+    if err := config.ValidarEnv(); err != nil {
+        slog.Errorf("❌ Error de configuración: %v", err)
+        os.Exit(1)
     }
 
     // ========================================
@@ -127,6 +135,10 @@ func main() {
 
     // API v1
     api := r.PathPrefix("/api/materiales").Subrouter()
+
+    // Aplicar middleware de autenticación JWT a todas las rutas del API
+    // (excepto /health que está en el router raíz, sin autenticación)
+    api.Use(middleware.AuthMiddleware(config.GetJWTSecret()))
 
     // --- Rutas de materiales ---
     api.HandleFunc("/materiales", materialHandler.Listar).Methods("GET")

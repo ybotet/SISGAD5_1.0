@@ -46,6 +46,18 @@ export const authService = {
     // backend responde { success: true, data: usuario }
     return resp.data.data;
   },
+
+  // Actualizar perfil del usuario autenticado (PUT /api/user/:id)
+  actualizarPerfil: async (id: number, data: { email?: string; nombre?: string; apellidos?: string; activo?: boolean }) => {
+    const resp = await api.put(`/user/${id}`, data);
+    return resp.data.data;
+  },
+
+  // Cambiar contraseña del usuario autenticado (PATCH /api/auth/password)
+  cambiarPassword: async (data: { password_actual: string; password_nueva: string }) => {
+    const resp = await api.patch("/auth/password", data);
+    return resp.data;
+  },
 };
 
 export default authService;

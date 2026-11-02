@@ -1,0 +1,148 @@
+const apiError = require("../../shared/utils/apiErrors");
+const { Asignacion, AsignacionTrabajadores, Queja } = require("../../features");
+const { Op } = require("sequelize");
+const { parseListParams } = require("../../shared/utils/parseListParams");
+const {
+  createAsignacionSchema,
+  updateAsignacionSchema,
+  listAsignacionSchema,
+} = require("./asignacion.validation");
+const validate = require("../../shared/middleware/validate");
+const { create } = require("../../features/trabajo_trabajadores/trabajo_trabajadores.controller");
+const { get } = require("./asignacion.routes");
+const { normalizeToDbDateTime } = require("../../shared/utils/dateUtils");
+
+const AsignacionController = {
+  /**
+   * @desc    Obtener todos los registros (CON validación Zod en query)
+   * @route   GET /api/asignacion
+   * @access  Public
+   */
+  create: [
+    validate(createAsignacionSchema),
+    async (req, res, next) => {
+      try {
+        //Comprobar que la queja esta en estado "Pendiente" o "Probada"
+        const queja = await Queja.findOne({
+          where: { id_queja: req.body.id_queja },
+        });
+        if (!queja || (queja && queja.estado !== "Pendiente" && queja.estado !== "Probada")) {
+          return next(apiError.badRequest("La queja debe estar en estado 'Pendiente' o 'Probada'"));
+        }
+
+        const payload = { ...req.body };
+        if (payload.fechaAsignacion) {
+          payload.fechaAsignacion = normalizeToDbDateTime(payload.fechaAsignacion);
+        }
+
+        const data = await Asignacion.create(payload);
+
+        if (payload.trabajadores && payload.trabajadores.length > 0) {
+          const trabajadoresData = payload.trabajadores.map((trabajador) => ({
+            id_asignacion: data.id_asignacion,
+            id_trabajador: trabajador.id_trabajador,
+          }));
+          await AsignacionTrabajadores.bulkCreate(trabajadoresData);
+        }
+
+        // Actualizando el estado de la queja
+        await Queja.update(
+          { estado: "Asignada" },
+          {
+            where: { id_queja: data.id_queja },
+            validate: false, // Esto omite las validaciones del modelo
+            individualHooks: false,
+          },
+        );
+
+        res.status(201).json({
+          success: true,
+          data,
+          message: "Asignacion creada exitosamente",
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+  ],
+
+  getAll: [
+    validate(listAsignacionSchema, "query"),
+    async (req, res, next) => {
+      try {
+        const { limit, offset } = parseListParams(req.query);
+        const data = await Asignacion.findAll({
+          limit,
+          offset,
+        });
+        if (data.length === 0) {
+          return next(apiError.notFound("Asignacion"));
+        }
+        data.forEach((asignacion) => {
+          asignacion.dataValues.trabajadores = [];
+        });
+
+        for (let i = 0; i < data.length; i++) {
+          const trabajadores = await AsignacionTrabajadores.findAll({
+            where: { id_asignacion: data[i].id_asignacion },
+          });
+          data[i].dataValues.trabajadores = trabajadores;
+        }
+
+        res.json({
+          success: true,
+          data,
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+  ],
+
+  getById: async (req, res, next) => {
+    try {
+      const data = await Asignacion.findOne({
+        where: { id_asignacion: req.params.id },
+      });
+      if (!data) {
+        return next(apiError.notFound("Asignacion"));
+      }
+      data.dataValues.trabajadores = [];
+
+      const trabajadores = await AsignacionTrabajadores.findAll({
+        where: { id_asignacion: data.id_asignacion },
+      });
+      data.dataValues.trabajadores = trabajadores;
+
+      res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  },
+
+  delete: async (req, res, next) => {
+    try {
+      const data = await Asignacion.findOne({
+        where: { id_asignacion: req.params.id },
+      });
+      if (!data) {
+        return next(apiError.notFound("Asignacion"));
+      }
+      await Asignacion.destroy({
+        where: { id_asignacion: req.params.id },
+      });
+      res.json({
+        success: true,
+        message: "Asignacion eliminada exitosamente",
+      });
+    } catch (error) {
+      return next(error);
+    }
+  },
+};
+
+module.exports = AsignacionController;
+

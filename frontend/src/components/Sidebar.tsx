@@ -222,6 +222,12 @@ export default function Sidebar() {
       permission: "estadisticas.ver",
     },
     {
+      id: "predicciones",
+      name: t("menu.predicciones") || "Predicciones",
+      icon: "ri-ai-generate",
+      permission: "estadisticas.ver",
+    },
+    {
       id: "admin",
       name: t("menu.panel_admin"),
       icon: "ri-admin-line",

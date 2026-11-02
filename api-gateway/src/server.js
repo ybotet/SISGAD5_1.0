@@ -3,14 +3,17 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-const requestLogger = require("./middleware/requestLogger");
-const logger = require("./config/logger");
 const path = require("path");
 const dotenv = require("dotenv");
+const requestLogger = require("./middleware/requestLogger");
 const { globalLimiter, authLimiter } = require("./middleware/rateLimit.js");
+const verifyJwt = require("./middleware/verifyJwt");
+const logger = require("./config/logger");
 
-// Cargar variables de entorno
 dotenv.config({ path: path.join(__dirname, "../../.env.local") });
+
+const { requireJwtSecret } = require("./config/jwt");
+requireJwtSecret();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,10 +22,19 @@ const PORT = process.env.PORT || 5000;
 // 🔧 CONFIGURACIÓN GLOBAL
 // ========================================
 
-// CORS - Configuración para desarrollo
+// 🔒 CORS — lista blanca desde CORS_ORIGIN
+// En producción, CORS_ORIGIN es obligatorio (falla al arranque si falta)
+const isProduction = process.env.NODE_ENV === "production";
+const corsOrigin = process.env.CORS_ORIGIN;
+
+if (isProduction && !corsOrigin) {
+  logger.error("❌ CORS_ORIGIN no definido en producción. Abortando startup.");
+  process.exit(1);
+}
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || true,
+    origin: corsOrigin ? corsOrigin.split(",").map((o) => o.trim()) : "*",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
@@ -32,10 +44,19 @@ app.use(
 // Logging personalizado (request id + centralizado)
 app.use(requestLogger);
 
-// Seguridad con Helmet (ajustado para desarrollo)
+// 🔒 Seguridad con Helmet — CSP activado en producción
 app.use(
   helmet({
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: isProduction
+      ? {
+          directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", "data:", "https:"],
+          },
+        }
+      : false,
     crossOriginEmbedderPolicy: false,
   }),
 );
@@ -67,9 +88,13 @@ const createServiceProxy = (target, serviceName, proxyOptions = {}) => {
       }
     },
     onProxyReq: (proxyReq, req, res) => {
-      // Propagar headers importantes (ej. Authorization)
       if (req.headers.authorization) {
         proxyReq.setHeader("Authorization", req.headers.authorization);
+      }
+      if (req.user) {
+        proxyReq.setHeader("X-User-Id", String(req.user.id));
+        proxyReq.setHeader("X-User-Email", req.user.email || "");
+        proxyReq.setHeader("X-User-Roles", JSON.stringify(req.user.roles || []));
       }
       logger.informacion(`🔀 [${serviceName}] ${req.method} ${req.url} → ${target}`);
     },
@@ -90,6 +115,9 @@ app.use(
 );
 
 app.use(globalLimiter); // Límite global para todas las demás rutas
+
+// 🔐 JWT verification — excludes public routes (login, register, /health)
+app.use(verifyJwt);
 
 // /api/users/* -> backend-users /api/*
 app.use(
@@ -139,6 +167,19 @@ app.use(
   }),
 );
 
+// ----------------------------------------
+// 🔹 PREDICTION SERVICE -> /api/predictions
+// ----------------------------------------
+app.use(
+  "/api/predictions",
+  createServiceProxy(process.env.PREDICTION_SERVICE_URL || "http://prediction-service:5005", "PREDICTION", {
+    pathRewrite: (path) => {
+      if (path.startsWith("/api/predictions")) return path;
+      return `/api/predictions${path}`;
+    },
+  }),
+);
+
 // ========================================
 // 🏥 HEALTH CHECKS
 // ========================================
@@ -159,6 +200,7 @@ app.get("/health/services", async (req, res) => {
     users: process.env.USERS_SERVICE_URL,
     mp: process.env.MP_SERVICE_URL,
     materiales: process.env.MATERIALES_SERVICE_URL,
+    prediction: process.env.PREDICTION_SERVICE_URL,
   };
 
   const results = {};
@@ -225,6 +267,11 @@ app.get("/", (req, res) => {
         url: process.env.MP_SERVICE_URL,
         endpoints: ["/api/mp/*"],
       },
+      prediction: {
+        url: process.env.PREDICTION_SERVICE_URL,
+        endpoints: ["/api/predictions/*"],
+        language: "Python/FastAPI",
+      },
     },
     health: "/health",
     healthDetailed: "/health/services",
@@ -256,6 +303,7 @@ const server = app.listen(PORT, "0.0.0.0", () => {
     `   📦 Materiales: ${process.env.MATERIALES_SERVICE_URL || "http://backend-materiales:5003"} (Go)`,
   );
   logger.informacion(`   🛠️  MP:        ${process.env.MP_SERVICE_URL || "http://backend-mp:5002"}`);
+  logger.informacion(`   🔮 Prediction: ${process.env.PREDICTION_SERVICE_URL || "http://prediction-service:5005"} (Python/FastAPI)`);
   logger.informacion(`\n🔗 Endpoints:`);
   logger.informacion(`   • GET /health          → Estado del gateway`);
   logger.informacion(`   • GET /health/services → Estado de todos los servicios`);

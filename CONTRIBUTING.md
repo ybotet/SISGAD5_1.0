@@ -25,6 +25,7 @@ cd SISGAD5_1.0
 cp backend-users/.env.example backend-users/.env
 cp backend-mp/.env.example backend-mp/.env
 cp backend-materiales-go/.env.example backend-materiales-go/.env
+cp prediction-service/.env.example prediction-service/.env
 docker compose up -d
 ```
 
@@ -38,16 +39,23 @@ See [ESTRUCTURA.md](./ESTRUCTURA.md) for the full project structure.
 | API Gateway | `./api-gateway/` | Node.js + Express |
 | Users Service | `./backend-users/` | Node.js + Sequelize |
 | MP Service | `./backend-mp/` | Node.js + Sequelize + Zod |
-| Materials Service | `./backend-materiales-go/` | Go + Gin + GORM |
-| Monitoring | `./monitoring/` | Prometheus, Grafana, Loki |
+| Materials Service | `./backend-materiales-go/` | Go + gorilla/mux + GORM |
+| Prediction Service | `./prediction-service/` | Python + FastAPI + scikit-learn |
 | Scripts | `./scripts/` | Automation utilities |
 | E2E Tests | `./tests/e2e/` | Integration tests |
 
 ## Development Workflow
 
 1. Create a branch from `main`:
+   - **Branch naming convention:**
+     - `feature/TASK-XXX-YY_short-description` — New features
+     - `fix/TASK-XXX-YY_short-description` — Bug fixes
+     - `docs/TASK-XXX-YY_short-description` — Documentation changes
+     - `chore/TASK-XXX-YY_short-description` — Maintenance tasks
+     - `refactor/TASK-XXX-YY_short-description` — Code refactoring
+     - `test/TASK-XXX-YY_short-description` — Test additions/changes
    ```bash
-   git checkout -b feature/descriptive-name
+   git checkout -b feature/TASK-500-01_material-pagination
    ```
 
 2. Make your changes following the coding standards below.
@@ -58,10 +66,14 @@ See [ESTRUCTURA.md](./ESTRUCTURA.md) for the full project structure.
    ```
 
 4. Commit using Conventional Commits:
-   ```
-   feat: add user role management
-   fix: resolve deadlock in stock validation
-   docs: update API reference
+   - `feat(TASK-XXX-YY): add user role management`
+   - `fix(TASK-XXX-YY): resolve deadlock in stock validation`
+   - `docs(TASK-XXX-YY): update API reference`
+   - `chore(TASK-XXX-YY): add dependency`
+   - `refactor(TASK-XXX-YY): simplify query logic`
+   - `test(TASK-XXX-YY): add materials service unit tests`
+   ```bash
+   git commit -m "feat(TASK-500-01): implement material catalog pagination"
    ```
 
 5. Push and create a Pull Request.
@@ -73,6 +85,14 @@ See [ESTRUCTURA.md](./ESTRUCTURA.md) for the full project structure.
 - **Style:** camelCase for variables, PascalCase for classes
 - **Validation:** Zod schemas for all request bodies
 - **Structure:** `controllers → services → repositories → models`
+
+### Python Service (Prediction Service)
+- **Linting:** ruff (fast Python linter)
+- **Style:** snake_case for modules, PascalCase for classes, Google docstrings
+- **Validation:** Pydantic models for all request/response schemas
+- **Type hints:** Required for all functions
+- **Virtual env:** Use `.venv/` (gitignored)
+- **Dependencies:** `requirements.txt` + `pyproject.toml`
 
 ### Go Service
 - **Linting:** golangci-lint
@@ -92,6 +112,7 @@ See [ESTRUCTURA.md](./ESTRUCTURA.md) for the full project structure.
 |------|---------|-----------------|
 | Unit (JS) | `npm test` | 70% |
 | Unit (Go) | `go test ./...` | 85% |
+| Unit (Python) | `pytest --cov=src tests/` | 100% (endpoints) |
 | Integration | `make test-integration` | - |
 | E2E | `npm run test:e2e` | - |
 | Load | `make test-load` | - |

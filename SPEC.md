@@ -147,7 +147,7 @@ graph TB
         MP_HEALTH["/health"]
     end
 
-    subgraph MAT["📦 MATERIALS SERVICE (Go + Gin + GORM)"]
+    subgraph MAT["📦 MATERIALS SERVICE (Go + gorilla/mux + GORM)"]
         MAT_CAT["Catálogo de Materiales"]
         MAT_CAT2["Categorías"]
         MAT_UNI["Unidades de Medida"]
@@ -159,11 +159,24 @@ graph TB
         MAT_HEALTH["/health"]
     end
 
+    subgraph PRED["🔮 PREDICTION SERVICE (Python + FastAPI)"]
+        PRED_DEM["Predicción demanda materiales"]
+        PRED_TIME["Predicción tiempo resolución"]
+        PRED_ANOM["Detección anomalías"]
+        PRED_PRIOR["Clasificación prioridad"]
+        PRED_FALL["Predicción fallos infraestructura"]
+        PRED_ASIG["Optimización asignación técnicos"]
+        PRED_MLFLOW["MLflow (Model Registry)"]
+        PRED_AIRFLOW["Airflow (Pipelines)"]
+        PRED_HEALTH["/health"]
+    end
+
     %% Bases de Datos
     subgraph DBS["🗄️ BASES DE DATOS (PostgreSQL 17+)"]
         DB_USERS[("bd_users")]
         DB_MP[("bd_mp")]
         DB_MAT[("bd_materiales")]
+        DB_PRED[("bd_predictions")]
     end
 
     %% Caché
@@ -176,13 +189,21 @@ graph TB
     GW -->|"REST/JSON"| US
     GW -->|"REST/JSON"| MP
     GW -->|"REST/JSON"| MAT
+    GW -->|"REST/JSON"| PRED
 
     US --> DB_USERS
     MP --> DB_MP
     MAT --> DB_MAT
+    PRED --> DB_PRED
+
+    PRED -.->|"Read-only API"| US
+    PRED -.->|"Read-only API"| MP
+    PRED -.->|"Read-only API"| MAT
 
     GW -.->|"Sesiones"| REDIS
     US -.->|"Refresh Tokens"| REDIS
+
+    classDef prediction fill:#9D4EDD,stroke:#333,stroke-width:2px,color:#fff
 
     %% Estilos
     classDef frontend fill:#61DAFB,stroke:#333,stroke-width:2px,color:#000
@@ -198,8 +219,9 @@ graph TB
     class US,US_AUTH,US_USERS,US_ROLES,US_JWT,US_HEALTH users
     class MP,MP_TEL,MP_LIN,MP_PIZ,MP_QUE,MP_PRU,MP_TRA,MP_EST,MP_HEALTH mp
     class MAT,MAT_CAT,MAT_CAT2,MAT_UNI,MAT_ASIG,MAT_CONS,MAT_ANA,MAT_ACID,MAT_GOR,MAT_HEALTH materials
-    class DB_USERS,DB_MP,DB_MAT db
+    class DB_USERS,DB_MP,DB_MAT,DB_PRED db
     class REDIS cache
+    class PRED,PRED_DEM,PRED_TIME,PRED_ANOM,PRED_PRIOR,PRED_FALL,PRED_ASIG,PRED_MLFLOW,PRED_AIRFLOW,PRED_HEALTH prediction
 ```
 
 ### 3.3. Reglas Arquitectónicas
@@ -212,6 +234,7 @@ graph TB
 | R4  | La autenticación se centraliza en el Gateway    | Consistencia y seguridad                      |
 | R5  | El MP Service NO gestiona materiales            | Separación de responsabilidades               |
 | R6  | Materials Service usa transacciones ACID        | Integridad de inventario                      |
+| R7  | Prediction Service es read-only                 | No escribe en BD de otros servicios            |
 | R7  | Comunicación vía REST/JSON                      | Simplicidad e interoperabilidad               |
 | R8  | Servicios stateless                             | Escalabilidad horizontal                      |
 
@@ -226,7 +249,8 @@ graph TB
 | API Gateway       | Node.js + Express + http-proxy-middleware | 22.x    | Madurez, ecosistema                    |
 | Users Service     | Node.js + Express + Sequelize             | 22.x    | CRUD rápido                            |
 | MP Service        | Node.js + Express + Sequelize + Zod       | 22.x    | Validación de esquemas                 |
-| Materials Service | Go + Gin + GORM                           | 1.25+   | Concurrencia nativa, ACID, rendimiento |
+| Materials Service | Go + gorilla/mux + GORM | 1.25+   | Concurrencia nativa, ACID, rendimiento |
+| Prediction Service | Python 3.11+ + FastAPI + scikit-learn + XGBoost + Prophet | 3.11+ | Modelado predictivo, MLOps |
 
 ### 4.2. Frontend
 
@@ -247,6 +271,7 @@ graph TB
 | bd_users      | PostgreSQL | 17+     | Users Service     |
 | bd_mp         | PostgreSQL | 17+     | MP Service        |
 | bd_materiales | PostgreSQL | 17+     | Materials Service |
+| bd_predictions | PostgreSQL | 17+     | Prediction Service |
 
 **Extensiones PostgreSQL requeridas:**
 - `pg_stat_statements` — Monitoreo de consultas
@@ -471,7 +496,7 @@ graph TB
 **Responsabilidad:** Punto único de entrada.
 
 **Funcionalidades:**
-- Enrutamiento a los 3 servicios
+- Enrutamiento a los 4 servicios (Users, MP, Materials, Prediction)
 - Verificación de JWT
 - Rate limiting
 - CORS
@@ -489,7 +514,36 @@ graph TB
 - Porcentaje de quejas cerradas
 - Consumo de materiales por técnico/trabajo
 - Exportación de reportes (CSV/JSON/PDF)
-- Analítica predictiva (planificado)
+- Analítica predictiva (delegada al Prediction Service)
+
+### 6.7. Módulo 7 — Prediction Service (Python + FastAPI)
+
+**Responsabilidad:** Modelado predictivo y analítica avanzada.
+
+**Stack:** Python 3.11+, FastAPI, scikit-learn, XGBoost, Prophet, MLflow, Airflow.
+
+**Casos de uso:**
+1. Predicción de demanda de materiales
+2. Predicción de tiempo de resolución de quejas
+3. Detección de anomalías en consumo de materiales
+4. Clasificación de prioridad de quejas
+5. Predicción de fallos en infraestructura
+6. Optimización de asignación de técnicos
+
+**Endpoints principales:**
+- `GET /api/predictions/demanda-materiales`
+- `GET /api/predictions/tiempo-resolucion/{queja_id}`
+- `GET /api/predictions/anomalias-consumo`
+- `GET /api/predictions/prioridad-queja/{queja_id}`
+- `GET /api/predictions/fallos-infraestructura`
+- `GET /api/predictions/asignacion-tecnicos`
+- `GET /api/predictions/models` (gestión de modelos)
+- `POST /api/predictions/retrain` (reentrenamiento manual)
+- `GET /health`
+
+**Base de datos:** `bd_predictions` (predicciones, metadatos de modelos, métricas).
+
+**Integración:** Consume datos de `bd_mp` y `bd_materiales` vía réplica de solo lectura o APIs.
 
 ---
 
@@ -531,6 +585,7 @@ graph TB
 | `/api/materials/asignaciones/*` | CRUD   | Materials | Asignaciones        |
 | `/api/materials/consumos/*`     | CRUD   | Materials | Consumos            |
 | `/api/materials/dashboard/*`    | GET    | Materials | Analítica           |
+| `/api/predictions/*`            | GET/POST | Prediction | Endpoints predictivos |
 | `/health`                       | GET    | Todos     | Health check        |
 
 ### 7.3. Ejemplo de Contrato (Materials — Crear Asignación)
@@ -722,6 +777,7 @@ docker compose down
 | ------------------ | ---------------------- | ------------------ |
 | Unitario (Node.js) | Jest                   | 70%+               |
 | Unitario (Go)      | `testing` + `testify`  | 70%+               |
+| Unitario (Python)  | pytest + pytest-cov    | 100% (endpoints)   |
 | Integración API    | Supertest / Insomnia   | Endpoints críticos |
 | E2E                | Playwright / Cypress   | Flujos principales |
 | Carga              | k6                     | Endpoints críticos |
@@ -730,7 +786,7 @@ docker compose down
 ### 11.2. CI/CD
 
 **GitHub Actions** ejecuta en cada PR:
-1. Lint (ESLint / golangci-lint)
+1. Lint (ESLint / golangci-lint / ruff)
 2. Tests unitarios
 3. Tests de integración
 4. Cobertura de código
@@ -747,6 +803,8 @@ docker compose down
 ---
 
 ## 12. Roadmap y Evolución
+
+> **Ver también:** [docs/roadmap.md](./docs/roadmap.md) — Roadmap detallado con mapeo de tareas a GitHub Projects.
 
 ### 12.1. Corto Plazo (3–4 meses)
 
@@ -770,7 +828,7 @@ docker compose down
 
 ### 12.3. Largo Plazo (12+ meses)
 
-- [ ] Analítica predictiva con ML.
+- [ ] Analítica predictiva con ML (Prediction Service).
 - [ ] Migración a Kubernetes.
 - [ ] Extensión a otros dominios logísticos.
 - [ ] Módulo de inteligencia de negocio.
@@ -805,6 +863,10 @@ docker compose down
 - [React Documentation](https://react.dev/)
 - [Express Documentation](https://expressjs.com/)
 - [Gorilla Mux](https://github.com/gorilla/mux)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [scikit-learn Documentation](https://scikit-learn.org/stable/)
+- [MLflow Documentation](https://mlflow.org/docs/)
+- [Apache Airflow Documentation](https://airflow.apache.org/docs/)
 
 ### Estándares
 - ГОСТ 19.201-78 — Technical Specification

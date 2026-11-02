@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
-const { User, Rol, Permiso } = require("../models/index");
-const apiErrors = require("../utils/apiErrors");
+const { User, Rol, Permiso } = require("../features/index");
+const apiErrors = require("../shared/utils/apiErrors");
 
 // Validación de correo: vacío, formato (@ y dominio), longitud, caracteres permitidos
 function validarEmail(email) {
@@ -108,7 +108,7 @@ const authController = {
           id: usuario.id_usuario,
           email: usuario.email,
         },
-        process.env.JWT_SECRET || "secreto",
+        process.env.JWT_SECRET,
         { expiresIn: "24h" },
       );
 

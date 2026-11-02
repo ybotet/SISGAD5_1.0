@@ -6,6 +6,7 @@ import QuejaModuleStats from "../components/stats/QuejaModuleStats";
 import PizarraModuleStats from "../components/stats/PizarraModuleStats";
 import TrabajadorModuleStats from "../components/stats/TrabajadorModuleStats";
 import MaterialesModuleStats from "../components/stats/MaterialesModuleStats";
+import TrabajoModuleStats from "../components/stats/TrabajoModuleStats";
 
 type Periodo = string;
 
@@ -61,6 +62,13 @@ export default function StatsPage() {
       label: "👥 Trabajadores",
       component: (
         <TrabajadorModuleStats fechaDesde={fechaDesde} fechaHasta={fechaHasta} periodo={periodo} />
+      ),
+    },
+    {
+      id: "trabajos",
+      label: "🔧 Trabajos",
+      component: (
+        <TrabajoModuleStats fechaDesde={fechaDesde} fechaHasta={fechaHasta} periodo={periodo} />
       ),
     },
   ];

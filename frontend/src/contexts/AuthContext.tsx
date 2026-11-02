@@ -10,6 +10,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   hasPermission: (permission: string) => boolean;
+  setUser: (u: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,10 +61,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     try {
       const response = await authService.login({ email, password });
-      // backend responde { success, data: { usuario, token } }
-      const { usuario: usuarioData, token } = response.data.data;
+      // backend responde { success, data: { usuario, accessToken, refreshToken } }
+      const { usuario: usuarioData, accessToken } = response.data.data;
 
-      authService.setAuthData(token, usuarioData);
+      authService.setAuthData(accessToken, usuarioData);
       setUser(usuarioData);
     } catch (error) {
       throw error;
@@ -88,14 +89,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }) ?? false;
   };
 
-  const value: AuthContextType = {
-    usuario,
-    loading,
-    login,
-    logout,
-    isAuthenticated: !!usuario,
-    hasPermission
-  };
+const value: AuthContextType = {
+  usuario,
+  loading,
+  login,
+  logout,
+  isAuthenticated: !!usuario,
+  hasPermission,
+  setUser,
+};
 
   return (
     <AuthContext.Provider value={value}>
