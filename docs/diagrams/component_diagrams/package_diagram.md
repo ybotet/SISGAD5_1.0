@@ -2,7 +2,7 @@
 
 > **Tarea:** TASK-100-03
 > **Tipo:** Diagrama UML de Paquetes
-> **Estado:** ⏳ Pendiente
+> **Estado:** ✅ Completada (v2.4 — diagramas Mermaid + PlantUML renderizables verificados)
 
 ## Descripción
 

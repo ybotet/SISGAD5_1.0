@@ -1,59 +1,64 @@
 # Modelo de Dominio - SISGAD5
 
-> **Versión:** 2.0
-> **Fecha:** 2026-10-31
-> **Total:** 28 clases + modelos ML en 7 contextos delimitados (4 implementados, 2 planificados, 1 shared kernel)
+> **Versión:** 2.1
+> **Fecha:** 2026-11-01
+> **Total:** 28 clases + modelos ML en 6 contextos delimitados (4 de dominio implementados, 1 técnico, 2 ACL planificados) + Shared Kernel
+> **Cambios v2.1:** (a) alias oficial corregido a **"Mesa de Prueba"** (`backend-mp` = backend Mesa de Prueba); (b) contextos 1+2 fusionados en **Usuarios y Autenticación** (mismo servicio y BD); (c) Nomencladores reclasificado como **Shared Kernel**; (d) columna *Tipo* para separar contextos de dominio vs. técnicos/ACL.
 > **Fuente:** [SISGAD5_doc/docs/03-07](https://github.com/ybotet/SISGAD5_doc), actualizado según código real del monorepo
 
 ---
 
 ## 1. Contextos Delimitados (Bounded Contexts)
 
-### 1.1 Mapa de contextos (vista funcional — alineada con el análisis original)
+### 1.1 Mapa de contextos (vista consolidada v2.1)
 
-| # | Contexto Delimitado | Responsabilidad | Agregados / Entidades principales | Servicio técnico | Estado |
-|---|---------------------|-----------------|-----------------------------------|------------------|--------|
-| 1 | Autenticación | Login, JWT, sesiones | Usuario, Sesión, Rol, Permiso | `backend-users` (Node.js) | ✅ Implementado |
-| 2 | Gestión de usuarios y roles | Datos maestros de usuarios, RBAC | Usuario, Rol, Permiso | `backend-users` (Node.js) | ✅ Implementado |
-| 3 | Quejas y trabajos (Mesa de Parte) | Ciclo completo de la queja: registro → prueba → trabajo → cierre | Queja, Prueba, Trabajo, Teléfono, Línea, Pizarra, Puerto | `backend-mp` (Node.js) | ✅ Implementado |
-| 4 | Gestión de materiales | Control transaccional de stock, asignaciones y consumos | Material, Asignación(+Items), Consumo(+Items), Categoría, UnidadMedida | `backend-materiales-go` (Go) | ✅ Implementado |
-| 5 | Predicción y analítica (IA) | Modelado predictivo MLOps: demanda, tiempos, anomalías, prioridad, fallos | Modelos ML (5), Predicción, Métricas de modelo | `prediction-service` (Python + FastAPI + scikit-learn) | ✅ Implementado (read-only, sin BD propia aún) |
-| 6 | Seguridad e infraestructura | Gateway, observabilidad, backups, mantenimiento | Sistema de monitoreo, Registro de auditoría | `api-gateway` + Loki/Grafana/Prometheus + scripts | 🟡 Parcial (sin gestión de backups como dominio) |
-| 7 | Nomencladores y auditoría | Información de referencia (catálogos) y trazabilidad de cambios | Nomenclador (Clave, TipoQueja, Servicio, Ubicación…), Auditoría | Distribuido en `backend-mp` / `backend-users` | 🟡 Sin contexto propio dedicado |
-| 8 | Integración SAP ERP | Adaptador de exportación compatible con SAP | — (capa de adaptación) | Planificado (`RF-MAT-27`) | 🔵 Planificado |
-| 9 | Integración GLPI | Adaptador REST/webhook para tickets externos | — (capa de adaptación) | Planificado (no hay requisito RF asignado aún) | 🔵 Planificado |
+| # | Contexto Delimitado | Tipo | Responsabilidad | Agregados / Entidades principales | Servicio técnico | Estado |
+|---|---------------------|------|-----------------|-----------------------------------|------------------|--------|
+| 1 | Usuarios y Autenticación | Dominio | Login, JWT, sesiones, datos maestros de usuarios, RBAC | Usuario, Sesión, Rol, Permiso | `backend-users` (Node.js) | ✅ Implementado |
+| 2 | Gestión de Quejas y Trabajos *(alias operativo: Mesa de Prueba)* | Dominio | Ciclo completo de la queja: registro → prueba → trabajo → cierre | Queja, Prueba, Trabajo, Teléfono, Línea, Pizarra, Puerto | `backend-mp` (Node.js) — *backend Mesa de Prueba* | ✅ Implementado |
+| 3 | Gestión de materiales | Dominio | Control transaccional de stock, asignaciones y consumos | Material, Asignación(+Items), Consumo(+Items), Categoría, UnidadMedida | `backend-materiales-go` (Go) | ✅ Implementado |
+| 4 | Predicción y analítica (IA) | Dominio | Modelado predictivo MLOps: demanda, tiempos, anomalías, prioridad, fallos | Modelos ML (5), Predicción, Métricas de modelo | `prediction-service` (Python + FastAPI + scikit-learn) | ✅ Implementado (read-only, sin BD propia aún) |
+| 5 | Infraestructura y Observabilidad | Técnico | Gateway, rate limiting, logging centralizado, métricas, dashboards | Sistema de monitoreo | `api-gateway` + Loki/Grafana/Prometheus + scripts | 🟡 Parcial (backups sin gestión como dominio) |
+| — | Catálogos y Auditoría | Shared Kernel | Información de referencia (nomencladores) y trazabilidad de cambios | Clave, TipoQueja, Servicio, Ubicación…, Auditoría | Distribuido en `backend-mp` / `backend-users` | ✅ Implementado (sin servicio propio — decisión consciente) |
+| A | Integración SAP ERP | ACL | Adaptador de exportación compatible con SAP | — (capa de adaptación) | Planificado (`RF-MAT-27`) | 🔵 Planificado |
+| B | Integración GLPI | ACL | Adaptador REST/webhook para tickets externos | — (capa de adaptación) | Planificado (sin RF asignado aún) | 🔵 Planificado |
 
-> **Nota metodológica:** los contextos 8 y 9 no son Bounded Contexts de dominio sino **capas de adaptación (Anti-Corruption Layer)** hacia sistemas externos; se listan aquí por coherencia con el mapa funcional original (8 contextos + Shared Kernel).
+> **Nota metodológica v2.1:**
+> 1. Los antiguos contextos "Autenticación" y "Gestión de usuarios y roles" se **fusionan**: compiten el mismo agregado raíz (`Usuario`), el mismo servicio (`backend-users`) y la misma base de datos (`bd_sisgad5_users`); separarlos era una división técnica, no de dominio.
+> 2. "Nomencladores y auditoría" deja de contarse como Bounded Context propio: al estar distribuido y ser consumido por varios contextos sin lenguaje ubicuo independiente, se modela como **Shared Kernel** (sección 7). No se elimina: su implementación está terminada y operativa.
+> 3. "Seguridad e infraestructura" pasa a llamarse **Infraestructura y Observabilidad** y se marca como contexto **técnico**, no de negocio, evitando solaparse con el contexto 1 (que es quien posee el dominio de identidad/RBAC).
+> 4. A y B siguen siendo **Anti-Corruption Layers**, no contextos de dominio; se conservan en el mapa por coherencia con el análisis funcional original.
 
-### 1.2 Diagrama de contextos
+### 1.2 Diagrama de contextos (v2.1)
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                                SISGAD5                                   │
-├──────────────┬──────────────┬──────────────┬──────────────┬─────────────┤
-│   Auth       │    Users     │      MP      │  Materials   │ Prediction  │
-│  Context     │   Context    │   Context    │   Context    │  Context    │
-│  (✅)        │   (✅)       │   (✅)       │   (✅ Go)    │  (🐍 ✅)    │
-├──────────────┼──────────────┼──────────────┼──────────────┼─────────────┤
-│ User         │ User         │ Telefono     │ Material     │ ModeloML    │
-│ Sesion       │ Rol          │ Linea        │ Categoria    │ Prediccion  │
-│ Rol          │ Permiso      │ Pizarra      │ UnidadMedida │ Metricas    │
-│ Permiso      │              │ Puerto       │ Asignacion   │ (Demanda,   │
-│              │              │ Queja        │ AsignacionIt │  Tiempo,    │
-│              │              │ Prueba       │ Consumo      │  Anomalias, │
-│              │              │ Trabajo      │ ConsumoItem  │  Prioridad, │
-│              │              │ Clave        │              │  Fallos)    │
-│              │              │ TipoQueja    │              │             │
-├──────────────┴──────────────┴──────────────┴──────────────┴─────────────┤
-│ Infra & Seguridad (🟡): Gateway · Observabilidad · Backups · Auditoria  │
-│ ACL externas (🔵): Adaptador SAP ERP · Adaptador GLPI                   │
-├──────────────────────────────────────────────────────────────────────────┤
-│                     Shared Kernel (Value Objects)                        │
-└──────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                   SISGAD5                                    │
+├──────────────────────┬──────────────────────┬───────────────────────────────┤
+│  Usuarios y Auth     │  Quejas y Trabajos   │      Gestión de Materiales    │
+│  (backend-users) ✅  │  "Mesa de Prueba" ✅ │  (backend-materiales-go) ✅   │
+│  Usuario, Sesion,    │  (backend-mp)        │  Material, Categoria,         │
+│  Rol, Permiso        ├──────────────────────┤  UnidadMedida,                │
+│                      │ Queja, Prueba,       │  Asignacion(+Items),          │
+│                      │ Trabajo, Telefono,   │  Consumo(+Items)              │
+│                      │ Linea, Pizarra,      │                               │
+│                      │ Puerto               │                               │
+├──────────────────────┴──────────────────────┴───────────────────────────────┤
+│  Prediccion y Analitica (IA) ✅: prediction-service (Python/FastAPI)        │
+│  Modelos ML (Demanda, Tiempo, Anomalias, Prioridad, Fallos)                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Infraestructura y Observabilidad (tecnico, 🟡): api-gateway · Loki ·       │
+│  Grafana · Prometheus · Backups                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ACL externas (🔵 planificadas): Adaptador SAP ERP · Adaptador GLPI         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  SHARED KERNEL — Catalogos y Auditoria (✅ distribuido, sin servicio propio) │
+│  Clave · TipoQueja · Servicio · Ubicacion · RegistroAuditoria · ValueObjs   │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
-## 2. Contexto Auth (Autenticación)
+## 2. Contexto Usuarios y Autenticación (backend-users)
 
 ### User (Agregado Raíz)
 | Atributo | Tipo | Reglas |
@@ -95,7 +100,7 @@
 
 ---
 
-## 3. Contexto Users (Gestión de Usuarios y Roles)
+## 3. Contexto Usuarios y Autenticación — submódulo RBAC (Roles y Permisos)
 
 ### Rol (Agregado Raíz)
 | Atributo | Tipo | Reglas |
@@ -130,7 +135,7 @@
 
 ---
 
-## 4. Contexto MP (Mantenimiento de Plantas)
+## 4. Contexto Quejas y Trabajos — "Mesa de Prueba" (backend-mp)
 
 ### Telefono (Agregado Raíz)
 | Atributo | Tipo | Reglas |
@@ -388,7 +393,21 @@ ModeloML 1 ── * Prediccion ; ModeloML ── 1 ModelMetrics
 
 ---
 
-## 7. Shared Kernel (Value Objects Compartidos)
+## 7. Shared Kernel — Catálogos y Auditoría (con Value Objects compartidos)
+
+> **Decisión v2.1:** el antiguo contexto "Nomencladores y auditoría" se integra aquí como **Shared Kernel** (no es un Bounded Context propio; está implementado y distribuido en `backend-mp` / `backend-users`). Regla de gobierno: cualquier cambio en estas entidades requiere acuerdo explícito de los equipos/contextos consumidores.
+
+### 7.1 Nomencladores (entidades de referencia)
+| Entidad | Ejemplos / Claves típicas | Servicio anfitrión |
+|---------|---------------------------|--------------------|
+| Clave | tipos de avería/código de falla | `backend-mp` |
+| TipoQueja | clasificación de la queja | `backend-mp` |
+| Servicio | servicios telefónicos ofertados | `backend-mp` |
+| Ubicacion | direcciones, nodos, centrales | `backend-mp` |
+| Categoria / UnidadMedida | catálogo de materiales | `backend-materiales-go` |
+| RegistroAuditoria | trazabilidad de cambios (quién/qué/cuándo) | `backend-users` / `backend-mp` |
+
+### 7.2 Value Objects Compartidos
 
 | Value Object | Atributos | Usado en |
 |--------------|-----------|----------|
@@ -452,7 +471,88 @@ ConsumoItem * ── 1 Material
 
 ## 9. Diagramas de Clases
 
-Ver diagrama fuente en: [`docs/diagrams/class_diagrams/`](../diagrams/class_diagrams/)
+> **Archivo fuente (PlantUML completo, 39 entidades):** [`docs/diagrams/class_diagrams/domain_model_classes.puml`](../diagrams/class_diagrams/domain_model_classes.puml) — instrucciones de renderizado en el [README de la carpeta](../diagrams/class_diagrams/README.md).
+> A continuación se incluye una versión resumida en Mermaid, renderizada directamente por GitHub, con los agregados raíz y relaciones principales de cada contexto.
+
+```mermaid
+classDiagram
+    direction LR
+
+    %% ===== Usuarios y Autenticación (backend-users) =====
+    class User { +username String +email Email +passwordHash PasswordHash +estado String }
+    class Sesion { +tokenAcceso TokenJWT +tokenRefresco RefreshToken +expiraEn DateTime }
+    class Rol { +nombre String }
+    class Permiso { +codigo String +recurso String +accion String }
+    User "1" --> "*" Sesion
+    User "1" --> "*" Rol : User_Roles
+    Rol "1" --> "*" Permiso : Roles_Permisos
+
+    %% ===== Quejas y Trabajos — Mesa de Prueba (backend-mp) =====
+    class Telefono { +numero String +estado String }
+    class Linea { +numero String +tipo String }
+    class Pizarra { +nombre String +ubicacion Coordinates }
+    class Puerto { +numero Integer +estado String }
+    class Queja { +folio String +prioridad Priority +estado String }
+    class FlujoEstadoQueja { +estadoAnterior String +estadoNuevo String }
+    class Prueba { +resultado String }
+    class Trabajo { +descripcion String +estado String }
+    Pizarra "1" --> "*" Puerto
+    Queja --> "0..1" Telefono
+    Queja --> "0..1" Linea
+    Queja --> "0..1" Pizarra
+    Queja "1" --> "*" FlujoEstadoQueja
+    Queja --> "0..1" User : técnico asignado
+    Prueba --> "0..1" Queja
+    Trabajo --> "0..1" Queja
+    Trabajo --> User : técnico
+
+    %% ===== Gestión de Materiales (backend-materiales-go) =====
+    class Material { +codigo String +precio Money +stockActual Quantity }
+    class Categoria { +nombre String }
+    class UnidadMedida { +abreviatura String }
+    class Asignacion { +folio String +estado String }
+    class AsignacionItem { +cantidad Quantity }
+    class Consumo { +folio String }
+    class ConsumoItem { +cantidad Quantity }
+    Material --> Categoria
+    Material --> UnidadMedida
+    Asignacion "1" --> "*" AsignacionItem
+    AsignacionItem --> Material
+    Consumo "1" --> "*" ConsumoItem
+    ConsumoItem --> Material
+    Asignacion --> User : trabajador
+    Consumo --> Trabajo
+
+    %% ===== Predicción y Analítica (prediction-service, Python) =====
+    class ModeloML { +nombre String +version String }
+    class Prediccion { +valor Float +confianza Float }
+    class ModelMetrics { +mae Float +rmse Float +accuracy Float }
+    ModeloML "1" --> "1" ModelMetrics
+    ModeloML "1" --> "*" Prediccion
+    Queja ..> Prediccion : prioridad / tiempo-resolución
+    Consumo ..> Prediccion : anomalías
+    Material ..> Prediccion : demanda
+
+    %% ===== Seguridad e Infraestructura (técnico) =====
+    class SistemaMonitoreo { +servicio String +estado String }
+    class RegistroAuditoria { +accion String +entidad String +cambios JSON }
+
+    %% ===== Shared Kernel — Catálogos y Value Objects =====
+    class Clave
+    class TipoQueja
+    class Servicio
+    class Ubicacion
+    class Money <<ValueObject>>
+    class Quantity <<ValueObject>>
+    class Priority <<ValueObject>>
+    class Coordinates <<ValueObject>>
+    Queja --> Clave
+    Queja --> TipoQueja
+    Queja --> Servicio
+    Queja --> Ubicacion
+
+    note for ModeloML "ACL planificadas (no modeladas):\nSAP ERP (RF-MAT-27) · GLPI (sin RF)"
+```
 
 ---
 

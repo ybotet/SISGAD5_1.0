@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: SISGAD5 - Mesa de Parte (MP) Service API
+  title: SISGAD5 - Mesa de Prueba (MP) Service API
   description: 'Contrato al dia (v2.1.0) generado desde el codigo real de backend-mp
 
     (src/features/*/*.routes.js, montados bajo /api/mp). Refleja las 27 colecciones

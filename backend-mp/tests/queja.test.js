@@ -56,6 +56,10 @@ jest.mock("../src/features", () => {
 });
 
 process.env.JWT_SECRET = "00f7d9f46b0fe16ff92419e9f0f8ee0510d6249374a267e68dd071851808b38e";
+process.env.DB_HOST = "localhost";
+process.env.DB_PORT = "5432";
+process.env.DB_USER = "postgres";
+process.env.DB_PASSWORD = "test_password_12345678";
 process.env.MP_DB_NAME = "bd_sisgad5_mp";
 process.env.NODE_ENV = "test";
 

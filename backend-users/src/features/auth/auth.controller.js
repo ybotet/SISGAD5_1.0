@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { Op } = require("sequelize");
 const { TbUser, TbRol, TbPermiso, RefreshToken, Sesion } = require("../../features");
 const {
   requireJwtSecret,
@@ -285,6 +286,81 @@ const authController = {
       res.status(500).json({
         success: false,
         message: "Error al obtener perfil",
+      });
+    }
+  },
+
+  /**
+   * Construye la consulta paginada de historial de sesiones (TASK-300-08).
+   * Registra IP, user-agent y timestamp de cada evento (login/refresh/logout).
+   * @param {number} idUsuario — filtro por usuario (self o admin)
+   * @param {object} query — filtros validados (evento, exitoso, desde, hasta, page, limit)
+   */
+  _consultarSesiones: async (idUsuario, query) => {
+    const { evento, exitoso, desde, hasta, page = 1, limit = 20 } = query;
+
+    const where = { id_usuario: idUsuario };
+    if (evento) where.evento = evento;
+    if (exitoso !== undefined) where.exitoso = exitoso === "true";
+    if (desde || hasta) {
+      where.fecha = {};
+      if (desde) where.fecha[Op.gte] = desde;
+      if (hasta) where.fecha[Op.lte] = hasta;
+    }
+
+    const { count, rows } = await Sesion.findAndCountAll({
+      where,
+      order: [["fecha", "DESC"]],
+      limit,
+      offset: (page - 1) * limit,
+    });
+
+    return {
+      sesiones: rows,
+      paginacion: {
+        total: count,
+        page,
+        limit,
+        totalPages: Math.ceil(count / limit),
+      },
+    };
+  },
+
+  /**
+   * GET /api/auth/sesiones — historial de sesiones del usuario autenticado.
+   * Acceso: cualquier usuario autenticado (solo ve sus propias sesiones).
+   */
+  misSesiones: async (req, res) => {
+    try {
+      const data = await authController._consultarSesiones(
+        req.usuario.id_usuario,
+        req.query,
+      );
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error("Error en misSesiones:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error al obtener el historial de sesiones",
+      });
+    }
+  },
+
+  /**
+   * GET /api/auth/sesiones/usuario/:id_usuario — historial de sesiones de un
+   * usuario específico (uso administrativo/auditoría).
+   * Acceso: requiere permiso `sesiones:read_all` (RBAC).
+   */
+  sesionesDeUsuario: async (req, res) => {
+    try {
+      const { id_usuario } = req.params;
+      const data = await authController._consultarSesiones(id_usuario, req.query);
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error("Error en sesionesDeUsuario:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error al obtener el historial de sesiones del usuario",
       });
     }
   },

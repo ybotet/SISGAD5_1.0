@@ -1,4 +1,5 @@
 const { z } = require("zod");
+const AppError = require("../../shared/utils/AppError");
 
 // Helper: validar que al menos un identificador tenga valor
 const alMenosUnIdentificador = (data) =>
