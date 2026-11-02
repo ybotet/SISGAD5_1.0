@@ -15,7 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [api-gateway, backend-users, backend-mp]
+        service: [api-gateway, backend-users, backend-mp, frontend]
+    # NOTE: frontend es advisory (deuda ESLint/TS ~266 errores) — no bloquea el pipeline.
+    continue-on-error: ${{ matrix.service == 'frontend' }}
     defaults:
       run:
         working-directory: ${{ matrix.service }}
@@ -128,13 +130,26 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Detect E2E suite
+        id: detect
+        run: |
+          if node -e "process.exit(require('./package.json').scripts['test:e2e']?0:1)" 2>/dev/null; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Sin suite E2E (script test:e2e no definido) — job se omite hasta FASE 11"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install root dependencies
+        if: steps.detect.outputs.enabled == 'true'
         run: npm ci
 
       - name: Start services
+        if: steps.detect.outputs.enabled == 'true'
         run: docker compose up -d --build
 
       - name: Wait for services
+        if: steps.detect.outputs.enabled == 'true'
         run: |
           echo "Waiting for services..."
           sleep 30
@@ -144,11 +159,12 @@ jobs:
           curl -f http://localhost:5003/health || exit 1
 
       - name: Run E2E tests
+        if: steps.detect.outputs.enabled == 'true'
         run: |
           npm run test:e2e
 
       - name: Cleanup
-        if: always()
+        if: always() && steps.detect.outputs.enabled == 'true'
         run: docker compose down
 
   build-images:
