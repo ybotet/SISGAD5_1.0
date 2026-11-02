@@ -1,9 +1,10 @@
 # Máquinas de Estado - SISGAD5
 
-> **Versión:** 3.1
+> **Versión:** 3.2
 > **Fecha:** 2026-11-03
-> **Alcance:** Máquina de estado de **Queja** (MP Service) — única máquina de negocio — y máquinas de contexto (Sesión, Usuario).
+> **Alcance:** Única máquina de estado del sistema: **Queja** (MP Service / Materiales). No existen más máquinas de estado formales.
 > **Consistencia:** Alineada con `08_sequence_diagrams.es.md` v2.7 (roles: Probador, Supervisor, Analista de materiales).
+> **v3.2:** Eliminadas las máquinas de *Sesión* y *Usuario*: sus banderas de estado (activa/revocada, activo/bloqueado/inactivo) son atributos CRUD gestionados por reglas de negocio en `backend-users`, no máquinas de estado de negocio. El detalle técnico vive en `docs/api/users.yaml` y el código.
 > **v3.1:** Eliminada la máquina de *Teléfono/Línea por Movimientos*: los movimientos provienen de un nomenclador (`tb_tipomovimiento`) con muchos tipos y no existe control de estados sobre el recurso. Su historial queda cubierto por el modelo de datos (`11_data_model`) y la API de movimientos.
 > **v3.0:** Eliminadas las máquinas de *Trabajo* y *Asignación de materiales* (son entidades sin ciclo de estado propio; su gestión queda cubierta por los eventos de la máquina de Queja y por la lógica del Materials Service).
 
@@ -141,82 +142,38 @@ stateDiagram-v2
 
 ---
 
----
+## 2. Máquinas NO incluidas (decisión de alcance)
 
-## 2. Máquina de Estado: Sesión (Auth Context)
+El sistema tiene **una sola máquina de estado formal: Queja**. Se descartaron deliberadamente:
 
-### Estados
-```
-Activa → Expirada → Renovada → Activa
-    │                        │
-    └──────── Revocada ─────┘
-         (Logout / Seguridad)
-```
-
-### Transiciones
-
-| Estado Actual | Estado Siguiente | Trigger |
-|---------------|------------------|---------|
-| Activa | Expirada | access_token expira (15 min) |
-| Expirada | Renovada | POST /auth/refresh con refresh_token válido |
-| Renovada | Activa | Nuevo access_token emitido |
-| Activa | Revocada | POST /auth/logout O detección robo refresh |
-| Expirada | Revocada | Refresh_token expira (7 días) O revocado |
-
-### Diagrama Mermaid
-
-```mermaid
-stateDiagram-v2
-    [*] --> Activa: Login exitoso
-    Activa --> Expirada: Access token expira (15min)
-    Expirada --> Renovada: Refresh token válido
-    Renovada --> Activa: Nuevo access token
-    Activa --> Revocada: Logout / Detección robo
-    Expirada --> Revocada: Refresh expira (7d) / Revocado
-    Revocada --> [*]: Fin de sesión
-```
+| Entidad | Motivo del descarte | Versión |
+|---------|---------------------|---------|
+| Trabajo | Sin ciclo de estado propio; cubierto por eventos de la máquina de Queja | v3.0 |
+| Asignación de materiales | Gestión del Materials Service sin FSM propio | v3.0 |
+| Teléfono/Línea (Movimientos) | Nomenclador `tb_tipomovimiento` con muchos tipos; no hay control de estados sobre el recurso. Historial cubierto por `11_data_model` y la API de movimientos | v3.1 |
+| Sesión (Auth) / Usuario (Users) | Banderas CRUD (`revoked`, `activo`, `bloqueado`) gestionadas por reglas de negocio en `backend-users`; su comportamiento técnico está en `docs/api/users.yaml` y el código, no requiere FSM de negocio | v3.2 |
 
 ---
 
-## 3. Máquina de Estado: Usuario (Users Context)
+## 3. Diagramas Fuente
 
-### Estados
-```
-Activo → Bloqueado → Activo
-   │           │
-   └───────────┴──→ Inactivo (baja lógica)
-```
-
-### Transiciones
-
-| Estado Actual | Estado Siguiente | Trigger |
-|---------------|------------------|---------|
-| Activo | Bloqueado | 5 intentos fallidos login |
-| Bloqueado | Activo | Expiración bloqueo (15 min) O admin desbloquea |
-| Activo | Inactivo | Admin da de baja (soft delete) |
-| Inactivo | Activo | Admin reactiva |
-
----
-
-## 4. Diagramas Fuente
-
-Archivos Mermaid versionados en: [`docs/diagrams/state_machines/`](../diagrams/state_machines/)
+Archivo Mermaid versionado en: [`docs/diagrams/state_machines/`](../diagrams/state_machines/)
 
 | Archivo | Máquina | Documento |
 |---------|---------|-----------|
 | `queja_state.mmd` | Queja (MP Service) | §1 |
-| `sesion_state.mmd` | Sesión (Auth Context) | §2 |
-| `usuario_state.mmd` | Usuario (Users Context) | §3 |
 
+> ⚠️ Eliminados v3.2: `sesion_state.mmd` y `usuario_state.mmd` (no son máquinas de estado de negocio).
 > ⚠️ Eliminados v3.1: `movimiento_state.mmd` (no existe control de estados; nomenclador con muchos tipos).
 > ⚠️ Eliminados v3.0: `trabajo_state.mmd` y `asignacion_state.mmd` (sin máquina de estado propia).
 
 ---
 
-## 5. Registro de Cambios
+## 4. Registro de Cambios
 
 | Versión | Fecha | Cambios |
 |---------|-------|---------|
+| 3.2 | 2026-11-03 | **Eliminadas** las máquinas de *Sesión* y *Usuario*: no son máquinas de estado de negocio (banderas CRUD gestionadas por reglas en `backend-users`; detalle técnico en `docs/api/users.yaml`). Renumeradas las secciones. Añadida tabla §2 "Máquinas NO incluidas" consolidando las decisiones de alcance v3.0–v3.2. Única FSM formal del sistema: **Queja**. |
 | 3.1 | 2026-11-03 | **Eliminada** la máquina de *Teléfono/Línea por Movimientos*: los movimientos son un nomenclador (`tb_tipomovimiento`) con muchos tipos y no existe control de estados sobre el recurso; su historial queda cubierto por `11_data_model` y la API de movimientos. Renumeradas las secciones (§2 Sesión, §3 Usuario). |
 | 3.0 | 2026-11-03 | **Eliminadas** las máquinas de *Trabajo* y *Asignación de materiales* (no tienen ciclo de estado propio). Añadida temporalmente la máquina de *Teléfono/Línea* derivada del historial de Movimientos (luego eliminada en v3.1). `Completada` pasa a ser el **único fin de ciclo**: `Cerrada` ya no es terminal (con o sin materiales, el Analista lleva la queja a Completada). Rombo de decisión "Trabajo de campo" desde `Asignada` (Sí→Resuelta / No→Pendiente). Nueva autotransición `Pendiente → Pendiente` (otro trabajo sin resolver). `Probada` = diagnóstico (no requiere prueba exitosa). |
 | 2.0 | 2026-11-02 | Renombrados roles (Técnico→Probador, Jefe/Operador→Supervisor). Añadido estado **Completada** a la queja y transición `Cerrada → Completada` (Analista de materiales). Eliminada reapertura (`Cerrada → Abierta`). Nuevas transiciones: `Probada → Resuelta` (sin trabajo), `Asignada → Resuelta` (trabajo de campo), `Probada/Pendiente → Probada` (otra prueba), `Pendiente → Asignada` (cambio de trabajadores). Prohibida `Abierta → Asignada`. Trabajadores se asignan a la QUEJA (eliminado `Abierto → Asignado` en Trabajo). Separados conceptos asignación vs consumo de materiales. Alineado con `08_sequence_diagrams.es.md` v2.7. |
@@ -224,7 +181,7 @@ Archivos Mermaid versionados en: [`docs/diagrams/state_machines/`](../diagrams/s
 
 ---
 
-## 6. Referencias
+## 5. Referencias
 
 - [Reglas de Negocio](06_business_rules.es.md)
 - [Casos de Uso](03_use_cases.es.md)

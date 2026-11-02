@@ -1,8 +1,0 @@
-stateDiagram-v2
-    [*] --> Activa: Login exitoso
-    Activa --> Expirada: Access token expira (15min)
-    Expirada --> Renovada: Refresh token valido
-    Renovada --> Activa: Nuevo access token
-    Activa --> Revocada: Logout / Deteccion robo
-    Expirada --> Revocada: Refresh expira (7d) / Revocado
-    Revocada --> [*]: Fin de sesion
