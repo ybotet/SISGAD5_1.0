@@ -99,8 +99,7 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 4. Implementar
 5. Verificar (tests + seguridad)
 6. Registrar en memory.md
-7. Marcar tarea como completada en TASKLIST.md y actualizar las cantidades y porcientos en las tablas resumenes al final del TASKLIST.md
-8. Commit con Conventional Commits
+7. Commit con Conventional Commits
 
 
 ---
@@ -267,7 +266,7 @@ SISGAD5 es un **sistema de soporte a la toma de decisiones (DSS)** para la gesti
 4. Rellena los placeholders (`[TASK-XXX]`, `[archivo]`, etc.).
 5. Ejecuta.
 6. Al terminar, pide al agente que actualice `memory.md` (índice + detalle).
-7. Revisa, haz commit, marca la tarea en `TASKLIST.md`.
+7. Revisa, haz commit.
 
 ---
 

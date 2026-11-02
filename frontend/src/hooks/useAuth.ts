@@ -129,11 +129,11 @@ export function useAuth() {
       )
     }
 
-    // Guardar token
-    if (data.token) {
-      localStorage.setItem('token', data.token)
-      setUser(data.user)
-      setProfile(data.profile)
+    // Guardar token (el backend devuelve data: { accessToken, refreshToken, usuario })
+    if (data.data?.accessToken) {
+      localStorage.setItem('token', data.data.accessToken)
+      setUser(data.data.usuario)
+      setProfile(data.data.usuario)
     }
 
     return data

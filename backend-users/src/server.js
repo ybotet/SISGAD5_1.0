@@ -11,7 +11,7 @@ const securityMiddleware = require("./shared/config/security");
 const usersLimiter = require("./shared/config/rateLimit");
 const authMiddleware = require("./shared/middleware/auth");
 
-dotenv.config({ path: path.join(__dirname, "../../.env.local") });
+dotenv.config({ path: path.join(__dirname, "../../../.env.local") });
 
 const { testConnection } = require("./shared/config/database");
 

@@ -13,7 +13,7 @@ const mpLimiter = require("./shared/config/rateLimit");
 const authMiddleware = require("./shared/middleware/auth"); // ⚠️ Asegúrate de importar tu auth
 
 // Cargar variables
-dotenv.config({ path: path.join(__dirname, "../../.env.local") });
+dotenv.config({ path: path.join(__dirname, "../../../.env.local") });
 const { testConnection } = require("./shared/config/database");
 
 const app = express();

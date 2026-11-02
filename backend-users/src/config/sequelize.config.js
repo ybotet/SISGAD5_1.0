@@ -1,7 +1,9 @@
 const path = require("path");
 const dotenv = require("dotenv");
 
-dotenv.config({ path: path.join(__dirname, "../../.env.local") });
+// El archivo .env.local está en la raíz del repositorio (no en backend-users/).
+// Desde src/config/ se necesitan 3 subdirectorios para llegar a la raíz.
+dotenv.config({ path: path.join(__dirname, "../../../.env.local") });
 
 const commonConfig = {
   dialect: "postgres",
