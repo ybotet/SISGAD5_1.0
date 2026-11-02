@@ -60,9 +60,12 @@ const TrabajoEstadisticasController = {
       };
 
       // 1) Totales globales (sin paginar): nº de trabajadores con trabajos asignados
+      // Nota: col() debe referenciar la tabla para que Sequelize genere el alias
+      // correcto ("TbTrabajoTrabajadores"."id_trabajador"); sin él emitía
+      // "TrabajoTrabajadores"."id_trabajador" → error 42P01/42703.
       const totalRow = await TrabajoTrabajadores.findOne({
         attributes: [
-          [fn("COUNT", fn("DISTINCT", col("id_trabajador"))), "count"],
+          [fn("COUNT", fn("DISTINCT", col("TbTrabajoTrabajadores.id_trabajador"))), "count"],
         ],
         raw: true,
       });
@@ -162,10 +165,10 @@ const TrabajoEstadisticasController = {
         Trabajo.findOne({
           where: { id_queja: idQueja },
           attributes: [
-            [fn("COUNT", col("id_trabajo")), "total_trabajos"],
+            [fn("COUNT", col("TbTrabajo.id_trabajo")), "total_trabajos"],
             [fn("ROUND", fn("SUM", duracion), 2), "horas_totales"],
-            [fn("MIN", col("fecha")), "primera_fecha"],
-            [fn("MAX", col("fecha")), "ultima_fecha"],
+            [fn("MIN", col("TbTrabajo.fecha")), "primera_fecha"],
+            [fn("MAX", col("TbTrabajo.fecha")), "ultima_fecha"],
           ],
           raw: true,
         }),
