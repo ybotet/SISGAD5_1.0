@@ -23,10 +23,10 @@
 ```mermaid
 erDiagram
     USERS ||--o{ SESIONES : "tiene"
-    USERS }|--o{ USER_ROLES : "tiene"
-    ROLES }|--o{ USER_ROLES : "asignado a"
-    ROLES }|--o{ ROLES_PERMISOS : "tiene"
-    PERMISOS }|--o{ ROLES_PERMISOS : "en rol"
+    USERS }|--o{ USERROLES : "tiene"
+    ROLES }|--o{ USERROLES : "asignado a"
+    ROLES }|--o{ ROLESPERMISOS : "tiene"
+    PERMISOS }|--o{ ROLESPERMISOS : "en rol"
     
     USERS {
         uuid id PK
@@ -68,14 +68,14 @@ erDiagram
         datetime created_at
     }
     
-    USER_ROLES {
+    USERROLES {
         uuid user_id FK
         uuid rol_id FK
         uuid asignado_por FK
         datetime asignado_en
     }
     
-    ROLES_PERMISOS {
+    ROLESPERMISOS {
         uuid rol_id FK
         uuid permiso_id FK
     }
@@ -156,14 +156,14 @@ erDiagram
     PUERTOS }o--o{ TELEFONOS : "conecta"
     PUERTOS }o--o{ LINEAS : "conecta"
     PUERTOS }o--o{ PIZARRAS : "conecta"
-    QUEJAS ||--o{ FLUJO_ESTADO_QUEJA : "genera"
+    QUEJAS ||--o{ FLUJOESTADOQUEJA : "genera"
     QUEJAS ||--o{ PRUEBAS : "tiene"
     QUEJAS ||--o{ TRABAJOS : "genera"
     TRABAJOS ||--o{ PRUEBAS : "tiene"
     USERS }|--o{ QUEJAS : "asignado"
     USERS }|--o{ TRABAJOS : "asignado"
     USERS }|--o{ PRUEBAS : "ejecuta"
-    TIPO_QUEJA ||--o{ QUEJAS : "clasifica"
+    TIPOQUEJA ||--o{ QUEJAS : "clasifica"
     SERVICIO ||--o{ QUEJAS : "afecta"
     UBICACION ||--o{ QUEJAS : "localiza"
     CLAVE ||--o{ QUEJAS : "clasifica"
@@ -233,7 +233,7 @@ erDiagram
         datetime updated_at
     }
     
-    FLUJO_ESTADO_QUEJA {
+    FLUJOESTADOQUEJA {
         int id PK
         int queja_id FK
         enum estado_anterior
@@ -270,13 +270,34 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
-    
-    TIPO_QUEJA { int id PK, string nombre UK }
-    SERVICIO { int id PK, string nombre UK }
-    UBICACION { int id PK, string nombre UK }
-    CLAVE { int id PK, string codigo UK, int tipo_queja_id FK, int servicio_id FK, int ubicacion_id FK }
-    TIPO_LINEA { int id PK, string nombre UK }
-    TIPO_PIZARRA { int id PK, string nombre UK }
+             
+    TIPOQUEJA {
+        int id PK
+        string nombre UK
+    }
+    SERVICIO {
+        int id PK
+        string nombre UK
+    }
+    UBICACION {
+        int id PK
+        string nombre UK
+    }
+    CLAVE {
+        int id PK
+        string codigo UK
+        int tipo_queja_id FK
+        int servicio_id FK
+        int ubicacion_id FK
+    }
+    TIPOLINEA {
+        int id PK
+        string nombre UK
+    }
+    TIPOPIZARRA {
+        int id PK
+        string nombre UK
+    }
 ```
 
 ### Catálogos MP (Tablas de Referencia)
@@ -309,16 +330,16 @@ erDiagram
 ```mermaid
 erDiagram
     CATEGORIAS ||--o{ MATERIALES : "clasifica"
-    UNIDADES_MEDIDA ||--o{ MATERIALES : "mide"
-    MATERIALES ||--o{ ASIGNACION_ITEMS : "en"
-    MATERIALES ||--o{ CONSUMO_ITEMS : "en"
-    ASIGNACIONES ||--o{ ASIGNACION_ITEMS : "contiene"
+    UNIDADESMEDIDA ||--o{ MATERIALES : "mide"
+    MATERIALES ||--o{ ASIGNACIONITEMS : "en"
+    MATERIALES ||--o{ CONSUMOITEMS : "en"
+    ASIGNACIONES ||--o{ ASIGNACIONITEMS : "contiene"
     ASIGNACIONES }|--o{ CONSUMOS : "origina"
-    CONSUMOS ||--o{ CONSUMO_ITEMS : "contiene"
+    CONSUMOS ||--o{ CONSUMOITEMS : "contiene"
     USERS }|--o{ ASIGNACIONES : "recibe"
     USERS }|--o{ CONSUMOS : "registra"
-    TRABAJOS_MP }|--o{ ASIGNACIONES : "para"
-    TRABAJOS_MP }|--o{ CONSUMOS : "en"
+    TRABAJOSMP }|--o{ ASIGNACIONES : "para"
+    TRABAJOSMP }|--o{ CONSUMOS : "en"
     
     MATERIALES {
         int id PK
@@ -342,7 +363,7 @@ erDiagram
         datetime created_at
     }
     
-    UNIDADES_MEDIDA {
+    UNIDADESMEDIDA {
         int id PK
         string nombre UK
         string simbolo UK
@@ -362,7 +383,7 @@ erDiagram
         datetime updated_at
     }
     
-    ASIGNACION_ITEMS {
+    ASIGNACIONITEMS {
         int id PK
         int asignacion_id FK
         int material_id FK
@@ -381,7 +402,7 @@ erDiagram
         datetime created_at
     }
     
-    CONSUMO_ITEMS {
+    CONSUMOITEMS {
         int id PK
         int consumo_id FK
         int material_id FK
