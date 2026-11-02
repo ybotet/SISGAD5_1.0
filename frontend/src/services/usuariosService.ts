@@ -135,6 +135,23 @@ export const usuariosService = {
         await api.delete(`/roles/${id}`);
     },
 
+    // Crear permiso
+    async createPermiso(data: { nombre: string; descripcion?: string }) {
+        const response = await api.post<ApiResponse<any>>('/permisos', data);
+        return response.data.data;
+    },
+
+    // Actualizar permiso
+    async updatePermiso(id: number, data: { nombre?: string; descripcion?: string }) {
+        const response = await api.put<ApiResponse<any>>(`/permisos/${id}`, data);
+        return response.data.data;
+    },
+
+    // Eliminar permiso
+    async deletePermiso(id: number) {
+        await api.delete(`/permisos/${id}`);
+    },
+
     // Crear nuevo usuario (requiere password)
     async createUsuario(data: CreateUsuarioRequest): Promise<Usuario> {
         const response = await api.post<ApiResponse<Usuario>>('/user', data);

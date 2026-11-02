@@ -370,7 +370,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | 🔄 En progreso | TASK-710-08 | 🔴 | 🔨 | Módulo de Trabajos (B+E) | Agente | — | Variantes B+E: endpoints estadísticas (por trabajador / por queja / ficha individual), TrabajoModuleStats en StatsPage, TrabajoFichaPage + ruta protegida, mp.yaml v2.2.0. Pendiente: prueba manual BD real y materiales en ficha | `backend-mp/src/features/trabajo/trabajo.estadisticas.*`, `frontend/src/pages/trabajos/TrabajoFichaPage.tsx` | `backend-mp/src/features/trabajo/` |
 | ✅ Completada | TASK-710-09 | 🔴 | 🔨 | Módulo de Materiales | Agente | — | CRUD + asignaciones + consumos + stock | `pages/materiales/{MaterialesPage,Asignacion,Consumo,StockTrabajadorPage}.tsx` + services dedicados | `frontend/src/pages/materiales/` |
 | ✅ Completada | TASK-710-10 | Alta | 🔨 | Módulo de Estadísticas | Agente | — | Gráficos Recharts alimentados por APIs de dashboard | `StatsPage.tsx` + recharts en package.json + dashboards sankey/funnel | `frontend/src/pages/StatsPage.tsx` |
-| 🔄 En progreso | TASK-710-11 | Alta | 🔨 | Gestión de Usuarios y Roles | Agente | — | UI admin de usuarios/roles alineada con RBAC | `components/roles/` + `usuariosService.ts`; pantalla completa de usuarios pendiente | `frontend/src/components/roles/` |
+| ✅ Completada | TASK-710-11 | Alta | 🔨 | Gestión de Usuarios y Roles | Agente | — | UI admin de usuarios/roles alineada con RBAC | `AdminPage.tsx` con pestañas Usuarios/Roles/Permisos; CRUD completo en `UsuariosPage`/`RolesPage`/`PermisosPage`; `ProtectedRoute` con permisos `usuarios.ver`/`roles.ver`/`permisos.ver` | `frontend/src/pages/auth/admin/`, `frontend/src/components/roles/`, `frontend/src/services/usuariosService.ts` |
 | 🔄 En progreso | TASK-710-12 | Media | 🔨 | Perfil de Usuario | Agente | — | Ver/editar perfil y cambiar contraseña | Ruta `/profile` existe en App.tsx; edición limitada a lectura de perfil | `frontend/src/` |
 
 ### 9.3. UX/UI Transversal
@@ -383,7 +383,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ⏳ Pendiente | TASK-720-04 | Alta | 🔨 | Loading states uniformes | Agente | — | Skeletons/spinners consistentes en todas las vistas de datos | Spinners aislados; sin patrón uniforme | `frontend/src/components/ui/` |
 | 🔄 En progreso | TASK-720-05 | Media | 🔨 | Notificaciones toast | Agente | — | Librería integrada y usada en operaciones CRUD | Parcial vía ErrorDisplay; librería de toasts no estandarizada | `frontend/src/` |
 
-**Subtotal FASE 7: 15✅ + 6🔄 de 22 — 81.8% ponderado** — *corrección mayor frente al 1.1% declarado en la v1.0*
+**Subtotal FASE 7: 16✅ + 5🔄 de 22 — 84.1% ponderado** — *corrección mayor frente al 1.1% declarado en la v1.0*
 
 ---
 
@@ -445,12 +445,12 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ⏳ Pendiente | TASK-1000-02 | Alta | 🔨 | Reportes exportables (PDF/Excel/CSV) | Agente | — | Exportación desde UI con filtros aplicados | No implementado | `reports/` |
 | ⏳ Pendiente | TASK-1000-03 | Alta | 🔨 | Alertas de métricas configurables | Agente | — | Reglas de umbral + notificación | Parcial: endpoint de alertas con datos mock (TASK-540-05) | `alerts/` |
 | 🔄 En progreso | TASK-1000-04 | Alta | 🔨 | Segmentación de datos | Agente | — | Filtros por fecha/área/servicio en analytics | Disponible en endpoints dashboard de quejas; pendiente unificar criterios | backends |
-| 🔄 En progreso | TASK-1000-05 | Alta | 🔨 | Panel de administración con control RBAC | Agente | TASK-710-11 | Administración de usuarios/roles/permisos desde UI | Componentes de roles existentes; panel integral pendiente | `frontend/src/components/roles/` |
+| ✅ Completada | TASK-1000-05 | Alta | 🔨 | Panel de administración con control RBAC | Agente | TASK-710-11 | Administración de usuarios/roles/permisos desde UI | `AdminPage.tsx` unificado en `/admin/*` con tabs; gating por permiso en backend (revalida) y frontend | `frontend/src/pages/auth/admin/AdminPage.tsx`, `frontend/src/App.tsx` |
 | ⏳ Pendiente | TASK-1000-06 | Alta | 🔨 | API de análisis transversal | Agente | — | Endpoints de agregación multi-servicio | Cada servicio expone sus métricas; no hay capa transversal | `api/analytics/` |
 | 🔄 En progreso | TASK-1000-07 | Alta | 🔨 | Tendencias históricas | Agente | — | Series temporales en dashboards | `dashboard/historic` de quejas cubre parcialmente | `backend-mp/` |
 | ⏳ Pendiente | TASK-1000-08 | Media | 🔨 | Comparación de períodos | Agente | — | Varianza período actual vs. anterior | No implementado | `comparison/` |
 
-**Subtotal FASE 10: 0✅ + 4🔄 de 8 — 25.0% ponderado**
+**Subtotal FASE 10: 1✅ + 3🔄 de 8 — 31.3% ponderado**
 
 ---
 
