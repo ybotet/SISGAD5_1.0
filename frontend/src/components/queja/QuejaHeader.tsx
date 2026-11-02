@@ -10,7 +10,7 @@ export default function QuejaHeader({
     onAdd
 }: QuejaHeaderProps) {
     return (
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-6">
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
                 <p className="text-gray-600">{description}</p>

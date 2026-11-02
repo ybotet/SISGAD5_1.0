@@ -66,7 +66,7 @@ export default function LoginForm() {
     };
 
     return (
-        <form onSubmit={onSubmit} className="max-w-md mx-auto p-4">
+        <form onSubmit={onSubmit} className="max-w-md mx-auto p-4 sm:p-6">
             <h2 className="text-2xl mb-4">Iniciar sesión</h2>
             {error && <div className="text-red-600 mb-2 text-sm">{error}</div>}
             <div className="mb-3">

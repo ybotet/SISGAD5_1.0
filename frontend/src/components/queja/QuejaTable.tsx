@@ -1,6 +1,7 @@
 import type { QuejaItem } from "../../services/quejaService";
 import QuejaEstadoBadge from "./QuejaEstadoBadge";
 import { formatToDisplay } from "../../utils/dateFormats";
+import { Table } from "../../components/ui/Table";
 
 interface QuejaTableProps {
   items: QuejaItem[];
@@ -8,9 +9,56 @@ interface QuejaTableProps {
   onDelete: (id: number) => void;
   onView: (item: QuejaItem) => void;
   loading?: boolean;
-  // Props recibidas desde el padre
   claves?: Map<number, string>;
   clavesLoaded?: boolean;
+}
+
+/**
+ * Renderiza el servicio (teléfono, línea o pizarra) para tarjeta móvil.
+ */
+function renderServicioCard(item: QuejaItem) {
+  if (item.tb_telefono) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          <i className="ri-phone-line mr-1"></i>
+          Teléfono
+        </span>
+        <span className="text-xs text-gray-600 font-medium">{item.tb_telefono.telefono}</span>
+      </div>
+    );
+  }
+  if (item.tb_linea) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <i className="ri-wire-line mr-1"></i>
+          Línea
+        </span>
+        <span className="text-xs text-gray-600 font-medium">{item.tb_linea.clavelinea}</span>
+      </div>
+    );
+  }
+  if (item.tb_pizarra) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+          <i className="ri-layout-line mr-1"></i>
+          Pizarra
+        </span>
+        <span className="text-xs text-gray-600 font-medium">{item.tb_pizarra.nombre || "Sin nombre"}</span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2">
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+        <i className="ri-question-line mr-1"></i>
+        Sin servicio
+      </span>
+      <span className="text-xs text-gray-400 italic">No asignado</span>
+    </div>
+  );
 }
 
 export default function QuejaTable({
@@ -22,198 +70,106 @@ export default function QuejaTable({
   claves = new Map(),
   clavesLoaded = false,
 }: QuejaTableProps) {
-  // Función para obtener descripción de clave usando los datos del padre
   const getClaveDescription = (id_clave: number | null | undefined): string => {
     if (!id_clave) return "Sin clave";
     if (!clavesLoaded) return "Cargando...";
     return claves.get(id_clave) || `Clave #${id_clave}`;
   };
 
-  // Función para renderizar el servicio (teléfono, línea o pizarra)
-  const renderServicio = (item: QuejaItem) => {
-    if (item.tb_telefono) {
-      return (
-        <div className="flex flex-col">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mb-1">
-            <i className="ri-phone-line mr-1"></i>
-            Teléfono
+  const columns = [
+    { key: "num_reporte", label: "Reporte" },
+    { key: "fecha", label: "Fecha", format: (v: any) => formatToDisplay(v) },
+    {
+      key: "servicio",
+      label: "Servicio",
+      format: (_v: any, item: QuejaItem) => renderServicioCard(item),
+    },
+    {
+      key: "tipo",
+      label: "Tipo",
+      format: (_v: any, item: QuejaItem) => (
+        item.tb_tipoqueja ? (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+            <i className="ri-file-list-line mr-1"></i>
+            {item.tb_tipoqueja.tipoqueja}
           </span>
-          <span className="text-xs text-gray-600 font-medium">{item.tb_telefono.telefono}</span>
+        ) : (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            <i className="ri-question-line mr-1"></i>
+            Sin tipo
+          </span>
+        )
+      ),
+    },
+    {
+      key: "estado",
+      label: "Estado",
+      format: (_v: any, item: QuejaItem) => <QuejaEstadoBadge estado={item.estado} size="sm" />,
+    },
+    {
+      key: "reportado_por",
+      label: "Reportado por",
+      format: (_v: any, item: QuejaItem) => (
+        <div className="text-sm text-gray-900">
+          {item.reportado_por || "Sin datos"}
+          <div className="text-xs text-gray-500 mt-1">
+            Probador: {item.tb_trabajador?.clave_trabajador || "Sin datos"}
+          </div>
         </div>
-      );
-    }
-
-    if (item.tb_linea) {
-      return (
-        <div className="flex flex-col">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-1">
-            <i className="ri-wire-line mr-1"></i>
-            Línea
-          </span>
-          <span className="text-xs text-gray-600 font-medium">{item.tb_linea.clavelinea}</span>
-        </div>
-      );
-    }
-
-    if (item.tb_pizarra) {
-      return (
-        <div className="flex flex-col">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 mb-1">
-            <i className="ri-layout-line mr-1"></i>
-            Pizarra
-          </span>
-          <span className="text-xs text-gray-600 font-medium">
-            {item.tb_pizarra.nombre || "Sin nombre"}
-          </span>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex flex-col">
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mb-1">
-          <i className="ri-question-line mr-1"></i>
-          Sin servicio
+      ),
+    },
+    {
+      key: "clave",
+      label: "Clave",
+      format: (_v: any, item: QuejaItem) => (
+        <span className={item.id_clave ? "text-blue-600 font-medium" : "text-gray-400 italic text-sm"}>
+          {item.id_clave ? getClaveDescription(item.id_clave) : "Sin clave"}
         </span>
-        <span className="text-xs text-gray-400 italic">No asignado</span>
-      </div>
-    );
-  };
+      ),
+    },
+  ];
 
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow p-8 text-center">
         <i className="ri-loader-4-line animate-spin text-2xl text-blue-600 mb-2"></i>
-        <p className="text-gray-600">Actualizando datos...</p>
+        <p className="text-gray-600">Actualizando datos…</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                No. Reporte
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Fecha
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Servicio
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Tipo
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Estado
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Reportado por
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {items.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                  <i className="ri-inbox-line text-3xl mb-2 block"></i>
-                  No se encontraron resultados
-                </td>
-              </tr>
-            ) : (
-              items.map((item) => (
-                <tr key={item.id_queja} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="bg-red-50 rounded-lg p-2 mr-3">
-                        <i className="ri-alarm-warning-line text-red-500"></i>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">#{item.num_reporte}</div>
-                        <div className="text-xs text-gray-500">ID: {item.id_queja}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatToDisplay(item.fecha)}</div>
-                    {/* <div className="text-xs text-gray-500">
-                      {new Date(item.fecha).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </div> */}
-                  </td>
-                  <td className="px-6 py-4">{renderServicio(item)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {item.tb_tipoqueja ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                        <i className="ri-file-list-line mr-1"></i>
-                        {item.tb_tipoqueja.tipoqueja}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        <i className="ri-question-line mr-1"></i>
-                        Sin tipo
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex flex-col gap-1">
-                      <QuejaEstadoBadge estado={item.estado} size="md" />
-                      <div className="flex items-center gap-1 ml-7 mt-1">
-                        <i className="ri-key-line text-gray-400 text-xs"></i>
-                        <span className="text-xs text-gray-500">Clave actual:</span>
-                        <span className="text-xs text-blue-600 font-medium">
-                          {item.id_clave ? getClaveDescription(item.id_clave) : "Sin clave"}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      Persona que reporta: {item.reportado_por || "Sin datos"}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Probador: {item.tb_trabajador?.clave_trabajador || "Sin datos del probador"}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => onView(item)}
-                        className="text-green-600 hover:text-green-900 p-2 rounded-lg hover:bg-green-50 transition-colors"
-                        title="Ver detalles"
-                      >
-                        <i className="ri-eye-line"></i>
-                      </button>
-                      <button
-                        onClick={() => onEdit(item)}
-                        className="text-blue-600 hover:text-blue-900 p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                        title="Editar"
-                      >
-                        <i className="ri-edit-line"></i>
-                      </button>
-                      <button
-                        onClick={() => onDelete(item.id_queja)}
-                        className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors"
-                        title="Eliminar"
-                      >
-                        <i className="ri-delete-bin-line"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <Table<QuejaItem>
+      items={items}
+      columns={columns}
+      cardTitle={(item) => `Queja #${item.num_reporte}`}
+      renderRowActions={(item) => (
+        <div className="flex gap-2">
+          <button
+            onClick={() => onView(item)}
+            className="text-green-600 hover:text-green-900 p-1.5 rounded hover:bg-green-50 transition-colors"
+            title="Ver detalles"
+          >
+            <i className="ri-eye-line"></i>
+          </button>
+          <button
+            onClick={() => onEdit(item)}
+            className="text-blue-600 hover:text-blue-900 p-1.5 rounded hover:bg-blue-50 transition-colors"
+            title="Editar"
+          >
+            <i className="ri-edit-line"></i>
+          </button>
+          <button
+            onClick={() => onDelete(item.id_queja)}
+            className="text-red-600 hover:text-red-900 p-1.5 rounded hover:bg-red-50 transition-colors"
+            title="Eliminar"
+          >
+            <i className="ri-delete-bin-line"></i>
+          </button>
+        </div>
+      )}
+      loading={loading}
+      emptyMessage="No se encontraron quejas"
+    />
   );
 }

@@ -112,9 +112,9 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-white rounded-lg shadow p-6 sm:p-8 mb-6">
           <h1 className="text-2xl font-semibold">{t("dashboard.welcome")}</h1>
           <p className="text-sm text-gray-500">{t("dashboard.description")}</p>
         </div>
@@ -162,7 +162,7 @@ export default function DashboardPage() {
                     </div>
                 </div> */}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-medium mb-4">
               {t("dashboard.recent_activity")}
