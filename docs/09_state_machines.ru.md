@@ -9,92 +9,112 @@
 
 ### Состояния
 ```
-Abierta → Probada → Asignada → Pendiente → Resuelta → Cerrada
-   │         │          │           │           │          │
-   └─────────┴──────────┴───────────┴───────────┴──────────┘
-                     (Повторное открытие: Cerrada → Abierta)
+Abierta → Probada → Asignada → Pendiente → Resuelta → Cerrada → Completada
+                                                                  (конец цикла)
+Повторное открытие не существует: Cerrada и Completada — терминальные состояния
 ```
+
+Терминальные состояния: **Completada** (материалы учтены Аналитиком) и **Cerrada** (альтернативный терминал, когда материалы не использовались).
 
 ### Разрешённые переходы
 
 | Текущее состояние | Следующее состояние | Актёр | Условие | Действие |
 |-------------------|---------------------|-------|---------|----------|
-| Abierta | Probada | Техник | Тест зарегистрирован (exitoso=true) | Зарегистрировать тест, сменить статус |
-| Abierta | Asignada | Jefe/Operador | Техник назначен | Назначить техника |
-| Probada | Asignada | Jefe/Operador | Техник назначен | Назначить техника |
-| Asignada | Pendiente | Техник | Создана работа | Создать заказ работы |
-| Asignada | Probada | Техник | Тест зарегистрирован | Зарегистрировать тест |
-| Pendiente | Resuelta | Техник | Работа закрыта + расход зарегистрирован | Закрыть работу, зарегистрировать расход |
-| Resuelta | Cerrada | Operador/Jefe | Финальное подтверждение | Сменить статус |
-| Cerrada | Abierta | Operador/Jefe | Обоснованное повторное открытие | Новый num_reporte, статус=Abierta |
+| Abierta | Probada | Испытатель | Тест зарегистрирован (exitoso=true) | Зарегистрировать тест, сменить статус |
+| Probada | Asignada | Супервайзер | Рабочий (оператор) назначен на жалобу | Назначить рабочего на ЖАЛОБУ |
+| Probada | Resuelta | Испытатель | Жалоба решена без вмешательства работы | Отметить прямое решение после теста |
+| Probada | Pendiente | Испытатель | Проводится новый тест (итерация) | Зарегистрировать новый тест |
+| Asignada | Pendiente | Испытатель | Создана работа | Создать заказ работы |
+| Asignada | Probada | Испытатель | Тест зарегистрирован | Зарегистрировать тест |
+| Asignada | Resuelta | Испытатель | Решение достигнуто в полевой работе | Решить через полевую работу |
+| Pendiente | Probada | Испытатель | Проводится новый тест | Зарегистрировать новый тест |
+| Pendiente | Asignada | Супервайзер | Смена рабочих для другого ремонта | Переназначить рабочих на жалобу |
+| Pendiente | Resuelta | Испытатель | Работа закрыта | Закрыть работу |
+| Resuelta | Cerrada | Испытатель | Финальное подтверждение закрытия | Сменить статус |
+| Cerrada | Completada | Аналитик по материалам | Материалы зарегистрированы после закрытия | Управление материалами, конец цикла |
+
+> **Примечание о ролях (v2.0):** бывший «Техник» переименован в **Испытатель** (тестирует, создаёт работы, закрывает). бывший «Jefe/Operador» — в **Супервайзер** (только назначения). Назначение материалов НЕ меняет статус жалобы; только финальный учёт материалов Аналитиком вызывает переход `Cerrada → Completada`. Если материалов не требовалось, жалоба завершается в **Cerrada**.
+
 
 ### Запрещённые переходы (Bloquировано правилом RN-QUE-03)
+- **Abierta → Asignada** (сначала обязан быть тест: через Probada)
 - Abierta → Pendiente (пропустить Probada/Asignada)
 - Abierta → Resuelta (пропустить промежуточные состояния)
 - Abierta → Cerrada (пропустить все)
-- Probada → Pendiente (пропустить Asignada)
-- Probada → Resuelta (пропустить Asignada/Pendiente)
-- Probada → Cerrada (пропустить все)
-- Asignada → Resuelta (пропустить Pendiente)
-- Asignada → Cerrada (пропустить Pendiente/Resuelta)
-- Pendiente → Cerrada (пропустить Resuelta)
-- Любое → Abierta (кроме Cerrada → Abierta при повторном открытии)
+- Probada → Cerrada (пропустить Resuelta)
+- **Cerrada → Abierta** (повторное открытие не существует)
+- Cerrada → Probada / Cerrada → Resuelta (обратные переходы запрещены)
+- Completada → любое состояние (абсолютный терминал)
+- Probada/Asignada/Pendiente/Resuelta → Completada (только из Cerrada, Аналитиком по материалам)
 
 ### Диаграмма Mermaid
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Abierta: Crear queja
-    Abierta --> Probada: Registrar prueba exitosa
-    Abierta --> Asignada: Asignar técnico
-    Probada --> Asignada: Asignar técnico
-    Asignada --> Pendiente: Crear trabajo
-    Asignada --> Probada: Registrar prueba
-    Pendiente --> Resuelta: Cerrar trabajo + consumo
-    Resuelta --> Cerrada: Confirmar cierre
-    Cerrada --> Abierta: Reabrir (nuevo num_reporte)
-    
+    [*] --> Abierta: Sozdanie zhaloby
+    Abierta --> Probada: Uspechny test
+    Probada --> Asignada: Supervisor naznacha rabochego
+    Probada --> Resuelta: Resheno bez raboty
+    Probada --> Pendiente: Novyy test
+    Asignada --> Pendiente: Sozdanie raboty
+    Asignada --> Probada: Registratsiya testa
+    Asignada --> Resuelta: Resheno v polevoy rabote
+    Pendiente --> Probada: Novyy test
+    Pendiente --> Asignada: Smena rabochikh
+    Pendiente --> Resuelta: Zakrytie raboty
+    Resuelta --> Cerrada: Podtverzhdenie zakritiya
+    Cerrada --> Completada: Analitik registriruet materialy
+    Cerrada --> [*]: Bez materialov terminalno
+    Completada --> [*]: Konets cikla
+
     note right of Abierta
-        Estado inicial
-        Prioridad calculada
+        Nachalnoye sostoyaniye
+        Prioritet rasschityvayetsya
     end note
-    
+
     note right of Probada
-        Requiere prueba exitosa
+        Trebuyetsya uspechnyy test
     end note
-    
+
     note right of Asignada
-        Técnico asignado
+        Rabochiy operator naznachen na ZHALOBU
     end note
-    
+
     note right of Pendiente
-        Trabajo en ejecución
+        Rabota vypolnyayetsya
     end note
-    
+
     note right of Resuelta
-        Trabajo cerrado
-        Materiales consumidos
+        Polevaya rabota ili bez raboty
     end note
-    
+
     note right of Cerrada
-        Estado final
-        Solo reapertura permitida
+        Zakrito ispytatelem
+        Terminalno yesli net materialov
+    end note
+
+    note right of Completada
+        Materialy uchteny Analitykom
+        Finalnoye sostoyaniye
     end note
 ```
 
 ### События домена (Event Storming)
 
-| Событие | Триггер | Данные |
-|--------|---------|-------|
-| QuejaCreada | POST /quejas | {id, num_reporte, prioridad, estado: "Abierta"} |
-| QuejaProbada | PATCH /quejas/:id (estado=Probada) | {id, prueba_id, tecnico_id} |
-| QuejaAsignada | PATCH /quejas/:id/asignar | {id, tecnico_id, estado_anterior, estado_nuevo} |
-| TrabajoCreado | POST /trabajos | {id, queja_id, tecnico_id} |
-| TrabajoCerrado | PATCH /trabajos/:id/cerrar | {id, tiempo_real} |
-| ConsumoRegistrado | POST /consumos | {id, trabajo_id, items} |
-| QuejaResuelta | PATCH /quejas/:id (estado=Resuelta) | {id} |
-| QuejaCerrada | PATCH /quejas/:id (estado=Cerrada) | {id} |
-| QuejaReabierta | PATCH /quejas/:id (estado=Abierta desde Cerrada) | {id, nuevo_num_reporte} |
+| Событие | Триггер | Актёр | Данные |
+|---------|---------|-------|--------|
+| QuejaCreada | POST /quejas | Испытатель | {id, num_reporte, prioridad, estado: "Abierta"} |
+| QuejaProbada | POST /pruebas (exitoso=true) | Испытатель | {id, prueba_id} |
+| QuejaAsignada | POST /quejas/:id/asignar-trabajador | Супервайзер | {id, id_trabajador, estado_anterior, estado_nuevo} |
+| TrabajoCreado | POST /trabajos | Испытатель | {id, queja_id} |
+| TrabajoCerrado | PATCH /trabajos/:id/cerrar | Испытатель | {id, tiempo_real} |
+| QuejaResuelta | PATCH /quejas/:id (estado=Resuelta) | Испытатель | {id, via: rabota ili bez raboty} |
+| QuejaCerrada | PATCH /quejas/:id (estado=Cerrada) | Испытатель | {id} |
+| MaterialesAsignados | POST /asignacias (vidacha rabochemu) | Аналитик по материалам | {id, trabajador_id, items} — ne menyayet status zhaloby |
+| ConsumoRegistrado | POST /consumos | Аналитик по материалам | {id, queja_id, items} |
+| QuejaCompletada | PATCH /quejas/:id (estado=Completada) | Аналитик по материалам | {id, materialy: utocheny ili ne trebovalis} |
+
+> ⚠️ Ustraneno `QuejaReabierta` (v2.0): povtornoye otkrytiye zhaloby ne sushchestvuyet.
 
 ---
 
@@ -102,29 +122,33 @@ stateDiagram-v2
 
 ### Состояния
 ```
-Abierto → Asignado → En_Proceso → Cerrado
+Abierto → En_Proceso → Cerrado
 ```
 
 ### Разрешённые переходы
 
+> **v2.0:** Рабочий (оператор) назначается на **ЖАЛОБУ**, а не на работу. Переход `Abierto → Asignado` устранён. Работу создаёт и вносит сам **Испытатель**.
+
 | Текущее состояние | Следующее состояние | Актёр | Условие |
 |-------------------|---------------------|-------|---------|
-| Abierto | Asignado | Jefe | Техник назначен |
-| Asignado | En_Proceso | Техник | Начало выполнения |
-| En_Proceso | Cerrado | Техник | Зарегистрировано реальное время |
+| Abierto | En_Proceso | Испытатель | Начало выполнения (рабочие берутся из жалобы) |
+| En_Proceso | Cerrado | Испытатель | Зарегистрировано реальное время |
 
 ### Диаграмма Mermaid
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Abierto: Crear trabajo
-    Abierto --> Asignado: Asignar técnico
-    Asignado --> En_Proceso: Iniciar ejecución
-    En_Proceso --> Cerrado: Registrar tiempo real + cerrar
-    
+    [*] --> Abierto: Sozdanie raboty Ispytatel
+    Abierto --> En_Proceso: Nachalo vypolneniya
+    En_Proceso --> Cerrado: Realnoye vremya i zakrytie
+
+    note right of Abierto
+        Rabochikh naznachayut na
+        ZHALOBU ne na rabotu
+    end note
+
     note right of Cerrado
-        Requiere tiempo_real_horas
-        Dispara registro de consumos
+        Trebuyetsya tiempo_real_horas
     end note
 ```
 
@@ -134,19 +158,22 @@ stateDiagram-v2
 
 ### Состояния
 ```
-Pendiente → Entregada → Parcial → (Cancelada)
-                    │
-                    └─→ (если все позиции полностью расходованы)
+Pendiente → Entregada → Parcial → Completada
+    └→ Cancelada (до доставки)
 ```
 
 ### Разрешённые переходы
 
-| Текущее состояние | Следующее состояние | Условие |
-|-------------------|---------------------|---------|
-| Pendiente | Entregada | Техник подтверждает получение |
-| Pendiente | Cancelada | Аналитик отменяет до доставки |
-| Entregada | Parcial | Некоторые позиции расходованы |
-| Parcial | Entregada | Все позиции расходованы |
+**Назначение** материалов — это физическая выдача рабочему в **любой момент**; само по себе оно НЕ меняет статус жалобы. **Расход** регистрирует **Аналитик по материалам** (не Испытатель).
+
+| Текущее состояние | Следующее состояние | Актёр | Условие |
+|-------------------|---------------------|-------|---------|
+| Pendiente | Entregada | Аналитик по материалам | Рабочий подтверждает получение |
+| Pendiente | Cancelada | Аналитик по материалам | Отменено до доставки |
+| Entregada | Parcial | Аналитик по материалам | Некоторые позиции расходованы |
+| Parcial | Completada | Аналитик по материалам | Все позиции расходованы |
+
+> Финальный переход жалобы (`Cerrada → Completada`) происходит, когда Аналитик регистрирует полный расход или заявляет, что материалы не требовались (см. §1).
 
 ### Диаграмма Mermaid
 
@@ -156,7 +183,8 @@ stateDiagram-v2
     Pendiente --> Entregada: Confirmar entrega
     Pendiente --> Cancelada: Cancelar
     Entregada --> Parcial: Consumo parcial
-    Parcial --> Entregada: Consumo total
+    Parcial --> Completada: Consumo total
+    Completada --> [*]: Fin
     Cancelada --> [*]: Fin
 ```
 
@@ -229,7 +257,16 @@ Activo → Bloqueado → Activo
 
 ---
 
-## 7. Ссылки
+## 7. Журнал изменений
+
+| Версия | Дата | Изменения |
+|--------|------|-----------|
+| 2.0 | 2026-11-02 | Переименованы роли (Техник→Испытатель, Jefe/Operador→Супервайзер). Добавлено состояние **Completada** и переход `Cerrada → Completada` (Аналитик по материалам). Устранено повторное открытие. Новые переходы: Probada→Resuelta (без работы), Asignada→Resuelta (полевая работа), Probada/Pendiente→Probada (новый тест), Pendiente→Asignada (смена рабочих). Запрещён Abierta→Asignada. Рабочие назначаются на ЖАЛОБУ (устранён Abierto→Asignado в Работе). Разделены назначение и расход материалов. Согласовано с `08_sequence_diagrams.es.md` v2.7. |
+| 1.0 | 2026-09-25 | Начальная версия. |
+
+---
+
+## 8. Ссылки
 
 - [Бизнес-правила](06_business_rules.ru.md)
 - [Варианты использования](03_use_cases.ru.md)
