@@ -1,6 +1,6 @@
 # 📊 Diagramas de Secuencia — SISGAD5
 
-> **Versión:** 2.3 (dominio real: no existe el rol Operador — el Probador crea la queja; la prueba va ANTES de la asignación; el trabajador/operario se asigna a la QUEJA, no al trabajo; estados de cierre `Cerrada` → `Completada` si hay materiales)
+> **Versión:** 2.4 (dominio real: sin rol Operador; el Probador crea la queja, prueba ANTES de asignar, inserta trabajos y cierra → `Cerrada`; el Supervisor solo asigna operarios a la queja; **el consumo de materiales es exclusivo del Analista de materiales** — registra consumos → `Completada` o declara "no requeridos" y el ciclo culmina en `Cerrada`)
 > **Fecha:** 2026-11-02
 > **Tarea:** TASK-100-04
 > **Estado:** ✅ Completada
@@ -13,7 +13,7 @@
 
 | # | Escenario | Tipo | Origen en fuentes previas |
 |---|-----------|------|---------------------------|
-| 1 | Flujo completo de queja (Abierta → Cerrada → Completada) | Crítico | 08_es §1 (roles corregidos v2.3) |
+| 1 | Flujo completo de queja (Abierta → Cerrada → Completada) | Crítico | 08_es §1 (roles corregidos v2.4) |
 | 2 | Login y autenticación JWT con refresh rotativo | Crítico | diag §Esc.1 + 08_es §3 |
 | 3 | Acceso a recurso protegido vía Gateway | Crítico | 08_es §3 |
 | 4 | Asignación de materiales con validación de stock | Crítico | diag §Esc.2 + 08_es §2 |
@@ -25,14 +25,15 @@
 
 ## Escenario 1: Flujo completo de queja (Abierta → Cerrada → Completada)
 
-**Roles del dominio (v2.3):** Probador (crea la queja, realiza pruebas, inserta trabajos, cierra; el estado `Probada`/`Resuelta` lo devuelve la BD tras registrarse la prueba) · Supervisor (jefe inscrito: **asigna el trabajador/operario a la queja**; no inserta trabajos ni crea quejas). **No existe el rol "Operador"** — la queja la crea el Probador. **No existe asignación de trabajador al trabajo**: el operario se asigna únicamente a la queja.
+**Roles del dominio (v2.4):** Probador (crea la queja, realiza pruebas, inserta trabajos, cierra; el estado `Probada`/`Resuelta` lo devuelve la BD tras registrarse la prueba) · Supervisor (jefe inscrito: **asigna el trabajador/operario a la queja**; no inserta trabajos ni crea quejas) · **Analista de materiales** (registra/edita el consumo de materiales post-cierre; si declara que no se necesitaron materiales en una queja `Cerrada`, el ciclo culmina). **No existe el rol "Operador"** — la queja la crea el Probador. **No existe asignación de trabajador al trabajo**: el operario se asigna únicamente a la queja.
 
-**Actores:** Probador, Supervisor · **Participantes:** API Gateway, MP Service, Materials Service, bd_mp
+**Actores:** Probador, Supervisor, Analista de materiales · **Participantes:** API Gateway, MP Service, Materials Service, bd_mp
 
 ```mermaid
 sequenceDiagram
     actor PR as Probador
     actor SU as Supervisor
+    actor AM as Analista de materiales
     participant GW as API Gateway
     participant MPS as MP Service
     participant MS as Materials Service
@@ -87,31 +88,39 @@ sequenceDiagram
         MPS-->>GW: 200 OK
         GW-->>PR: 200 OK
 
-        Note over PR,MS: Los materiales NO se asignan hasta que la queja cierre
+        Note over PR,MS: Los materiales NO se asignan hasta que la queja cierre<br/>El Probador cierra la queja → estado 'Cerrada'
         PR->>GW: PATCH /api/mp/quejas/:id {estado:'Cerrada'}
-        GW->>MPS: forward (saga de cierre — ver Escenario 6)
-        MPS->>MPDB: SELECT materiales consumidos del trabajo
-        alt Hubo consumo de materiales
-            MPS->>MS: registrar/validar consumos pendientes
-            MS-->>MPS: OK
-            MPS->>MPDB: UPDATE queja SET estado='Completada'
+        GW->>MPS: forward (verifica FSM: cierre sin tocar materiales)
+        MPS->>MPDB: UPDATE queja SET estado='Cerrada', fechaok=NOW()
+        MPS-->>GW: 200 OK
+        GW-->>PR: 200 OK {estado:'Cerrada'}
+
+        Note over AM,MPS: El consumo de materiales lo gestiona el<br/>**Analista de materiales**, no el Probador
+        alt Se utilizaron materiales en el trabajo
+            AM->>GW: POST /api/materiales/consumos<br/>{queja_id, items[], cantidades}
+            GW->>MS: forward (JWT rol: analista_materiales)
+            MS->>MS: validar stock + descontar inventario
+            MS->>MPDB: registrar consumos + UPDATE queja SET estado='Completada'
+            MPDB-->>MS: OK
+            MS-->>GW: 201 Created {consumo, estado_queja:'Completada'}
+            GW-->>AM: 201 Created — ciclo culmina en **Completada**
+        else No se necesitaron materiales
+            AM->>GW: PATCH /api/mp/quejas/:id {materiales: 'no requeridos'}
+            GW->>MPS: forward (restringido al estado de materiales)
+            MPS->>MPDB: confirmar queja en estado='Cerrada' (sin consumos)
             MPS-->>GW: 200 OK
-            GW-->>PR: 200 OK {estado:'Completada'}
-        else No se utilizaron materiales
-            MPS->>MPDB: queja permanece en estado='Cerrada'
-            MPS-->>GW: 200 OK
-            GW-->>PR: 200 OK {estado:'Cerrada'}
+            GW-->>AM: 200 OK — ciclo culmina en **Cerrada**
         end
 
-        Note over PR,MPS: PUT/PATCH posterior al cierre: SOLO permite editar<br/>el estado de la queja entre Cerrada y Completada (consumo de materiales)
-        PR->>GW: PATCH /api/mp/quejas/:id {estado:'Completada'|'Cerrada'}
-        GW->>MPS: forward (restringido a estado de materiales)
+        Note over AM,MPS: PUT/PATCH posterior al cierre: SOLO el Analista de materiales<br/>edita el consumo (Cerrada ↔ Completada)<br/>el Probador no puede
+        AM->>GW: PATCH /api/mp/quejas/:id {estado:'Completada'|'Cerrada'}
+        GW->>MPS: forward (RBAC: rol analista_materiales)
         MPS-->>GW: 200 OK
-        GW-->>PR: 200 OK
+        GW-->>AM: 200 OK
     end
 ```
 
-### Tabla de Mensajes — Flujo Completo de Queja (roles v2.3)
+### Tabla de Mensajes — Flujo Completo de Queja (roles v2.4)
 
 | # | De | Hacia | Mensaje | Datos |
 |---|----|-------|---------|-------|
@@ -124,19 +133,22 @@ sequenceDiagram
 | 6b | Supervisor | Sistema | `PATCH /api/mp/quejas/:id/asignar-trabajador` (rama Probada) | {id_trabajador} — el operario se asigna **a la queja**, casi siempre pero no siempre |
 | 7 | Probador | Sistema | `POST /api/mp/trabajos` (rama Probada) | {queja_id, descripcion, tiempo_estimado} — el probador inserta el trabajo; **sin campo de trabajador** |
 | 8 | Probador | Sistema | `PATCH /api/mp/trabajos/:id/cerrar` | {tiempo_real} |
-| 9 | Probador | Sistema | `PATCH /api/mp/quejas/:id` (cierre) | {estado: "Cerrada"} → si hubo consumo de materiales la saga la deriva a "Completada" |
-| 10 | Sistema | Probador | 200 OK | {queja: {estado: "Completada" \| "Cerrada", fechaok}} |
-| 11 | Probador | Sistema | `PATCH /api/mp/quejas/:id` (post-cierre) | Solo edición del estado (Cerrada ↔ Completada) según consumo de materiales |
+| 9 | Probador | Sistema | `PATCH /api/mp/quejas/:id` (cierre) | {estado: "Cerrada"} — el Probador cierra; NO toca materiales |
+| 10 | Sistema | Probador | 200 OK | {queja: {estado: "Cerrada", fechaok}} |
+| 11a | Analista de materiales | Sistema | `POST /api/materiales/consumos` (hubo materiales) | {queja_id, items[], cantidades} → registra consumos y deriva la queja a **"Completada"** — culmina el ciclo |
+| 11b | Analista de materiales | Sistema | `PATCH /api/mp/quejas/:id` (no hubo materiales) | {materiales: "no requeridos"} → confirma **"Cerrada"** sin consumos — culmina el ciclo |
+| 12 | Analista de materiales | Sistema | `PATCH /api/mp/quejas/:id` (post-cierre) | Solo edición del consumo (Cerrada ↔ Completada); RBAC exclusivo del Analista |
 
-> **Reglas de dominio (v2.3):**
+> **Reglas de dominio (v2.4):**
 > 1. **No existe el rol "Operador"** — la queja la crea el **Probador**.
 > 2. El **Supervisor** (jefe inscrito) **solo realiza asignaciones de trabajador a la queja**, nunca inserta trabajos ni crea quejas.
 > 3. **La prueba se realiza antes de la asignación**; el estado `Probada`/`Resuelta` lo devuelve la BD (FSM) tras registrarse la prueba.
 > 4. **El trabajador (operario) se asigna a la queja, no al trabajo** — no existe endpoint de asignación de trabajador al trabajo; el `POST /trabajos` no recibe técnico/trabajador.
 > 5. El **Probador inserta el trabajo** (`POST /trabajos`) y se ejecuta casi siempre, salvo cuando la prueba resuelve la queja directamente (estado `Resuelta` → cierre sin trabajo).
-> 6. **Los materiales no se asignan hasta que la queja cierre**: la queja pasa a `Cerrada` al cerrar; si se le asignan/consumen materiales queda **`Completada`**; si no se utilizaron materiales permanece en `Cerrada`.
-> 7. `PUT`/`PATCH` posteriores al cierre sirven **únicamente** para editar el estado de la queja entre `Cerrada` y `Completada` (consumo de materiales).
-> 8. **Nota:** el cierre real con trabajos asociados se ejecuta como saga orquestada con compensación — ver **Escenario 6**.
+> 6. **Los materiales no se asignan hasta que la queja cierre**: el Probador cierra → **`Cerrada`**. Posteriormente el **Analista de materiales** registra el consumo → **`Completada`**; si declara que no se necesitaron materiales, la queja permanece en `Cerrada` y el ciclo culmina ahí.
+> 7. **El consumo de materiales es responsabilidad exclusiva del Analista de materiales** (rol `analista_materiales`): el Probador no puede registrar consumos ni cambiar Cerrada↔Completada.
+> 8. `PUT`/`PATCH` posteriores al cierre sirven **únicamente** para editar el estado de la queja entre `Cerrada` y `Completada` (consumo de materiales), y solo los ejecuta el Analista de materiales.
+> 9. **Nota:** el cierre real con trabajos asociados se ejecuta como saga orquestada con compensación — ver **Escenario 6**.
 
 ---
 
@@ -247,11 +259,11 @@ sequenceDiagram
 
 ## Escenario 4: Asignación de Materiales con Validación de Stock
 
-**Actores:** Probador (Frontend) — la asignación de materiales ocurre al cierre de la queja (v2.2) · **Participantes:** API Gateway, Materials Service, Redis (Locks), bd_materiales
+**Actores:** Analista de materiales (Frontend) — v2.4: la asignación/consumo de materiales es exclusiva del Analista, ocurre después del cierre de la queja · **Participantes:** API Gateway, Materials Service, Redis (Locks), bd_materiales
 
 ```mermaid
 sequenceDiagram
-    actor T as Probador (Frontend)
+    actor T as Analista de materiales (Frontend)
     participant GW as API Gateway
     participant MS as Materials Service
     participant MADB as bd_materiales (PostgreSQL)
@@ -290,7 +302,7 @@ sequenceDiagram
 
 | Paso | Emisor | Mensaje | Destino | Protocolo | Descripción |
 | ---- | ------ | ------- | ------- | --------- | ----------- |
-| 1 | Probador (Frontend) | `POST /api/materials/asignaciones` | API Gateway | HTTPS | Solicitud de asignación (múltiples ítems) |
+| 1 | Analista de materiales (Frontend) | `POST /api/materials/asignaciones` | API Gateway | HTTPS | Solicitud de asignación (múltiples ítems) |
 | 2 | API Gateway | Verificar JWT | — | Internal | Validación de autenticación |
 | 3 | API Gateway | `POST /api/materials/asignaciones` | Materials Service | REST/JSON | Reenvío de la solicitud |
 | 4 | Materials Service | `SETNX lock:material:{id} (expiry 30s)` | Redis | Redis | Adquisición de distributed lock |
@@ -303,7 +315,7 @@ sequenceDiagram
 | 11 | bd_materiales | `COMMIT` | Materials Service | SQL | Confirmación atómica de la transacción |
 | 12 | Materials Service | `DEL lock:material:{id}` | Redis | Redis | Liberación del lock |
 | 13 | Materials Service | `201 Created {asignacion_id, folio}` | API Gateway | REST/JSON | Confirmación de asignación creada |
-| 14 | API Gateway | `201 Created` | Probador | HTTPS | Respuesta al frontend |
+| 14 | API Gateway | `201 Created` | Analista de materiales | HTTPS | Respuesta al frontend |
 | 15 | Materials Service | `409 Conflict` (stock_insuficiente) | API Gateway | REST/JSON | Error: stock insuficiente |
 | 16 | Materials Service | Retry con backoff exponencial (max 3 intentos) | — | Internal | Reintento por lock ocupado |
 
@@ -311,11 +323,11 @@ sequenceDiagram
 
 ## Escenario 5: Consumo de Materiales (Validación vs Asignación)
 
-**Actores:** Probador · **Participantes:** API Gateway, Materials Service, MP Service, bd_materiales
+**Actores:** Analista de materiales · **Participantes:** API Gateway, Materials Service, MP Service, bd_materiales
 
 ```mermaid
 sequenceDiagram
-    actor T as Probador (Frontend)
+    actor T as Analista de materiales (Frontend)
     participant GW as API Gateway
     participant MS as Materials Service
     participant MPS as MP Service
@@ -345,22 +357,23 @@ sequenceDiagram
 
 | # | De | Hacia | Mensaje | Datos |
 |---|----|-------|---------|-------|
-| 1 | Probador | Sistema | `POST /api/materials/consumos` | {trabajador_id, trabajo_id, asignacion_id, items: [...]} |
+| 1 | Analista de materiales | Sistema | `POST /api/materials/consumos` | {trabajador_id, trabajo_id, asignacion_id, items: [...]} |
 | 2 | Sistema | - | Verificar trabajo existente/abierto | `GET /api/mp/trabajos/{id}` |
 | 3 | Sistema | - | Validar consumo ≤ asignación pendiente | Σ(consumos) ≤ Σ(asignaciones) − Σ(consumos_previos) |
 | 4 | Sistema | - | Transacción: INSERT consumo + items | db.Transaction() |
-| 5 | Sistema | - | Capturar costo_unitario_real | Input del probador |
-| 6 | Sistema | Probador | 201 Created | {consumo, items: [{costo_unitario_real}]} |
+| 5 | Sistema | - | Capturar costo_unitario_real | Input del Analista de materiales |
+| 6 | Sistema | Analista de materiales | 201 Created | {consumo, items: [{costo_unitario_real}]} |
 
 ---
 
 ## Escenario 6: Cierre de Queja con Consumo de Materiales (Saga Orquestada)
 
-**Actores:** Probador (Frontend) · **Participantes:** API Gateway, MP Service, CierreQuejaSaga, bd_mp, Materials Service, bd_materiales
+**Actores:** Probador (cierra la queja → `Cerrada`) · Analista de materiales (registra el consumo → `Completada`) — v2.4: **el cierre NO invoca Materials Service**; la saga queda como mecanismo interno para cuando el Analista registra consumos sobre una queja cerrada. **Participantes:** API Gateway, MP Service, CierreQuejaSaga, bd_mp, Materials Service, bd_materiales
 
 ```mermaid
 sequenceDiagram
     actor PRb as Probador (Frontend)
+    actor AMa as Analista de materiales (Frontend)
     participant GW as API Gateway
     participant MPS as MP Service
     participant SAGA as CierreQuejaSaga (Orquestador)
@@ -395,34 +408,44 @@ sequenceDiagram
     else Estado válido
         SAGA->>MPDB: SELECT trabajos WHERE id_queja = {id}
         MPDB-->>SAGA: trabajos[]
-        alt No hay trabajos ni consumos (sin materiales)
-            SAGA->>MPDB: UPDATE queja SET estado='Cerrada', fechaok=NOW()
-            SAGA->>MPDB: COMMIT
-            SAGA-->>MPS: 200 OK (queja cerrada, sin consumo)
-            MPS-->>GW: 200 OK
-            GW-->>PRb: 200 OK {estado: "Cerrada"}
-        else Hay trabajos
-            SAGA->>MS: POST /api/materiales/consumos<br/>{trabajo_id, trabajador_id, ...}
+        Note over PRb,SAGA: v2.4: el cierre del Probador NO toca materiales<br/>la queja queda en 'Cerrada' con fechaok
+        SAGA->>MPDB: UPDATE queja SET estado='Cerrada', fechaok=NOW()
+        SAGA->>MPDB: COMMIT
+        SAGA-->>MPS: 200 OK (queja cerrada, pendiente de clasificación de materiales)
+        MPS-->>GW: 200 OK
+        GW-->>PRb: 200 OK {estado: "Cerrada"}
+
+        Note over AMa,MADB: Fase posterior: el Analista de materiales gestiona el consumo
+        alt Se utilizaron materiales en los trabajos
+            AMa->>GW: POST /api/materiales/consumos<br/>{queja_id, items[], cantidades}
+            GW->>MS: forward (JWT rol: analista_materiales)
+            SAGA->>MS: POST /api/materiales/consumos (verificación cruzada)
             Note over SAGA,MS: Retry con backoff exponencial (max 3)
             MS->>MADB: BEGIN TRANSACTION
             MS->>MADB: INSERT consumo + UPDATE stock (con lock)
             alt Stock suficiente
                 MS->>MADB: COMMIT
                 MS-->>SAGA: 201 Created {consumo_id}
-                SAGA->>MPDB: UPDATE queja SET estado='Completada', fechaok=NOW()
+                SAGA->>MPDB: UPDATE queja SET estado='Completada'
                 SAGA->>MPDB: COMMIT
                 SAGA-->>MPS: 200 OK (queja completada + consumo registrado)
                 MPS-->>GW: 200 OK
-                GW-->>PRb: 200 OK {estado: "Completada"}
+                GW-->>AMa: 200 OK {estado: "Completada"} — ciclo culmina
             else Stock insuficiente o Materials falla
                 MS->>MADB: ROLLBACK
                 MS-->>SAGA: 409/500 (stock_insuficiente/error)
-                SAGA->>MPDB: UPDATE queja SET estado='Resuelta' (compensación)
+                SAGA->>MPDB: UPDATE queja SET estado='Cerrada' (compensación)
                 SAGA->>MPDB: ROLLBACK
                 SAGA-->>MPS: compensación: MATERIALES_FALLA
                 MPS-->>GW: 500/409 (error con compensación)
-                GW-->>PRb: Error: cierre revertido, intente nuevamente
+                GW-->>AMa: Error: consumo revertido, la queja sigue Cerrada
             end
+        else No se necesitaron materiales
+            AMa->>GW: PATCH /api/mp/quejas/:id {materiales: 'no requeridos'}
+            GW->>MPS: forward (RBAC: rol analista_materiales)
+            MPS->>MPDB: confirmar queja en estado='Cerrada' (sin consumos)
+            MPS-->>GW: 200 OK
+            GW-->>AMa: 200 OK {estado: "Cerrada"} — ciclo culmina sin materiales
         end
     end
 ```
@@ -438,13 +461,12 @@ sequenceDiagram
 | 5 | CierreQuejaSaga | `BEGIN` | bd_mp | SQL | Transacción local |
 | 6 | CierreQuejaSaga | `SELECT queja WHERE id = ?` | bd_mp | SQL | Validar existencia y estado |
 | 7 | CierreQuejaSaga | Validar FSM: estado ∈ {Resuelta, Probada} | — | Internal | Verificación de máquina de estados |
-| 8 | CierreQuejaSaga | (v2.3: el estado final se fija tras evaluar consumos — Completada si hubo consumo, Cerrada si no) | — | Internal | Cierre local pendiente de clasificación de materiales |
-| 9 | CierreQuejaSaga | `SELECT trabajos WHERE id_queja = ?` | bd_mp | SQL | Buscar trabajos asociados |
-| 10 | CierreQuejaSaga | `POST /api/materiales/consumos` | Materials Service | REST/JSON | Registro de consumo (si hay trabajos) |
-| 11 | Materials Service | `BEGIN TRANSACTION` + `INSERT consumo` + `UPDATE stock` | bd_materiales | SQL | Transacción ACID remota |
-| 12 | CierreQuejaSaga | `UPDATE quejas SET estado='Completada'` (hubo consumo) o `'Cerrada'` (sin consumo) + `COMMIT` | bd_mp | SQL | Estado final según consumos + confirmación local |
-| 13 | CierreQuejaSaga | `UPDATE quejas SET estado='Resuelta'` (rollback) | bd_mp | SQL | Compensación (si Materials falla) |
-| 14 | CierreQuejaSaga | `ROLLBACK` | bd_mp | SQL | Reversión de transacción local |
+| 8 | CierreQuejaSaga | `UPDATE queja SET estado='Cerrada', fechaok=NOW()` + `COMMIT` (v2.4: el cierre NO toca materiales) | bd_mp | SQL | Estado final del cierre = `Cerrada` para todos los casos |
+| 9 | Analista de materiales | `POST /api/materiales/consumos` {queja_id, items[]} | API Gateway → Materials Service | REST/JSON | Fase posterior: registro de consumo (RBAC rol analista_materiales) |
+| 10 | Materials Service | `BEGIN TRANSACTION` + `INSERT consumo` + `UPDATE stock` | bd_materiales | SQL | Transacción ACID remota |
+| 11 | MP Service (saga) | `UPDATE quejas SET estado='Completada'` al confirmarse el consumo | bd_mp | SQL | Culminación del ciclo con materiales |
+| 12 | Analista de materiales | `PATCH /api/mp/quejas/:id {materiales:'no requeridos'}` (si no hubo consumo) | MP Service | REST/JSON | Confirma `Cerrada` sin consumos — culmina el ciclo |
+| 13 | CierreQuejaSaga | Reversión a `'Cerrada'` si Materials falla (compensación) | bd_mp | SQL | El consumo se reintenta; la queja sigue cerrada |
 
 ---
 
@@ -486,6 +508,13 @@ sequenceDiagram
 ---
 
 ## Registro de Cambios
+
+### v2.4 — 2026-11-02 (rol Analista de materiales añadido al dominio)
+1. **Nuevo actor "Analista de materiales"** en Escenarios 1, 4, 5 y 6: es quien **modifica/registra el consumo de materiales**, no el Probador.
+2. **Escenario 1 rediseñado:** el Probador cierra la queja → `Cerrada` (sin tocar materiales). Después, el Analista de materiales: si hubo consumo → `POST /materiales/consumos` deriva la queja a **`Completada`** (culmina el ciclo); si declara que **no se necesitaron materiales** en una queja cerrada → permanece **`Cerrada`** y culmina el ciclo.
+3. **RBAC post-cierre:** el `PUT/PATCH` entre `Cerrada` ↔ `Completada` es **exclusivo del Analista de materiales** (rol JWT `analista_materiales`); el Probador pierde esa capacidad.
+4. **Escenario 6 (saga):** el cierre ya NO invoca Materials Service; la verificación cruzada de stock/consumo se ejecuta en la fase posterior del Analista, con compensación que devuelve la queja a `Cerrada` (antes revertía a `Resuelta`).
+5. **Escenarios 4 y 5:** actor renombrado Probador → Analista de materiales (la asignación y el consumo de materiales le pertenecen).
 
 ### v2.3 — 2026-11-02 (segunda corrección del dominio real según revisión del propietario)
 1. **Eliminado el rol "Operador" por completo** — no existe; la queja la crea el **Probador** (`POST /quejas`).
