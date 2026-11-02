@@ -471,8 +471,17 @@ ConsumoItem * ── 1 Material
 
 ## 9. Diagramas de Clases
 
-> **Archivo fuente (PlantUML completo, 39 entidades):** [`docs/diagrams/class_diagrams/domain_model_classes.puml`](../diagrams/class_diagrams/domain_model_classes.puml) — instrucciones de renderizado en el [README de la carpeta](../diagrams/class_diagrams/README.md).
-> A continuación se incluye una versión resumida en Mermaid, renderizada directamente por GitHub, con los agregados raíz y relaciones principales de cada contexto.
+### 9.1 Diagrama UML completo (39 entidades)
+
+**Archivo fuente (PlantUML):** [`docs/diagrams/class_diagrams/domain_model_classes.puml`](../diagrams/class_diagrams/domain_model_classes.puml) — instrucciones de renderizado en el [README de la carpeta](../diagrams/class_diagrams/README.md).
+
+El diagrama renderizado desde ese archivo fuente se visualiza a continuación (SVG versionado junto al `.puml`; ver [enlace directo al SVG](../diagrams/class_diagrams/assets/domain_model_classes.svg) para ampliar):
+
+![Diagrama de clases del modelo de dominio (SISGAD5, 39 entidades)](../diagrams/class_diagrams/assets/domain_model_classes.svg)
+
+### 9.2 Versión resumida en Mermaid
+
+Versión simplificada, renderizada nativamente por GitHub, con los agregados raíz y relaciones principales de cada contexto.
 
 ```mermaid
 classDiagram

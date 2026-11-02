@@ -18,7 +18,7 @@
 | 05 | [05_requirements.md](05_requirements.es.md) | Requisitos funcionales y no funcionales |
 | 06 | [06_business_rules.md](06_business_rules.es.md) | Reglas de negocio |
 | 07 | [07_domain_model.md](07_domain_model.es.md) | Modelo de dominio (28 clases, 5 contextos) |
-| 08 | [08_sequence_diagrams.md](08_sequence_diagrams.es.md) | Diagramas de secuencia (3 escenarios críticos) |
+| 08 | [sequence_diagrams.md](diagrams/sequence_diagrams/sequence_diagrams.md) | Diagramas de secuencia (7 escenarios — documento canónico; 08_* es ahora un puntero) |
 | 09 | [09_state_machines.md](09_state_machines.es.md) | Máquinas de estado |
 | 10 | [10_api_contracts.md](10_api_contracts.es.md) | Contratos de API (índice) |
 | 11 | [11_data_model.md](11_data_model.es.md) | Modelo de datos (ER consolidado 3 BD) |
