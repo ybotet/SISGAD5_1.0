@@ -4,6 +4,7 @@ const {
   TrabajoTrabajadores,
   Queja,
   Trabajador,
+  sequelize,
 } = require("../../features");
 const { parseListParams } = require("../../shared/utils/parseListParams");
 const apiErrors = require("../../shared/utils/apiErrors");
@@ -48,68 +49,43 @@ const TrabajoEstadisticasController = {
         maxLimit: 100,
       });
 
-      // Expresiones reutilizables
-      const duracion = literal(DURACION_SQL);
-      const totalTrabajos = fn("COUNT", col("Trabajo.id_trabajo"));
-      const horasTotales = fn("ROUND", fn("SUM", duracion), 2);
-      const primeraFecha = fn("MIN", col("Trabajo.fecha"));
-      const ultimaFecha = fn("MAX", col("Trabajo.fecha"));
-
       const sortable = {
-        id_trabajador: col("Trabajador.id_trabajador"),
-        clave_trabajador: col("Trabajador.clave_trabajador"),
-        nombre: col("Trabajador.nombre"),
-        total_trabajos: totalTrabajos,
-        horas_totales: horasTotales,
-        primera_fecha: primeraFecha,
-        ultima_fecha: ultimaFecha,
+        id_trabajador: "tt.id_trabajador",
+        clave_trabajador: "tt.clave_trabajador",
+        nombre: "tt.nombre",
+        total_trabajos: "total_trabajos",
+        horas_totales: "horas_totales",
+        primera_fecha: "primera_fecha",
+        ultima_fecha: "ultima_fecha",
       };
 
       // 1) Totales globales (sin paginar): nº de trabajadores con trabajos asignados
       const totalRow = await TrabajoTrabajadores.findOne({
         attributes: [
-          [fn("COUNT", fn("DISTINCT", col("TrabajoTrabajadores.id_trabajador"))), "count"],
+          [fn("COUNT", fn("DISTINCT", col("id_trabajador"))), "count"],
         ],
         raw: true,
       });
       const totalTrabajadores = Number(totalRow?.count ?? 0);
 
-      // 2) Filas agrupadas por trabajador
-      const rows = await Trabajo.findAll({
-        attributes: [
-          [col("tb_trabajo_trabajadores.tb_trabajador.id_trabajador"), "id_trabajador"],
-          [col("tb_trabajo_trabajadores.tb_trabajador.clave_trabajador"), "clave_trabajador"],
-          [col("tb_trabajo_trabajadores.tb_trabajador.nombre"), "nombre"],
-          [totalTrabajos, "total_trabajos"],
-          [horasTotales, "horas_totales"],
-          [primeraFecha, "primera_fecha"],
-          [ultimaFecha, "ultima_fecha"],
-        ],
-        include: [
-          {
-            association: "tb_trabajo_trabajadores",
-            as: "tb_trabajo_trabajadores",
-            attributes: [],
-            required: true,
-            include: [
-              {
-                model: Trabajador,
-                as: "tb_trabajador",
-                attributes: [],
-              },
-            ],
-          },
-        ],
-        group: [
-          "tb_trabajo_trabajadores.tb_trabajador.id_trabajador",
-          "tb_trabajo_trabajadores.tb_trabajador.clave_trabajador",
-          "tb_trabajo_trabajadores.tb_trabajador.nombre",
-        ],
-        order: [[sortable[sortBy] || totalTrabajos, sortOrder]],
-        limit: parseInt(limit),
-        offset: parseInt(offset),
-        raw: true,
-        nest: false,
+      // 2) Filas agrupadas por trabajador (raw query para evitar problemas de Sequelize con includes complejos)
+      const rows = await sequelize.query(`
+        SELECT
+          tt.id_trabajador,
+          tt.clave_trabajador,
+          tt.nombre,
+          COUNT(t.id_trabajo) AS total_trabajos,
+          ROUND(SUM(EXTRACT(EPOCH FROM (COALESCE(t.updated_at, NOW()) - t.created_at)) / 3600.0)::numeric, 2) AS horas_totales,
+          MIN(t.fecha) AS primera_fecha,
+          MAX(t.fecha) AS ultima_fecha
+        FROM tb_trabajo t
+        INNER JOIN tb_trabajo_trabajadores ttt ON t.id_trabajo = ttt.id_trabajo
+        INNER JOIN tb_trabajador tt ON ttt.id_trabajador = tt.id_trabajador
+        GROUP BY tt.id_trabajador, tt.clave_trabajador, tt.nombre
+        ORDER BY ${sortable[sortBy] || "total_trabajos"} ${sortOrder}
+        LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}
+      `, {
+        type: sequelize.QueryTypes.SELECT,
       });
 
       res.json({
