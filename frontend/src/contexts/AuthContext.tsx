@@ -10,6 +10,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   hasPermission: (permission: string) => boolean;
+  setUser: (u: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -88,14 +89,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }) ?? false;
   };
 
-  const value: AuthContextType = {
-    usuario,
-    loading,
-    login,
-    logout,
-    isAuthenticated: !!usuario,
-    hasPermission
-  };
+const value: AuthContextType = {
+  usuario,
+  loading,
+  login,
+  logout,
+  isAuthenticated: !!usuario,
+  hasPermission,
+  setUser,
+};
 
   return (
     <AuthContext.Provider value={value}>

@@ -46,6 +46,12 @@ export const authService = {
     // backend responde { success: true, data: usuario }
     return resp.data.data;
   },
+
+  // Actualizar perfil del usuario autenticado (PUT /api/user/:id)
+  actualizarPerfil: async (id: number, data: { email?: string; nombre?: string; apellidos?: string; activo?: boolean }) => {
+    const resp = await api.put(`/user/${id}`, data);
+    return resp.data.data;
+  },
 };
 
 export default authService;

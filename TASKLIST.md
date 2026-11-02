@@ -371,7 +371,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-710-09 | 🔴 | 🔨 | Módulo de Materiales | Agente | — | CRUD + asignaciones + consumos + stock | `pages/materiales/{MaterialesPage,Asignacion,Consumo,StockTrabajadorPage}.tsx` + services dedicados | `frontend/src/pages/materiales/` |
 | ✅ Completada | TASK-710-10 | Alta | 🔨 | Módulo de Estadísticas | Agente | — | Gráficos Recharts alimentados por APIs de dashboard | `StatsPage.tsx` + recharts en package.json + dashboards sankey/funnel | `frontend/src/pages/StatsPage.tsx` |
 | ✅ Completada | TASK-710-11 | Alta | 🔨 | Gestión de Usuarios y Roles | Agente | — | UI admin de usuarios/roles alineada con RBAC | `AdminPage.tsx` con pestañas Usuarios/Roles/Permisos; CRUD completo en `UsuariosPage`/`RolesPage`/`PermisosPage`; `ProtectedRoute` con permisos `usuarios.ver`/`roles.ver`/`permisos.ver` | `frontend/src/pages/auth/admin/`, `frontend/src/components/roles/`, `frontend/src/services/usuariosService.ts` |
-| 🔄 En progreso | TASK-710-12 | Media | 🔨 | Perfil de Usuario | Agente | — | Ver/editar perfil y cambiar contraseña | Ruta `/profile` existe en App.tsx; edición limitada a lectura de perfil | `frontend/src/` |
+| ✅ Completada | TASK-710-12 | Media | 🔨 | Perfil de Usuario | Agente | — | Ver/editar perfil y cambiar contraseña | `/profile` editable (nombre/email/apellidos/activo vía PUT /api/user/:id); contraseña mostrada como no disponible (TASK-300-06 pendiente); AuthContext refrescado tras guardar | `frontend/src/pages/auth/ProfilePage.tsx`, `frontend/src/services/authService.ts`, `frontend/src/contexts/AuthContext.tsx` |
 
 ### 9.3. UX/UI Transversal
 
@@ -383,7 +383,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ⏳ Pendiente | TASK-720-04 | Alta | 🔨 | Loading states uniformes | Agente | — | Skeletons/spinners consistentes en todas las vistas de datos | Spinners aislados; sin patrón uniforme | `frontend/src/components/ui/` |
 | 🔄 En progreso | TASK-720-05 | Media | 🔨 | Notificaciones toast | Agente | — | Librería integrada y usada en operaciones CRUD | Parcial vía ErrorDisplay; librería de toasts no estandarizada | `frontend/src/` |
 
-**Subtotal FASE 7: 16✅ + 5🔄 de 22 — 84.1% ponderado** — *corrección mayor frente al 1.1% declarado en la v1.0*
+**Subtotal FASE 7: 17✅ + 4🔄 de 22 — 86.4% ponderado** — *corrección mayor frente al 1.1% declarado en la v1.0*
 
 ---
 
