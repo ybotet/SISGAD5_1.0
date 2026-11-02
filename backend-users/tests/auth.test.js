@@ -41,6 +41,7 @@ jest.mock("../src/features/auth/refresh_token.model", () => {
   mockRefreshTokenModel.findOne = jest.fn();
   mockRefreshTokenModel.findByPk = jest.fn();
   mockRefreshTokenModel.create = jest.fn();
+  mockRefreshTokenModel.update = jest.fn();
   mockRefreshTokenModel.hashToken = (token) => require("crypto").createHash("sha256").update(token).digest("hex");
   return mockRefreshTokenModel;
 });
@@ -186,5 +187,118 @@ describe("Session tracking (tb_sesiones)", () => {
     Sesion.create.mockClear();
     await request(app).get("/health");
     expect(Sesion.create).not.toHaveBeenCalled();
+  });
+});
+
+describe("Cambio de contraseña (TASK-300-06)", () => {
+  const { TbUser } = require("../src/features");
+  const validToken = jwt.sign({ id: 1, email: "test@example.com" }, process.env.JWT_SECRET);
+
+  const mockUsuario = {
+    id_usuario: 1,
+    email: "test@example.com",
+    activo: true,
+    verificarPassword: jest.fn(),
+    update: jest.fn().mockResolvedValue(true),
+    toJSON: jest.fn().mockReturnValue({ id_usuario: 1, email: "test@example.com" }),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUsuario.verificarPassword.mockResolvedValue(true);
+    mockUsuario.update.mockResolvedValue(true);
+    RefreshToken.update.mockResolvedValue([1]);
+    TbUser.findByPk.mockResolvedValue(mockUsuario);
+  });
+
+  it("PATCH /api/auth/password cambia contraseña exitosamente", async () => {
+    mockUsuario.verificarPassword.mockResolvedValue(true);
+
+    const res = await request(app)
+      .patch("/api/auth/password")
+      .set("Authorization", `Bearer ${validToken}`)
+      .send({
+        password_actual: "CurrentPass1!",
+        password_nueva: "NewPass2!",
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(mockUsuario.update).toHaveBeenCalledWith({ password_hash: "NewPass2!" });
+    expect(RefreshToken.update).toHaveBeenCalledWith(
+      { revoked: true },
+      { where: { id_usuario: 1 } },
+    );
+  });
+
+  it("PATCH /api/auth/password rechaza contraseña actual incorrecta (401)", async () => {
+    mockUsuario.verificarPassword.mockResolvedValue(false);
+
+    const res = await request(app)
+      .patch("/api/auth/password")
+      .set("Authorization", `Bearer ${validToken}`)
+      .send({
+        password_actual: "WrongPass1!",
+        password_nueva: "NewPass2!",
+      });
+
+    expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+    expect(mockUsuario.update).not.toHaveBeenCalled();
+    expect(RefreshToken.update).not.toHaveBeenCalled();
+  });
+
+  it("PATCH /api/auth/password rechaza nueva contraseña igual a la actual (400)", async () => {
+    mockUsuario.verificarPassword.mockResolvedValue(true);
+
+    const res = await request(app)
+      .patch("/api/auth/password")
+      .set("Authorization", `Bearer ${validToken}`)
+      .send({
+        password_actual: "CurrentPass1!",
+        password_nueva: "CurrentPass1!",
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(mockUsuario.update).not.toHaveBeenCalled();
+  });
+
+  it("PATCH /api/auth/password rechaza política de complejidad insuficiente (400)", async () => {
+    mockUsuario.verificarPassword.mockResolvedValue(true);
+
+    const res = await request(app)
+      .patch("/api/auth/password")
+      .set("Authorization", `Bearer ${validToken}`)
+      .send({
+        password_actual: "CurrentPass1!",
+        password_nueva: "weak",
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(mockUsuario.update).not.toHaveBeenCalled();
+  });
+
+  it("PATCH /api/auth/password rechaza sin token de autenticación (401)", async () => {
+    const res = await request(app)
+      .patch("/api/auth/password")
+      .send({
+        password_actual: "CurrentPass1!",
+        password_nueva: "NewPass2!",
+      });
+
+    expect(res.status).toBe(401);
+    expect(mockUsuario.update).not.toHaveBeenCalled();
+  });
+
+  it("PATCH /api/auth/password rechaza cuerpo vacío (400)", async () => {
+    const res = await request(app)
+      .patch("/api/auth/password")
+      .set("Authorization", `Bearer ${validToken}`)
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
   });
 });

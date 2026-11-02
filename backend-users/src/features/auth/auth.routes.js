@@ -4,7 +4,7 @@ const authController = require("./auth.controller");
 const auth = require("../../shared/middleware/auth");
 const validate = require("../../shared/middleware/validate");
 const { tienePermiso } = require("../../shared/middleware/permissions");
-const { loginSchema, refreshSchema, logoutSchema } = require("./auth.validation");
+const { loginSchema, refreshSchema, logoutSchema, passwordChangeSchema } = require("./auth.validation");
 const {
   sesionesQuerySchema,
   sesionesUsuarioParamsSchema,
@@ -41,6 +41,18 @@ router.post(
   "/logout",
   validate(logoutSchema, "body"),
   authController.logout,
+);
+
+/**
+ * @route   PATCH /api/auth/password
+ * @desc    Cambio de contraseña self-service (autenticado)
+ * @access  Private
+ */
+router.patch(
+  "/password",
+  auth,
+  validate(passwordChangeSchema, "body"),
+  authController.cambiarPassword,
 );
 
 /**

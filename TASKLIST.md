@@ -161,7 +161,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-300-03 | 🔴 | 🔨 | Implementar refresh tokens | Agente | TASK-300-01 | `POST /api/auth/refresh` renueva access token corto (15 min) usando refresh token de larga duración almacenado/rotado | **Implementado**: `POST /api/auth/refresh` rota el refresh token; modelo `RefreshToken` (hash en BD, expira 7d), `shared/config/jwt.js` emite access 15m. Corregido: v2.0 usaba snapshot obsoleto del repo | `backend-users/src/features/auth/` |
 | ✅ Completada | TASK-300-04 | 🔴 | 🔨 | Implementar logout (invalidación de tokens) | Agente | TASK-300-03 | `POST /api/auth/logout` invalida/blacklistea el token/refresh; cliente limpia sesión | **Implementado**: `POST /api/auth/logout` revoca el refresh token en BD | `backend-users/src/features/auth/` |
 | ⏳ Pendiente | TASK-300-05 | Alta | 🔨 | Implementar recuperación de contraseña | Agente | — | Flujo completo: solicitud → token temporal → reestablecimiento (con canal de correo u otro aprobado) | No implementado (marcado PLANIFICADO en `docs/api/users.yaml` v2.1.0) | `backend-users/src/` |
-| ⏳ Pendiente | TASK-300-06 | Alta | 🔨 | Implementar cambio de contraseña | Agente | TASK-300-01 | Endpoint self-service valida contraseña actual, aplica política de complejidad y hashea (bcrypt) | No implementado (marcado PLANIFICADO en `docs/api/users.yaml` v2.1.0) | `backend-users/src/` |
+| ✅ Completada | TASK-300-06 | Alta | 🔨 | Implementar cambio de contraseña | Agente | TASK-300-01 | Endpoint self-service valida contraseña actual, aplica política de complejidad y hashea (bcrypt) | **Implementado**: `PATCH /api/auth/password` en `auth.routes.js`; `cambiarPassword()` en `auth.controller.js` valida `password_actual` con bcrypt.compare, rechaza nueva==actual, hashea con bcrypt (hooks del modelo), revoca todos los refresh tokens del usuario (`RefreshToken.update({revoked:true})`); Zod schema `passwordChangeSchema` en `auth.validation.js`; 6 tests en `tests/auth.test.js`; documentado en `docs/api/users.yaml` v2.2.0 | `backend-users/src/features/auth/` |
 | ⏳ Pendiente | TASK-300-07 | Media | 🔨 | Implementar bloqueo por intentos fallidos | Agente | TASK-300-01 | Tras N intentos fallidos, cuenta bloqueada temporalmente con evento de auditoría | No implementado | `backend-users/src/` |
 | ✅ Completada | TASK-300-08 | Media | 🔨 | Implementar historial de sesiones | Agente | TASK-300-03 | Registro de sesiones (IP, user-agent, timestamp) consultable | **Implementado**: `_consultarSesiones()` en `auth.controller.js`; endpoints `GET /api/auth/sesiones` (propio) y `GET /api/auth/sesiones/usuario/:id_usuario` (auditoría, permiso RBAC `sesiones:read_all`) con filtros (evento, exitoso, desde/hasta) y paginación; validación Zod en `session.validation.js`; documentado en `docs/api/users.yaml` v2.2.0 | `backend-users/src/features/auth/` |
 
@@ -174,7 +174,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-310-03 | Alta | 🔨 | Implementar middleware de autorización por rol/permiso | Agente | — | Middleware reutilizable que valida JWT y permiso `recurso.acción` antes del handler | `middleware/auth.js`, `permissions.js`, `roles.js` en uso por users y mp | `backend-users/src/middleware/` |
 | ✅ Completada | TASK-310-04 | Media | ⚡ | Implementar endpoint `/health` | Agente | — | `GET /health` responde 200 con estado del servicio y de la BD | Presente en `server.js` línea 46 | `backend-users/src/server.js` |
 
-**Subtotal FASE 3: 8✅ de 11 efectivas — 72.7% ponderado** *(1 cancelada: TASK-300-02; v2.4: TASK-300-08 cerrada — endpoints de consulta de sesiones implementados y documentados)*
+**Subtotal FASE 3: 9✅ de 11 efectivas — 81.8% ponderado** *(1 cancelada: TASK-300-02; v2.4: TASK-300-08 cerrada — endpoints de consulta de sesiones implementados y documentados)*
 
 ---
 
@@ -371,7 +371,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-710-09 | 🔴 | 🔨 | Módulo de Materiales | Agente | — | CRUD + asignaciones + consumos + stock | `pages/materiales/{MaterialesPage,Asignacion,Consumo,StockTrabajadorPage}.tsx` + services dedicados | `frontend/src/pages/materiales/` |
 | ✅ Completada | TASK-710-10 | Alta | 🔨 | Módulo de Estadísticas | Agente | — | Gráficos Recharts alimentados por APIs de dashboard | `StatsPage.tsx` + recharts en package.json + dashboards sankey/funnel | `frontend/src/pages/StatsPage.tsx` |
 | ✅ Completada | TASK-710-11 | Alta | 🔨 | Gestión de Usuarios y Roles | Agente | — | UI admin de usuarios/roles alineada con RBAC | `AdminPage.tsx` con pestañas Usuarios/Roles/Permisos; CRUD completo en `UsuariosPage`/`RolesPage`/`PermisosPage`; `ProtectedRoute` con permisos `usuarios.ver`/`roles.ver`/`permisos.ver` | `frontend/src/pages/auth/admin/`, `frontend/src/components/roles/`, `frontend/src/services/usuariosService.ts` |
-| ✅ Completada | TASK-710-12 | Media | 🔨 | Perfil de Usuario | Agente | — | Ver/editar perfil y cambiar contraseña | `/profile` editable (nombre/email/apellidos/activo vía PUT /api/user/:id); contraseña mostrada como no disponible (TASK-300-06 pendiente); AuthContext refrescado tras guardar | `frontend/src/pages/auth/ProfilePage.tsx`, `frontend/src/services/authService.ts`, `frontend/src/contexts/AuthContext.tsx` |
+| ✅ Completada | TASK-710-12 | Media | 🔨 | Perfil de Usuario | Agente | — | Ver/editar perfil y cambiar contraseña | `/profile` editable (nombre/email/apellidos/activo vía PUT /api/user/:id); cambio de contraseña habilitado vía PATCH /api/auth/password con validación local (confirmación) y backend (TASK-300-06); AuthContext refrescado tras guardar | `frontend/src/pages/auth/ProfilePage.tsx`, `frontend/src/services/authService.ts`, `frontend/src/contexts/AuthContext.tsx` |
 
 ### 9.3. UX/UI Transversal
 
@@ -489,7 +489,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 0 — Documentación base | 8 | 8 | 0 | 0 | 0 | **100%** | 37.5% |
 | FASE 1 — Diseño y modelado | 14 | 12 | 1 | 1 | 0 | **89.3%** | 57.1% |
 | FASE 2 — Infraestructura | 15 | 11 | 2 | 2 | 0 | **80.0%** | 36.8% |
-| FASE 3 — Users Service | 12 | 8 | 0 | 3 | 1 | **72.7%**¹ | 16.7% |
+| FASE 3 — Users Service | 12 | 9 | 0 | 2 | 1 | **81.8%**¹ | 16.7% |
 | FASE 4 — MP Service | 36 | 20 | 6 | 10 | 0 | **63.9%** | 25.6% |
 | FASE 5 — Materials Service | 34 | 25 | 4 | 5 | 0 | **79.4%** | 21.0%³ |
 | FASE 6 — API Gateway | 10 | 9 | 1 | 0 | 0 | **95.0%** | 30.0% |
@@ -585,7 +585,7 @@ La creación programática del tablero **GitHub Projects v2** requiere el scope 
    - `docs/api/users.yaml` v2.2.0: ambos endpoints documentados (verificado sintaxis JS y YAML).
 2. **TASK-100-03 ✅ confirmada:** el diagrama de paquetes formal existe con Mermaid + PlantUML renderizables en `docs/diagrams/component_diagrams/package_diagram.md` (v2.4 del propio diagrama). La evidencia de la tabla ("falta diagrama formal") estaba obsoleta.
 3. **TASK-100-04 ✅ confirmada:** `docs/diagrams/sequence_diagrams/sequence_diagrams.md` contiene diagramas Mermaid de 3+ escenarios críticos (autenticación JWT, registro de queja, asignación de materiales) con tablas de mensajes numerados.
-4. **Subtotales recalculados:** FASE 1 = 12✅ + 1🔄 de 14 → **89.3%**; FASE 3 = 8✅ de 11 efectivas → **72.7%**; TOTAL = 108✅ + 34🔄 + 39⏳ + 1❌ de 182 → **≈69.2% ponderado**.
+4. **Subtotales recalculados:** FASE 1 = 12✅ + 1🔄 de 14 → **89.3%**; FASE 3 = 9✅ de 11 efectivas → **81.8%**; TOTAL = 109✅ + 34🔄 + 38⏳ + 1❌ de 182 → **≈69.8% ponderado**.
 5. **Pendiente operativo (bloqueado):** cierre de los issues GitHub correspondientes a TASK-300-08/100-03/100-04 y actualización del tablero Projects v2 — el token PAT embebido en la URL remota está revocado/expirado (`Invalid username or token` al hacer push); se requiere rotación del token por el propietario.
 
 ### Regla recordada

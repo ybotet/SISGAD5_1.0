@@ -97,6 +97,38 @@ paths:
           description: Validación Joi fallida
         "401":
           description: No autenticado
+  /auth/password:
+    patch:
+      summary: Cambio de contraseña self-service (autenticado). Revoca todos los refresh tokens del usuario.
+      operationId: patch_auth_password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password_actual
+                - password_nueva
+              properties:
+                password_actual:
+                  type: string
+                  description: Contraseña actual del usuario
+                password_nueva:
+                  type: string
+                  description: Nueva contraseña (mín. 8 caracteres, mayúscula, minúscula y dígito)
+      responses:
+        "200":
+          description: OK — contraseña actualizada, sesiones revocadas
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ApiResponse"}
+        "400":
+          description: Validación fallida o contraseña nueva igual a la actual
+        "401":
+          description: Contraseña actual incorrecta o no autenticado
   /auth/perfil:
     get:
       summary: Devuelve el perfil del usuario autenticado (claims del JWT).
@@ -647,7 +679,6 @@ paths:
   # ============================================================
   # PLANIFICADO (no implementado aún — ver TASKLIST.md Fase Users)
   # ============================================================
-  # PATCH /api/user/{id}/password : cambio de contraseña self-service
   # POST  /api/auth/forgot-password / reset-password : recuperación
   # PATCH /api/user/{id}/bloqueo  : bloqueo/desbloqueo de cuenta
 

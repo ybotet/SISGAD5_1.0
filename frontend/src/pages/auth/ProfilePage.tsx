@@ -17,6 +17,16 @@ export default function ProfilePage() {
     const [error, setError] = useState<string>('');
     const [success, setSuccess] = useState<string>('');
 
+    // Estado para cambio de contraseña
+    const [pwdForm, setPwdForm] = useState({
+        password_actual: '',
+        password_nueva: '',
+        password_confirmar: '',
+    });
+    const [pwdLoading, setPwdLoading] = useState(false);
+    const [pwdError, setPwdError] = useState<string>('');
+    const [pwdSuccess, setPwdSuccess] = useState<string>('');
+
     // Cargar perfil al montar
     useEffect(() => {
         if (!usuario) return;
@@ -43,6 +53,16 @@ export default function ProfilePage() {
         }));
         setError('');
         setSuccess('');
+    };
+
+    const handlePwdInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setPwdForm((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+        setPwdError('');
+        setPwdSuccess('');
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -82,6 +102,40 @@ export default function ProfilePage() {
             );
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!usuario) return;
+
+        setPwdLoading(true);
+        setPwdError('');
+        setPwdSuccess('');
+
+        if (pwdForm.password_nueva !== pwdForm.password_confirmar) {
+            setPwdError('La nueva contraseña y su confirmación no coinciden');
+            setPwdLoading(false);
+            return;
+        }
+
+        try {
+            await authService.cambiarPassword({
+                password_actual: pwdForm.password_actual,
+                password_nueva: pwdForm.password_nueva,
+            });
+
+            setPwdSuccess('Contraseña actualizada correctamente. Todas las sesiones activas han sido revocadas.');
+            setPwdForm({ password_actual: '', password_nueva: '', password_confirmar: '' });
+        } catch (err: any) {
+            setPwdError(
+                err?.response?.data?.message ||
+                err?.response?.data?.error ||
+                err?.message ||
+                'Error al cambiar la contraseña'
+            );
+        } finally {
+            setPwdLoading(false);
         }
     };
 
@@ -206,53 +260,70 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {/* Cambio de contraseña — no disponible aún (TASK-300-06) */}
-            <div className="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-6">
+            {/* Cambio de contraseña */}
+            <div className="mt-8 bg-white border border-gray-200 rounded-lg p-6">
                 <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
-                        <i className="ri-info-line text-amber-500 mt-0.5"></i>
+                        <i className="ri-password-line text-blue-500 mt-0.5"></i>
                     </div>
                     <div>
-                        <h3 className="text-sm font-semibold text-amber-800 mb-1">Cambio de contraseña</h3>
-                        <p className="text-sm text-amber-700 mb-3">
-                            Esta funcionalidad aún no está disponible en el backend (endpoint
-                            <code className="bg-amber-100 px-1 py-0.5 rounded text-xs font-mono">PATCH /api/user/:id/password</code>
-                            planificado en <strong>TASK-300-06</strong>).
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1">Cambio de contraseña</h3>
+                        <p className="text-sm text-gray-600 mb-3">
+                            Actualiza tu contraseña de acceso. Las sesiones activas se revocarán automáticamente.
                         </p>
-                        <form className="space-y-3 opacity-50 pointer-events-none">
+                        {pwdError && (
+                            <div className="mb-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">
+                                {pwdError}
+                            </div>
+                        )}
+                        {pwdSuccess && (
+                            <div className="mb-3 p-3 bg-green-50 border border-green-200 text-green-700 rounded text-sm">
+                                {pwdSuccess}
+                            </div>
+                        )}
+                        <form onSubmit={handleChangePassword} className="space-y-3">
                             <div>
-                                <label className="block text-xs font-medium text-amber-600 mb-1">Contraseña actual *</label>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Contraseña actual *</label>
                                 <input
                                     type="password"
-                                    placeholder="••••••••"
-                                    disabled
-                                    className="w-full px-3 py-2 border border-amber-200 rounded bg-amber-50 text-amber-600"
+                                    name="password_actual"
+                                    value={pwdForm.password_actual}
+                                    onChange={handlePwdInputChange}
+                                    required
+                                    disabled={pwdLoading}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-amber-600 mb-1">Nueva contraseña *</label>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Nueva contraseña *</label>
                                 <input
                                     type="password"
-                                    placeholder="••••••••"
-                                    disabled
-                                    className="w-full px-3 py-2 border border-amber-200 rounded bg-amber-50 text-amber-600"
+                                    name="password_nueva"
+                                    value={pwdForm.password_nueva}
+                                    onChange={handlePwdInputChange}
+                                    required
+                                    disabled={pwdLoading}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-amber-600 mb-1">Confirmar nueva contraseña *</label>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Confirmar nueva contraseña *</label>
                                 <input
                                     type="password"
-                                    placeholder="••••••••"
-                                    disabled
-                                    className="w-full px-3 py-2 border border-amber-200 rounded bg-amber-50 text-amber-600"
+                                    name="password_confirmar"
+                                    value={pwdForm.password_confirmar}
+                                    onChange={handlePwdInputChange}
+                                    required
+                                    disabled={pwdLoading}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                                 />
                             </div>
                             <button
                                 type="submit"
-                                disabled
-                                className="w-full px-4 py-2 bg-amber-200 text-amber-600 rounded cursor-not-allowed"
+                                disabled={pwdLoading}
+                                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-50"
                             >
-                                Cambiar contraseña (no disponible)
+                                {pwdLoading ? 'Cambiando...' : 'Cambiar contraseña'}
                             </button>
                         </form>
                     </div>

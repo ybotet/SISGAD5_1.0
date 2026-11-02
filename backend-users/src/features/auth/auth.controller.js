@@ -272,6 +272,76 @@ const authController = {
   },
 
   /**
+   * Cambio de contraseña self-service (TASK-300-06).
+   * Valida la contraseña actual, aplica política de complejidad a la nueva,
+   * la hashea con bcrypt y revoca todos los refresh tokens del usuario.
+   */
+  cambiarPassword: async (req, res) => {
+    try {
+      const { password_actual, password_nueva } = req.body;
+      const usuario = req.usuario;
+
+      // Verificar contraseña actual
+      const esValida = await usuario.verificarPassword(password_actual);
+      if (!esValida) {
+        console.log(
+          "❌ Cambio de contraseña fallido: contraseña actual incorrecta",
+          { id_usuario: usuario.id_usuario, ip: req.ip },
+        );
+        await registrarSesion(
+          usuario.id_usuario,
+          "cambio_password",
+          req,
+          false,
+          "Contraseña actual incorrecta",
+        );
+        return res.status(401).json({
+          success: false,
+          message: "Credenciales inválidas",
+        });
+      }
+
+      // Rechazar nueva contraseña igual a la actual
+      if (password_nueva === password_actual) {
+        return res.status(400).json({
+          success: false,
+          message: "La nueva contraseña no puede ser igual a la actual",
+        });
+      }
+
+      // Actualizar password_hash (el hook beforeUpdate de Sequelize lo hashea con bcrypt)
+      await usuario.update({ password_hash: password_nueva });
+
+      // Revocar TODOS los refresh tokens del usuario — sesiones restantes invalidadas
+      await RefreshToken.update(
+        { revoked: true },
+        { where: { id_usuario: usuario.id_usuario } },
+      );
+
+      // Registrar sesión exitosa
+      await registrarSesion(
+        usuario.id_usuario,
+        "cambio_password",
+        req,
+        true,
+        "Contraseña actualizada",
+      );
+
+      res.json({
+        success: true,
+        message:
+          "Contraseña actualizada exitosamente. Se han revocado todas las sesiones activas.",
+      });
+    } catch (error) {
+      console.error("Error en cambio de contraseña:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error interno del servidor",
+      });
+    }
+  },
+
+  /**
    * Obtiene el perfil del usuario autenticado.
    */
   perfil: async (req, res) => {
