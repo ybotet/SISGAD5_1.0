@@ -1,0 +1,9 @@
+export { default as PizarraHeader } from './PizarraHeader';
+export { default as PizarraError } from './PizarraError';
+export { default as PizarraStats } from './PizarraStats';
+export { default as PizarraFilters } from './PizarraFilters';
+export { default as PizarraTable } from './PizarraTable';
+export { default as PizarraPagination } from './PizarraPagination';
+export { default as PizarraModal } from './PizarraModal';
+export { default as PizarraConfirmModal } from './PizarraConfirmModal';
+export { default as PizarraDetallesModal } from './PizarraDetallesModal';

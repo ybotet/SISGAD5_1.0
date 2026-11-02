@@ -1,0 +1,138 @@
+# Contributing to SISGAD5
+
+Thank you for your interest in contributing to SISGAD5! This document outlines how to contribute.
+
+## Table of Contents
+- [Code of Conduct](#code-of-conduct)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Development Workflow](#development-workflow)
+- [Coding Standards](#coding-standards)
+- [Testing](#testing)
+- [Pull Requests](#pull-requests)
+- [Releases](#releases)
+
+## Code of Conduct
+- Be respectful and constructive.
+- Assume good intentions.
+- Help others learn and grow.
+
+## Getting Started
+
+```bash
+git clone https://github.com/ybotet/SISGAD5_1.0.git
+cd SISGAD5_1.0
+cp backend-users/.env.example backend-users/.env
+cp backend-mp/.env.example backend-mp/.env
+cp backend-materiales-go/.env.example backend-materiales-go/.env
+cp prediction-service/.env.example prediction-service/.env
+docker compose up -d
+```
+
+## Project Structure
+
+See [ESTRUCTURA.md](./ESTRUCTURA.md) for the full project structure.
+
+| Component | Path | Description |
+|-----------|------|-------------|
+| Frontend | `./frontend/` | React 18 + Vite + TS |
+| API Gateway | `./api-gateway/` | Node.js + Express |
+| Users Service | `./backend-users/` | Node.js + Sequelize |
+| MP Service | `./backend-mp/` | Node.js + Sequelize + Zod |
+| Materials Service | `./backend-materiales-go/` | Go + gorilla/mux + GORM |
+| Prediction Service | `./prediction-service/` | Python + FastAPI + scikit-learn |
+| Scripts | `./scripts/` | Automation utilities |
+| E2E Tests | `./tests/e2e/` | Integration tests |
+
+## Development Workflow
+
+1. Create a branch from `main`:
+   - **Branch naming convention:**
+     - `feature/TASK-XXX-YY_short-description` — New features
+     - `fix/TASK-XXX-YY_short-description` — Bug fixes
+     - `docs/TASK-XXX-YY_short-description` — Documentation changes
+     - `chore/TASK-XXX-YY_short-description` — Maintenance tasks
+     - `refactor/TASK-XXX-YY_short-description` — Code refactoring
+     - `test/TASK-XXX-YY_short-description` — Test additions/changes
+   ```bash
+   git checkout -b feature/TASK-500-01_material-pagination
+   ```
+
+2. Make your changes following the coding standards below.
+
+3. Run tests:
+   ```bash
+   make test-all
+   ```
+
+4. Commit using Conventional Commits:
+   - `feat(TASK-XXX-YY): add user role management`
+   - `fix(TASK-XXX-YY): resolve deadlock in stock validation`
+   - `docs(TASK-XXX-YY): update API reference`
+   - `chore(TASK-XXX-YY): add dependency`
+   - `refactor(TASK-XXX-YY): simplify query logic`
+   - `test(TASK-XXX-YY): add materials service unit tests`
+   ```bash
+   git commit -m "feat(TASK-500-01): implement material catalog pagination"
+   ```
+
+5. Push and create a Pull Request.
+
+## Coding Standards
+
+### Node.js Services
+- **Linting:** ESLint + Prettier
+- **Style:** camelCase for variables, PascalCase for classes
+- **Validation:** Zod schemas for all request bodies
+- **Structure:** `controllers → services → repositories → models`
+
+### Python Service (Prediction Service)
+- **Linting:** ruff (fast Python linter)
+- **Style:** snake_case for modules, PascalCase for classes, Google docstrings
+- **Validation:** Pydantic models for all request/response schemas
+- **Type hints:** Required for all functions
+- **Virtual env:** Use `.venv/` (gitignored)
+- **Dependencies:** `requirements.txt` + `pyproject.toml`
+
+### Go Service
+- **Linting:** golangci-lint
+- **Style:** snake_case for variables, PascalCase for exported
+- **Architecture:** Domain → Application → Infrastructure → Presentation
+- **Imports:** Standard lib → external → local
+
+### Frontend
+- **Linting:** ESLint + Prettier
+- **Style:** camelCase for JS, kebab-case for CSS classes
+- **Components:** Reusable, typed props
+- **State:** Zustand or Context API
+
+## Testing
+
+| Type | Command | Coverage Target |
+|------|---------|-----------------|
+| Unit (JS) | `npm test` | 70% |
+| Unit (Go) | `go test ./...` | 85% |
+| Unit (Python) | `pytest --cov=src tests/` | 100% (endpoints) |
+| Integration | `make test-integration` | - |
+| E2E | `npm run test:e2e` | - |
+| Load | `make test-load` | - |
+
+All tests must pass before merging.
+
+## Pull Requests
+
+1. Ensure all tests pass (CI will check)
+2. Update documentation if needed (`docs/` folder)
+3. Follow the [PR template](./.github/PULL_REQUEST_TEMPLATE.md)
+4. Get at least 1 review from a maintainer
+5. Ensure CI status is green
+
+## Releases
+
+Releases are managed by maintainers. Use Semantic Versioning (SemVer).
+
+See [CHANGELOG.md](./CHANGELOG.md) for details.
+
+## Questions?
+
+Open an issue or contact the team.

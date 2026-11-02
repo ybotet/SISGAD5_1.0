@@ -1,0 +1,153 @@
+const { DataTypes } = require("sequelize");
+
+module.exports = (sequelize) => {
+  const TbTelefono = sequelize.define(
+    "TbTelefono",
+    {
+      id_telefono: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      telefono: {
+        type: DataTypes.STRING,
+        unique: true,
+        validate: {
+          len: {
+            args: [6, 12],
+            msg: "El campo teléfono debe tener entre 6 y 12 caracteres",
+          },
+          notNull: {
+            msg: "El teléfono es obligatorio",
+          },
+          notEmpty: {
+            msg: "El teléfono no puede estar vacío",
+          },
+          is: {
+            args: /^[0-9+\-\s()]+$/,
+            msg: "El teléfono solo puede contener números, espacios y los caracteres + - ( )",
+          },
+        },
+
+        allowNull: false,
+      },
+      nombre: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notNull: {
+            msg: "El nombre es obligatorio",
+          },
+          is: {
+            args: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
+            msg: "El nombre solo puede contener letras y espacios",
+          },
+          len: {
+            args: [0, 30],
+            msg: "El campo nombre no debe exceder los 30 caracteres",
+          },
+        },
+      },
+      direccion: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notNull: {
+            msg: "La dirección es obligatoria",
+          },
+          len: {
+            args: [0, 50],
+            msg: "El campo dirección no debe exceder los 50 caracteres",
+          },
+        },
+      },
+      lic: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          len: {
+            args: [0, 50],
+            msg: "El campo licencia no debe exceder los 50 caracteres",
+          },
+        },
+      },
+      zona: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          len: {
+            args: [0, 20],
+            msg: "El campo zona no debe exceder los 20 caracteres",
+          },
+        },
+      },
+      esbaja: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false,
+        validate: {
+          isBoolean: {
+            msg: "El estado debe ser verdadero o falso",
+          },
+        },
+      },
+      extensiones: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0,
+      },
+      facturado: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          len: {
+            args: [0, 60],
+            msg: "El campo facturado no debe exceder los 60 caracteres",
+          },
+        },
+      },
+      sector: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          len: {
+            args: [0, 2],
+            msg: "El campo sector no debe exceder los 2 caracteres",
+          },
+        },
+      },
+      id_mando: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      id_clasificacion: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+
+    },
+    {
+      tableName: "tb_telefono",
+      timestamps: true, // ✅ Habilita la creación automática de timestamps
+      underscored: true, // ✅ Usa created_at y updated_at en la BD
+      createdAt: "created_at", // ✅ Nombre de la columna en BD
+      updatedAt: "updated_at", // ✅ Nombre de la columna en BD
+
+      // ✅ Hooks para lógica adicional si la necesitas
+      hooks: {
+        beforeCreate: (instance, options) => {
+          // Esto es automático con timestamps: true
+          // Solo lo agregas si necesitas lógica adicional
+          console.log("📝 Creando registro en:", new Date().toISOString());
+        },
+        beforeUpdate: (instance, options) => {
+          // Esto es automático con timestamps: true
+          console.log("🔄 Actualizando registro en:", new Date().toISOString());
+        },
+      },
+    },
+  );
+
+  return TbTelefono;
+};

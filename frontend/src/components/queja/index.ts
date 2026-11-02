@@ -1,0 +1,9 @@
+export { default as QuejaHeader } from './QuejaHeader';
+export { default as QuejaError } from './QuejaError';
+export { default as QuejaStats } from './QuejaStats';
+export { default as QuejaFilters } from './QuejaFilters';
+export { default as QuejaTable } from './QuejaTable';
+export { default as QuejaPagination } from './QuejaPagination';
+export { default as QuejaModal } from './QuejaModal';
+export { default as QuejaConfirmModal } from './QuejaConfirmModal';
+export { default as QuejaDetallesModal } from './QuejaDetallesModal';

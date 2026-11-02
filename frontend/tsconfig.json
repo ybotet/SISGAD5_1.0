@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "types": [
+      "node",
+      "react",
+      "react-dom"
+    ],
+    // ... otras opciones
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
+}

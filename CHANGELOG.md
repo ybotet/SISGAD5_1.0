@@ -1,0 +1,166 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [Unreleased]
+
+### 📚 Documentación
+- **TASK-C-01:** Renombrado 18 archivos `docs/*.md` a `docs/*.es.md` y corregidos enlaces internos
+- **TASK-C-02:** Creadas 13 archivos `.ru.md` traduciendo documentación existente (18 total)
+- **TASK-C-03:** Movido `AUDITORIA.md` a `docs/audit/AUDITORIA.md`
+- **TASK-C-04:** Fusionado `docs/requirements.md` en `docs/05_requirements.es.md`
+- **TASK-C-05:** Fusionado `docs/roadmap.md` en `docs/17_roadmap.es.md`
+- Verificación de 0 enlaces rotos en archivos `.es.md` y `.ru.md`
+- Reorganización de la estructura del repositorio según `ESTRUCTURA.md`
+- Migración de documentación del repositorio SISGAD5_doc al repositorio principal
+- Creación de `AGENT.md`, `SPEC.md`, `ARCHITECTURE.md` y `TASKLIST.md`
+- Creación de `CHANGELOG.md` (Keep a Changelog + SemVer)
+- Creación de `CONTRIBUTING.md` con convenciones de ramas, commits y PRs
+- Documentación de APIs en `docs/api/` (OpenAPI 3.0 YAML specs)
+- Creación de `docs/requirements.md` consolidando todos los requisitos del sistema
+- Creación de `docs/architecture.md` con diagramas Mermaid y decisiones arquitectónicas (ADRs)
+- Creación de `docs/roadmap.md` con roadmap de desarrollo detallado
+- Añadida sección 6.7 (Prediction Service) en `SPEC.md`
+- Actualizada `PROMPTS.md` con FASE 9 (MLOps y Prediction Service)
+- Actualizada `memory.md` con ADR-004 (Prediction Service)
+
+### 🌟 Features (Prediction Service)
+- Agregado módulo Prediction Service (Python 3.11+ + FastAPI + scikit-learn + XGBoost + Prophet)
+- Nueva base de datos `bd_predictions` (PostgreSQL) para datos predictivos
+- MLflow (Model Registry) y Apache Airflow (pipelines) como stack MLOps
+- 6 endpoints predictivos: `/api/predictions/{demanda,tiempo,anomalias,prioridad,fallos,asignacion}`
+- Nuevas ADRs: ADR-004 (Arquitectura ML), ADR-005 (FastAPI), ADR-006 (MLflow + Airflow)
+- Añadido `pytest + pytest-cov` al stack de testing
+
+### 🐛 Bug Fix
+- Corregido `setupPostgresTimezone` function missing en `backend-mp/src/config/database.js`
+- Corregido path de `.env.local` en `backend-mp/src/config/database.js` (de `../../` a `../../../`)
+- Corregido `DB_PASSWORD` incorrecto en `backend-materiales-go/.env` (`password` → `postgres`)
+- Corregido referencia incorrecta a "Gin" → "gorilla/mux" en archivos de documentación
+
+### 🔒 Seguridad
+- Rotados `JWT_SECRET` y `DB_PASSWORD` con entropía criptográfica (`crypto.randomBytes`); valores en `.env.local`/`.env` (gitignored)
+- Eliminado fallback `JWT_SECRET || "secreto"` en `backend-mp`; validación de arranque en `backend-users` y `backend-mp`
+- **TASK-A-10:** `docker-compose.prod.yml` — cerrados puertos internos (5001, 5002, 5003, 5432) en producción
+- Añadido `backend-materiales-go` y `frontend` services a `docker-compose.prod.yml` con exposición mínima de puertos (solo 5000 localhost + 5004)
+- **TASK-A-11:** Reemplazado `GF_SECURITY_ADMIN_PASSWORD=admin` por `${GRAFANA_ADMIN_PASSWORD}` en `docker-compose.yml`; añadida variable a `.env.example`
+- **TASK-A-12:** Corregido `DB_NAME=${MP_DB_NAME}` → `MP_DB_NAME=${MP_DB_NAME}` en `docker-compose.yml`; el Zod schema de `backend-mp` consumía `MP_DB_NAME`, no `DB_NAME`, lo que provocaba abort en arranque
+- Archivos `.env.docker` y `.env.production` removidos de git
+- Añadida excepción `!.env.example` en `.gitignore`
+
+### 🚀 Infraestructura
+- Creación de `.github/projects/sisgad5-roadmap.yml` con configuración del tablero
+- Creación de `scripts/setup-github-project.sh` para configurar GitHub Projects
+- **TASK-B-20:** Migraciones versionadas + índices (28 tablas MP, users): `migrations/`, `.sequelizerc`, `sequelize.config.js`, scripts `db:migrate`/`db:migrate:undo`, `sync({ alter: false })`
+- **TASK-B-21:** Jest + Supertest en `backend-mp` (21 tests) y `backend-users` (11 tests); `server.js` exporta `app` con listen condicional
+- `.sequelizerc` añadido a `.gitignore`
+
+---
+
+## [1.0.0] - 2026-09-20
+
+### Added
+- **Auth Module**: JWT-based authentication with access/refresh token rotation
+- **Users Module**: CRUD for usuarios with RBAC (5 roles: admin, probador, editor, visor, admin_materiales)
+- **MP Module**: 
+  - Gestión de Teléfonos (CRUD con clasificación de cliente)
+  - Gestión de Líneas (CRUD)
+  - Gestión de Pizarras (CRUD, mapeo de puertos, ubicación física)
+  - Gestión de Quejas (registro, priorización automática, FSM de estados)
+  - Gestión de Pruebas (registro con resultados y mediciones)
+  - Gestión de Trabajos (órdenes, asignación, cierre con tiempo real)
+- **Materials Module**:
+  - Catálogo de Materiales (CRUD con categorías y unidades)
+  - Asignaciones (transaccional, captura de precio momento)
+  - Consumos (transaccional, captura de precio real)
+  - Dashboard analítico con KPIs y saldo lógico
+- **API Gateway**: Rutas agrupadas, health checks agregados
+- **Frontend**: Dashboard principal, módulos de quejas y materiales
+
+### Changed
+- Migración de sistema monolítico Access → arquitectura de microservicios
+- Separación de bases de datos por servicio (bd_users, bd_mp, bd_materiales)
+
+### Fixed
+- Control de concurrencia en operaciones de stock (lock distribuido con Redis)
+
+### Security
+- JWT con expiración corta (15 min access, 7 días refresh)
+- Rate limiting por IP y usuario
+
+---
+
+## [0.3.0] - 2025-08-25
+
+### Added
+- Workers de Telegram para notificaciones de stock bajo
+- Dashboard de materiales en frontend
+- Endpoint de estadísticas MP
+
+### Changed
+- Refactorización de servicios de materiales a Go (backend-materiales-go)
+- Implementación de concurrencia con goroutines para validación de stock
+
+---
+
+## [0.2.0] - 2025-07-15
+
+### Added
+- FSM para estados de queja
+- Registro de pruebas técnicas
+- Dashboard de KPIs
+
+### Changed
+- Separación del módulo de materiales como microservicio independiente
+
+---
+
+## [0.1.0] - 2025-06-01
+
+### Added
+- Estructura base de microservicios
+- Auth Service (Node.js + Express + Sequelize)
+- MP Service (Node.js + Express + Sequelize)
+- Docker Compose para desarrollo
+
+---
+
+## Formato del Changelog
+
+| Símbolo | Tipo de Cambio |
+|---------|----------------|
+| 📈 | Feature nueva |
+| 🐛 | Bug fix |
+| ⚡ | Mejora de performance |
+| 🔒 | Seguridad |
+| 📚 | Documentación |
+| 🎨 | Estética / UI |
+| ♻️ | Refactor |
+| 🗑️ | Deprecación / remoción |
+| 🚀 | Deploy / CI-CD |
+| ✅ | Test |
+| ⚠️ | Nota importante |
+
+---
+
+## Estado de Reglas de Negocio por Versión
+
+| Versión | Reglas cubiertas |
+|---------|-----------------|
+| v1.0.0 | BR-01 ✅, BR-02 ✅, BR-03 ✅, BR-04 ✅, BR-05 ✅, BR-06 ✅, BR-07 ✅, BR-08 ⚠️, BR-09 ✅, BR-10 ✅, BR-11 ⚠️, BR-12 ✅ |
+| v0.3.0 | BR-03 ✅, BR-04 ✅, BR-07 ✅, BR-08 ⚠️, BR-09 ⚠️ |
+| v0.2.0 | BR-03 ✅, BR-04 ✅ |
+| v0.1.0 | BR-01 ✅ |
+
+---
+
+## Referencias
+
+- [TASKLIST.md](./TASKLIST.md)
+- [SPEC.md](./SPEC.md)
+- [Tesis - Testing](../docs/thesis/05_results.md)

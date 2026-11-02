@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  # Almacenamiento de logs
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "5005:3100" # Exponemos el puerto de Loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Recolector de logs
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - ../api-gateway/logs:/var/log/api-gateway # El que esta en el api-gateway con logger
+      - ./promtail-config.yaml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - monitoring
+    restart: unless-stopped
+    depends_on:
+      - loki
+
+  # Visualización
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "5006:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin # Contraseña admin (cámbiala)
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana-provisioning:/etc/grafana/provisioning
+    networks:
+      - monitoring
+    restart: unless-stopped
+    depends_on:
+      - loki
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  grafana-data:

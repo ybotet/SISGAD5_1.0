@@ -1,0 +1,262 @@
+@startuml domain_model_classes
+' ============================================================
+' SISGAD5 - Diagrama de Clases del Modelo de Dominio (v2.1)
+' Fuente: docs/07_domain_model.es.md | 39 entidades en
+' 6 contextos delimitados + Shared Kernel
+' Renderizable en GitHub via PlantUML o exportar a PNG/SVG
+' ============================================================
+skinparam classAttributeIconSize 0
+left to right direction
+
+package "Usuarios y Autenticacion (backend-users)" #E3F2FD {
+  class User {
+    +id: UUID
+    +username: String
+    +email: Email
+    +passwordHash: PasswordHash
+    +nombreCompleto: String
+    +estado: String
+    +createdAt: DateTime
+  }
+  class Sesion {
+    +id: UUID
+    +userId: UUID
+    +tokenAcceso: TokenJWT
+    +tokenRefresco: RefreshToken
+    +ip: String
+    +expiraEn: DateTime
+  }
+  class Rol {
+    +id: UUID
+    +nombre: String
+    +descripcion: String
+  }
+  class Permiso {
+    +id: UUID
+    +codigo: String
+    +recurso: String
+    +accion: String
+  }
+  class User_Roles <<pivot>> {
+    +userId: UUID
+    +rolId: UUID
+  }
+  class Roles_Permisos <<pivot>> {
+    +rolId: UUID
+    +permisoId: UUID
+  }
+  User "1" -- "*" Sesion : inicia >
+  User "1" -- "*" User_Roles
+  User_Roles "*" -- "1" Rol
+  Rol "1" -- "*" Roles_Permisos
+  Roles_Permisos "*" -- "1" Permiso
+}
+
+package "Quejas y Trabajos - Mesa de Prueba (backend-mp)" #FFF3E0 {
+  class Telefono {
+    +id: UUID
+    +numero: String
+    +clienteId: UUID
+    +estado: String
+  }
+  class Linea {
+    +id: UUID
+    +numero: String
+    +tipo: String
+    +clienteId: UUID
+  }
+  class Pizarra {
+    +id: UUID
+    +nombre: String
+    +ubicacion: Coordinates
+    +capacidad: Integer
+  }
+  class Puerto {
+    +id: UUID
+    +numero: Integer
+    +estado: String
+    +asignadoA: String
+  }
+  class Queja {
+    +id: UUID
+    +folio: String
+    +descripcion: String
+    +prioridad: Priority
+    +estado: String
+    +tecnicoAsignadoId: UUID
+    +fechaApertura: DateTime
+    +fechaCierre: DateTime
+  }
+  class FlujoEstadoQueja {
+    +id: UUID
+    +quejaId: UUID
+    +estadoAnterior: String
+    +estadoNuevo: String
+    +usuarioId: UUID
+    +fecha: DateTime
+  }
+  class Prueba {
+    +id: UUID
+    +quejaId: UUID
+    +trabajoId: UUID
+    +tecnicoId: UUID
+    +resultado: String
+    +fechaPrueba: DateTime
+  }
+  class Trabajo {
+    +id: UUID
+    +quejaId: UUID
+    +tecnicoAsignadoId: UUID
+    +descripcion: String
+    +estado: String
+    +fechaInicio: DateTime
+    +fechaFin: DateTime
+  }
+  Pizarra "1" -- "*" Puerto
+  Queja "*" -- "0..1" Telefono
+  Queja "*" -- "0..1" Linea
+  Queja "*" -- "0..1" Pizarra
+  Queja "1" -- "*" FlujoEstadoQueja
+  Queja "*" -- "1" User : tecnico >
+  Prueba "*" -- "0..1" Queja
+  Prueba "*" -- "0..1" Trabajo
+  Trabajo "*" -- "0..1" Queja
+  Trabajo "*" -- "1" User
+}
+
+package "Gestion de Materiales (backend-materiales-go)" #E8F5E9 {
+  class Material {
+    +id: UUID
+    +codigo: String
+    +nombre: String
+    +categoriaId: UUID
+    +unidadMedidaId: UUID
+    +precio: Money
+    +stockActual: Quantity
+    +stockMinimo: Quantity
+  }
+  class Categoria {
+    +id: UUID
+    +nombre: String
+    +descripcion: String
+  }
+  class UnidadMedida {
+    +id: UUID
+    +nombre: String
+    +abreviatura: String
+  }
+  class Asignacion {
+    +id: UUID
+    +folio: String
+    +trabajadorId: UUID
+    +trabajoId: UUID
+    +estado: String
+    +fecha: DateTime
+  }
+  class AsignacionItem {
+    +id: UUID
+    +asignacionId: UUID
+    +materialId: UUID
+    +cantidad: Quantity
+    +precioUnitario: Money
+  }
+  class Consumo {
+    +id: UUID
+    +folio: String
+    +trabajadorId: UUID
+    +trabajoId: UUID
+    +asignacionId: UUID
+    +fecha: DateTime
+  }
+  class ConsumoItem {
+    +id: UUID
+    +consumoId: UUID
+    +materialId: UUID
+    +cantidad: Quantity
+  }
+  Material "*" -- "1" Categoria
+  Material "*" -- "1" UnidadMedida
+  Asignacion "1" -- "*" AsignacionItem
+  AsignacionItem "*" -- "1" Material
+  Consumo "1" -- "*" ConsumoItem
+  ConsumoItem "*" -- "1" Material
+  Asignacion "*" -- "1" User
+  Consumo "*" -- "1" User
+}
+
+package "Prediccion y Analitica (prediction-service, Python)" #F3E5F5 {
+  class ModeloML {
+    +nombre: String
+    +rutaArtefacto: String
+    +version: String
+    +fechaEntrenamiento: DateTime
+  }
+  class Prediccion {
+    +valor: Float
+    +confianza: Float
+    +modeloVersion: String
+    +timestamp: DateTime
+  }
+  class ModelMetrics {
+    +mae: Float
+    +rmse: Float
+    +accuracy: Float
+    +precision: Float
+    +recall: Float
+  }
+  class ModelRegistryEntry {
+    +nombre: String
+    +rutaJoblib: String
+    +version: String
+  }
+  ModeloML "1" -- "1" ModelMetrics
+  ModeloML "1" -- "*" Prediccion
+  ModeloML "1" -- "1" ModelRegistryEntry
+  Queja ..> Prediccion : tiempo-resolucion, prioridad
+  Pizarra ..> Prediccion : fallos-infraestructura
+  Consumo ..> Prediccion : anomalias-consumo
+  Material ..> Prediccion : demanda
+}
+
+package "Seguridad e Infraestructura (tecnico)" #ECEFF1 {
+  class SistemaMonitoreo {
+    +servicio: String
+    +estado: String
+    +metricas: JSON
+  }
+  class RegistroAuditoria {
+    +id: UUID
+    +usuarioId: UUID
+    +accion: String
+    +entidad: String
+    +cambios: JSON
+    +fecha: DateTime
+  }
+}
+
+package "Shared Kernel - Catalogos y Auditoria" #FFFDE7 {
+  class Clave
+  class TipoQueja
+  class Servicio
+  class Ubicacion
+  class Email <<VO>>
+  class PasswordHash <<VO>>
+  class TokenJWT <<VO>>
+  class RefreshToken <<VO>>
+  class Money <<VO>>
+  class Quantity <<VO>>
+  class Priority <<VO>>
+  class Coordinates <<VO>>
+  Queja "*" -- "1" Clave
+  Queja "*" -- "1" TipoQueja
+  Queja "*" -- "1" Servicio
+  Queja "*" -- "1" Ubicacion
+}
+
+note bottom of SistemaMonitoreo
+  ACL planificadas (no modeladas aun):
+  Adaptador SAP ERP - RF-MAT-27
+  Adaptador GLPI - sin RF asignado
+end note
+
+@enduml

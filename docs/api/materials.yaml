@@ -1,0 +1,825 @@
+openapi: 3.0.3
+info:
+  title: SISGAD5 - Materiales Service API (Go)
+  description: 'Contrato al dia (v2.1.0) regenerado desde cmd/api/main.go del servicio Go.
+
+    Refleja EXACTAMENTE las 34 rutas registradas + health. Version anterior documentaba
+
+    /materiales/search, /saldos y /alertas-stock que no existen como endpoints (la busqueda
+
+    y alertas se hacen via query params de GET /materiales y GET /dashboard/alertas).
+
+
+    Servicio: backend-materiales-go (Go + Gorilla Mux + GORM) - Puerto 5003
+
+    Base de datos: bd_sisgad5_materiales (PostgreSQL)
+
+    Swagger generado por swag: disponible en /docs del propio servicio.'
+  version: 2.1.0
+  contact:
+    name: SISGAD5 Team
+    url: https://github.com/ybotet/SISGAD5_1.0
+servers:
+- url: http://localhost:5000/api/materiales
+  description: API Gateway
+- url: http://localhost:5003/api/materiales
+  description: Servicio directo (desarrollo)
+security:
+- bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+tags:
+- name: Materiales
+- name: Asignaciones
+- name: Consumos
+- name: Dashboard
+- name: Unidades de Medida
+- name: Categorias
+- name: Salud
+paths:
+  /materiales:
+    get:
+      tags:
+      - Materiales
+      summary: Lista paginada del catalogo de materiales con filtros.
+      operationId: get_materiales
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+    post:
+      tags:
+      - Materiales
+      summary: Crea un material nuevo en el catalogo.
+      operationId: post_materiales
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /materiales/{id}:
+    get:
+      tags:
+      - Materiales
+      summary: Obtiene un material por ID.
+      operationId: get_materiales_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Materiales
+      summary: Actualiza un material.
+      operationId: put_materiales_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+      - Materiales
+      summary: Elimina un material (si no tiene stock/asignaciones).
+      operationId: delete_materiales_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /materiales/todos:
+    get:
+      tags:
+      - Materiales
+      summary: Lista completa de materiales sin paginacion (combos/dropdowns).
+      operationId: get_materiales_todos
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+  /asignaciones:
+    get:
+      tags:
+      - Asignaciones
+      summary: Listado de asignaciones de materiales a trabajadores.
+      operationId: get_asignaciones
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+    post:
+      tags:
+      - Asignaciones
+      summary: Crea una asignacion (descuenta stock; concurrencia con locks Redis).
+      operationId: post_asignaciones
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /asignaciones/trabajador/{id}:
+    get:
+      tags:
+      - Asignaciones
+      summary: Asignaciones activas de un trabajador.
+      operationId: get_asignaciones_trabajador_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /asignaciones/{id}:
+    get:
+      tags:
+      - Asignaciones
+      summary: Obtiene una asignacion por ID.
+      operationId: get_asignaciones_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Asignaciones
+      summary: Actualiza una asignacion (modificacion de cantidades).
+      operationId: put_asignaciones_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+      - Asignaciones
+      summary: Elimina/devuelve una asignacion (reintegro de stock).
+      operationId: delete_asignaciones_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /consumos:
+    get:
+      tags:
+      - Consumos
+      summary: Listado de consumos.
+      operationId: get_consumos
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+    post:
+      tags:
+      - Consumos
+      summary: Registra un consumo transaccional contra la asignacion.
+      operationId: post_consumos
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /consumos/trabajo/{id}:
+    get:
+      tags:
+      - Consumos
+      summary: Consumos asociados a un trabajo.
+      operationId: get_consumos_trabajo_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /consumos/trabajador/{id}:
+    get:
+      tags:
+      - Consumos
+      summary: Consumos de un trabajador.
+      operationId: get_consumos_trabajador_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /consumos/{id}:
+    get:
+      tags:
+      - Consumos
+      summary: Obtiene un consumo por ID.
+      operationId: get_consumos_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Consumos
+      summary: Actualiza un consumo.
+      operationId: put_consumos_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+      - Consumos
+      summary: Elimina un consumo (revierte stock).
+      operationId: delete_consumos_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /dashboard/materiales:
+    get:
+      tags:
+      - Dashboard
+      summary: 'KPIs de materiales: existencias, valor, rotacion.'
+      operationId: get_dashboard_materiales
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+  /dashboard/alertas:
+    get:
+      tags:
+      - Dashboard
+      summary: Alertas globales de stock minimo/quiebres.
+      operationId: get_dashboard_alertas
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+  /dashboard/general:
+    get:
+      tags:
+      - Dashboard
+      summary: Resumen general del modulo de materiales.
+      operationId: get_dashboard_general
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+  /dashboard/stock-trabajadores:
+    get:
+      tags:
+      - Dashboard
+      summary: Stock actual en poder de cada trabajador.
+      operationId: get_dashboard_stock_trabajadores
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+  /unidades-medida:
+    get:
+      tags:
+      - Unidades de Medida
+      summary: Listado de unidades de medida.
+      operationId: get_unidades_medida
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+    post:
+      tags:
+      - Unidades de Medida
+      summary: Crea unidad de medida.
+      operationId: post_unidades_medida
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /unidades-medida/{id}:
+    get:
+      tags:
+      - Unidades de Medida
+      summary: Unidad de medida por ID.
+      operationId: get_unidades_medida_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Unidades de Medida
+      summary: Actualiza unidad de medida.
+      operationId: put_unidades_medida_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+      - Unidades de Medida
+      summary: Elimina unidad de medida.
+      operationId: delete_unidades_medida_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /categorias-material/paginated:
+    get:
+      tags:
+      - Categorias
+      summary: Categorias de material con paginacion.
+      operationId: get_categorias_material_paginated
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+  /categorias-material:
+    get:
+      tags:
+      - Categorias
+      summary: Listado completo de categorias.
+      operationId: get_categorias_material
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+    post:
+      tags:
+      - Categorias
+      summary: Crea categoria.
+      operationId: post_categorias_material
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+  /categorias-material/{id}:
+    get:
+      tags:
+      - Categorias
+      summary: Categoria por ID.
+      operationId: get_categorias_material_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+      - Categorias
+      summary: Actualiza categoria.
+      operationId: put_categorias_material_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+      - Categorias
+      summary: Elimina categoria.
+      operationId: delete_categorias_material_id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+        '400':
+          description: Payload invalido
+        '409':
+          description: Conflicto de negocio (p.ej. stock insuficiente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+  /health:
+    get:
+      tags:
+      - Salud
+      summary: Health check del servicio Go (estado, uptime). [solo acceso directo 5003]
+      operationId: get_health
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: JWT ausente o invalido (AuthMiddleware gorilla)
+
+# ============================================================
+# PLANIFICADO (aun NO implementado - TASKLIST.md Fase Materiales)
+# - POST /asignaciones/{id}/verificar-stock : verificarStockAsignacion esta STUB comentado en main.go
+# - GET  /dashboard/trabajador/{id}         : ResumenTrabajador esta comentado en main.go
+# ============================================================

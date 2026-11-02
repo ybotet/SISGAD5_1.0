@@ -1,0 +1,15 @@
+Quejas.
+- Calculo de prioridad.
+
+Cliente
+- Agregar tabla cliente, con relacion con (telefono, linea, pizarra)
+
+Movimiento
+-escoger telefono o linea o (pizarra) y luego realizar un movimiento
+
+Propietario
+-solo conexion en movimientos
+
+pizarra
+-validaciones
+

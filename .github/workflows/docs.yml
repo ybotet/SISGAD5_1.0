@@ -1,0 +1,125 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'README.md'
+      - 'README.es.md'
+      - 'SPEC.md'
+      - 'ARCHITECTURE.md'
+      - 'CHANGELOG.md'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'README.md'
+      - 'README.es.md'
+      - 'SPEC.md'
+      - 'ARCHITECTURE.md'
+      - 'CHANGELOG.md'
+
+jobs:
+  validate-docs:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install markdown link checker
+        run: pip install markdown-link-check
+
+      - name: Check broken links in docs
+        run: |
+          for f in docs/*.md docs/**/*.md; do
+            if [ -f "$f" ]; then
+              markdown-link-check "$f" || true
+            fi
+          done
+
+      - name: Verify docs structure
+        run: |
+          # Verify required docs exist
+          required_files=(
+            docs/00_index.md
+            docs/01_introduction.md
+            docs/02_actors.md
+            docs/03_use_cases.md
+            docs/04_glossary.md
+            docs/06_business_rules.md
+            docs/10_api_contracts.md
+            docs/11_data_model.md
+            docs/12_rbac_matrix.md
+            docs/13_security.md
+            docs/16_testing.md
+            docs/17_roadmap.md
+          )
+          for f in "${required_files[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "ERROR: Missing required doc: $f"
+              exit 1
+            fi
+          done
+          echo "All required docs present."
+
+      - name: Verify ESTRUCTURA compliance
+        run: |
+          echo "Verifying repo structure matches ESTRUCTURA.md..."
+          required_dirs=(
+            docs/api
+            docs/diagrams/use_cases
+            docs/diagrams/class_diagrams
+            docs/diagrams/sequence_diagrams
+            docs/diagrams/state_machines
+            docs/diagrams/er_diagrams
+            docs/diagrams/component_diagrams
+            docs/diagrams/deployment_diagrams
+            docs/thesis
+            docs/practices
+            docs/manuals
+            monitoring/prometheus
+            monitoring/grafana/dashboards
+            monitoring/grafana/provisioning
+            monitoring/loki
+            scripts
+            tests/e2e
+            tests/load
+            assets/images
+            assets/logos
+            assets/fonts
+          )
+          for d in "${required_dirs[@]}"; do
+            if [ ! -d "$d" ]; then
+              echo "ERROR: Missing required directory: $d"
+              exit 1
+            fi
+          done
+          echo "All required directories present."
+
+  build-docs:
+    name: Build Documentation Portal
+    runs-on: ubuntu-latest
+    needs: validate-docs
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install docs tooling
+        run: |
+          npm install -g markdown-pdf mermaid-cli
+          npm ci || true
+
+      - name: Build docs (placeholder)
+        run: |
+          echo "Documentation build pipeline is configured."
+          echo "Docs are served via GitHub Pages or internal wiki."

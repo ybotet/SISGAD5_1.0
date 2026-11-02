@@ -1,0 +1,155 @@
+openapi: 3.0.3
+info:
+  title: SISGAD5 - API Gateway
+  description: 'Contrato al dia (v2.1.0) desde src/server.js. El gateway (puerto 5000) es el unico
+
+    punto de entrada del frontend. No implementa logica de negocio: verifica JWT (excepto rutas
+
+    publicas), aplica rate limiting (authLimiter/globalLimiter), logging (morgan/winston) y hace
+
+    proxy a los 4 backends. Nota: /api/auth se proxyea SIN verifyJwt (login/refresh/logout son
+
+    publicos); el resto exige Bearer token valido.'
+  version: 2.1.0
+  contact:
+    name: SISGAD5 Team
+    url: https://github.com/ybotet/SISGAD5_1.0
+servers:
+- url: http://localhost:5000
+  description: API Gateway (docker-compose)
+paths:
+  /health:
+    get:
+      summary: Health check del gateway (status, uptime).
+      responses:
+        '200':
+          description: OK
+  /health/services:
+    get:
+      summary: 'Health agregado: sondea users, mp, materiales y prediction.'
+      responses:
+        '200':
+          description: Estado de cada servicio (JSON)
+        '503':
+          description: Algun servicio caido
+  /:
+    get:
+      summary: Indice de servicios y rutas disponibles (auto-descripcion).
+      responses:
+        '200':
+          description: Mapa de rutas
+  /api/auth/{proxy}:
+    post:
+      summary: Proxy -> backend-users /api/auth/* (login, refresh, logout). Sin JWT requerido.
+      parameters:
+      - name: proxy
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Subruta destino (login|refresh|logout)
+      responses:
+        '200':
+          description: Respuesta del Users Service
+        '502':
+          description: Users Service no disponible
+  /api/users/{proxy}:
+    get:
+      summary: Proxy -> backend-users /api/* (user, roles, permisos...). Requiere JWT; inyecta X-User-Id/Roles.
+      parameters: &id001
+      - name: proxy
+        in: path
+        required: true
+        schema:
+          type: string
+      responses: &id002
+        '200':
+          description: Respuesta del Users Service
+        '401':
+          description: JWT invalido
+        '502':
+          description: Servicio no disponible
+    post:
+      summary: Proxy (escritura) -> backend-users /api/* (user, roles, permisos...). Requiere JWT; inyecta X-User-Id/Roles.
+      parameters: *id001
+      responses: *id002
+    put:
+      summary: Proxy (escritura) -> backend-users /api/* (user, roles, permisos...). Requiere JWT; inyecta X-User-Id/Roles.
+      parameters: *id001
+      responses: *id002
+    delete:
+      summary: Proxy (escritura) -> backend-users /api/* (user, roles, permisos...). Requiere JWT; inyecta X-User-Id/Roles.
+      parameters: *id001
+      responses: *id002
+  /api/mp/{proxy}:
+    get:
+      summary: Proxy -> backend-mp /api/mp/* (quejas, nomencladores, dashboards). Requiere JWT.
+      parameters: &id003
+      - name: proxy
+        in: path
+        required: true
+        schema:
+          type: string
+      responses: &id004
+        '200':
+          description: Respuesta del MP Service
+        '401':
+          description: JWT invalido
+        '502':
+          description: Servicio no disponible
+    post:
+      summary: Proxy (escritura) -> backend-mp /api/mp/* (quejas, nomencladores, dashboards). Requiere JWT.
+      parameters: *id003
+      responses: *id004
+    put:
+      summary: Proxy (escritura) -> backend-mp /api/mp/* (quejas, nomencladores, dashboards). Requiere JWT.
+      parameters: *id003
+      responses: *id004
+    patch:
+      summary: Proxy (escritura) -> backend-mp /api/mp/* (quejas, nomencladores, dashboards). Requiere JWT.
+      parameters: *id003
+      responses: *id004
+    delete:
+      summary: Proxy (escritura) -> backend-mp /api/mp/* (quejas, nomencladores, dashboards). Requiere JWT.
+      parameters: *id003
+      responses: *id004
+  /api/materiales/{proxy}:
+    get:
+      summary: Proxy -> backend-materiales-go /api/materiales/*. Requiere JWT.
+      parameters: &id005
+      - name: proxy
+        in: path
+        required: true
+        schema:
+          type: string
+      responses: &id006
+        '200':
+          description: Respuesta del Materials Service
+        '401':
+          description: JWT invalido
+        '502':
+          description: Servicio no disponible
+    post:
+      summary: Proxy (escritura) -> backend-materiales-go /api/materiales/*. Requiere JWT.
+      parameters: *id005
+      responses: *id006
+    put:
+      summary: Proxy (escritura) -> backend-materiales-go /api/materiales/*. Requiere JWT.
+      parameters: *id005
+      responses: *id006
+    delete:
+      summary: Proxy (escritura) -> backend-materiales-go /api/materiales/*. Requiere JWT.
+      parameters: *id005
+      responses: *id006
+  /api/predictions/{proxy}:
+    get:
+      summary: 'Proxy -> prediction-service (5005). Servicio AUN NO DESPLEGADO (roadmap): responde 502 hasta existir.'
+      parameters:
+      - name: proxy
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '502':
+          description: Prediction service no disponible (no desplegado)
