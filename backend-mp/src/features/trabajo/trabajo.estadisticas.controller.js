@@ -294,9 +294,13 @@ const TrabajoEstadisticasController = {
             attributes: ["id_clave", "clave"],
           },
           {
-            model: Queja,
-            as: "tb_queja",
+            association: "tb_queja",
             attributes: ["id_queja", "num_reporte", "estado"],
+          },
+          {
+            // probador (Trabajador que realizó el trabajo) — reutiliza alias de la N:M
+            association: "tb_trabajador",
+            attributes: ["id_trabajador", "clave_trabajador", "nombre"],
           },
         ],
       });

@@ -231,6 +231,10 @@ Trabajo.belongsTo(Trabajador, { foreignKey: "probador", as: "tb_trabajador" });
 Clave.hasMany(Trabajo, { foreignKey: "estado", as: "tb_trabajo" });
 Trabajo.belongsTo(Clave, { foreignKey: "estado", as: "tb_clave" });
 
+//Queja - Trabajo 1:N (TASK-710-08: no existe trabajo sin queja)
+Queja.hasMany(Trabajo, { foreignKey: "id_queja", as: "tb_trabajos" });
+Trabajo.belongsTo(Queja, { foreignKey: "id_queja", as: "tb_queja" });
+
 //#endregion
 
 //#region Relaciones de Trabajo_trabajadores

@@ -39,6 +39,7 @@ import RolesPage from "./pages/auth/admin/RolesPage";
 
 //Stats
 import StatsPage from "./pages/StatsPage";
+import TrabajoFichaPage from "./pages/trabajos/TrabajoFichaPage";
 
 // Predictions
 import PredictionsPage from "./pages/PredictionsPage";
@@ -117,6 +118,14 @@ export default function App() {
           element={
             <ProtectedRoute permission="quejas.ver">
               <DashboardQuejaPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="main/trabajos/:id_trabajo"
+          element={
+            <ProtectedRoute permission="quejas.ver">
+              <TrabajoFichaPage />
             </ProtectedRoute>
           }
         />
