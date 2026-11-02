@@ -1,9 +1,10 @@
 # Máquinas de Estado - SISGAD5
 
-> **Versión:** 2.0
-> **Fecha:** 2026-11-02
-> **Alcance:** Máquinas de estado de **MP Service** (Queja, Trabajo) y **Materials Service** (Asignación), más Auth/Users.
+> **Versión:** 3.0
+> **Fecha:** 2026-11-03
+> **Alcance:** Máquina de estado de **Queja** (MP Service) — única máquina de negocio — y máquinas de contexto (Sesión, Usuario). Añadida la línea de vida **Teléfono/Línea** basada en el historial de **Movimientos**.
 > **Consistencia:** Alineada con `08_sequence_diagrams.es.md` v2.7 (roles: Probador, Supervisor, Analista de materiales).
+> **v3.0:** Eliminadas las máquinas de *Trabajo* y *Asignación de materiales* (son entidades sin ciclo de estado propio; su gestión queda cubierta por los eventos de la máquina de Queja y por la lógica del Materials Service).
 
 ---
 
@@ -12,30 +13,36 @@
 ### Estados
 ```
 Abierta → Probada → Asignada → Pendiente → Resuelta → Cerrada → Completada
-                                                                  (fin del ciclo)
-No existe reapertura: Cerrada y Completada son estados terminales
+                     (diagnóstico)              (fin del ciclo)
+
+No existe reapertura: Completada es el único estado terminal.
+Cerrada NO es terminal: toda queja cerrada debe culminar en Completada
+(con materiales registrados o declarados "no requeridos" por el Analista).
 ```
 
-Estados terminales: **Completada** (materiales gestionados por el Analista) y **Cerrada** (terminal alternativo cuando no se utilizaron materiales).
+Estados terminales: **Completada** (único fin de ciclo, gestionado por el Analista de materiales). `Cerrada` es un estado de espera de gestión de materiales, no terminal.
 
 ### Transiciones Permitidas
 
 | Estado Actual | Estado Siguiente | Actor | Condición | Acción |
 |---------------|------------------|-------|-----------|--------|
-| Abierta | Probada | Probador | Prueba registrada (exitoso=true) | Registrar prueba, cambiar estado |
+| Abierta | Probada | Probador | Prueba/diagnóstico registrado (no requiere resultado exitoso) | Registrar prueba, cambiar estado |
 | Probada | Asignada | Supervisor | Trabajador (operario) asignado a la queja | Asignar trabajador a la QUEJA |
-| Probada | Resuelta | Probador | Queja resuelta sin intervención de un trabajo | Marcar resolución directa tras la prueba |
+| Probada | Resuelta | Probador | Queja resuelta sin intervención de un trabajo (diagnóstico resolutivo) | Marcar resolución directa tras la prueba |
 | Probada | Pendiente | Probador | Se realiza otra prueba (iteración) | Registrar nueva prueba |
-| Asignada | Pendiente | Probador | Trabajo creado | Crear orden de trabajo |
-| Asignada | Probada | Probador | Prueba registrada | Registrar prueba |
-| Asignada | Resuelta | Probador | Resolución lograda en trabajo de campo | Resolver vía trabajo de campo |
-| Pendiente | Probada | Probador | Se realiza otra prueba | Registrar nueva prueba |
+| Asignada | Resuelta | Probador | Decisión "Trabajo de campo": **Sí, se resolvió** | Cerrar con resolución obtenida en el trabajo |
+| Asignada | Pendiente | Probador | Decisión "Trabajo de campo": **No resuelta** | El trabajo ejecutado no resolvió la queja |
+| Asignada | Probada | Probador | Prueba/diagnóstico registrado | Registrar prueba |
+| Pendiente | Pendiente | Probador | Nuevo trabajo realizado sobre la queja **sin resolverla** (re-iteración) | Registrar otro intento de reparación |
+| Pendiente | Probada | Probador | Se realiza otra prueba (diagnóstico) | Registrar nueva prueba |
 | Pendiente | Asignada | Supervisor | Cambio de trabajadores para otra reparación | Reasignar trabajadores a la queja |
-| Pendiente | Resuelta | Probador | Trabajo cerrado | Cerrar trabajo |
+| Pendiente | Resuelta | Probador | Trabajo cerrado con resolución | Cerrar trabajo con resultado positivo |
 | Resuelta | Cerrada | Probador | Confirmación final del cierre | Cambiar estado |
-| Cerrada | Completada | Analista de materiales | Materiales registrados/asignados tras el cierre | Gestionar materiales y culminar el ciclo |
+| Cerrada | Completada | Analista de materiales | Tras el cierre: registra consumo de materiales **o** declara explícitamente "no se necesitaron materiales" | Culminar el ciclo (única salida válida del cierre) |
 
-> **Nota roles (v2.0):** El antiguo "Técnico" pasa a llamarse **Probador** (quien prueba, crea trabajos y cierra). El antiguo "Jefe/Operador" pasa a llamarse **Supervisor** (solo asignaciones). La asignación de materiales NO cambia el estado de la queja; solo el **consumo/registro final de materiales** por el Analista produce la transición `Cerrada → Completada`. Si el Analista declara que no se necesitaron materiales, la queja culmina en **Cerrada**.
+> **Nota roles (v2.0):** El antiguo "Técnico" pasa a llamarse **Probador** (quien prueba, crea trabajos y cierra). El antiguo "Jefe/Operador" pasa a llamarse **Supervisor** (solo asignaciones). La asignación de materiales NO cambia el estado de la queja; solo el **registro final** por el Analista produce la transición `Cerrada → Completada` — tanto si hubo consumos como si declaró que no se necesitaron materiales.
+>
+> **Nota v3.0:** `Completada` es el **único fin de ciclo**: no existe terminal en `Cerrada`; toda queja cerrada debe ser gestionada por el Analista de materiales (con o sin materiales) hasta `Completada`.
 
 ### Transiciones PROHIBIDAS (Bloqueadas por RN-QUE-03)
 - **Abierta → Asignada** (debe registrarse primero una prueba: pasar por Probada)
@@ -43,8 +50,9 @@ Estados terminales: **Completada** (materiales gestionados por el Analista) y **
 - Abierta → Resuelta (saltar estados intermedios)
 - Abierta → Cerrada (saltar todos)
 - Probada → Cerrada (saltar Resuelta)
-- **Cerrada → Abierta** (no existe reabrir; Cerrada es terminal salvo hacia Completada)
+- **Cerrada → Abierta** (no existe reabrir; y Cerrada tampoco es terminal — debe ir a Completada)
 - Cerrada → Probada / Cerrada → Resuelta (retrocesos no permitidos)
+- Cerrada → [*] (fin directo prohibido: toda queja cerrada debe pasar por el Analista hacia Completada, con o sin materiales)
 - Completada → cualquier estado (estado terminal absoluto)
 - Probada/Asignada/Pendiente/Resuelta → Completada (Completada solo se alcanza desde Cerrada, por el Analista de materiales)
 
@@ -53,20 +61,26 @@ Estados terminales: **Completada** (materiales gestionados por el Analista) y **
 ```mermaid
 stateDiagram-v2
     [*] --> Abierta: Crear queja (Probador)
-    Abierta --> Probada: Registrar prueba exitosa
+    Abierta --> Probada: Registrar prueba / diagnostico
     Probada --> Asignada: Supervisor asigna trabajador
-    Probada --> Resuelta: Resuelta sin trabajo (Probador)
+    Probada --> Resuelta: Diagnostico resuelve (sin trabajo)
     Probada --> Pendiente: Otra prueba (iteracion)
-    Asignada --> Pendiente: Crear trabajo
-    Asignada --> Probada: Registrar prueba
-    Asignada --> Resuelta: Resuelta en trabajo de campo
-    Pendiente --> Probada: Otra prueba
+
+    state "Trabajo de campo?" as TD {
+        [*] --> Ejecucion
+    }
+
+    Asignada --> TD: Trabajo ejecutado en campo
+    TD --> Resuelta: Si se resolvio
+    TD --> Pendiente: No resuelta
+
+    Pendiente --> Pendiente: Otro trabajo sin resolver
+    Pendiente --> Probada: Otra prueba (diagnostico)
     Pendiente --> Asignada: Cambio de trabajadores
-    Pendiente --> Resuelta: Cerrar trabajo
+    Pendiente --> Resuelta: Trabajo cerrado con resolucion
     Resuelta --> Cerrada: Confirmar cierre (Probador)
-    Cerrada --> Completada: Analista registra materiales
-    Cerrada --> [*]: Sin materiales (terminal)
-    Completada --> [*]: Fin del ciclo
+    Cerrada --> Completada: Analista registra consumo O declara sin materiales
+    Completada --> [*]: Fin del ciclo (unico terminal)
 
     note right of Abierta
         Estado inicial
@@ -74,7 +88,8 @@ stateDiagram-v2
     end note
 
     note right of Probada
-        Requiere prueba exitosa
+        Basta el resultado de una prueba
+        (diagnostico), no requiere exito
     end note
 
     note right of Asignada
@@ -82,22 +97,27 @@ stateDiagram-v2
     end note
 
     note right of Pendiente
-        Trabajo en ejecucion
+        Trabajo en ejecucion o pendiente
+        de re-intento. Puede iterar
+        Pendiente -> Pendiente si el nuevo
+        trabajo no resolvio la queja
     end note
 
     note right of Resuelta
-        Via trabajo de campo o resuelta sin trabajo
+        Via trabajo de campo o resuelta
+        sin trabajo (diagnostico)
     end note
 
     note right of Cerrada
-        Cierre confirmado por el Probador
-        Terminal si no hubo materiales
+        Cierre confirmado por el Probador.
+        NO es terminal: espera al Analista
+        de materiales
     end note
 
     note right of Completada
-        Materiales registrados por el
-        Analista de materiales
-        Estado final del flujo
+        Unico fin de ciclo. El Analista
+        registro materiales o declaro
+        que no se necesitaron
     end note
 ```
 
@@ -106,7 +126,7 @@ stateDiagram-v2
 | Evento | Trigger | Actor | Datos |
 |--------|---------|-------|-------|
 | QuejaCreada | POST /quejas | Probador | {id, num_reporte, prioridad, estado: "Abierta"} |
-| QuejaProbada | POST /pruebas (exitoso=true) | Probador | {id, prueba_id} |
+| QuejaProbada | POST /pruebas (resultado de diagnóstico) | Probador | {id, prueba_id} |
 | QuejaAsignada | POST /quejas/:id/asignar-trabajador | Supervisor | {id, id_trabajador, estado_anterior, estado_nuevo} |
 | TrabajoCreado | POST /trabajos | Probador | {id, queja_id} |
 | TrabajoCerrado | PATCH /trabajos/:id/cerrar | Probador | {id, tiempo_real} |
@@ -120,79 +140,72 @@ stateDiagram-v2
 
 ---
 
-## 2. Máquina de Estado: Trabajo (MP Service)
+## 2. Máquina de Estado: Teléfono / Línea — Línea de vida por Movimientos (MP Service)
 
-### Estados
+La línea de vida de un **Teléfono** y de una **Línea** no se modela con estados propios sino como reflejo del **historial de Movimientos** (`tb_movimiento`, FK a `tb_tipomovimiento`). Cada movimiento registrado (Alta/Instalación, Traslado, Baja, entre otros tipos existentes) deriva el estado efectivo del recurso.
+
+### Estados derivados del último movimiento
 ```
-Abierto → En_Proceso → Cerrado
+[*] → Instalada (Alta/Instalación) ⇄ Trasladata (Traslado) → Baja (Baja) → [*]
+Otros tipos de movimiento posibles según catálogo tb_tipomovimiento
 ```
 
 ### Transiciones Permitidas
 
-> **v2.0:** El trabajador (operario) se asigna a la **QUEJA**, no al trabajo. Por ello el trabajo ya nace con los trabajadores disponibles y NO existe la transición `Abierto → Asignado`. El trabajo lo crea e inserta el propio **Probador**.
+| Estado Actual | Estado Siguiente | Actor | Movimiento (tipo) | Condición |
+|---------------|------------------|-------|-------------------|-----------|
+| (sin registrar) | Instalada | Probador / Supervisor | Alta / Instalación | Puesta en servicio del teléfono/línea |
+| Instalada | Trasladata | Probador / Supervisor | Traslado | Cambio de ubicación/pizarra/puerto |
+| Trasladata | Trasladata | Probador / Supervisor | Traslado | Re-ubicaciones sucesivas |
+| Instalada / Trasladata | Baja | Probador / Supervisor | Baja | Retiro del servicio |
+| Baja | Instalada | Probador / Supervisor | Alta / Instalación | Reactivación con nuevo movimiento de alta |
 
-| Estado Actual | Estado Siguiente | Actor | Condición |
-|---------------|------------------|-------|-----------|
-| Abierto | En_Proceso | Probador | Inicio de ejecución (trabajadores tomados de la queja) |
-| En_Proceso | Cerrado | Probador | Tiempo real registrado |
+> **Reglas:**
+> - El estado **nunca se edita directamente**: siempre se deduce del último movimiento aplicado al teléfono/línea (fuente de verdad = historial).
+> - Los movimientos pueden originarse desde una queja resuelta (p. ej. traslados o bajas asociados a la reparación), pero su registro es independiente del ciclo de la queja.
+> - El catálogo `tb_tipomovimiento` admite más tipos además de Alta/Traslado/Baja; nuevos tipos extienden esta máquina sin modificar las reglas anteriores.
 
 ### Diagrama Mermaid
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Abierto: Crear trabajo (Probador)
-    Abierto --> En_Proceso: Iniciar ejecucion
-    En_Proceso --> Cerrado: Registrar tiempo real + cerrar
+    [*] --> Instalada: Movimiento Alta / Instalacion
+    Instalada --> Trasladata: Movimiento Traslado
+    Trasladata --> Trasladata: Nuevo Traslado
+    Instalada --> Baja: Movimiento Baja
+    Trasladata --> Baja: Movimiento Baja
+    Baja --> Instalada: Reactivacion (nueva Alta)
+    Baja --> [*]: Fin de vida del recurso
 
-    note right of Abierto
-        Los trabajadores se asignan
-        a la QUEJA, no al trabajo
+    note right of Instalada
+        Estado derivado del ultimo
+        movimiento (tb_movimiento),
+        no se edita manualmente
     end note
 
-    note right of Cerrado
-        Requiere tiempo_real_horas
+    note right of Trasladata
+        Refleja cambio de ubicacion,
+        pizarra o puerto
+    end note
+
+    note right of Baja
+        Movimientos adicionales
+        posibles segun catalogo
+        tb_tipomovimiento
     end note
 ```
+
+### Eventos de Dominio
+
+| Evento | Trigger | Actor | Datos |
+|--------|---------|-------|-------|
+| MovimientoRegistrado | POST /movimientos | Probador / Supervisor | {id_telefono?, id_linea?, id_tipomovimiento, fecha, motivo, id_os?} |
+| TelefonoTrasladado | POST /movimientos (tipo=Traslado) | Probador / Supervisor | {id_telefono, ubicacion_anterior, ubicacion_nueva} |
+| RecursoDadoDeBaja | POST /movimientos (tipo=Baja) | Probador / Supervisor | {id_telefono? , id_linea?} |
 
 ---
 
-## 3. Máquina de Estado: Asignación (Materials Service)
-
-### Estados
-```
-Pendiente → Entregada → Parcial → Completada
-    └→ Cancelada (antes de entregar)
-```
-
-### Transiciones Permitidas
-
-La **asignación** es la entrega física de materiales a un trabajador y puede realizarse **en cualquier momento**; por sí sola NO cambia el estado de la queja. El **consumo** lo registra el **Analista de materiales** (no el Probador).
-
-| Estado Actual | Estado Siguiente | Actor | Condición |
-|---------------|------------------|-------|-----------|
-| Pendiente | Entregada | Analista de materiales | Trabajador confirma recepción |
-| Pendiente | Cancelada | Analista de materiales | Cancelada antes de entrega |
-| Entregada | Parcial | Analista de materiales | Algunos items consumidos |
-| Parcial | Completada | Analista de materiales | Todos los items consumidos |
-
-> La transición final de la queja (`Cerrada → Completada`) ocurre cuando el Analista registra el consumo total o declara que no se necesitaron materiales (ver §1).
-
-### Diagrama Mermaid
-
-```mermaid
-stateDiagram-v2
-    [*] --> Pendiente: Crear asignación
-    Pendiente --> Entregada: Confirmar entrega
-    Pendiente --> Cancelada: Cancelar
-    Entregada --> Parcial: Consumo parcial
-    Parcial --> Completada: Consumo total
-    Completada --> [*]: Fin (habilita QuejaCompletada)
-    Cancelada --> [*]: Fin
-```
-
----
-
-## 4. Máquina de Estado: Sesión (Auth Context)
+## 3. Máquina de Estado: Sesión (Auth Context)
 
 ### Estados
 ```
@@ -227,7 +240,7 @@ stateDiagram-v2
 
 ---
 
-## 5. Máquina de Estado: Usuario (Users Context)
+## 4. Máquina de Estado: Usuario (Users Context)
 
 ### Estados
 ```
@@ -247,28 +260,30 @@ Activo → Bloqueado → Activo
 
 ---
 
-## 6. Diagramas Fuente
+## 5. Diagramas Fuente
 
 Ver archivos Mermaid en: [`docs/diagrams/state_machines/`](../diagrams/state_machines/)
 
 - `queja_state.mmd`
-- `trabajo_state.mmd`
-- `asignacion_state.mmd`
+- `movimiento_state.mmd` (Teléfono/Línea)
 - `sesion_state.mmd`
 - `usuario_state.mmd`
 
+> ⚠️ Eliminados v3.0: `trabajo_state.mmd` y `asignacion_state.mmd` (sin máquina de estado propia).
+
 ---
 
-## 7. Registro de Cambios
+## 6. Registro de Cambios
 
 | Versión | Fecha | Cambios |
 |---------|-------|---------|
+| 3.0 | 2026-11-03 | **Eliminadas** las máquinas de *Trabajo* y *Asignación de materiales* (no tienen ciclo de estado propio). **Añadida** la máquina de *Teléfono/Línea* derivada del historial de Movimientos (Alta, Traslado, Baja + tipos adicionales del catálogo). `Completada` pasa a ser el **único fin de ciclo**: `Cerrada` ya no es terminal (con o sin materiales, el Analista lleva la queja a Completada). Rombo de decisión "Trabajo de campo" desde `Asignada` (Sí→Resuelta / No→Pendiente). Nueva autotransición `Pendiente → Pendiente` (otro trabajo sin resolver). `Probada` = diagnóstico (no requiere prueba exitosa). Actualizado §3 en adelante por renumeración. |
 | 2.0 | 2026-11-02 | Renombrados roles (Técnico→Probador, Jefe/Operador→Supervisor). Añadido estado **Completada** a la queja y transición `Cerrada → Completada` (Analista de materiales). Eliminada reapertura (`Cerrada → Abierta`). Nuevas transiciones: `Probada → Resuelta` (sin trabajo), `Asignada → Resuelta` (trabajo de campo), `Probada/Pendiente → Probada` (otra prueba), `Pendiente → Asignada` (cambio de trabajadores). Prohibida `Abierta → Asignada`. Trabajadores se asignan a la QUEJA (eliminado `Abierto → Asignado` en Trabajo). Separados conceptos asignación vs consumo de materiales. Alineado con `08_sequence_diagrams.es.md` v2.7. |
 | 1.0 | 2026-09-25 | Versión inicial. |
 
 ---
 
-## 8. Referencias
+## 7. Referencias
 
 - [Reglas de Negocio](06_business_rules.es.md)
 - [Casos de Uso](03_use_cases.es.md)
