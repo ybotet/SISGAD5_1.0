@@ -15,7 +15,7 @@ info:
     Base de datos: bd_sisgad5_mp (PostgreSQL)
 
     Prefijo via gateway: /api/mp/* (JWT obligatorio, verificado tambien en gateway)'
-  version: 2.1.0
+  version: 2.2.0
   contact:
     name: SISGAD5 Team
     url: https://github.com/ybotet/SISGAD5_1.0
@@ -3206,6 +3206,118 @@ paths:
         required: true
         schema:
           type: integer
+  /trabajo/estadisticas/trabajadores:
+    get:
+      tags:
+      - Trabajos
+      summary: 'Estadisticas de trabajos agrupadas por trabajador (TASK-710-08, vista B)'
+      operationId: get_trabajo_estadisticas_trabajadores
+      description: >-
+        Listado paginado con total_trabajos, horas_totales (aproximacion: updated_at - created_at)
+        y primera/ultima fecha por trabajador. Debe resolverse ANTES que /trabajo/{id}.
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 20
+          maximum: 100
+      - name: sortBy
+        in: query
+        schema:
+          type: string
+          enum:
+          - id_trabajador
+          - clave_trabajador
+          - nombre
+          - total_trabajos
+          - horas_totales
+          - primera_fecha
+          - ultima_fecha
+          default: total_trabajos
+      - name: sortOrder
+        in: query
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+          default: DESC
+      responses:
+        '200':
+          description: OK - envoltura {success,data,pagination}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Token JWT ausente o invalido
+        '400':
+          description: Parametros de consulta invalidos (validacion Zod)
+  /trabajo/estadisticas/queja/{id_queja}:
+    get:
+      tags:
+      - Trabajos
+      summary: 'Estadisticas de los trabajos de una queja (TASK-710-08, vista B/E)'
+      operationId: get_trabajo_estadisticas_queja
+      description: >-
+        Devuelve la queja, resumen (total_trabajos, horas_totales, fechas), lista de
+        trabajos con sus trabajadores asignados y desglose por trabajador dentro de la queja.
+      parameters:
+      - name: id_queja
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: id_queja invalido
+        '401':
+          description: Token JWT ausente o invalido
+        '404':
+          description: Queja no encontrada
+  /trabajo/{id}/estadisticas:
+    get:
+      tags:
+      - Trabajos
+      summary: 'Ficha estadistica individual de un trabajo (TASK-710-08, vista E)'
+      operationId: get_trabajo_id_estadisticas
+      description: >-
+        Detalle del trabajo con horas totales, probador, queja asociada, clave de estado y
+        trabajadores con reparto equitativo de horas. Los materiales/consumos se cargan
+        desde backend-materiales via GET /consumo por trabajo.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: OK - envoltura {success,data}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: ID de trabajo invalido
+        '401':
+          description: Token JWT ausente o invalido
+        '404':
+          description: Trabajo no encontrado
   /trabajo_trabajadores:
     get:
       tags:
