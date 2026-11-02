@@ -167,6 +167,8 @@ erDiagram
     SERVICIO ||--o{ QUEJAS : "afecta"
     UBICACION ||--o{ QUEJAS : "localiza"
     CLAVE ||--o{ QUEJAS : "clasifica"
+    TIPOPIZARRA ||--o{ PIZARRAS : "clasifica"
+    TIPOLINEA ||--o{ LINEAS : "clasifica"
     
     TELEFONOS {
         int id PK
@@ -327,6 +329,8 @@ erDiagram
 
 ### Diagrama ER
 
+> **Nota:** `ASIGNACION` y `CONSUMO` **no tienen relación directa**. Son flujos independientes que se vinculan solo de forma indirecta a través de la queja/trabajo al que pertenecen. La asignación es la entrega física de materiales a un trabajador (puede ocurrir en cualquier momento); el consumo es el registro contable posterior que, al cierre gestionado por el Analista de materiales, lleva la queja a `Completada`.
+
 ```mermaid
 erDiagram
     CATEGORIAS ||--o{ MATERIALES : "clasifica"
@@ -334,7 +338,7 @@ erDiagram
     MATERIALES ||--o{ ASIGNACIONITEMS : "en"
     MATERIALES ||--o{ CONSUMOITEMS : "en"
     ASIGNACIONES ||--o{ ASIGNACIONITEMS : "contiene"
-    ASIGNACIONES }|--o{ CONSUMOS : "origina"
+    CONSUMOS }o--|| ASIGNACIONES : "referencia opcional"
     CONSUMOS ||--o{ CONSUMOITEMS : "contiene"
     USERS }|--o{ ASIGNACIONES : "recibe"
     USERS }|--o{ CONSUMOS : "registra"
