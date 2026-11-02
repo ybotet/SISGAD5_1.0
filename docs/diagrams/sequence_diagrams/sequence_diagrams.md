@@ -1,6 +1,6 @@
 # 📊 Diagramas de Secuencia — SISGAD5
 
-> **Versión:** 2.0 (documento fusionado y canónico)
+> **Versión:** 2.1 (documento fusionado y canónico — sintaxis Mermaid validada con @mermaid-js/mermaid-cli v11: los 7 escenarios renderizan sin errores)
 > **Fecha:** 2026-11-02
 > **Tarea:** TASK-100-04
 > **Estado:** ✅ Completada
@@ -91,7 +91,7 @@ sequenceDiagram
     GW-->>TE: 201 Created
 
     OP->>GW: PATCH /api/mp/quejas/:id {estado:'Cerrada'}
-    GW->>MPS: forward (ver FSM; cierre masivo ver Escenario 6)
+    GW->>MPS: forward (ver FSM, cierre masivo en Esc. 6)
     MPS->>MPDB: UPDATE queja SET estado='Cerrada', fechaok=NOW()
     MPS-->>GW: 200 OK
     GW-->>OP: 200 OK {estado:'Cerrada'}
