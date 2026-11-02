@@ -1,0 +1,22 @@
+stateDiagram-v2
+    [*] --> Abierta: Crear queja (Probador)
+    Abierta --> Probada: Registrar prueba / diagnostico
+    Probada --> Asignada: Supervisor asigna trabajador
+    Probada --> Resuelta: Diagnostico resuelve (sin trabajo)
+    Probada --> Pendiente: Otra prueba (iteracion)
+
+    state "Trabajo de campo?" as TD {
+        [*] --> Ejecucion
+    }
+
+    Asignada --> TD: Trabajo ejecutado en campo
+    TD --> Resuelta: Si se resolvio
+    TD --> Pendiente: No resuelta
+
+    Pendiente --> Pendiente: Otro trabajo sin resolver
+    Pendiente --> Probada: Otra prueba (diagnostico)
+    Pendiente --> Asignada: Cambio de trabajadores
+    Pendiente --> Resuelta: Trabajo cerrado con resolucion
+    Resuelta --> Cerrada: Confirmar cierre (Probador)
+    Cerrada --> Completada: Analista registra consumo O declara sin materiales
+    Completada --> [*]: Fin del ciclo (unico terminal)

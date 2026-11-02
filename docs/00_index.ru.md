@@ -18,7 +18,7 @@
 | 05 | [05_requirements.ru.md](05_requirements.ru.md) | Функциональные и нефункциональные требования |
 | 06 | [06_business_rules.ru.md](06_business_rules.ru.md) | Бизнес-правила |
 | 07 | [07_domain_model.ru.md](07_domain_model.ru.md) | Доменная модель (28 классов, 5 контекстов) |
-| 08 | [sequence_diagrams.md](diagrams/sequence_diagrams/sequence_diagrams.md) | Диаграммы последовательностей (7 сценариев — канонический документ; 08_* теперь указатель) |
+| 08 | [08_sequence_diagrams.ru.md](08_sequence_diagrams.ru.md) | Диаграммы последовательностей (5 сценариев — канонический документ в сквозной нумерации docs/) |
 | 09 | [09_state_machines.ru.md](09_state_machines.ru.md) | Конечные автоматы |
 | 10 | [10_api_contracts.ru.md](10_api_contracts.ru.md) | Контракты API (индекс) |
 | 11 | [11_data_model.ru.md](11_data_model.ru.md) | Модель данных (ER-диаграмма, 3 БД) |

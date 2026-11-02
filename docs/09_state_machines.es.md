@@ -1,7 +1,12 @@
 # Máquinas de Estado - SISGAD5
 
-> **Versión:** 1.0  
-> **Fecha:** 2026-09-25
+> **Versión:** 3.2
+> **Fecha:** 2026-11-03
+> **Alcance:** Única máquina de estado del sistema: **Queja** (MP Service / Materiales). No existen más máquinas de estado formales.
+> **Consistencia:** Alineada con `08_sequence_diagrams.es.md` v2.7 (roles: Probador, Supervisor, Analista de materiales).
+> **v3.2:** Eliminadas las máquinas de *Sesión* y *Usuario*: sus banderas de estado (activa/revocada, activo/bloqueado/inactivo) son atributos CRUD gestionados por reglas de negocio en `backend-users`, no máquinas de estado de negocio. El detalle técnico vive en `docs/api/users.yaml` y el código.
+> **v3.1:** Eliminada la máquina de *Teléfono/Línea por Movimientos*: los movimientos provienen de un nomenclador (`tb_tipomovimiento`) con muchos tipos y no existe control de estados sobre el recurso. Su historial queda cubierto por el modelo de datos (`11_data_model`) y la API de movimientos.
+> **v3.0:** Eliminadas las máquinas de *Trabajo* y *Asignación de materiales* (son entidades sin ciclo de estado propio; su gestión queda cubierta por los eventos de la máquina de Queja y por la lógica del Materials Service).
 
 ---
 
@@ -9,227 +14,174 @@
 
 ### Estados
 ```
-Abierta → Probada → Asignada → Pendiente → Resuelta → Cerrada
-   │         │          │           │           │          │
-   └─────────┴──────────┴───────────┴───────────┴──────────┘
-                    (Reabrir: Cerrada → Abierta)
+Abierta → Probada → Asignada → Pendiente → Resuelta → Cerrada → Completada
+                     (diagnóstico)              (fin del ciclo)
+
+No existe reapertura: Completada es el único estado terminal.
+Cerrada NO es terminal: toda queja cerrada debe culminar en Completada
+(con materiales registrados o declarados "no requeridos" por el Analista).
 ```
+
+Estados terminales: **Completada** (único fin de ciclo, gestionado por el Analista de materiales). `Cerrada` es un estado de espera de gestión de materiales, no terminal.
 
 ### Transiciones Permitidas
 
 | Estado Actual | Estado Siguiente | Actor | Condición | Acción |
 |---------------|------------------|-------|-----------|--------|
-| Abierta | Probada | Técnico | Prueba registrada (exitoso=true) | Registrar prueba, cambiar estado |
-| Abierta | Asignada | Jefe/Operador | Técnico asignado | Asignar técnico |
-| Probada | Asignada | Jefe/Operador | Técnico asignado | Asignar técnico |
-| Asignada | Pendiente | Técnico | Trabajo creado | Crear orden de trabajo |
-| Asignada | Probada | Técnico | Prueba registrada | Registrar prueba |
-| Pendiente | Resuelta | Técnico | Trabajo cerrado + consumo registrado | Cerrar trabajo, registrar consumo |
-| Resuelta | Cerrada | Operador/Jefe | Confirmación final | Cambiar estado |
-| Cerrada | Abierta | Operador/Jefe | Reapertura justificada | Nuevo num_reporte, estado=Abierta |
+| Abierta | Probada | Probador | Prueba/diagnóstico registrado (no requiere resultado exitoso) | Registrar prueba, cambiar estado |
+| Probada | Asignada | Supervisor | Trabajador (operario) asignado a la queja | Asignar trabajador a la QUEJA |
+| Probada | Resuelta | Probador | Queja resuelta sin intervención de un trabajo (diagnóstico resolutivo) | Marcar resolución directa tras la prueba |
+| Probada | Pendiente | Probador | Se realiza otra prueba (iteración) | Registrar nueva prueba |
+| Asignada | Resuelta | Probador | Decisión "Trabajo de campo": **Sí, se resolvió** | Cerrar con resolución obtenida en el trabajo |
+| Asignada | Pendiente | Probador | Decisión "Trabajo de campo": **No resuelta** | El trabajo ejecutado no resolvió la queja |
+| Asignada | Probada | Probador | Prueba/diagnóstico registrado | Registrar prueba |
+| Pendiente | Pendiente | Probador | Nuevo trabajo realizado sobre la queja **sin resolverla** (re-iteración) | Registrar otro intento de reparación |
+| Pendiente | Probada | Probador | Se realiza otra prueba (diagnóstico) | Registrar nueva prueba |
+| Pendiente | Asignada | Supervisor | Cambio de trabajadores para otra reparación | Reasignar trabajadores a la queja |
+| Pendiente | Resuelta | Probador | Trabajo cerrado con resolución | Cerrar trabajo con resultado positivo |
+| Resuelta | Cerrada | Probador | Confirmación final del cierre | Cambiar estado |
+| Cerrada | Completada | Analista de materiales | Tras el cierre: registra consumo de materiales **o** declara explícitamente "no se necesitaron materiales" | Culminar el ciclo (única salida válida del cierre) |
+
+> **Nota roles (v2.0):** El antiguo "Técnico" pasa a llamarse **Probador** (quien prueba, crea trabajos y cierra). El antiguo "Jefe/Operador" pasa a llamarse **Supervisor** (solo asignaciones). La asignación de materiales NO cambia el estado de la queja; solo el **registro final** por el Analista produce la transición `Cerrada → Completada` — tanto si hubo consumos como si declaró que no se necesitaron materiales.
+>
+> **Nota v3.0:** `Completada` es el **único fin de ciclo**: no existe terminal en `Cerrada`; toda queja cerrada debe ser gestionada por el Analista de materiales (con o sin materiales) hasta `Completada`.
 
 ### Transiciones PROHIBIDAS (Bloqueadas por RN-QUE-03)
+- **Abierta → Asignada** (debe registrarse primero una prueba: pasar por Probada)
 - Abierta → Pendiente (saltar Probada/Asignada)
 - Abierta → Resuelta (saltar estados intermedios)
 - Abierta → Cerrada (saltar todos)
-- Probada → Pendiente (saltar Asignada)
-- Probada → Resuelta (saltar Asignada/Pendiente)
-- Probada → Cerrada (saltar todos)
-- Asignada → Resuelta (saltar Pendiente)
-- Asignada → Cerrada (saltar Pendiente/Resuelta)
-- Pendiente → Cerrada (saltar Resuelta)
-- Cualquier → Abierta (excepto Cerrada → Abierta por reapertura)
+- Probada → Cerrada (saltar Resuelta)
+- **Cerrada → Abierta** (no existe reabrir; y Cerrada tampoco es terminal — debe ir a Completada)
+- Cerrada → Probada / Cerrada → Resuelta (retrocesos no permitidos)
+- Cerrada → [*] (fin directo prohibido: toda queja cerrada debe pasar por el Analista hacia Completada, con o sin materiales)
+- Completada → cualquier estado (estado terminal absoluto)
+- Probada/Asignada/Pendiente/Resuelta → Completada (Completada solo se alcanza desde Cerrada, por el Analista de materiales)
 
 ### Diagrama Mermaid
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Abierta: Crear queja
-    Abierta --> Probada: Registrar prueba exitosa
-    Abierta --> Asignada: Asignar técnico
-    Probada --> Asignada: Asignar técnico
-    Asignada --> Pendiente: Crear trabajo
-    Asignada --> Probada: Registrar prueba
-    Pendiente --> Resuelta: Cerrar trabajo + consumo
-    Resuelta --> Cerrada: Confirmar cierre
-    Cerrada --> Abierta: Reabrir (nuevo num_reporte)
-    
+    [*] --> Abierta: Crear queja (Probador)
+    Abierta --> Probada: Registrar prueba / diagnostico
+    Probada --> Asignada: Supervisor asigna trabajador
+    Probada --> Resuelta: Diagnostico resuelve (sin trabajo)
+    Probada --> Pendiente: Otra prueba (iteracion)
+
+    state "Trabajo de campo?" as TD {
+        [*] --> Ejecucion
+    }
+
+    Asignada --> TD: Trabajo ejecutado en campo
+    TD --> Resuelta: Si se resolvio
+    TD --> Pendiente: No resuelta
+
+    Pendiente --> Pendiente: Otro trabajo sin resolver
+    Pendiente --> Probada: Otra prueba (diagnostico)
+    Pendiente --> Asignada: Cambio de trabajadores
+    Pendiente --> Resuelta: Trabajo cerrado con resolucion
+    Resuelta --> Cerrada: Confirmar cierre (Probador)
+    Cerrada --> Completada: Analista registra consumo O declara sin materiales
+    Completada --> [*]: Fin del ciclo (unico terminal)
+
     note right of Abierta
         Estado inicial
         Prioridad calculada
     end note
-    
+
     note right of Probada
-        Requiere prueba exitosa
+        Basta el resultado de una prueba
+        (diagnostico), no requiere exito
     end note
-    
+
     note right of Asignada
-        Técnico asignado
+        Trabajador (operario) asignado a la QUEJA
     end note
-    
+
     note right of Pendiente
-        Trabajo en ejecución
+        Trabajo en ejecucion o pendiente
+        de re-intento. Puede iterar
+        Pendiente -> Pendiente si el nuevo
+        trabajo no resolvio la queja
     end note
-    
+
     note right of Resuelta
-        Trabajo cerrado
-        Materiales consumidos
+        Via trabajo de campo o resuelta
+        sin trabajo (diagnostico)
     end note
-    
+
     note right of Cerrada
-        Estado final
-        Solo reapertura permitida
+        Cierre confirmado por el Probador.
+        NO es terminal: espera al Analista
+        de materiales
+    end note
+
+    note right of Completada
+        Unico fin de ciclo. El Analista
+        registro materiales o declaro
+        que no se necesitaron
     end note
 ```
 
 ### Eventos de Dominio (Event Storming)
 
-| Evento | Trigger | Datos |
-|--------|---------|-------|
-| QuejaCreada | POST /quejas | {id, num_reporte, prioridad, estado: "Abierta"} |
-| QuejaProbada | PATCH /quejas/:id (estado=Probada) | {id, prueba_id, tecnico_id} |
-| QuejaAsignada | PATCH /quejas/:id/asignar | {id, tecnico_id, estado_anterior, estado_nuevo} |
-| TrabajoCreado | POST /trabajos | {id, queja_id, tecnico_id} |
-| TrabajoCerrado | PATCH /trabajos/:id/cerrar | {id, tiempo_real} |
-| ConsumoRegistrado | POST /consumos | {id, trabajo_id, items} |
-| QuejaResuelta | PATCH /quejas/:id (estado=Resuelta) | {id} |
-| QuejaCerrada | PATCH /quejas/:id (estado=Cerrada) | {id} |
-| QuejaReabierta | PATCH /quejas/:id (estado=Abierta desde Cerrada) | {id, nuevo_num_reporte} |
+| Evento | Trigger | Actor | Datos |
+|--------|---------|-------|-------|
+| QuejaCreada | POST /quejas | Probador | {id, num_reporte, prioridad, estado: "Abierta"} |
+| QuejaProbada | POST /pruebas (resultado de diagnóstico) | Probador | {id, prueba_id} |
+| QuejaAsignada | POST /quejas/:id/asignar-trabajador | Supervisor | {id, id_trabajador, estado_anterior, estado_nuevo} |
+| TrabajoCreado | POST /trabajos | Probador | {id, queja_id} |
+| TrabajoCerrado | PATCH /trabajos/:id/cerrar | Probador | {id, tiempo_real} |
+| QuejaResuelta | PATCH /quejas/:id (estado=Resuelta) | Probador | {id, via: "trabajo_campo" o "sin_trabajo"} |
+| QuejaCerrada | PATCH /quejas/:id (estado=Cerrada) | Probador | {id} |
+| MaterialesAsignados | POST /asignaciones (entrega a trabajador) | Analista de materiales | {id, trabajador_id, items} — no cambia estado de queja |
+| ConsumoRegistrado | POST /consumos | Analista de materiales | {id, queja_id, items} |
+| QuejaCompletada | PATCH /quejas/:id (estado=Completada) | Analista de materiales | {id, materiales: "registrados" o "no_requeridos"} |
+
+> ⚠️ Eliminado `QuejaReabierta` (v2.0): no existe reabrir una queja.
 
 ---
 
-## 2. Máquina de Estado: Trabajo (MP Service)
+## 2. Máquinas NO incluidas (decisión de alcance)
 
-### Estados
-```
-Abierto → Asignado → En_Proceso → Cerrado
-```
+El sistema tiene **una sola máquina de estado formal: Queja**. Se descartaron deliberadamente:
 
-### Transiciones Permitidas
-
-| Estado Actual | Estado Siguiente | Actor | Condición |
-|---------------|------------------|-------|-----------|
-| Abierto | Asignado | Jefe | Técnico asignado |
-| Asignado | En_Proceso | Técnico | Inicio de ejecución |
-| En_Proceso | Cerrado | Técnico | Tiempo real registrado |
-
-### Diagrama Mermaid
-
-```mermaid
-stateDiagram-v2
-    [*] --> Abierto: Crear trabajo
-    Abierto --> Asignado: Asignar técnico
-    Asignado --> En_Proceso: Iniciar ejecución
-    En_Proceso --> Cerrado: Registrar tiempo real + cerrar
-    
-    note right of Cerrado
-        Requiere tiempo_real_horas
-        Dispara registro de consumos
-    end note
-```
+| Entidad | Motivo del descarte | Versión |
+|---------|---------------------|---------|
+| Trabajo | Sin ciclo de estado propio; cubierto por eventos de la máquina de Queja | v3.0 |
+| Asignación de materiales | Gestión del Materials Service sin FSM propio | v3.0 |
+| Teléfono/Línea (Movimientos) | Nomenclador `tb_tipomovimiento` con muchos tipos; no hay control de estados sobre el recurso. Historial cubierto por `11_data_model` y la API de movimientos | v3.1 |
+| Sesión (Auth) / Usuario (Users) | Banderas CRUD (`revoked`, `activo`, `bloqueado`) gestionadas por reglas de negocio en `backend-users`; su comportamiento técnico está en `docs/api/users.yaml` y el código, no requiere FSM de negocio | v3.2 |
 
 ---
 
-## 3. Máquina de Estado: Asignación (Materials Service)
+## 3. Diagramas Fuente
 
-### Estados
-```
-Pendiente → Entregada → Parcial → (Cancelada)
-                    │
-                    └─→ (si todos los items consumidos completamente)
-```
+Archivo Mermaid versionado en: [`docs/diagrams/state_machines/`](../diagrams/state_machines/)
 
-### Transiciones Permitidas
+| Archivo | Máquina | Documento |
+|---------|---------|-----------|
+| `queja_state.mmd` | Queja (MP Service) | §1 |
 
-| Estado Actual | Estado Siguiente | Condición |
-|---------------|------------------|-----------|
-| Pendiente | Entregada | Técnico confirma recepción |
-| Pendiente | Cancelada | Analista cancela antes de entrega |
-| Entregada | Parcial | Algunos items consumidos |
-| Parcial | Entregada | Todos los items consumidos |
-
-### Diagrama Mermaid
-
-```mermaid
-stateDiagram-v2
-    [*] --> Pendiente: Crear asignación
-    Pendiente --> Entregada: Confirmar entrega
-    Pendiente --> Cancelada: Cancelar
-    Entregada --> Parcial: Consumo parcial
-    Parcial --> Entregada: Consumo total
-    Cancelada --> [*]: Fin
-```
+> ⚠️ Eliminados v3.2: `sesion_state.mmd` y `usuario_state.mmd` (no son máquinas de estado de negocio).
+> ⚠️ Eliminados v3.1: `movimiento_state.mmd` (no existe control de estados; nomenclador con muchos tipos).
+> ⚠️ Eliminados v3.0: `trabajo_state.mmd` y `asignacion_state.mmd` (sin máquina de estado propia).
 
 ---
 
-## 4. Máquina de Estado: Sesión (Auth Context)
+## 4. Registro de Cambios
 
-### Estados
-```
-Activa → Expirada → Renovada → Activa
-    │                        │
-    └──────── Revocada ─────┘
-         (Logout / Seguridad)
-```
-
-### Transiciones
-
-| Estado Actual | Estado Siguiente | Trigger |
-|---------------|------------------|---------|
-| Activa | Expirada | access_token expira (15 min) |
-| Expirada | Renovada | POST /auth/refresh con refresh_token válido |
-| Renovada | Activa | Nuevo access_token emitido |
-| Activa | Revocada | POST /auth/logout O detección robo refresh |
-| Expirada | Revocada | Refresh_token expira (7 días) O revocado |
-
-### Diagrama Mermaid
-
-```mermaid
-stateDiagram-v2
-    [*] --> Activa: Login exitoso
-    Activa --> Expirada: Access token expira (15min)
-    Expirada --> Renovada: Refresh token válido
-    Renovada --> Activa: Nuevo access token
-    Activa --> Revocada: Logout / Detección robo
-    Expirada --> Revocada: Refresh expira (7d) / Revocado
-    Revocada --> [*]: Fin de sesión
-```
+| Versión | Fecha | Cambios |
+|---------|-------|---------|
+| 3.2 | 2026-11-03 | **Eliminadas** las máquinas de *Sesión* y *Usuario*: no son máquinas de estado de negocio (banderas CRUD gestionadas por reglas en `backend-users`; detalle técnico en `docs/api/users.yaml`). Renumeradas las secciones. Añadida tabla §2 "Máquinas NO incluidas" consolidando las decisiones de alcance v3.0–v3.2. Única FSM formal del sistema: **Queja**. |
+| 3.1 | 2026-11-03 | **Eliminada** la máquina de *Teléfono/Línea por Movimientos*: los movimientos son un nomenclador (`tb_tipomovimiento`) con muchos tipos y no existe control de estados sobre el recurso; su historial queda cubierto por `11_data_model` y la API de movimientos. Renumeradas las secciones (§2 Sesión, §3 Usuario). |
+| 3.0 | 2026-11-03 | **Eliminadas** las máquinas de *Trabajo* y *Asignación de materiales* (no tienen ciclo de estado propio). Añadida temporalmente la máquina de *Teléfono/Línea* derivada del historial de Movimientos (luego eliminada en v3.1). `Completada` pasa a ser el **único fin de ciclo**: `Cerrada` ya no es terminal (con o sin materiales, el Analista lleva la queja a Completada). Rombo de decisión "Trabajo de campo" desde `Asignada` (Sí→Resuelta / No→Pendiente). Nueva autotransición `Pendiente → Pendiente` (otro trabajo sin resolver). `Probada` = diagnóstico (no requiere prueba exitosa). |
+| 2.0 | 2026-11-02 | Renombrados roles (Técnico→Probador, Jefe/Operador→Supervisor). Añadido estado **Completada** a la queja y transición `Cerrada → Completada` (Analista de materiales). Eliminada reapertura (`Cerrada → Abierta`). Nuevas transiciones: `Probada → Resuelta` (sin trabajo), `Asignada → Resuelta` (trabajo de campo), `Probada/Pendiente → Probada` (otra prueba), `Pendiente → Asignada` (cambio de trabajadores). Prohibida `Abierta → Asignada`. Trabajadores se asignan a la QUEJA (eliminado `Abierto → Asignado` en Trabajo). Separados conceptos asignación vs consumo de materiales. Alineado con `08_sequence_diagrams.es.md` v2.7. |
+| 1.0 | 2026-09-25 | Versión inicial. |
 
 ---
 
-## 5. Máquina de Estado: Usuario (Users Context)
-
-### Estados
-```
-Activo → Bloqueado → Activo
-   │           │
-   └───────────┴──→ Inactivo (baja lógica)
-```
-
-### Transiciones
-
-| Estado Actual | Estado Siguiente | Trigger |
-|---------------|------------------|---------|
-| Activo | Bloqueado | 5 intentos fallidos login |
-| Bloqueado | Activo | Expiración bloqueo (15 min) O admin desbloquea |
-| Activo | Inactivo | Admin da de baja (soft delete) |
-| Inactivo | Activo | Admin reactiva |
-
----
-
-## 6. Diagramas Fuente
-
-Ver archivos Mermaid en: [`docs/diagrams/state_machines/`](../diagrams/state_machines/)
-
-- `queja_state.mmd`
-- `trabajo_state.mmd`
-- `asignacion_state.mmd`
-- `sesion_state.mmd`
-- `usuario_state.mmd`
-
----
-
-## 7. Referencias
+## 5. Referencias
 
 - [Reglas de Negocio](06_business_rules.es.md)
 - [Casos de Uso](03_use_cases.es.md)

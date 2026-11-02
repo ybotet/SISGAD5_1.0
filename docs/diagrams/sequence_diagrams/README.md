@@ -1,28 +1,18 @@
-# Diagramas de Secuencia — SISGAD5 (canon único)
+# 📁 Diagramas de Secuencia — Puntero
 
-> **Estado:** ✅ Documento canónico v2.0 (fusionado el 2026-11-02)
-> **Contenido:** 7 escenarios UML de secuencia con diagramas Mermaid + tablas de mensajes
+> ⚠️ **El documento canónico fue reubicado** (v2.8, 2026-11-02) siguiendo la numeración consecutiva de `docs/`:
+>
+> - **Español:** [`docs/08_sequence_diagrams.es.md`](../../08_sequence_diagrams.es.md) ← documento principal (5 escenarios, Mermaid + tablas de mensajes)
+> - **Русский:** [`docs/08_sequence_diagrams.ru.md`](../../08_sequence_diagrams.ru.md) (traducción espejo completa)
+>
+> Esta carpeta se conserva vacía por compatibilidad histórica. No añadir nuevos diagramas aquí: editar directamente los documentos `08_*` en `docs/`.
 
-Este directorio contiene el **único** conjunto de diagramas de secuencia del proyecto.
+## Escenarios vigentes (en el documento canónico)
 
-## Escenarios incluidos en [`sequence_diagrams.md`](sequence_diagrams.md)
-
-| # | Escenario | Tipo | Cobertura |
-|---|-----------|------|-----------|
-| 1 | Flujo completo de queja (Abierta → Cerrada) | Crítico | Operador, Técnico, Jefe, MP, Materials |
-| 2 | Login y autenticación JWT (+ refresh rotativo) | Crítico | Gateway, Users, bd_users, Redis |
-| 3 | Acceso a recurso protegido (claims `x-user-*`) | Crítico | Gateway, MP Service |
-| 4 | Asignación de materiales con validación de stock | Crítico | Materials, locks Redis, transacción ACID |
-| 5 | Consumo de materiales (validación consumo ≤ asignación) | Crítico | Materials, MP |
-| 6 | Cierre de queja con saga orquestada + compensación | Crítico | MP Saga, Materials, rollback |
-| 7 | Predicción de demanda de materiales | Complementario | Prediction Service |
-
-## Convenciones
-
-- Cada escenario tiene: **diagrama Mermaid** (render nativo en GitHub) + **tabla de mensajes**.
-- Los endpoints reflejan las rutas reales implementadas (`/api/mp/*`, `/api/auth/*`, `/api/materials/*`).
-- Al editar un escenario, actualizar también su tabla de mensajes.
-
-## Referencias cruzadas
-
-Los documentos temáticos (`docs/03_use_cases.es.md`, `docs/07_domain_model.es.md`, `docs/09_state_machines.es.md`, `docs/13_security.es.md` y sus versiones `.ru.md`) enlazan a este archivo como fuente única.
+| # | Escenario | Tipo |
+|---|-----------|------|
+| 1 | Flujo completo de queja (Abierta → Cerrada → Completada) — incluye cierre, saga y gestión de consumos | Crítico |
+| 2 | Login y autenticación JWT con refresh rotativo | Crítico |
+| 3 | Acceso a recurso protegido vía Gateway | Crítico |
+| 4 | Asignación de materiales con validación de stock | Crítico |
+| 5 | Predicción de demanda de materiales | Complementario |
