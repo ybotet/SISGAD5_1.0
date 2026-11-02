@@ -1,9 +1,14 @@
 const { Sequelize } = require("sequelize");
-const { Trabajo, TrabajoTrabajadores, Queja, Trabajador } = require("../../features");
+const {
+  Trabajo,
+  TrabajoTrabajadores,
+  Queja,
+  Trabajador,
+} = require("../../features");
 const { parseListParams } = require("../../shared/utils/parseListParams");
-const apiError = require("../../shared/utils/apiErrors");
+const apiErrors = require("../../shared/utils/apiErrors");
 
-const { fn, col, literal, where: sqlWhere } = Sequelize;
+const { fn, col, literal } = Sequelize;
 
 /**
  * Controlador de ESTADÍSTICAS de trabajos (TASK-710-08 — variantes B y E).
@@ -60,26 +65,21 @@ const TrabajoEstadisticasController = {
         ultima_fecha: ultimaFecha,
       };
 
-      // 1) Totales globales (sin paginar)
-      const [{ count: totalTrabajadores }] = await Trabajo.findAll({
-        attributes: [[fn("COUNT", fn("DISTINCT", col("TrabajoTrabajadores.id_trabajador"))), "count"]],
-        include: [
-          {
-            association: "tb_trabajo_trabajadores",
-            as: "tb_trabajo_trabajadores",
-            attributes: [],
-            required: true,
-          },
+      // 1) Totales globales (sin paginar): nº de trabajadores con trabajos asignados
+      const totalRow = await TrabajoTrabajadores.findOne({
+        attributes: [
+          [fn("COUNT", fn("DISTINCT", col("TrabajoTrabajadores.id_trabajador"))), "count"],
         ],
         raw: true,
       });
+      const totalTrabajadores = Number(totalRow?.count ?? 0);
 
       // 2) Filas agrupadas por trabajador
       const rows = await Trabajo.findAll({
         attributes: [
-          [col("Trabajador.id_trabajador"), "id_trabajador"],
-          [col("Trabajador.clave_trabajador"), "clave_trabajador"],
-          [col("Trabajador.nombre"), "nombre"],
+          [col("tb_trabajo_trabajadores.tb_trabajador.id_trabajador"), "id_trabajador"],
+          [col("tb_trabajo_trabajadores.tb_trabajador.clave_trabajador"), "clave_trabajador"],
+          [col("tb_trabajo_trabajadores.tb_trabajador.nombre"), "nombre"],
           [totalTrabajos, "total_trabajos"],
           [horasTotales, "horas_totales"],
           [primeraFecha, "primera_fecha"],
@@ -91,17 +91,19 @@ const TrabajoEstadisticasController = {
             as: "tb_trabajo_trabajadores",
             attributes: [],
             required: true,
-          },
-          {
-            model: Trabajador,
-            as: "tb_trabajador",
-            attributes: [],
+            include: [
+              {
+                model: Trabajador,
+                as: "tb_trabajador",
+                attributes: [],
+              },
+            ],
           },
         ],
         group: [
-          "Trabajador.id_trabajador",
-          "Trabajador.clave_trabajador",
-          "Trabajador.nombre",
+          "tb_trabajo_trabajadores.tb_trabajador.id_trabajador",
+          "tb_trabajo_trabajadores.tb_trabajador.clave_trabajador",
+          "tb_trabajo_trabajadores.tb_trabajador.nombre",
         ],
         order: [[sortable[sortBy] || totalTrabajos, sortOrder]],
         limit: parseInt(limit),
@@ -142,14 +144,14 @@ const TrabajoEstadisticasController = {
     try {
       const idQueja = parseInt(req.params.id_queja, 10);
       if (!Number.isInteger(idQueja) || idQueja <= 0) {
-        return next(apiError.badRequest("ERROR.TRABAJO.ID_QUEJA.INVALID"));
+        return next(apiErrors.badRequest("ERROR.TRABAJO.ID_QUEJA.INVALID"));
       }
 
       const queja = await Queja.findByPk(idQueja, {
         attributes: ["id_queja", "num_reporte", "estado"],
       });
       if (!queja) {
-        return next(apiError.notFound("Queja"));
+        return next(apiErrors.notFound("Queja"));
       }
 
       const duracion = literal(DURACION_SQL);
@@ -258,7 +260,7 @@ const TrabajoEstadisticasController = {
     try {
       const idTrabajo = parseInt(req.params.id, 10);
       if (!Number.isInteger(idTrabajo) || idTrabajo <= 0) {
-        return next(apiError.badRequest("ERROR.TRABAJO.ID_INVALID"));
+        return next(apiErrors.badRequest("ERROR.TRABAJO.ID_INVALID"));
       }
 
       const duracion = literal(DURACION_SQL);
@@ -300,10 +302,21 @@ const TrabajoEstadisticasController = {
       });
 
       if (!trabajo) {
-        return next(apiError.notFound("Trabajo"));
+        return next(apiErrors.notFound("Trabajo"));
       }
 
       const obj = trabajo.toJSON();
+
+      // Desglose de horas por trabajador (aproximación: reparto equitativo
+      // entre los trabajadores asignados al trabajo)
+      const trabajadoresArr = (obj.tb_trabajo_trabajadores || [])
+        .map((tt) => tt.tb_trabajador)
+        .filter(Boolean);
+      const horasTotales = Number(obj.horas ?? 0);
+      const horasPorTrabajador =
+        trabajadoresArr.length > 0
+          ? Math.round((horasTotales / trabajadoresArr.length) * 100) / 100
+          : 0;
 
       res.json({
         success: true,
@@ -313,12 +326,13 @@ const TrabajoEstadisticasController = {
           estado: obj.estado,
           estado_clave: obj.tb_clave?.clave ?? null,
           observaciones: obj.observaciones,
-          horas: Number(obj.horas ?? 0),
+          horas: horasTotales,
           probador: obj.tb_trabajador ?? null,
           queja: obj.tb_queja ?? null,
-          trabajadores: (obj.tb_trabajo_trabajadores || [])
-            .map((tt) => tt.tb_trabajador)
-            .filter(Boolean),
+          trabajadores: trabajadoresArr.map((t) => ({
+            ...t,
+            horas_asignadas: horasPorTrabajador,
+          })),
           // Los materiales/consumos asociados viven en backend-materiales (Go).
           // El frontend los carga vía consumoService.getConsumosPorTrabajo(id).
           consumos_url: `/materiales/consumos/trabajo/${idTrabajo}`,
