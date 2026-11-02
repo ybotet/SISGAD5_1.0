@@ -1,970 +1,537 @@
-# 🎯 PROMPTS.md — Sistema de Prompts por Tarea para SISGAD5
+# 🎯 PROMPTS.md — Prompts para Tareas No Completadas (SISGAD5)
 
-> **Proyecto:** SISGAD5 — Sistema de Soporte a la Toma de Decisiones
-> **Repositorio:** https://github.com/ybotet/SISGAD5_1.0
-> **Autor:** Ing. Botet S.Y. (Tesis de Maestría — RTU MIREA)
-> **Herramienta:** Kilo Code + agentes en `.agents/agents/`
-> **Última actualización:** 2026-10-23
-
----
-
-## 📑 Tabla de Contenidos
-
-1. [Cómo usar este archivo](#1-cómo-usar-este-archivo)
-2. [Plantilla base (cualquier tarea)](#2-plantilla-base-cualquier-tarea)
-3. [Fase A — Limpieza y Seguridad](#3-fase-a--limpieza-y-seguridad)
-4. [Fase B — Reorganización y Correcciones](#4-fase-b--reorganización-y-correcciones)
-5. [Fase C — Documentación](#5-fase-c--documentación)
-6. [Fase D — Módulo Predictivo](#6-fase-d--módulo-predictivo)
-7. [Parte II — Inventario Funcional](#7-parte-ii--inventario-funcional)
-8. [Cierre de tarea (memoria)](#8-cierre-de-tarea-memoria)
-9. [Verificación (QA)](#9-verificación-qa)
-10. [Plantillas de reporte](#10-plantillas-de-reporte)
+> **Proyecto:** SISGAD5_1.0 — https://github.com/ybotet/SISGAD5_1.0
+> **Generado:** 2026-11-02 · Basado en TASKLIST.md v2.4 (73 tareas no cerradas: 🔄/⏳)
+> **Uso:** copiar el bloque de código del prompt y ejecutarlo en Kilo Code con el agente indicado.
+> **Nota:** los prompts marcados 🔗 están agrupados porque comparten archivos/función (ejecutar en orden). Los marcados 👤 requieren acción humana (no hay prompt automatizable completo).
 
 ---
 
-## 1. Cómo usar este archivo
+## Bloque 1 — Frontend (Fase 7) — `frontend/`
 
-### Flujo de 7 pasos
-1. Abrir TASKLIST.md → identificar la tarea (ej. TASK-A-01).
-2. Abrir AGENTS.md sección 9 → identificar el agente recomendado.
-3. Abrir PROMPTS.md → copiar el prompt de la fase/tipo.
-4. Rellenar placeholders ([TASK-XXX], [archivo], etc.).
-5. Ejecutar en Kilo Code con el agente seleccionado.
-6. Al terminar, ejecutar el prompt de "Cierre de tarea" (sección 8).
-7. Marcar la tarea como completada en TASKLIST.md y hacer commit.
+### Prompt 1.1 — TASK-710-08 · Módulo de Trabajos 🔴🔄
+Agente: frontend-dev. Contexto verificado: existen `TrabajadorPage.tsx`, `MovimientoPage.tsx`, `components/queja/QuejaDetalleModal.tsx` (que muestra trabajos vinculados), pero NO hay página CRUD de órdenes de trabajo ni ruta dedicada en `App.tsx`. El backend expone `/api/trabajo` (routes+controller MP).
+```
+Proyecto: SISGAD5. Tarea: TASK-710-08 — Módulo de Trabajos (frontend).
+Objetivo: CRUD de órdenes de trabajo conectado a /api/trabajo del backend-mp, con asignación de técnicos.
+Pasos:
+1. Inspeccionar backend-mp/src/routes/trabajo.js y su controller para confirmar endpoints, campos y respuestas reales (no asumir).
+2. Crear frontend/src/services/trabajoService.ts siguiendo el patrón de servicios existentes (axios instance de src/services/api.ts).
+3. Crear pages/trabajo/TrabajosPage.tsx (listado con search/page/limit vía patrón parseListParams del backend) y formulario crear/editar reutilizando componentes de components/queja como referencia de estilo.
+4. Panel de asignación de trabajadores (multi-select desde /api/trabajador) usando el modelo Trabajo_trabajadores.
+5. Registrar ruta protegida en App.tsx con ProtectedRoute por permiso, y enlace en la navegación lateral.
+6. Verificar: npm run lint && npm run build sin errores; probar flujo manualmente contra localhost:5004.
+Criterio de aceptación: pantalla de Trabajos completa (lista+CRUD+asignación). Al terminar actualizar TASKLIST.md (🔄→✅) y docs/memory/.
+```
 
+### Prompt 1.2 — TASK-710-11 + TASK-1000-05 · Gestión Usuarios/Roles + Panel admin RBAC 🔗🔴🔄
+Agente: frontend-dev. Contexto: `components/roles/` y `usuariosService.ts` ya existen; falta la pantalla integral de usuarios y un panel unificado. Dependen del backend-users (CRUD usuario + RBAC implementados).
+```
+Proyecto: SISGAD5. Tareas: TASK-710-11 (UI gestión usuarios/roles) y TASK-1000-05 (Panel administración con control RBAC) — ejecutar juntas.
+Objetivo: página admin /admin que integre en pestañas: Usuarios (CRUD completo), Roles (existente, verificar cobertura de permisos) y Permisos.
+Pasos:
+1. Auditar qué existe ya en frontend/src/components/roles/ y usuariosService.ts vs endpoints reales de backend-users (auth.routes.js, user routes): listar en tabla gap antes de codificar.
+2. Completar UsuariosPage: tabla paginada, alta/edición con selector de rol, activar/desactivar usuario, reset de contraseña (solo si el endpoint existe; si no, dejar botón deshabilitado con tooltip).
+3. Gatear toda la sección con el permiso RBAC correspondiente (patrón ProtectedRoute existente); nunca ocultar solo en UI: documentar que el backend revalida.
+4. Unificar en AdminPage.tsx con <Tabs>; registrar ruta /admin protegida.
+5. npm run lint && npm run build en verde.
+Criterio: administrador gestiona usuarios/roles sin tocar BD. Actualizar TASKLIST.md ambas tareas y memoria al cerrar.
+```
 
-### Placeholders comunes
+### Prompt 1.3 — TASK-710-12 · Perfil de Usuario 🔄
+Agente: frontend-dev. Contexto: `/profile` existe pero es de solo lectura. El cambio de contraseña NO tiene endpoint aún (TASK-300-06 pendiente en backend-users) — coordinar dependencia.
+```
+Proyecto: SISGAD5. Tarea: TASK-710-12 — Perfil de Usuario (ver/editar + cambiar contraseña).
+Pasos:
+1. Revisar qué permite editar realmente backend-users (PUT en user routes) y AuthContext (refresh de datos tras edición).
+2. Hacer editable nombre/email/telefono con validación Zod igual que backend; recargar estado global tras guardar.
+3. Sección "Cambiar contraseña": si backend aún no expone PATCH /api/auth/password (TASK-300-06), implementar el formulario con el contrato definido en docs/api/users.yaml (PLANIFICADO) y mostrar aviso de indisponibilidad hasta que exista; NO inventar endpoint.
+4. lint+build en verde; actualizar TASKLIST.md/memoria.
+```
 
-| Placeholder     | Descripción            | Ejemplo                                           |
-| --------------- | ---------------------- | ------------------------------------------------- |
-| `[TASK-XXX-YY]` | ID de la tarea         | `TASK-A-01`                                       |
-| `[Nombre]`      | Nombre de la tarea     | "Rotar credenciales"                              |
-| `[Módulo]`      | Módulo afectado        | "Users Service"                                   |
-| `[Archivo]`     | Ruta del archivo       | `backend-users/src/controllers/AuthController.js` |
-| `[Criterio]`    | Criterio de aceptación | "Falla al arrancar si falta JWT_SECRET"           |
+### Prompt 1.4 — TASK-700-04 · Estado global 🔄
+Agente: frontend-dev. Contexto: AuthContext + ErrorContext (Context API) funcionan; no hay store de datos de dominio. Decisión previa del proyecto: mantener Context API salvo dolor real.
+```
+Proyecto: SISGAD5. Tarea: TASK-700-04 — Manejo de estado global predecible.
+Antes de codificar, decidir y documentar (ADR corto en docs/adr/): ¿Zustand o ampliar Context? Evaluar: solo se necesita cache de listas (paginación) + notificaciones.
+Si la respuesta es Zustand (recomendado mínimo):
+1. npm i zustand; crear src/store/useNotificationStore.ts (toasts, véase prompt 1.6) y src/store/useAuthStore.ts migrando AuthContext SIN romper consumidores (export hook-compatible wrapper).
+2. Migrar gradualmente: primero notificaciones, luego auth. Prohibido big-bang.
+3. Verificar tests/e2e de login siguen pasando (o auto-skip si no hay navegador).
+Criterio: un único patrón de estado global documentado; cero regresiones visibles. Cerrar TASKLIST+memoria.
+```
 
-### Archivos de contexto (el agente los lee)
+### Prompt 1.5 — TASK-720-02 · Responsive design 🔄
+Agente: frontend-dev + QA. Contexto: Tailwind activo pero uso irregular de breakpoints.
+```
+Proyecto: SISGAD5. Tarea: TASK-720-02 — Responsive design sistemático.
+1. Auditoría: recorrer las 12 páginas principales con viewport 375/768/1280px (Playwright screenshot o manual) y producir docs/audit-responsive.md con tabla página×problema.
+2. Corregir por lotes priorizando: Login, Dashboard, Quejas, Tablas de nomencladores. Patrones: contenedor max-w, tablas → card-view en móvil (hidden md:table + cards md:hidden), grids grid-cols-1 sm:grid-cols-2 lg:grid-cols-3.
+3. Estandarizar en components/ui/Table.tsx el colapso responsive una sola vez (no repetir por página).
+Criterio: las 3 vistas objetivo usables en móvil sin scroll horizontal. Cierre con evidencia de screenshots en memoria.
+```
 
-- `AGENTS.md` (obligatorio, sección 8: deuda técnica activa)
-- `SPEC.md`
-- `ARCHITECTURE.md`
-- `memory.md` (índice)
-- `TASKLIST.md` (tarea actual)
-
----
-
-## 2. Plantilla base (cualquier tarea)
-
-Usa esta plantilla si no hay una específica para tu tarea.
-
-[ROL]
-Actúa como el agente especializado que corresponde a esta tarea. Sigue estrictamente las reglas de `AGENTS.md` (especialmente sección 8: Deuda Técnica Activa) y la arquitectura de `ARCHITECTURE.md`.
-
-[CONTEXTO]
-Proyecto: SISGAD5. Tarea: [TASK-XXX-YY] — [Nombre de la tarea].
-Lee `AGENTS.md`, `SPEC.md`, `ARCHITECTURE.md` y `memory.md` (índice) antes de comenzar.
-
-[TAREA]
-Implementa la tarea según el criterio de aceptación del TASKLIST.md:
-- **Descripción:** [copiar del TASKLIST]
-- **Criterio de aceptación:** [copiar del TASKLIST]
-- **Archivos afectados:** [copiar del TASKLIST]
-- **Dependencias:** [copiar del TASKLIST]
-
-[RESTRICCIONES]
-- No violes las reglas de oro de AGENTS.md.
-- No introduzcas nuevos hallazgos de la auditoría (AGENTS.md sección 8).
-- Si encuentras un problema no contemplado, documéntalo en `docs/memory/[fecha].md` y detente.
-- Usa Conventional Commits.
-- Comenta las funciones en español.
-
-[FORMATO DE SALIDA]
-1. Código implementado (bloques con ruta de archivo).
-2. Tests (si aplica).
-3. Resumen de cambios (qué, por qué, dónde).
-4. Entrada para `docs/memory/[fecha].md`.
-
----
-
-## 3. Fase A — Limpieza y Seguridad
-### 3.1. Prompt para TASK-A-01: Rotar credenciales
-
-Agente: security-fixer
-
-[ROL]
-Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-01, SEC-02, SEC-03).
-
-[CONTEXTO]
-Tarea: TASK-A-01 — Rotar credenciales expuestas (JWT_SECRET, DB_PASSWORD).
-Hallazgos: SEC-01 (JWT fallback), SEC-02 (Materials sin JWT), SEC-03 (Grafana admin/admin).
-
-[TAREA]
-1. Genera nuevo `JWT_SECRET` con `openssl rand -base64 64`.
-2. Genera nuevo `DB_PASSWORD` seguro.
-3. Crea `.env.local` (gitignored) con los nuevos valores.
-4. Verifica que `.env.example` solo tenga placeholders (`your-secret-here`).
-5. Documenta en `docs/memory/[fecha de hoy].md` los nuevos valores (sin exponerlos, solo referencia).
-6. Avisa al humano para que actualice PostgreSQL.
-
-[RESTRICCIONES]
-- No subas `.env.local` al repo.
-- No expongas los valores reales en el chat ni en logs.
-- Si no puedes generar los valores, pide al humano que los genere.
-
-[FORMATO]
-1. Comandos ejecutados (sin mostrar valores).
-2. Contenido de `.env.example` (con placeholders).
-3. Entrada de memoria.
+### Prompt 1.6 — TASK-720-04 + TASK-720-05 · Loading states + Toasts 🔗🔄⏳
+Mismo agente, mismos archivos (components/ui/). Ejecutar juntos.
+```
+Proyecto: SISGAD5. Tareas: TASK-720-04 (loading uniformes) y TASK-720-05 (notificaciones toast).
+Stack elegido: react-hot-toast (liviano) + skeletons propios.
+1. npm i react-hot-toast; montar <Toaster/> en App.tsx.
+2. Crear components/ui/Skeleton.tsx (TableSkeleton, CardSkeleton, FormSkeleton).
+3. Crear helper src/utils/notify.ts: notifySuccess/notifyError(msg|ApiError) mapeando códigos de error del gateway a mensajes ES.
+4. Sustituir TODOS los spinners/loads ad-hoc y alert()/ErrorDisplay por Skeleton+toast en llamadas CRUD (buscar: grep -rn "spinner\|cargando\|alert(" src/). Los errores de mutación deben disparar toast automáticamente en services/api.ts interceptor.
+5. lint+build verde. Cerrar ambas tareas en TASKLIST.md.
+```
 
 ---
 
-### 3.2. Prompt para TASK-A-02: Crear .gitignore
+## Bloque 2 — Backend Users (Fases 3, 6, 8) — `backend-users/`
 
-Agente: project-auditor
+### Prompt 2.1 — TASK-300-06 · Cambio de contraseña ⏳ Alta
+Agente: backend-dev. Prerequisito natural antes de 1.3. Convención: features/auth/, Zod validations en shared/validation/, respuesta vía envoltorio estándar.
+```
+Proyecto: SISGAD5. Tarea: TASK-300-06 — Endpoint self-service de cambio de contraseña.
+Implementar PATCH /api/auth/password (autenticado):
+1. body { password_actual, password_nueva } validado con Zod (crear password.validation.js; política complejidad = misma que USER_PASSWORD del registro: min 8, mayús, minús, dígito).
+2. Controller: bcrypt.compare del actual (si falla → 401 genérico + contador de intentos si existe TASK-300-07); rechazar nueva==actual; hashear bcrypt(rounds actuales) y UPDATE tb_user.
+3. Revocar TODOS los refresh tokens del usuario tras el cambio (modelo RefreshToken, campo revoked) — sesiones restantes invalidadas.
+4. Rutas: registrar en auth.routes.js; auditar en logs estructurados (sin contenido sensible).
+5. Tests Jest (supertest, patrón mock de sequelize ya usado en session.validation tests): éxito, password actual incorrecto, política insuficiente, revocación de tokens.
+6. Actualizar docs/api/users.yaml (dejar de marcar PLANIFICADO) y TASKLIST.md.
+```
 
-[ROL]
-Actúa como `project-auditor`. Sigue `AGENTS.md` sección 8.
+### Prompt 2.2 — TASK-300-05 · Recuperación de contraseña ⏳ Alta
+Depende de decidir canal de correo (pendiente humano). Diseñar para proveedor plugable.
+```
+Proyecto: SISGAD5. Tarea: TASK-300-05 — Recuperación de contraseña.
+Diseño (seguir patrón de refresh tokens: hash en BD, expiración):
+1. Nueva tabla via migración versionada (migrations/ + .sequelizerc YA configurado): tb_password_resets(id, id_usuario, token_hash unique, expires_at, used_at, created_at). Migración SIEMPRE reversible up/down.
+2. POST /api/auth/recuperar { email }: genera token aleatorio 32 bytes, guarda hash SHA-256, expira 30min, responde SIEMPRE 200 (anti user-enumeration). Canal de entrega: interfaz MailerPort con implementación ConsoleMailer (dev) y SMTPMailer configurable por env (SMTP_HOST…); NO hardcodear credenciales.
+3. POST /api/auth/reestablecer { token, password_nueva }: valida hash+vigencia+no-usado, aplica política TASK-300-06 (reutilizar validation), marca used_at, revoca refresh tokens.
+4. Rate-limit en estas 2 rutas (expres-rate-limit, bucket por IP).
+5. Tests: flujo feliz, token expirado, token reused, email inexistente (200).
+6. users.yaml + TASKLIST.md actualizados. Pendiente humano: aprobar proveedor SMTP real y DSN.
+```
 
-[CONTEXTO]
-Tarea: TASK-A-02 — Crear `.gitignore` completo.
-Problema: El repo tiene versionados node_modules, logs, dist, .env, api.exe, backup/, Continue/.
+### Prompt 2.3 — TASK-300-07 · Bloqueo por intentos fallidos ⏳ Media
+```
+Proyecto: SISGAD5. Tarea: TASK-300-07 — Bloqueo temporal de cuenta por intentos fallidos.
+1. Columnas via migración en tb_user: failed_attempts int default 0, locked_until timestamptz null.
+2. En login (auth.controller.js): si locked_until > now() → 423 { retry_after }; credenciales inválidas → increment; aciertos → reset. Umbral N=5, bloqueo 15min (configurable env LOGIN_MAX_ATTEMPTS/LOGIN_LOCK_MINUTES).
+3. Evento de auditoría estructurado al bloquear (logger.warn con id_usuario, ip — nota: criterio original decía ip_usuario; confirmar nombre real de columna antes de escribir SQL).
+4. El mensaje de error NO debe revelar si el email existe (401 genérico).
+5. Tests Jest: 5 fallos→bloqueo, login durante bloqueo→423, éxito resetea, expiración libera.
+```
 
-[TAREA]
-1. Crea/actualiza `.gitignore` en la raíz con:
-   - Dependencias: `node_modules/`, `**/node_modules/`, `vendor/`
-   - Build: `dist/`, `build/`, `coverage/`, `*.exe`, `api.exe`
-   - Secretos: `.env`, `.env.*`, `! .env.example`, `**/.env`
-   - Logs: `logs/`, `**/logs/`, `*.log`, `*.log.gz`
-   - Temporales: `backup/`, `Continue/`, `*.bak`, `*.tmp`
-   - IDE: `.vscode/`, `.idea/`, `.kilo/.gitignore`
-   - Python: `__pycache__/`, `*.pkl`, `.venv/`
-   - Datos: `prediction-service/data/`
-2. Verifica que `.env.example` NO esté ignorado.
-3. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Contenido del `.gitignore`.
-2. Verificación (qué se ignora, qué no).
-3. Entrada de memoria.
-
----
-
-### 3.3. Prompt para TASK-A-03 a A-06: Limpieza de artefactos
-
-Agente: project-auditor
-
-[ROL]
-Actúa como `project-auditor`.
-
-[CONTEXTO]
-Tarea: [TASK-A-03 / A-04 / A-05 / A-06] — Limpieza de artefactos.
-Archivos/carpetas a eliminar: [lista del TASKLIST].
-
-[TAREA]
-1. Ejecuta `git rm -r --cached` sobre los archivos/carpetas indicados (sin borrar del disco).
-2. Verifica que `git status` esté limpio.
-3. Verifica que el repo se aligera (`du -sh .git`).
-4. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[RESTRICCIONES]
-- No borres archivos del disco sin confirmación del humano.
-- Si un archivo está referenciado en otro lugar, detente y documenta.
-
-[FORMATO]
-1. Comandos ejecutados.
-2. `git status` resultante.
-3. Entrada de memoria.
----
-### 3.4. Prompt para TASK-A-08: Eliminar fallback JWT_SECRET
-
-Agente: security-fixer
-
-[ROL]
-Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-01, crítico).
-
-[CONTEXTO]
-Tarea: TASK-A-08 — Eliminar fallback `JWT_SECRET || "secreto"` en Users y MP.
-Archivos:
-- `backend-users/src/controllers/AuthController.js` (líneas ~120-126)
-- `backend-mp/src/controllers/AuthController.js` (líneas ~106-112)
-
-[TAREA]
-1. Busca todas las ocurrencias de `JWT_SECRET || "secreto"` o similares.
-2. Reemplaza por validación que falle al arrancar:
-   ```js
-   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
-     throw new Error('JWT_SECRET must be defined and at least 32 chars');
-   }
-
-3. Añade la validación en src/config/env.js (o equivalente) si no existe.
-4. Verifica que .env.example tenga JWT_SECRET=your-secret-here.
-5. Ejecuta tests existentes.
-6. Documenta en docs/memory/[fecha de hoy].md.
-
-[RESTRICCIONES]
-
-- No cambies el flujo de login, solo la validación del secreto.
-- Si no hay tests, documenta que faltan.
-
-[FORMATO]
-
-1. Código corregido (bloques con ruta).
-2. Resultado de tests.
-3. Entrada de memoria.
-
----
-### 3.5. Prompt para TASK-A-09: JWT en Materials (Go)
-
-**Agente:** `security-fixer`
-
-[ROL]
-Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-02, crítico) y la skill `security-go-middleware`.
-
-[CONTEXTO]
-Tarea: TASK-A-09 — Añadir JWT middleware a Materials Service (Go).
-Archivo: `backend-materiales-go/cmd/api/main.go` (líneas ~116-177).
-
-[TAREA]
-1. Crea `internal/middleware/auth.go` con validación JWT (usando `golang-jwt/jwt`).
-2. Aplica el middleware a todas las rutas excepto `/health`.
-3. Añade `JWT_SECRET` a `.env.example` y `internal/config/`.
-4. Verifica que sin token, las rutas devuelven 401.
-5. Verifica que con token válido, las rutas funcionan.
-6. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[RESTRICCIONES]
-- No cambies la lógica de negocio, solo añade auth.
-- Usa `golang-jwt/jwt/v5`.
-- Comenta las funciones en español.
-
-[FORMATO]
-1. Código del middleware + integración en main.go.
-2. Tests (si aplica).
-3. Entrada de memoria.
----
-### 3.6. Prompt para TASK-A-10: Cerrar puertos internos
-
-Agente: security-fixer
-[ROL]
-Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-02/SEC-05).
-
-[CONTEXTO]
-Tarea: TASK-A-10 — Cerrar puertos internos (5001, 5002, 5003, 5432) en prod.
-Archivo: `docker-compose.prod.yml`.
-
-[TAREA]
-1. En `docker-compose.prod.yml`, elimina los mapeos de puertos internos:
-   - `5001:5001` (Users)
-   - `5002:5002` (MP)
-   - `5003:5003` (Materials)
-   - `5432:5432` (PostgreSQL)
-2. Deja solo el puerto del Gateway (5000) y del Frontend (5004) expuestos.
-3. Verifica que los servicios se comunican por la red interna de Docker.
-4. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[RESTRICCIONES]
-- No rompas `docker-compose.yml` (dev); solo `prod`.
-- Verifica que el Gateway puede alcanzar los servicios por nombre DNS (`backend-users`, etc.).
-
-[FORMATO]
-1. Diff de `docker-compose.prod.yml`.
-2. Verificación de comunicación interna.
-3. Entrada de memoria.
----
-### 3.7. Prompt para TASK-A-11: Grafana creds
-
-Agente: security-fixer
-[ROL]
-Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-03, crítico).
-
-[CONTEXTO]
-Tarea: TASK-A-11 — Cambiar credenciales Grafana (admin/admin).
-Archivo: `docker-compose.yml` (líneas ~192-199).
-
-[TAREA]
-1. Reemplaza `GF_SECURITY_ADMIN_PASSWORD: admin` por `${GRAFANA_ADMIN_PASSWORD}`.
-2. Añade `GRAFANA_ADMIN_PASSWORD` a `.env.example` (placeholder).
-3. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Diff del compose.
-2. Contenido de `.env.example`.
-3. Entrada de memoria.
+### Prompt 2.4 — TASK-800-01 · Tests unitarios Users Service ⏳🔴
+Contexto real: backend-users SÍ tiene algunos tests parciales (auth/sesión) creados en v2.4; la fila del TASKLIST está obsoleta. Faltan controllers de usuario, middlewares, RBAC.
+```
+Proyecto: SISGAD5. Tarea: TASK-800-01 — Suite Jest ≥70% cobertura en backend-users.
+1. Configurar jest.config.js (collectCoverageFrom src/**, excluyendo node_modules/migrations) y script npm test real (revisar package.json; hay patrones ya usados en tests existentes — inspeccionar primero tests/ actuales y NO duplicar setups).
+2. Mockear sequelize con jest-mock-sequelize o mocks manuales de modelos (patrón de los tests de sesión existentes).
+3. Cubrir por prioridad: user.controller CRUD+RBAC, auth (login/refresh/logout/password si ya mergeado 2.1), middlewares auth/errores, validations Zod.
+4. npm test -- --coverage ≥70% statements en src/features y src/shared. Integrar en ci.yml job test-users (ya existe workflow lint/test JS — verificar nombre del job).
+5. Corregir la fila TASK-800-01 de TASKLIST.md (evidencia obsoleta) y marcar avance real.
+```
 
 ---
 
-### 3.8. Prompt para TASK-A-12: MP_DB_NAME
+## Bloque 3 — Backend MP (Fase 4) — `backend-mp/`
 
-Agente: consistency-fixer
+### Prompt 3.1 — TASK-410-02 · Baja de línea ⏳🔴 (esqueleto, completar en ejecución)
+Contexto: el equivalente existe en teléfonos (`darbaja`). Patrón: ruta PATCH dedicada antes de `/:id` genérica.
+```
+Proyecto: SISGAD5. Tarea: TASK-410-02 — Cambio de estado (activo/baja) de línea.
+1. Leer TelefonoController darBaja y replicar semántica en LineaController: PATCH /api/linea/:id/baja y /reactivar (o PATCH /estado según convención real del teléfono — verificar primero).
+2. Validar relaciones: impedir baja de línea con puertos/pizarras conectadas activas si el modelo lo exige (confirmar FK reales en models/Linea.js).
+3. Rutas ANTES de /:id en linea.js (lección TASK-B-19). Test supertest de ambos estados. Actualizar swagger mp si existe.
+```
 
-[ROL]
-Actúa como `consistency-fixer`. Sigue `AGENTS.md` sección 8 (ARC-04).
+### Prompt 3.2 — TASK-400-03 + 410-03 + 420-06 · Endpoints de historial unificado 🔗🔴🔄
+Comparten servicio de agregación; crear uno parametrizado.
+```
+Proyecto: SISGAD5. Tareas: TASK-400-03 (teléfono), TASK-410-03 (línea), TASK-420-06 (pizarra) — historiales completos.
+1. Crear src/features/historial/HistorialService.js: firma getHistorial(tipoEntidad, id) que UNE (array merge ordenado por fecha desc): quejas (via FK telefono/linea/pizarra según exista), movimientos, recorridos/asignaciones aplicables. Usar SOLO modelos reales (inspeccionar models/ antes: Queja, Movimiento, Recorrido...).
+2. Endpoints: GET /api/telefono/:id/historial, GET /api/linea/:id/historial, GET /api/pizarra/:id/historial (respuesta { entidad, eventos[] } paginable ?limit=).
+3. Queries con include atajado (evitar N+1); explicar en comentario el índice necesario y crear migración de índice si la consulta es lenta en datos reales.
+4. Tests: cada endpoint devuelve eventos ordenados; entidad inexistente → 404.
+Ejecutar 420-06 después de TASK-420-02 (puertos), pues agrega líneas conectadas.
+```
 
-[CONTEXTO]
-Tarea: TASK-A-12 — Corregir `MP_DB_NAME` en docker-compose.
-Archivos:
-- `docker-compose.yml` (línea ~70)
-- `backend-mp/src/config/env.js` (línea ~23)
-- `backend-mp/src/config/database.js` (líneas ~22-23)
+### Prompt 3.3 — TASK-420-02 → 420-03 → 420-04 · Pizarras: puertos, conexiones, ubicación 🔗⏳
+Orden obligatorio (dependencias encadenadas).
+```
+Proyecto: SISGAD5. Tareas: TASK-420-02 (CRUD puertos), TASK-420-03 (conexiones), TASK-420-04 (ubicación pizarra).
+Fase A — Puertos:
+1. Modelo Puerto (tb_* según convención REAL del repo — verificar nombres de tabla usados en models/ existentes y ser consistente) con FK pizarra_id, numero, tipo_pizarra_id opcional; migración + asociación Pizarra.hasMany.
+2. CRUD anidado: GET/POST /api/pizarra/:id/puertos, PUT/DELETE /api/puerto/:id. Validación Zod.
+Fase B — Conexiones:
+3. Modelo Conexion (origen_puerto_id, destino_puerto_id, cable_id FK al nomenclador Cable existente, tipo 'entrante'|'saliente'); impedir autofunción y puertos de la misma pizarra si no aplica.
+4. GET /api/puerto/:id/conexiones (entrantes y salientes).
+Fase C — Ubicación:
+5. Migración añade a Pizarra: planta_id (FK existente Planta), zona varchar, coordenadas jsonb null; expuestos en GET/PUT pizarra.
+Tests por fase; swagger/docs api mp actualizados al final.
+```
 
-[TAREA]
-1. En `docker-compose.yml`, cambia `DB_NAME=${MP_DB_NAME}` por `MP_DB_NAME=${MP_DB_NAME}` (o el nombre correcto según el schema Zod).
-2. Verifica que `backend-mp` arranca sin abortar.
-3. Documenta en `docs/memory/[fecha de hoy].md`.
+### Prompt 3.4 — TASK-430-05 + TASK-450-02 + TASK-450-04 · Endpoints dedicados asignar/cerrar 🔗🔴🔄
+Los tres son rutas de estado que hoy van por PUT genérico. Mismo controller pattern.
+```
+Proyecto: SISGAD5. Tareas: TASK-430-05 (PATCH /api/mp/quejas/:id/asignar), TASK-450-02 (PATCH /api/trabajos/:id/asignar), TASK-450-04 (PATCH /trabajos/:id/cerrar).
+1. Queja: PATCH /:id/asignar { trabajador_id } → crea Asignacion, estado → 'Asignada', transición válida según máquina de estados actual (leer constants de estados primero); 409 si estado origen inválido.
+2. Trabajo: PATCH /:id/asignar { trabajador_ids[] } sobre Trabajo_trabajadores (upsert múltiple en transacción).
+3. Trabajo: PATCH /:id/cerrar → estado 'Cerrado' + fecha_cierre now(); requiere todos los movimientos/condición real de cierre (verificar regla existente en update genérico y replicarla, no inventar).
+4. Mantener PUT genérico funcionando (retrocompatibilidad frontend); los nuevos endpoints los consumirá TASK-710-08.
+5. Tests supertest de transiciones válidas/inválidas.
+```
 
-[FORMATO]
-1. Diff del compose.
-2. Verificación de arranque.
-3. Entrada de memoria.
----
+### Prompt 3.5 — TASK-430-06 + TASK-430-07 · Bitácora de transiciones + auditoría 🔗🔴
+Misma tabla sirve a ambos criterios.
+```
+Proyecto: SISGAD5. Tareas: TASK-430-06 (historial de cambios de queja) y TASK-430-07 (auditoría de acciones).
+1. Migración tb_auditoria(id, entidad, id_entidad, accion, desde_estado, hacia_estado, usuario_id, detalle jsonb, ip, created_at) — single audit trail para MP.
+2. Helper logAuditoria() llamado desde Queja/Trabajo/Línea/Pizarra controllers en create/update/delete/asignar/cerrar (no en GETs).
+3. GET /api/mp/quejas/:id/historial → filtra tb_auditoria entidad='Queja' (incluye quién/cuándo/desde-hacia) — satisface 430-06.
+4. GET /api/mp/auditoria (permiso admin, filtros fecha/entidad/usuario, paginado) — satisface 430-07.
+5. Tests: transición registra fila; historial ordenado; acceso sin permiso → 403.
+```
 
-## 4. Fase B — Reorganización y Correcciones
-### 4.1. Prompt para TASK-B-01 a B-14: Migración feature-based
+### Prompt 3.6 — TASK-440-04 · Historial de pruebas con filtros ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-440-04 — Listado de pruebas filtrable.
+1. Verificar ResultadoPrueba controller: añadir a GET list filters ?desde=&hasta=&resultado=&trabajador_id= combinables sobre parseListParams existente (Op.between fechas, Op.eq).
+2. Índice migrado sobre (fecha_prueba, resultado) si faltare.
+3. Test: combinación fecha+resultado devuelve subconjunto correcto. Documentar params en doc OpenAPI mp.
+```
 
-Agente: refactor-fixer
+### Prompt 3.7 — TASK-450-03 · Tiempo estimado vs real ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-450-03 — Campos de tiempo en Trabajo.
+1. Inspeccionar modelo Trabajo: si no existen, migración añade tiempo_estimado_horas numeric null, tiempo_real_horas numeric null (o derivar de fecha_inicio/fecha_cierre si ya existen — verificar ANTES de duplicar columnas).
+2. En PATCH /cerrar (prompt 3.4) calcular tiempo_real = cierre−inicio si aplica.
+3. Endpoint GET /api/trabajos/estadisticas-tiempo: media estimado vs real por mes (agregación SQL parametrizada). Test de cálculo.
+```
 
-[ROL]
-Actúa como `refactor-fixer`. Sigue `AGENTS.md` sección 8 y el plan de migración en `docs/migrations/backend-mp-feature-based.md`.
+### Prompt 3.8 — TASK-450-05 · Historial de trabajos con filtros ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-450-05 — GET /api/trabajos con ?estado=&trabajador_id=&desde=&hasta= aplicados en la consulta (include Trabajo_trabajadores donde aplique), paginado estándar. Reutilizar helper de filtros del prompt 3.6. Test de combinación.
+```
 
-[CONTEXTO]
-Tarea: [TASK-B-XX] — Migrar Lote [N] ([entidades]) a feature-based.
-Plan: `docs/migrations/backend-mp-feature-based.md` (Lote [N]).
-Archivos: `backend-mp/src/controllers/`, `routes/`, `models/`, `validations/`.
+### Prompt 3.9 — TASK-430-10 · Notificaciones email ⏳
+Depende del MailerPort del prompt 2.2 — reutilizarlo, no crear segundo mecanismo.
+```
+Proyecto: SISGAD5. Tarea: TASK-430-10 — Email al asignar/cambiar estado de queja.
+1. Extraer MailerPort a shared/ (si 2.2 ya lo creó en backend-users, evaluar mover a lib común o duplicar puerto con impl propia en MP — decidir y anotar ADR corto).
+2. Cola simple sin infra nueva: tabla tb_notificaciones(pendiente) + worker setInterval o setImmediate fire-and-forget con reintento x3; NUNCA bloquear la respuesta HTTP.
+3. Disparadores: eventos de 3.4/3.5 (asignar, cerrar). Plantilla handlebars simple.
+4. Config SMTP por env; en dev console mailer. Test: evento encola notificación; fallo SMTP no rompe request.
+```
 
-[TAREA]
-1. Sigue el mapeo del plan para el Lote [N].
-2. Crea `src/features/[entidad]/` para cada entidad del lote.
-3. Mueve archivos con `git mv`.
-4. Actualiza imports en los archivos movidos y en `routes/index.js`.
-5. Ejecuta tests y verifica que `docker compose up` funciona.
-6. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[RESTRICCIONES]
-- No cambies lógica de negocio, solo estructura.
-- Si un import no se puede resolver, detente y documenta.
-- Un commit por lote.
-
-[FORMATO]
-1. Archivos movidos (tabla: origen → destino).
-2. Imports actualizados.
-3. Resultado de tests.
-4. Entrada de memoria.
-
----
-
-### 4.2. Prompt para TASK-B-15: JWT en Gateway
-
-Agente: security-fixer
-
-[ROL]
-Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-05, ARC-02).
-
-[CONTEXTO]
-Tarea: TASK-B-15 — Añadir JWT verification en API Gateway.
-Archivo: `api-gateway/src/server.js` (líneas ~86-140).
-
-[TAREA]
-1. Añade middleware de verificación JWT en el Gateway.
-2. Excluye rutas públicas: `/api/auth/login`, `/api/auth/register`, `/health`.
-3. Propaga claims (userId, roles) en headers `X-User-Id`, `X-User-Roles` a los servicios.
-4. Verifica que sin token, las rutas protegidas devuelven 401.
-5. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[RESTRICCIONES]
-- No dupliques la lógica de Users; solo verifica la firma.
-- Usa `jsonwebtoken`.
-
-[FORMATO]
-1. Código del middleware.
-2. Verificación con/sin token.
-3. Entrada de memoria.
-
---- 
-
-### 4.3. Prompt para TASK-B-16: CORS lista blanca
-
-Agente: security-fixer
-
-[ROL]
-Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-04).
-
-[CONTEXTO]
-Tarea: TASK-B-16 — CORS con lista blanca en Gateway.
-Archivo: `api-gateway/src/server.js` (líneas ~23-40).
-
-[TAREA]
-1. Reemplaza `origin: true` por lista blanca desde `CORS_ORIGIN` (env var).
-2. Si `CORS_ORIGIN` no está definido en producción, falla al arrancar.
-3. Activa CSP de Helmet en producción.
-4. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Código corregido.
-2. Verificación con/sin origen permitido.
-3. Entrada de memoria.
+### Prompt 3.10 — TASK-800-02 · Tests unitarios MP Service ⏳🔴
+Contexto corregido: backend-mp SÍ tiene tests (27/27 verdes desde fix ESLint/tests de 2026-11-01). La fila TASKLIST ("Sin archivos de test") está obsoleta. Falta cobertura ≥70%.
+```
+Proyecto: SISGAD5. Tarea: TASK-800-02 — Elevar cobertura MP a ≥70%.
+1. Corregir evidencia en TASKLIST.md (tests existentes: suite actual 27 casos).
+2. jest --coverage: identificar gaps (controllers de dominio: Queja/Trabajo/Línea/Pizarra, middlewares RBAC, servicios saga).
+3. Añadir suites por módulo siguiendo patrón de setup existente (env vars de test ya resueltas — reutilizar jest setup que fija DB/SECRET dummy).
+4. Meta: ≥70% statements; job test-mp en CI ya activo — confirmar que corre con coverage y publica resumen.
+```
 
 ---
-### 4.4. Prompt para TASK-B-17: RBAC en MP
 
-Agente: security-fixer
-
-[ROL]
-Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-06).
-
-[CONTEXTO]
-Tarea: TASK-B-17 — RBAC por operación en quejas, trabajos, asignaciones.
-Archivos: `backend-mp/src/routes/queja.js`, `trabajo.js`, `asignacion.js`.
-
-[TAREA]
-1. Aplica `tienePermiso` en cada ruta protegida:
-   - `quejas.crear`, `quejas.cerrar`, `quejas.asignar`
-   - `trabajos.crear`, `trabajos.cerrar`
-   - `asignaciones.crear`, `asignaciones.eliminar`
-2. Corrige `tienePermiso` en `middleware/permissions.js` (usa `forEach` sin retorno).
-3. Verifica que sin permiso, devuelve 403.
-4. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Código corregido en rutas y middleware.
-2. Tests de permisos.
-3. Entrada de memoria.
-
----
-### 4.5. Prompt para TASK-B-18: SQL injection
-
-Agente: security-fixer
-
-[ROL]
-Actúa como `security-fixer`. Sigue `AGENTS.md` sección 8 (SEC-07).
-
-[CONTEXTO]
-Tarea: TASK-B-18 — Parametrizar SQL del dashboard (Sequelize replacements).
-Archivo: `backend-mp/src/controllers/QuejaController.js` (líneas ~830-838).
-
-[TAREA]
-1. Reemplaza la interpolación de fechas en el string SQL por `replacements`.
-2. Verifica que `normalizeDateRange` se usa correctamente.
-3. Añade tests que validen que no hay inyección.
-4. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Código corregido.
-2. Tests.
-3. Entrada de memoria.
-
----
-### 4.6. Prompt para TASK-B-19: Reordenar rutas dashboard
-
-Agente: refactor-fixer
-
-[ROL]
-Actúa como `refactor-fixer`. Sigue `AGENTS.md` sección 8 (BUS-02).
-
-[CONTEXTO]
-Tarea: TASK-B-19 — Reordenar rutas `/dashboard/*` antes de `/:id`.
-Archivo: `backend-mp/src/routes/queja.js` (líneas ~20, 45-53).
-
-[TAREA]
-1. Mueve las rutas `GET /dashboard/*` antes de `GET /:id`.
-2. Verifica que `GET /dashboard/resumen` funciona.
-3. Verifica que `GET /:id` sigue funcionando para IDs válidos.
-4. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Código reordenado.
-2. Verificación de ambas rutas.
-3. Entrada de memoria.
-
----
-### 4.7. Prompt para TASK-B-20: Migraciones
-
-Agente: db-migration-specialist
-
-[ROL]
-Actúa como `db-migration-specialist`. Sigue `AGENTS.md` sección 8 (DAT-01) y la skill `sequelize-migrations`.
-
-[CONTEXTO]
-Tarea: TASK-B-20 — Migraciones versionadas + índices (Users, MP).
-Problema: No hay `migrations/`, se usa `sequelize.sync({ force: false })`, sin índices.
-
-[TAREA]
-1. Crea `migrations/` en `backend-users` y `backend-mp`.
-2. Genera migraciones para las tablas existentes (sin perder datos).
-3. Añade índices en: `estado`, FKs, `fecha`.
-4. Reemplaza `sequelize.sync({ force: false })` por `sequelize.sync({ alter: false })` + migraciones.
-5. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Archivos de migración.
-2. Índices añadidos.
-3. Entrada de memoria.
-
----
-### 4.8. Prompt para TASK-B-21: Tests JS
-
-Agente: test-initializer
-
-[ROL]
-Actúa como `test-initializer`. Sigue `AGENTS.md` sección 8 (QA-01) y la skill `jest-supertest-setup`.
-
-[CONTEXTO]
-Tarea: TASK-B-21 — Sustituir `npm test` placeholder por Jest/Supertest.
-Problema: `backend-users/package.json:10` y `backend-mp/package.json:10` tienen `"test": "exit 1"`.
-
-[TAREA]
-1. Configura Jest + Supertest en `backend-users` y `backend-mp`.
-2. Crea tests básicos para los endpoints críticos (auth, quejas, trabajos).
-3. Verifica que `npm test` pasa.
-4. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Configuración de Jest.
-2. Tests creados.
-3. Resultado de `npm test`.
-4. Entrada de memoria.
-
----
-### 4.9. Prompt para TASK-B-22: Saga MP → Materials
-
-Agente: integration-specialist
-
-[ROL]
-Actúa como `integration-specialist`. Sigue `AGENTS.md` sección 8 (ARC-03) y la skill `microservices-saga-pattern`.
-
-[CONTEXTO]
-Tarea: TASK-B-22 — Saga/compensación al cerrar queja (MP → Materials).
-Problema: Cerrar queja solo actualiza MP, no registra consumo en Materials.
-
-[TAREA]
-1. Diseña la saga: al cerrar queja, llamar a Materials para registrar consumo.
-2. Implementa compensación si Materials falla (revertir cierre o marcar pendiente).
-3. Añade timeout y retry con backoff.
-4. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Diagrama de la saga (Mermaid).
-2. Código implementado.
-3. Tests.
-4. Entrada de memoria.
-
----
-## 5. Fase C — Documentación
-### 5.1. Prompt para TASK-C-01 a C-10: Traducción bilingüe
-
-Agente: docs-writer
-
-[ROL]
-Actúa como `docs-writer`. Sigue `AGENTS.md` sección 9 y la skill `report-generation`.
-
-[CONTEXTO]
-Tarea: [TASK-C-XX] — [Renombrar/traducir] `docs/[archivo].md`.
-Convención: archivos paralelos `.es.md` / `.ru.md`.
-
-[TAREA]
-1. Renombra `docs/[archivo].md` a `docs/[archivo].es.md`.
-2. Crea `docs/[archivo].ru.md` con la traducción fiel al ruso.
-3. Actualiza enlaces internos en otros documentos.
-4. Actualiza `docs/00_index.es.md` y `.ru.md`.
-5. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Archivos creados/renombrados.
-2. Verificación de enlaces.
-3. Entrada de memoria.
-
----
-### 5.2. Prompt para TASK-C-11: Alinear ARCHITECTURE.md
-
-Agente: docs-writer
-
-[ROL]
-Actúa como `docs-writer`. Sigue `AGENTS.md` sección 8 (ARC-01) y la skill `sisgad5-architecture`.
-
-[CONTEXTO]
-Tarea: TASK-C-11 — Alinear `ARCHITECTURE.md` con código real.
-Problema: Docs dicen Gin, pero es gorilla/mux. Docs dicen Redis/Prometheus, pero no están en compose.
-
-[TAREA]
-1. Corrige `ARCHITECTURE.md`:
-   - Materials: gorilla/mux (no Gin).
-   - Redis: marcar como "planificado" o eliminar.
-   - Prometheus: marcar como "planificado" o eliminar.
-   - Prediction Service: añadir (ya está en SPEC.md).
-2. Verifica que los diagramas Mermaid reflejan la realidad.
-3. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Diff de `ARCHITECTURE.md`.
-2. Diagramas actualizados.
-3. Entrada de memoria.
-
----
-### 5.3. Prompt para TASK-C-12: Actualizar AGENTS.md
-
-Agente: docs-writer
-
-[ROL]
-Actúa como `docs-writer`. Sigue `AGENTS.md` sección 8.
-
-[CONTEXTO]
-Tarea: TASK-C-12 — Actualizar `AGENTS.md` con hallazgos de auditoría.
-Problema: La sección 8 debe reflejar el estado actual de la deuda técnica.
-
-[TAREA]
-1. Revisa `docs/audit/AUDITORIA.md`.
-2. Actualiza la sección 8 de `AGENTS.md`:
-   - Marca hallazgos resueltos (✅).
-   - Añade nuevos hallazgos si los hay.
-   - Actualiza la tabla de "Prohibido mientras tanto".
-3. Si todos los hallazgos están resueltos, mueve la sección a `docs/audit/AUDITORIA.md` (histórico) y elimínala de `AGENTS.md`.
-4. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Diff de `AGENTS.md`.
-2. Estado de hallazgos.
-3. Entrada de memoria.
-
----
-## 6. Fase D — Módulo Predictivo
-### 6.1. Prompt para TASK-D-01 a D-03: Setup
-
-Agente: ml-engineer
-
-[ROL]
-Actúa como `ml-engineer`. Sigue `AGENTS.md` sección 3.4 y la skill `ml-modeling`.
-
-[CONTEXTO]
-Tarea: [TASK-D-01 / D-02 / D-03] — [Crear estructura / Configurar FastAPI / Configurar bd_predictions].
-
-[TAREA]
-1. Crea `prediction-service/` con estructura:
-
-app/
-├── main.py
-├── config.py
-├── api/v1/
-├── core/features/
-├── core/models/
-├── core/training/
-├── core/evaluation/
-├── db/
-├── schemas/
-└── utils/
-text
-
-2. Configura `requirements.txt` o `pyproject.toml` con: fastapi, uvicorn, scikit-learn, xgboost, prophet, pandas, numpy, mlflow, sqlalchemy, pydantic.
-3. Configura `bd_predictions` en `docker-compose.yml`.
-4. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Estructura creada.
-2. Dependencias.
-3. Entrada de memoria.
-
----
-### 6.2. Prompt para TASK-D-04 a D-07: Feature engineering
-
-Agente: ml-engineer
-
-[ROL]
-Actúa como `ml-engineer`. Sigue `AGENTS.md` sección 3.4.
-
-[CONTEXTO]
-Tarea: [TASK-D-04 / D-05 / D-06 / D-07] — Feature engineering ([quejas/materiales/trabajos]).
-Datos: sintéticos (anonimizados de datos reales).
-
-[TAREA]
-1. Crea `app/core/features/[entidad].py`.
-2. Define features:
-   - Quejas: prioridad, estado, técnico, ubicación, tipo.
-   - Materiales: categoría, costo, consumo histórico, estacionalidad.
-   - Trabajos: duración, técnico, tipo de falla.
-3. Documenta cada feature (nombre, tipo, fuente, transformación).
-4. Genera script de anonimización de datos reales.
-5. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Código de features.
-2. Documentación de features.
-3. Script de anonimización.
-4. Entrada de memoria.
-
----
-### 6.3. Prompt para TASK-D-08 a D-12: Modelos
-
-Agente: ml-engineer
-
-[ROL]
-Actúa como `ml-engineer`. Sigue `AGENTS.md` sección 3.4.
-
-[CONTEXTO]
-Tarea: [TASK-D-08 / D-09 / D-10 / D-11 / D-12] — Modelo: [demanda materiales / tiempo resolución / anomalías / prioridad quejas / fallos infraestructura].
-Criterio: [MAE < 15% / MAE < 20% / Precision > 85% / Accuracy > 80% / Recall > 75%].
-
-[TAREA]
-1. Crea `app/core/training/train_[modelo].py`.
-2. Entrena modelo (Prophet/XGBoost/RandomForest según caso).
-3. Evalúa con métricas del criterio.
-4. Serializa modelo en `models/` (gitignored).
-5. Registra en MLflow (si disponible).
-6. Documenta métricas en `docs/memory/[fecha de hoy].md`.
-
-[RESTRICCIONES]
-- No uses datos reales sin anonimizar.
-- No escribas en `bd_materiales` (solo lectura).
-- Versiona el modelo con SemVer.
-
-[FORMATO]
-1. Código de entrenamiento.
-2. Métricas obtenidas.
-3. Entrada de memoria.
-
----
-### 6.4. Prompt para TASK-D-09 a D-11: API + integración
-
-Agente: ml-engineer
-
-[ROL]
-Actúa como `ml-engineer`. Sigue `AGENTS.md` sección 3.4.
-
-[CONTEXTO]
-Tarea: [TASK-D-09 / D-10 / D-11] — [API REST / Integrar Gateway / Dashboard predicciones].
-
-[TAREA]
-1. Crea endpoints en `app/api/v1/predictions.py`:
-   - `GET /api/predictions/demanda-materiales`
-   - `GET /api/predictions/tiempo-resolucion/{queja_id}`
-   - `GET /api/predictions/anomalias-consumo`
-   - `GET /api/predictions/prioridad-queja/{queja_id}`
-   - `GET /api/predictions/fallos-infraestructura`
-2. Integra con Gateway (`api-gateway/src/routes/`).
-3. Crea dashboard en `frontend/src/pages/Predictions/`.
-4. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Código de endpoints.
-2. Integración con Gateway.
-3. Dashboard.
-4. Entrada de memoria.
-
----
-### 6.5. Prompt para TASK-D-20 a D-21: Datos sintéticos
-
-Agente: ml-engineer
-
-[ROL]
-Actúa como `ml-engineer`. Sigue `AGENTS.md` sección 3.4.
-
-[CONTEXTO]
-Tarea: [TASK-D-20 / D-21] — [Protocolo de datos sintéticos / Validar modelos con datos sintéticos].
-
-[TAREA]
-1. Documenta el protocolo de anonimización en `docs/thesis/protocolo_datos_sinteticos.md`:
-   - Qué se anonimiza (nombres, direcciones, teléfonos).
-   - Cómo se genera (Faker, muestreo estadístico).
-   - Cómo se valida (distribución similar a real).
-2. Genera dataset sintético.
-3. Valida modelos con el dataset.
-4. Reporta métricas en `docs/thesis/06_modelado_predictivo.es.md` y `.ru.md`.
-5. Documenta en `docs/memory/[fecha de hoy].md`.
-
-[FORMATO]
-1. Protocolo documentado.
-2. Dataset generado (resumen).
-3. Métricas.
-4. Entrada de memoria.
-
----
-## 7. Parte II — Inventario Funcional
-
-Para las tareas de la Parte II (Fases 0–13), usa la plantilla base (sección 2) con el agente recomendado en AGENTS.md sección 9:
-Fase	Agente
-0–2	backend-developer / consistency-fixer
-3 (Users)	backend-developer
-4 (MP)	backend-developer
-5 (Materials)	backend-developer (skill gorm-performance)
-6 (Gateway)	backend-developer
-7 (Frontend)	frontend-developer
-8 (Testing)	test-initializer
-9 (Deploy)	backend-developer
-10 (Analytics)	backend-developer
-11 (Predictivo)	ml-engineer
-12–13	docs-writer / backend-developer
-
----
-Para cada tarea de redacción (TASK-1400-01 a 1400-09), usa este prompt con el agente docs-writer:
-
-[ROL]
-Actúa como `docs-writer`. Sigue `AGENTS.md` y `docs/thesis/ESTRUCTURA_INFORME.es.md`.
-
-[CONTEXTO]
-Tarea: [TASK-1400-XX] — Redactar sección [X.X.X] del informe de práctica.
-Fuente: [archivo de referencia].
-Idioma: español (luego se traduce al ruso).
-
-[TAREA]
-1. Lee la fuente indicada.
-2. Redacta la sección en español, con:
-   - Introducción al tema.
-   - Desarrollo (tablas, listas, diagramas Mermaid si aplica).
-   - Conclusiones parciales.
-3. Cita fuentes en formato ГОСТ 7.0.5-2008.
-4. Guarda en `docs/thesis/informe_practica/[seccion].es.md`.
-
-[RESTRICCIONES]
-- No inventes datos. Si falta información, marca `[TODO: ...]`.
-- Usa tablas para comparativas.
-- Usa Mermaid para diagramas.
-
-[FORMATO]
-1. Contenido redactado.
-2. Referencias usadas.
-3. `[TODO]` pendientes.
-
----
-Flujo de traducción (TASK-1420-01)
-
-[ROL]
-Actúa como `docs-writer` bilingüe (ES/RU).
-
-[CONTEXTO]
-Tarea: TASK-1420-01 — Traducir informe completo al ruso.
-Fuente: `docs/thesis/informe_practica/*.es.md`.
-
-[TAREA]
-1. Traduce cada sección al ruso, manteniendo:
-   - Estructura y numeración.
-   - Tablas y diagramas.
-   - Referencias ГОСТ.
-2. Guarda en `docs/thesis/informe_practica/[seccion].ru.md`.
-
-[RESTRICCIONES]
-- Traducción técnica fiel, no literal.
-- Mantén términos técnicos en inglés si son estándar (JWT, microservicios → микросервисы).
-- Verifica formato ГОСТ en ruso.
-
-[FORMATO]
-1. Archivos traducidos.
-2. Glosario de términos usados.
+## Bloque 4 — Materials Go (Fase 5) — `backend-materiales-go/`
+
+### Prompt 4.1 — TASK-520-05 + TASK-530-05 · Validación stock/consumo (stub roto) 🔗🔴
+Misma función: `verificarStockAsignacion` en internal/services/consumo_service.go (~líneas 80, stub comentado, trabajadorID=0 hardcodeado). Cerrar ambas juntas.
+```
+Proyecto: SISGAD5. Tarea: TASK-520-05 y TASK-530-05 — Activar validación real de stock en consumo.
+1. Leer consumo_service.go y asignacion_service.go: entender dónde se pierde el trabajadorID (hardcode 0) y cómo obtener el ID real del contexto/DTO.
+2. Implementar verificarStockAsignacion(): suma consumo acumulado por (trabajo/asignación, material) ≤ cantidad asignada; devolver AppError descriptivo con excedente exacto ("material X: solicitado N, disponible M").
+3. Descomentar/conectar la llamada en el flujo de registro de consumo dentro de la MISMA transacción GORM (rollback si excede).
+4. Tests testify: caso límite (=), excedido (error + rollback verificado con mock DB/sqlmock), acumulado multi-consumo.
+5. go vet ./... && go test ./... verde; actualizar ambas filas TASKLIST.
+```
+
+### Prompt 4.2 — TASK-500-05 · Filtros categoría/unidad 🔄
+```
+Proyecto: SISGAD5. Tarea: TASK-500-05 — Query params categoria/unidad en listado de materiales.
+1. Localizar material handler/service (internal/handlers|services): confirmar nombres reales de FK (categoria_id/unidad_id) leyendo models.
+2. Añadir filtros combinables entre sí y con búsqueda existente (GORM Where condicional, nunca string concat).
+3. Test de handler/table-test con sqlmock o el harness que ya usa asignacion_service_test.go.
+```
+
+### Prompt 4.3 — TASK-520-07 + TASK-530-07 · Historiales con filtros 🔗⏳
+```
+Proyecto: SISGAD5. Tareas: TASK-520-07 (historial asignaciones) y TASK-530-07 (historial consumos).
+1. GET /api/v1/asignaciones?trabajador_id=&desde=&hasta=&estado= y GET /api/v1/consumos?trabajador_id=&desde=&hasta=, paginación estándar del proyecto (ver helper de paginación existente en handlers de materiales).
+2. Orden por fecha desc; incluir joins mínimos para nombre de material/trabajador (prevenir N+1 con Preload o select explícito).
+3. Swagger (/docs swaggo) regenerado; table-tests de filtros.
+```
+
+### Prompt 4.4 — TASK-540-05 · Alertas stock bajo (datos hardcoded) 🔄
+```
+Proyecto: SISGAD5. Tarea: TASK-540-05 — Reemplazar AlertasGlobales fake (dashboard_handler.go ~126+) por ranking real.
+1. Query: stocks por trabajador/material donde cantidad ≤ umbral (definir umbral por material si existe campo; si no, constant configurable). Ranking por criticidad asc.
+2. Responder JSON estable { alerts: [{nivel, material, trabajador, disponible, umbral}] }.
+3. Test con fixture sqlmock; verificar que el frontend materials dashboard consume el mismo shape (grep en frontend/src/pages/materiales).
+```
+
+### Prompt 4.5 — TASK-540-06 + TASK-1000-02 · Exportación CSV/JSON + reportes UI 🔗⏳
+```
+Proyecto: SISGAD5. Tareas: TASK-540-06 (Go ?format=csv) y TASK-1000-02 (exportación desde UI con filtros).
+Backend Go:
+1. Helper responding.WriteCSV(headers, rows) con BOM para Excel; aplicar en listados de materiales/asignaciones/consumos cuando ?format=csv (respetando TODOS los filtros activos).
+Frontend:
+2. Botón "Exportar" en las vistas de datos que ya tengan filtros aplicados: descarga vía fetch con blob usando los query params actuales (no exportar sin filtros implícitos).
+3. Content-Disposition filename con fecha. Tests: snapshot CSV en Go; en UI basta lint+build.
+```
+
+### Prompt 4.6 — TASK-550-05 · Exportación SAP ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-550-05 — CSV layout SAP on-demand.
+NECESITA INPUT HUMANO: especificación del layout SAP (columnas, separador, encoding). Mientras tanto:
+1. Crear internal/export/sap.go con struct Layout configurable (header template file sap_layout.csv en configs/) y endpoint GET /api/v1/asignaciones/export/sap que usa ese layout sobre datos reales.
+2. Dejar TODO marcado donde falte la spec; test con layout fixture propio.
+```
+
+### Prompt 4.7 — TASK-540-07 · Tendencias básicas ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-540-07 — Serie histórica + estadística básica.
+1. GET /api/v1/dashboard/tendencias?meses=6: consumo mensual por categoría (GROUP BY date_trunc) + proyección naive (regresión lineal simple o promedio móvil 3) — sin ML, documentar limitación.
+2. Consumir desde StatsPage/dashboard materiales con Recharts (patrón existente TASK-710-10).
+3. Test de cálculo de proyección con serie conocida.
+```
+
+### Prompt 4.8 — TASK-800-03 · Cobertura Go ≥70% 👤🔄
+Agente puede escribir tests; la meta numérica requiere medir.
+```
+Proyecto: SISGAD5. Tarea: TASK-800-03 — Subir cobertura de internal/services (hoy 4 tests, 2 suites).
+1. go test ./... -coverprofile=coverage.out && go tool cover -func:coverage.out → informe de brechas por archivo.
+2. Priorizar: consumo_service (tras fix 4.1), asignacion_service restante, stock/inventario service, dtos validation. Table-tests + sqlmock o el harness actual.
+3. Meta ≥70% statements en internal/services; añadir step de coverage al job materials de ci.yml.
+```
 
 ---
 
-## 8. Cierre de tarea (memoria)
+## Bloque 5 — Gateway & Seguridad (Fases 6, 8) — `api-gateway/`
 
-Ejecutar SIEMPRE al final de cada tarea.
+### Prompt 5.1 — TASK-600-04 · Verificación JWT centralizada 🔄🔴
+Decisione de diseño REQUIRED antes de codificar: verificar-en-borde + propagar identidad, manteniendo validación descentralizada como defense-in-depth (no romper backends).
+```
+Proyecto: SISGAD5. Tarea: TASK-600-04 — Gateway valida JWT y propaga identidad.
+1. Nuevo middleware src/middlewares/auth.js: verifica Bearer con JWT_SECRET compartido (misma lib jwt, mismos claims), 401 uniforme { code:'UNAUTHORIZED' } para TODAS las rutas /api/* excepto whitelist pública (login, refresh, recuperar, reestablecer, health).
+2. Al validar: reescribir header X-User-Id / X-User-Rol hacia el backend (strip de cualquier valor entrante spoofeable del cliente).
+3. Backends: NO quitar su validación actual (defense in depth); documentar en ARCHITECTURE.md el modelo híbrido.
+4. Tests supertest: sin token→401, token vencido→401, válido→llega X-User-Id al mock upstream.
+5. Coherencia de 401 con frontend interceptor (verificar shape esperado en services/api.ts).
+```
 
-[ROL]
-Actúa como Technical Lead.
+### Prompt 5.2 — TASK-800-04 · Tests unitarios API Gateway ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-800-04 — Suites Jest para middlewares del gateway.
+1. jest.config.js + script test real (verificar package.json gateway; patrón de otros servicios JS ya resuelto en nov-2026).
+2. Cubrir: rate-limit (falso timer), proxy routing (mock http-proxy-middleware target resolution), health, CORS lista blanca, y auth de 5.1 si ya mergeado.
+3. Sin red externa: every upstream mocked. CI job test-gateway activo.
+```
 
-[TAREA]
-Genera la entrada de memoria para la tarea [TASK-XXX-YY] completada.
+### Prompt 5.3 — TASK-820-01 · Auditoría de seguridad y remediación 🔄
+Hallazgo conocido: security.yml roto (falta .gitleaks.toml) + dependencias vulnerables.
+```
+Proyecto: SISGAD5. Tarea: TASK-820-01 — Dejar el pipeline de seguridad ACTIVO y con críticos resueltos.
+1. Crear .gitleaks.toml raíz (rules por defecto + allowlist para fixtures de test con strings pseudo-secret).
+2. Ejecutar localmente: npm audit en los 3 servicios JS y govulncheck en Go; actualizar dependencias con fixes mayores compatibles (changelog check); registrar breaking changes.
+3. Trivy: confirmar imágenes scanneadas en security.yml; severity gate critical=fail.
+4. Producir docs/security-report-2026-11.md (hallazgo→acción→estado). Workflow en verde en un push de prueba.
+```
 
-[FORMATO]
-### [Fecha] — [TASK-XXX-YY]: [Nombre]
+### Prompt 5.4 — TASK-820-02 + TASK-820-03 · Rendimiento y carga 🔗⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-820-02 (benchmark ≥1000 RPS gateway documentado) y TASK-820-03 (k6 500 usuarios estables).
+1. performance-tests/: vegeta o autocannon contra gateway docker-compose (modo standalone mock upstreams para medir overhead del gateway puro).
+2. load-tests/scenario.js k6: escenario login→listar quejas→crear consumo; stages 0→500 VUs ramp 2m, plateau 5m; thresholds p95<800ms, error rate<1%.
+3. Ejecutar contra compose local con datos seed; documentar métricas + captura en performance-tests/RESULTS-2026-11.md con hardware y versión de imagen.
+4. Si no se alcanza 1000 RPS: perfilar (keep-alive, conexión pool http-proxy) y reportar cuello de botella real — el criterio admite hallazgo negativo documentado.
+```
 
-**Tipo:** [Implementación / Refactorización / Bugfix / Decisión]
-**Estado:** ✅ Completada
+### Prompt 5.5 — TASK-810-01 · E2E ciclo completo 🔄
+CI ya auto-skippea si no hay suites. Objetivo: primera suite real.
+```
+Proyecto: SISGAD5. Tarea: TASK-810-01 — Playwright E2E login→queja→trabajo→materiales.
+1. playwright.config.ts: baseURL env, workers=1, webServer levantando compose de test (o mock server de gateway con MSW si Docker no disponible en runner — revisar runner de ci.yml y elegir viable).
+2. Spec tests/e2e/ciclo-completo.spec.ts: login usuario seed → crear queja → asignar técnico → cerrar trabajo → consumir material → verificar dashboard. Data-testid en componentes tocados (añadir mínimamente).
+3. Seed script e2e con usuario/estados conocidos. Quitar el auto-skip del job cuando exista ≥1 spec.
+```
 
-#### Qué se hizo
-- [1-2 líneas]
+---
 
-#### Por qué se hizo de esa forma
-- [Justificación]
+## Bloque 6 — Observabilidad & DevOps (Fases 2, 9)
 
-#### Dónde están los cambios
-- `ruta/archivo1`
-- `ruta/archivo2`
+### Prompt 6.1 — TASK-220-01 · Prometheus /metrics en todos los servicios 🔗🔄
+Bloquea a 910-02 y 1200-03 (alertas). Es el punto crítico de esta área.
+```
+Proyecto: SISGAD5. Tarea: TASK-220-01 — Exponer /metrics en los 4 servicios.
+1. Node (gateway, users, mp): prom-client — métrica http_requests_total{service,route,method,status} + histograma duración; endpoint GET /metrics SIN auth interna (bloquear en gateway/compose por red, no exponer público).
+2. Go (materials): github.com/prometheus/client_golang con gin middleware + histogramas propios de negocio (consumos_registrados_total, asignaciones_total).
+3. prometheus.yml: scrape jobs de los 4 (targets de red compose); verificar con docker compose up + curl targets UP.
+4. Dashboard Grafana JSON commiteado en monitoring/grafana/dashboards/servicios.json (RPS, latencia p95, errores por servicio).
+Cerrar aquí habilita el prompt 6.2.
+```
 
-#### Qué hemos aprendido
-- [Lección]
+### Prompt 6.2 — TASK-910-02 + TASK-1200-03 · Alertas operativas 🔗🔄
+```
+Proyecto: SISGAD5. Tareas: TASK-910-02 (monitoreo productivo con alertas) y TASK-1200-03 (alertas de caídas/recursos). Requiere 6.1 merged.
+1. monitoring/prometheus/rules.yml: caída (up==0 2m), latencia p95>1s 5m, 5xx>5% 5m, CPU/mem container >85% 10m (via cAdvisor/node-exporter si presentes en compose monitoring).
+2. Alertmanager config: route por severidad; webhook placeholder a canal elegido por humano (documentar TODO).
+3. Cargar rules en prometheus.yml; test sintáctico promtool check rules; simular caída de contenedor y verificar alerta pending→firing (captura como evidencia).
+```
 
-#### Dependencias desbloqueadas
-- [Tareas]
+### Prompt 6.3 — TASK-220-04 · Sentry ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-220-04 — SDK Sentry por servicio.
+1. Humano: crear proyectos Sentry y volcar DSNs a GH Secrets (SENTRY_DSN_USERS/_MP/_MATERIALS/_GATEWAY/_FRONTEND) — bloqueante.
+2. Node: @sentry/node init condicional (env presente), integrations express handler en cadena de errores AFTER logger; Go: getsentry/sentry-go con capture en middleware de error; Frontend: @sentry/react con environment release=git sha.
+3. sampleRate 0.1 prod, tracesSampleRate conservador; NO enviar PII (beforeSend scrub de headers Authorization/email).
+4. smoke test: endpoint /test-error detrás de flag dev, verificar evento en Sentry.
+```
+
+### Prompt 6.4 — TASK-210-04 · Branch protection 👤
+```
+Acción humana en GitHub Settings → Branches: rule para main: require PR, 1 review, checks obligatorios (lint-* , test-*), no force-push, no deletions. Opcional automatizar con gh CLI si restaurás acceso admin:
+gh api repos/ybotet/SISGAD5_1.0/branches/main/protection -X PUT ... (requiere token con scope admin:repo).
+Al aplicar, cerrar TASK-210-04 en TASKLIST.md con link al settings.
+```
+
+### Prompt 6.5 — TASK-900-01 + TASK-900-02 · CD deploy automático 🔗🔴
+```
+Proyecto: SISGAD5. Tareas: TASK-900-01 (descomentar/terminar deploy) y TASK-900-02 (SSH automation).
+Precondición humana: secrets SSH_DEPLOY_HOST/USER/KEY (strict key) + GHCR pull creds en servidor.
+1. cd.yml job deploy: despues de build&push, runner SSH (appleboy/ssh-action o ssh manual con known_hosts): docker login GHCR, compose -f docker-compose.prod.yml pull con tags SHA, docker compose up -d, healthcheck loop curl /health 60s, rollback automático a tag anterior si health falla (guardar CURRENT_TAG file en servidor).
+2. Parametrizar deploy.sh para aceptar IMAGE_TAG=<sha> (reutilizar lógica, no duplicar).
+3. Environment "production" con approval manual en GH env settings (humano 2 min).
+4. Dry-run: workflow_dispatch con tag existente. Evidencia run-link en TASKLIST.
+```
+
+### Prompt 6.6 — TASK-900-03 · Rollback versionado ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-900-03 — Estrategia de rollback.
+1. Basado en CURRENT_TAG del prompt 6.5: documentar en docs/14_deployment.md comando rollback.sh IMAGE_TAG=<sha-anterior> y procedimiento de verificación post-rollback (health + smoke login).
+2. Política de retención GHCR (settings → paquetes: conservar últimos 20) — capturar screenshot/config en docs.
+3. Test real en entorno staging/local compose: desplegar vN, rollback a vN-1, verificar.
+```
+
+### Prompt 6.7 — TASK-900-04 · Secrets management 👤⏳
+```
+Acción humana: auditar docker-compose.prod.yml — mover TODO valor real a .env en servidor (chmod 600, fuera del repo), rotar JWT_SECRET (≥256 bits) y contraseñas BD; verificar que ningún secreto histórico quedó legible en git log (si sí: rotación obligatoria + notas en docs/13_security.md). Marcar TASK-900-04 con checklist firmado.
+```
+
+### Prompt 6.8 — TASK-910-01 · Orquestación (ADR) ⏳
+```
+Proyecto: SISGAD5. Tarea: TASK-910-01 — Decisión K8s vs Compose.
+Redactar docs/adr/ADR-00X-orquestacion.md evaluando: escala actual (tesis, mononodo), costo operativo, monitoreo existente. Recomendación esperada: permanecer en Compose + documento de umbral de migración (cuándo reconsiderar K8s). No crear carpeta k8s/ salvo decisión contraria. Cierre = ADR aprobado por tutor.
+```
 
 ---
 
-Añade también la línea al índice `memory.md`:
+## Bloque 7 — Documentación & Proceso (Fases 1, 10, 11, 12)
 
-| [Fecha] | [TASK-XXX-YY] | [Resumen] | [ver](docs/memory/[fecha].md#task-xxx-yy) |
+### Prompt 7.1 — TASK-100-06 · Matriz de trazabilidad ⏳🔴
+```
+Proyecto: SISGAD5. Tarea: TASK-100-06 — Matriz Requisito→Caso de uso→Endpoint/Clase→Test.
+1. Fuentes: requisitos de docs/01/02 (o donde estén numerados), endpoints de docs/api/*.yaml, tests existentes (jest/go test/playwright).
+2. Generar docs/traceability_matrix.md tabla markdown con columna "huérfanos detectados" (requisitos sin test, tests sin requisito). Semi-automatizar con script scripts/gen-traceability.py (regex sobre yaml+tests) y revisar salida manualmente.
+3. Criterio de "sin huérfanos" aplicado a requisitos v1; los futuros se marcan GAP.
+Depende de que la revisión documental del humano (en curso, hasta 07_domain_model) haya fijado nombres definitivos.
+```
 
----
-## 9. Verificación (QA)
+### Prompt 7.2 — TASK-110-04 · ER consolidado 🔄 — ⚠️ EN PAUSA POR DECISIÓN HUMANA
+```
+Estado: el humano está revisando docs archivo por archivo (actualmente 07_domain_model.es.md). NO ejecutar hasta indicación. Cuando llegue a 11_data_model: reconciliar divergencia de nomenclatura acordada (opción B: tablas tb_* en código son fuente de verdad → actualizar diagramas erDiagram existentes en docs/11_data_model.md l.24/151/310 a nombres tb_* y claves reales verificadas contra migrations/models de los 3 servicios), luego cerrar 🔄→✅.
+```
 
-Ejecutar después de tareas críticas (A, B, D).
+### Prompt 7.3 — TASK-1100-01 · Documento de diseño reconciliado 🔄
+```
+Proyecto: SISGAD5. Tarea: TASK-1100-01 — Reconciliar docs/00–17 + thesis con código real.
+Solo DESPUÉS de completar la revisión humana archivo-por-archivo. Método: diff aserciones técnicas de docs vs código (endpoints, tablas, flujos) con checklist por documento; corregir docs (nunca código para "cuadrar" docs); registrar cada corrección en docs/memory/. Esta tarea es mayormente humana; el agente puede asistir generando el checklist de discrepancias por documento.
+```
 
-[ROL]
-Actúa como QA Engineer.
+### Prompt 7.4 — TASK-1100-02 · Vigencia de manuales 🔄
+```
+Verificar docs/manuals/ (6 roles) contra UI actual: comandos/rutas/pantallas obsoletos → corregir; añadir sección troubleshooting del error visto en producción (migraciones no aplicadas → db:migrate, referencia a fix .sequelizerc nov-2026). Cierre con matriz doc→última-validación.
+```
 
-[CONTEXTO]
-Tarea completada: [TASK-XXX-YY].
+### Prompt 7.5 — TASK-1100-03 · Presentación de defensa 👤
+```
+Acción humana (Tutor): slides finales. Soporte IA posible bajo pedido explícito: generar outline desde docs/thesis + dashboards screenshots. No crear task de agente hasta definición de formato (Beamer/Slides/PowerPoint?).
+```
 
-[TAREA]
-Verifica:
-1. Criterio de aceptación cumplido.
-2. Tests existentes pasan.
-3. No se introdujeron hallazgos nuevos de auditoría (AGENTS.md sección 8).
-4. No se violaron reglas de oro.
-5. Código comentado en español.
-6. Conventional Commits usados.
+### Prompt 7.6 — TASK-1200-01 · Proceso SLA 👤⏳
+```
+Acción humana: definir niveles SLA por severidad y flujo de triage; plantillas de issue ya existen (.github/ISSUE_TEMPLATE/). Entregable: docs/support_sla.md + labels GitHub. Agente puede borrador si el humano dicta niveles.
+```
 
-[FORMATO]
-| Check | Estado |
-|---|---|
-| Criterio de aceptación | ✅ / ❌ |
-| Tests pasan | ✅ / ❌ |
-| Sin hallazgos nuevos | ✅ / ❌ |
-| Reglas de oro | ✅ / ❌ |
-| Comentarios en español | ✅ / ❌ |
-| Conventional Commits | ✅ / ❌ |
+### Prompt 7.7 — TASK-1200-02 · Roadmap re-priorizado 👤🔄
+```
+Actualización de docs/17_roadmap.md con estado post-auditoría v2.4 (mover completadas, re-priorizar Fase 8 testing y 9 CD como críticas previas a defensa). Humano aprueba; agente propone diff.
+```
 
-Si hay ❌, propón corrección.
+### Prompt 7.8 — TASK-1200-05 · Cadencia de dependencias 🔄
+```
+Verificar Dependabot: frecuencia PRs, edad de PRs abiertos, regresiones. Proponer plan: mergear minors semanalmente tras CI verde; majors en rama dedicada. Reportar en docs/17_roadmap.md sección mantenimiento.
+```
 
----
-## 10. Plantillas de reporte
-### 10.1. Reporte de tarea completada
-
-## 📌 Reporte — [TASK-XXX-YY]: [Nombre]
-
-**Módulo:** [Módulo]
-**Agente:** [agente]
-**Estado:** ✅ Completada
-
-### Cambios
-- [cambio 1]
-- [cambio 2]
-
-### Archivos modificados
-- `ruta/archivo1`
-- `ruta/archivo2`
-
-### Tests
-- [ ] Test unitario: [nombre]
-- [ ] Test integración: [nombre]
-
-### Evidencia
-[Capturas, logs, fragmentos]
-
-### Próximos pasos
-- [Siguiente tarea recomendada]
+### Prompt 7.9 — TASK-1200-04 · Optimización rendimiento 👤⏳
+```
+Depende de baseline de 5.4 (820-02/03). Sin benchmark no hay "≥20%" medible. Bloqueada hasta tener RESULTS de rendimiento. No generar trabajo prematuro.
+```
 
 ---
-### 10.2. Reporte de bloqueo
 
-## 🚫 Bloqueo — [TASK-XXX-YY]: [Nombre]
+## Bloque 8 — Analytics transversal (Fase 10)
 
-**Motivo:** [descripción]
-**Archivo:** [ruta]
-**Error:** [mensaje]
+### Prompt 8.1 — TASK-1000-04 · Segmentación unificada 🔗🔄
+```
+Unificar criterios de filtro (desde/hasta/area/servicio) en endpoints dashboard de MP y Materials (nombres de param idénticos, formatos fecha ISO). Refactor de helpers de query por servicio + tabla de mapeo en docs/api/analytics_params.md. Tests de regresión por dashboard.
+```
 
-### Alternativas propuestas
-1. [Alternativa 1]
-2. [Alternativa 2]
+### Prompt 8.2 — TASK-1000-07 · Tendencias históricas 🔄
+```
+Extender dashboard/historic de quejas (existe parcial) a series mensuales por categoría/servicio; alinear con TASK-540-07 (Go) bajo mismo contrato de respuesta {series:[{label,values[]}]}. Consumir en StatsPage.
+```
 
-### Decisión requerida
-[Qué necesita el humano para desbloquear]
+### Prompt 8.3 — TASK-1000-06 · API análisis transversal ⏳
+```
+Decisión previa (ADR corto): agregación en gateway (BFF) vs servicio nuevo. Recomendado: capa ligera en api-gateway /api/analytics/* que compone responses de MP+Materials con JWT validado (usa 5.1). Sin BD nueva. Cache TTL 60s en memoria. Tests de composición.
+```
 
-    Mantenido por: Ing. Botet S.Y.
-    Última actualización: 2026-10-23
-    Licencia: Uso académico — Tesis de Maestría RTU MIREA
+### Prompt 8.4 — TASK-1000-03 · Alertas métricas configurables ⏳
+```
+Depende de 6.2 (reglas Prometheus) para infra + umbral real de 4.4. Implementar: reglas declaradas en monitoring/prometheus/rules.yml (fuente única versionada) + UI de solo-lectura que las lista desde Alertmanager API. Configuración editable = out of scope tesis (documentar).
+```
+
+### Prompt 8.5 — TASK-1000-08 · Comparación de períodos ⏳
+```
+Endpoint de comparación (por servicio donde exista dashboard): ?periodo=actual&vs=anterior devuelve varianza % por KPI. Implementar primero en MP quejas (menor esfuerzo), reutilizar para materiales. Test con datos fixture de dos meses.
+```
+
+### Prompt 8.6 — TASK-1000-01 · Cierre dashboards 🔄
+```
+Quedan detalles tras 8.1/8.2: pasar checklist KPI comprometidos vs visibles; evidenciar con screenshots en docs/memory; cerrar ✅.
+```
+
+---
+
+## 📌 Orden de ejecución recomendado (crítico → periférico)
+
+| # | Prompt | Razón |
+|---|--------|-------|
+| 1 | 6.1 (Prometheus /metrics) | Desbloquea 6.2, 8.4, 1200-03 |
+| 2 | 4.1 (stub stock Go) | Bug funcional real, riesgo de datos |
+| 3 | 2.1 (cambio contraseña) → 1.3 | Feature prometida en API docs |
+| 4 | 5.3 (security pipeline) | Verde en CI previo a defensa |
+| 5 | 3.4 + 3.5 (asignar/cerrar + auditoría) | Núcleo de negocio MP |
+| 6 | 1.1 (UI Trabajos) | Consume endpoints de 3.4 |
+| 7 | 2.4 + 3.10 + 5.2 + 4.8 (tests cobertura) | Fase 8 completa, requisito de tesis |
+| 8 | 5.5 (E2E) | Depende de 3.4/1.1 |
+| 9 | 6.5/6.6 (CD deploy+rollback) | Requiere secretos humanos |
+| 10 | Resto | Mejoras continuas |
+
+**Reglas transversales para TODOS los prompts:** (1) inspeccionar el código real antes de asumir nombres de tablas/columnas/endpoints — hubo varias filas de TASKLIST con evidencia obsoleta; (2) toda migración reversible; (3) cerrar cada tarea actualizando TASKLIST.md + docs/memory/ en el mismo commit; (4) lint+test+build en verde antes de push.
