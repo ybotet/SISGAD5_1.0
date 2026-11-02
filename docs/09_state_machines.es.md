@@ -1,9 +1,10 @@
 # Máquinas de Estado - SISGAD5
 
-> **Versión:** 3.0
+> **Versión:** 3.1
 > **Fecha:** 2026-11-03
-> **Alcance:** Máquina de estado de **Queja** (MP Service) — única máquina de negocio — y máquinas de contexto (Sesión, Usuario). Añadida la línea de vida **Teléfono/Línea** basada en el historial de **Movimientos**.
+> **Alcance:** Máquina de estado de **Queja** (MP Service) — única máquina de negocio — y máquinas de contexto (Sesión, Usuario).
 > **Consistencia:** Alineada con `08_sequence_diagrams.es.md` v2.7 (roles: Probador, Supervisor, Analista de materiales).
+> **v3.1:** Eliminada la máquina de *Teléfono/Línea por Movimientos*: los movimientos provienen de un nomenclador (`tb_tipomovimiento`) con muchos tipos y no existe control de estados sobre el recurso. Su historial queda cubierto por el modelo de datos (`11_data_model`) y la API de movimientos.
 > **v3.0:** Eliminadas las máquinas de *Trabajo* y *Asignación de materiales* (son entidades sin ciclo de estado propio; su gestión queda cubierta por los eventos de la máquina de Queja y por la lógica del Materials Service).
 
 ---
@@ -140,72 +141,9 @@ stateDiagram-v2
 
 ---
 
-## 2. Máquina de Estado: Teléfono / Línea — Línea de vida por Movimientos (MP Service)
-
-La línea de vida de un **Teléfono** y de una **Línea** no se modela con estados propios sino como reflejo del **historial de Movimientos** (`tb_movimiento`, FK a `tb_tipomovimiento`). Cada movimiento registrado (Alta/Instalación, Traslado, Baja, entre otros tipos existentes) deriva el estado efectivo del recurso.
-
-### Estados derivados del último movimiento
-```
-[*] → Instalada (Alta/Instalación) ⇄ Trasladata (Traslado) → Baja (Baja) → [*]
-Otros tipos de movimiento posibles según catálogo tb_tipomovimiento
-```
-
-### Transiciones Permitidas
-
-| Estado Actual | Estado Siguiente | Actor | Movimiento (tipo) | Condición |
-|---------------|------------------|-------|-------------------|-----------|
-| (sin registrar) | Instalada | Probador / Supervisor | Alta / Instalación | Puesta en servicio del teléfono/línea |
-| Instalada | Trasladata | Probador / Supervisor | Traslado | Cambio de ubicación/pizarra/puerto |
-| Trasladata | Trasladata | Probador / Supervisor | Traslado | Re-ubicaciones sucesivas |
-| Instalada / Trasladata | Baja | Probador / Supervisor | Baja | Retiro del servicio |
-| Baja | Instalada | Probador / Supervisor | Alta / Instalación | Reactivación con nuevo movimiento de alta |
-
-> **Reglas:**
-> - El estado **nunca se edita directamente**: siempre se deduce del último movimiento aplicado al teléfono/línea (fuente de verdad = historial).
-> - Los movimientos pueden originarse desde una queja resuelta (p. ej. traslados o bajas asociados a la reparación), pero su registro es independiente del ciclo de la queja.
-> - El catálogo `tb_tipomovimiento` admite más tipos además de Alta/Traslado/Baja; nuevos tipos extienden esta máquina sin modificar las reglas anteriores.
-
-### Diagrama Mermaid
-
-```mermaid
-stateDiagram-v2
-    [*] --> Instalada: Movimiento Alta / Instalacion
-    Instalada --> Trasladata: Movimiento Traslado
-    Trasladata --> Trasladata: Nuevo Traslado
-    Instalada --> Baja: Movimiento Baja
-    Trasladata --> Baja: Movimiento Baja
-    Baja --> Instalada: Reactivacion (nueva Alta)
-    Baja --> [*]: Fin de vida del recurso
-
-    note right of Instalada
-        Estado derivado del ultimo
-        movimiento (tb_movimiento),
-        no se edita manualmente
-    end note
-
-    note right of Trasladata
-        Refleja cambio de ubicacion,
-        pizarra o puerto
-    end note
-
-    note right of Baja
-        Movimientos adicionales
-        posibles segun catalogo
-        tb_tipomovimiento
-    end note
-```
-
-### Eventos de Dominio
-
-| Evento | Trigger | Actor | Datos |
-|--------|---------|-------|-------|
-| MovimientoRegistrado | POST /movimientos | Probador / Supervisor | {id_telefono?, id_linea?, id_tipomovimiento, fecha, motivo, id_os?} |
-| TelefonoTrasladado | POST /movimientos (tipo=Traslado) | Probador / Supervisor | {id_telefono, ubicacion_anterior, ubicacion_nueva} |
-| RecursoDadoDeBaja | POST /movimientos (tipo=Baja) | Probador / Supervisor | {id_telefono? , id_linea?} |
-
 ---
 
-## 3. Máquina de Estado: Sesión (Auth Context)
+## 2. Máquina de Estado: Sesión (Auth Context)
 
 ### Estados
 ```
@@ -240,7 +178,7 @@ stateDiagram-v2
 
 ---
 
-## 4. Máquina de Estado: Usuario (Users Context)
+## 3. Máquina de Estado: Usuario (Users Context)
 
 ### Estados
 ```
@@ -260,32 +198,33 @@ Activo → Bloqueado → Activo
 
 ---
 
-## 5. Diagramas Fuente
+## 4. Diagramas Fuente
 
 Archivos Mermaid versionados en: [`docs/diagrams/state_machines/`](../diagrams/state_machines/)
 
 | Archivo | Máquina | Documento |
 |---------|---------|-----------|
 | `queja_state.mmd` | Queja (MP Service) | §1 |
-| `movimiento_state.mmd` | Teléfono/Línea por Movimientos (MP Service) | §2 |
-| `sesion_state.mmd` | Sesión (Auth Context) | §3 |
-| `usuario_state.mmd` | Usuario (Users Context) | §4 |
+| `sesion_state.mmd` | Sesión (Auth Context) | §2 |
+| `usuario_state.mmd` | Usuario (Users Context) | §3 |
 
+> ⚠️ Eliminados v3.1: `movimiento_state.mmd` (no existe control de estados; nomenclador con muchos tipos).
 > ⚠️ Eliminados v3.0: `trabajo_state.mmd` y `asignacion_state.mmd` (sin máquina de estado propia).
 
 ---
 
-## 6. Registro de Cambios
+## 5. Registro de Cambios
 
 | Versión | Fecha | Cambios |
 |---------|-------|---------|
-| 3.0 | 2026-11-03 | **Eliminadas** las máquinas de *Trabajo* y *Asignación de materiales* (no tienen ciclo de estado propio). **Añadida** la máquina de *Teléfono/Línea* derivada del historial de Movimientos (Alta, Traslado, Baja + tipos adicionales del catálogo). `Completada` pasa a ser el **único fin de ciclo**: `Cerrada` ya no es terminal (con o sin materiales, el Analista lleva la queja a Completada). Rombo de decisión "Trabajo de campo" desde `Asignada` (Sí→Resuelta / No→Pendiente). Nueva autotransición `Pendiente → Pendiente` (otro trabajo sin resolver). `Probada` = diagnóstico (no requiere prueba exitosa). Actualizado §3 en adelante por renumeración. |
+| 3.1 | 2026-11-03 | **Eliminada** la máquina de *Teléfono/Línea por Movimientos*: los movimientos son un nomenclador (`tb_tipomovimiento`) con muchos tipos y no existe control de estados sobre el recurso; su historial queda cubierto por `11_data_model` y la API de movimientos. Renumeradas las secciones (§2 Sesión, §3 Usuario). |
+| 3.0 | 2026-11-03 | **Eliminadas** las máquinas de *Trabajo* y *Asignación de materiales* (no tienen ciclo de estado propio). Añadida temporalmente la máquina de *Teléfono/Línea* derivada del historial de Movimientos (luego eliminada en v3.1). `Completada` pasa a ser el **único fin de ciclo**: `Cerrada` ya no es terminal (con o sin materiales, el Analista lleva la queja a Completada). Rombo de decisión "Trabajo de campo" desde `Asignada` (Sí→Resuelta / No→Pendiente). Nueva autotransición `Pendiente → Pendiente` (otro trabajo sin resolver). `Probada` = diagnóstico (no requiere prueba exitosa). |
 | 2.0 | 2026-11-02 | Renombrados roles (Técnico→Probador, Jefe/Operador→Supervisor). Añadido estado **Completada** a la queja y transición `Cerrada → Completada` (Analista de materiales). Eliminada reapertura (`Cerrada → Abierta`). Nuevas transiciones: `Probada → Resuelta` (sin trabajo), `Asignada → Resuelta` (trabajo de campo), `Probada/Pendiente → Probada` (otra prueba), `Pendiente → Asignada` (cambio de trabajadores). Prohibida `Abierta → Asignada`. Trabajadores se asignan a la QUEJA (eliminado `Abierto → Asignado` en Trabajo). Separados conceptos asignación vs consumo de materiales. Alineado con `08_sequence_diagrams.es.md` v2.7. |
 | 1.0 | 2026-09-25 | Versión inicial. |
 
 ---
 
-## 7. Referencias
+## 6. Referencias
 
 - [Reglas de Negocio](06_business_rules.es.md)
 - [Casos de Uso](03_use_cases.es.md)

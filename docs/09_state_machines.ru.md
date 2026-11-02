@@ -1,9 +1,10 @@
 # Машины состояний - SISGAD5
 
-> **Версия:** 3.0
+> **Версия:** 3.1
 > **Дата:** 2026-11-03
-> **Область применения:** Машина состояний **Жалобы** (MP Service) — единственная бизнес-машина; машина жизненного цикла **Телефона/Линии** на основе истории **Движений**; контекстные машины (Сессия, Пользователь).
+> **Область применения:** Машина состояний **Жалобы** (MP Service) — единственная бизнес-машина — и контекстные машины (Сессия, Пользователь).
 > **Согласованность:** Выровнена с `08_sequence_diagrams.ru.md` v2.7 (роли: Испытатель, Супервайзер, Аналитик по материалам).
+> **v3.1:** Устранена машина *Телефон/Линия по Движениям*: движения — это номенклатурный справочник (`tb_tipomovimiento`) со множеством типов, контроль состояний ресурса отсутствует; его история покрыта `11_data_model` и API движений.
 > **v3.0:** Устранены машины *Работа* и *Назначение материалов* (сущности без собственного жизненного цикла; их управление покрыто событиями машины Жалобы и логикой Materials Service).
 
 ---
@@ -140,72 +141,9 @@ stateDiagram-v2
 
 ---
 
-## 2. Машина состояний: Телефон / Линия — Жизненный цикл по Движениям (MP Service)
-
-Жизненный цикл **Телефона** и **Линии** моделируется не собственными состояниями, а как отражение **истории Движений** (`tb_movimiento`, FK на `tb_tipomovimiento`). Каждое зарегистрированное движение (Установка/Ввод в эксплуатацию, Перемещение, Списание — и другие существующие типы) определяет фактическое состояние ресурса.
-
-### Состояния, выводимые из последнего движения
-```
-[*] -> Instalada (Alta/Установка) <-> Trasladata (Traslado/Перемещение) -> Baja (Baja/Списание) -> [*]
-Vozmozhmy inye typy dvizheniy soglasno spravochniku tb_tipomovimiento
-```
-
-### Разрешённые переходы
-
-| Текущее состояние | Следующее состояние | Актёр | Движение (тип) | Условие |
-|-------------------|---------------------|-------|----------------|---------|
-| (не зарегистрирован) | Instalada | Испытатель / Супервайзер | Alta / Установка | Ввод телефона/линии в эксплуатацию |
-| Instalada | Trasladata | Испытатель / Супервайзер | Traslado / Перемещение | Смена расположения/шкафа/порта |
-| Trasladata | Trasladata | Испытатель / Супервайзер | Traslado | Последовательные перемещения |
-| Instalada / Trasladata | Baja | Испытатель / Супервайзер | Baja / Списание | Вывод из эксплуатации |
-| Baja | Instalada | Испытатель / Супервайзер | Alta / Установка | Реактивация с новым движением установки |
-
-> **Правила:**
-> - Состояние **никогда не редактируется напрямую**: всегда выводится из последнего движения, применённого к телефону/линии (источник истины = история).
-> - Движения могут возникать из закрытой жалобы (напр., перемещения или списания, связанные с ремонтом), но их регистрация независима от цикла жалобы.
-> - Справочник `tb_tipomovimiento` допускает больше типов, чем Alta/Traslado/Baja; новые типы расширяют эту машину без изменения предыдущих правил.
-
-### Диаграмма Mermaid
-
-```mermaid
-stateDiagram-v2
-    [*] --> Instalada: Dvizhenie Alta Ustanovka
-    Instalada --> Trasladata: Dvizhenie Traslado
-    Trasladata --> Trasladata: Novoye Traslado
-    Instalada --> Baja: Dvizhenie Baja
-    Trasladata --> Baja: Dvizhenie Baja
-    Baja --> Instalada: Reaktivaciya novaya Alta
-    Baja --> [*]: Konets zhiznennogo cikla
-
-    note right of Instalada
-        Sostoyaniye vyvedeno iz
-        poslednego dvizheniya tb_movimiento
-        ne redaktiruetsya vruchnuyu
-    end note
-
-    note right of Trasladata
-        Otrazhaet smenu raspolozheniya
-        shkafa ili porta
-    end note
-
-    note right of Baja
-        Dopolnitelnye vidy dvizheniy
-        vozmozhny po spravochniku
-        tb_tipomovimiento
-    end note
-```
-
-### События домена
-
-| Событие | Триггер | Актёр | Данные |
-|---------|---------|-------|--------|
-| MovimientoRegistrado | POST /movimientos | Испытатель / Супервайзер | {id_telefono?, id_linea?, id_tipomovimiento, fecha, motivo, id_os?} |
-| TelefonoTrasladado | POST /movimientos (tipo=Traslado) | Испытатель / Супервайзер | {id_telefono, ubicacion_anterior, ubicacion_nueva} |
-| RecursoDadoDeBaja | POST /movimientos (tipo=Baja) | Испытатель / Супервайзер | {id_telefono?, id_linea?} |
-
 ---
 
-## 3. Машина состояний: Сессия (Auth Context)
+## 2. Машина состояний: Сессия (Auth Context)
 
 ### Состояния
 ```
@@ -240,7 +178,7 @@ stateDiagram-v2
 
 ---
 
-## 4. Машина состояний: Пользователь (Users Context)
+## 3. Машина состояний: Пользователь (Users Context)
 
 ### Состояния
 ```
@@ -260,22 +198,22 @@ Activo -> Bloqueado -> Activo
 
 ---
 
-## 5. Исходные диаграммы
+## 4. Исходные диаграммы
 
 Файлы Mermaid в репозитории: [`docs/diagrams/state_machines/`](../diagrams/state_machines/)
 
 | Файл | Машина | Раздел |
 |------|--------|--------|
 | `queja_state.mmd` | Жалоба (MP Service) | §1 |
-| `movimiento_state.mmd` | Телефон/Линия по Движениям (MP Service) | §2 |
-| `sesion_state.mmd` | Сессия (Auth Context) | §3 |
-| `usuario_state.mmd` | Пользователь (Users Context) | §4 |
+| `sesion_state.mmd` | Сессия (Auth Context) | §2 |
+| `usuario_state.mmd` | Пользователь (Users Context) | §3 |
 
-> Ustraneny v3.0: `trabajo_state.mmd` i `asignacion_state.mmd` (net sobstvennoy mashiny sostoyaniy).
+> ⚠️ Устранены v3.1: `movimiento_state.mmd` (отсутствует контроль состояний; справочник со множеством типов).
+> ⚠️ Устранены v3.0: `trabajo_state.mmd` и `asignacion_state.mmd` (нет собственной машины состояний).
 
 ---
 
-## 6. Журнал изменений
+## 5. Журнал изменений
 
 | Версия | Дата | Изменения |
 |--------|------|-----------|
@@ -285,7 +223,7 @@ Activo -> Bloqueado -> Activo
 
 ---
 
-## 7. Ссылки
+## 6. Ссылки
 
 - [Бизнес-правила](06_business_rules.ru.md)
 - [Варианты использования](03_use_cases.ru.md)
