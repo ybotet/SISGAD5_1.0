@@ -383,7 +383,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ⏳ Pendiente | TASK-720-04 | Alta | 🔨 | Loading states uniformes | Agente | — | Skeletons/spinners consistentes en todas las vistas de datos | Spinners aislados; sin patrón uniforme | `frontend/src/components/ui/` |
 | 🔄 En progreso | TASK-720-05 | Media | 🔨 | Notificaciones toast | Agente | — | Librería integrada y usada en operaciones CRUD | Parcial vía ErrorDisplay; librería de toasts no estandarizada | `frontend/src/` |
 
-**Subtotal FASE 7: 17✅ + 4🔄 de 22 — 86.4% ponderado** — *corrección mayor frente al 1.1% declarado en la v1.0*
+**Subtotal FASE 7: 18✅ + 3🔄 de 22 — 88.6% ponderado** — *corrección mayor frente al 1.1% declarado en la v1.0*
 
 ---
 
@@ -493,7 +493,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 4 — MP Service | 36 | 20 | 6 | 10 | 0 | **63.9%** | 25.6% |
 | FASE 5 — Materials Service | 34 | 25 | 4 | 5 | 0 | **79.4%** | 21.0%³ |
 | FASE 6 — API Gateway | 10 | 9 | 1 | 0 | 0 | **95.0%** | 30.0% |
-| FASE 7 — Frontend | 22 | 15 | 6 | 1 | 0 | **81.8%** | 1.1% |
+| FASE 7 — Frontend | 22 | 16 | 5 | 1 | 0 | **88.6%** | 1.1% |
 | FASE 8 — Testing y QA | 9 | 0 | 3 | 6 | 0 | **16.7%** | 8.3% |
 | FASE 9 — Despliegue | 6 | 0 | 2 | 4 | 0 | **16.7%** | 0.0% |
 | FASE 10 — Analítica | 8 | 0 | 4 | 4 | 0 | **25.0%** | 0.0% |
@@ -585,7 +585,7 @@ La creación programática del tablero **GitHub Projects v2** requiere el scope 
    - `docs/api/users.yaml` v2.2.0: ambos endpoints documentados (verificado sintaxis JS y YAML).
 2. **TASK-100-03 ✅ confirmada:** el diagrama de paquetes formal existe con Mermaid + PlantUML renderizables en `docs/diagrams/component_diagrams/package_diagram.md` (v2.4 del propio diagrama). La evidencia de la tabla ("falta diagrama formal") estaba obsoleta.
 3. **TASK-100-04 ✅ confirmada:** `docs/diagrams/sequence_diagrams/sequence_diagrams.md` contiene diagramas Mermaid de 3+ escenarios críticos (autenticación JWT, registro de queja, asignación de materiales) con tablas de mensajes numerados.
-4. **Subtotales recalculados:** FASE 1 = 12✅ + 1🔄 de 14 → **89.3%**; FASE 3 = 10✅ de 11 efectivas → **90.9%**; TOTAL = 110✅ + 34🔄 + 37⏳ + 1❌ de 182 → **≈70.3% ponderado**.
+4. **Subtotales recalculados:** FASE 1 = 12✅ + 1🔄 de 14 → **89.3%**; FASE 3 = 10✅ de 11 efectivas → **90.9%**; TOTAL = 111✅ + 33🔄 + 37⏳ + 1❌ de 182 → **≈70.6% ponderado**.
 5. **Pendiente operativo (bloqueado):** cierre de los issues GitHub correspondientes a TASK-300-08/100-03/100-04 y actualización del tablero Projects v2 — el token PAT embebido en la URL remota está revocado/expirado (`Invalid username or token` al hacer push); se requiere rotación del token por el propietario.
 
 ### Regla recordada
