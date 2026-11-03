@@ -43,8 +43,6 @@
 | RF-MP-07 | История Линии | Жалобы, обходы, перемещения | 🔴 Критическое | UC-13 |
 | RF-MP-08 | Поиск Линии | Фильтры: текстовый поиск, статус | 🟡 Высокое | UC-12 |
 | RF-MP-09 | CRUD Панели | Создание, чтение, обновление, удаление | 🔴 Критическое | UC-11 |
-| RF-MP-10 | Карта Портов | CRUD портов для каждой панели | 🟡 Высокое | UC-11 |
-| RF-MP-11 | Соединения | Входящие/исходящие для каждого порта | 🟡 Высокое | UC-11 |
 | RF-MP-12 | Физическое расположение | Геолокация (lat, lng, address) | 🟡 Высокое | UC-11 |
 | RF-MP-13 | Поиск Панели | Фильтры: текстовый поиск, локация | 🟡 Высокое | UC-12 |
 
@@ -198,8 +196,7 @@
 | RF-MP-03 | UC-13 | Telefono | GET /api/mp/telefonos/:id/historial | telefonos.test.js |
 | RF-MP-04 | UC-12 | Telefono | GET /api/mp/telefonos?search= | telefonos.test.js |
 | RF-MP-05 | UC-10 | Linea | CRUD /api/mp/lineas/* | lineas.test.js |
-| RF-MP-10 | UC-11 | Pizarra, Puerto | CRUD /api/mp/pizarras/* | pizarras.test.js |
-| RF-MP-11 | UC-11 | Puerto, Conexion | CRUD /api/mp/puertos/* | puertos.test.js |
+| RF-MP-12 | UC-11 | Pizarra | CRUD /api/mp/pizarras/* | pizarras.test.js |
 | RF-MP-12 | UC-11 | Pizarra, Coordinates | PATCH /api/mp/pizarras/:id/ubicacion | pizarras.test.js |
 
 ### 4.3 Управление Жалобами (MP Service)

@@ -143,7 +143,7 @@ Contexto: el equivalente existe en teléfonos (`darbaja`). Patrón: ruta PATCH d
 ```
 Proyecto: SISGAD5. Tarea: TASK-410-02 — Cambio de estado (activo/baja) de línea.
 1. Leer TelefonoController darBaja y replicar semántica en LineaController: PATCH /api/linea/:id/baja y /reactivar (o PATCH /estado según convención real del teléfono — verificar primero).
-2. Validar relaciones: impedir baja de línea con puertos/pizarras conectadas activas si el modelo lo exige (confirmar FK reales en models/Linea.js).
+2. Validar relaciones: impedir baja de línea con pizarras asociadas activas si el modelo lo exige (confirmar FK reales en models/Linea.js). *Nota (2026-11-03): los puertos quedaron fuera de alcance; no validar relación línea↔puerto.*
 3. Rutas ANTES de /:id en linea.js (lección TASK-B-19). Test supertest de ambos estados. Actualizar swagger mp si existe.
 ```
 
@@ -155,22 +155,16 @@ Proyecto: SISGAD5. Tareas: TASK-400-03 (teléfono), TASK-410-03 (línea), TASK-4
 2. Endpoints: GET /api/telefono/:id/historial, GET /api/linea/:id/historial, GET /api/pizarra/:id/historial (respuesta { entidad, eventos[] } paginable ?limit=).
 3. Queries con include atajado (evitar N+1); explicar en comentario el índice necesario y crear migración de índice si la consulta es lenta en datos reales.
 4. Tests: cada endpoint devuelve eventos ordenados; entidad inexistente → 404.
-Ejecutar 420-06 después de TASK-420-02 (puertos), pues agrega líneas conectadas.
+Ejecutar 420-06 cuando exista el agregado de quejas/movimientos por pizarra (TASK-420-02 quedó fuera de alcance — ya no se requiere como dependencia).
 ```
 
-### Prompt 3.3 — TASK-420-02 → 420-03 → 420-04 · Pizarras: puertos, conexiones, ubicación 🔗⏳
-Orden obligatorio (dependencias encadenadas).
+### Prompt 3.3 — TASK-420-04 · Pizarras: ubicación física ⏳
+**Alcance actualizado (2026-11-03):** TASK-420-02 (puertos) y TASK-420-03 (conexiones) quedaron **fuera de alcance**. La entidad Pizarra gestiona nombre, dirección y tipo de pizarra; no se controlan puertos. Solo queda la Fase C (ubicación).
 ```
-Proyecto: SISGAD5. Tareas: TASK-420-02 (CRUD puertos), TASK-420-03 (conexiones), TASK-420-04 (ubicación pizarra).
-Fase A — Puertos:
-1. Modelo Puerto (tb_* según convención REAL del repo — verificar nombres de tabla usados en models/ existentes y ser consistente) con FK pizarra_id, numero, tipo_pizarra_id opcional; migración + asociación Pizarra.hasMany.
-2. CRUD anidado: GET/POST /api/pizarra/:id/puertos, PUT/DELETE /api/puerto/:id. Validación Zod.
-Fase B — Conexiones:
-3. Modelo Conexion (origen_puerto_id, destino_puerto_id, cable_id FK al nomenclador Cable existente, tipo 'entrante'|'saliente'); impedir autofunción y puertos de la misma pizarra si no aplica.
-4. GET /api/puerto/:id/conexiones (entrantes y salientes).
+Proyecto: SISGAD5. Tarea: TASK-420-04 (ubicación pizarra).
 Fase C — Ubicación:
-5. Migración añade a Pizarra: planta_id (FK existente Planta), zona varchar, coordenadas jsonb null; expuestos en GET/PUT pizarra.
-Tests por fase; swagger/docs api mp actualizados al final.
+1. Migración añade a Pizarra: planta_id (FK existente Planta), zona varchar, coordenadas jsonb null; expuestos en GET/PUT pizarra.
+Tests; swagger/docs api mp actualizados al final.
 ```
 
 ### Prompt 3.4 — TASK-430-05 + TASK-450-02 + TASK-450-04 · Endpoints dedicados asignar/cerrar 🔗🔴🔄

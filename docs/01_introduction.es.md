@@ -42,7 +42,7 @@ La **Dirección No. 5** es una unidad organizativa responsable de la infraestruc
 | Usuarios y Roles | CRUD usuarios, RBAC, permisos                     | Users Service                 |
 | Teléfonos        | CRUD, estados, historial                          | MP Service                    |
 | Líneas           | CRUD, estados, historial                          | MP Service                    |
-| Pizarras         | CRUD, puertos, conexiones, ubicación              | MP Service                    |
+| Pizarras         | CRUD (nombre, dirección, tipo), ubicación          | MP Service                    |
 | Quejas           | Registro, flujo de estados, asignación, auditoría | MP Service                    |
 | Pruebas          | Registro, resultados, vinculación                 | MP Service                    |
 | Trabajos         | Órdenes, asignación, tiempos, cierre              | MP Service                    |

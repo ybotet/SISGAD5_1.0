@@ -13,7 +13,6 @@
 | **Teléfono**       | Телефон | Equipo terminal de abonado conectado a la red. | MP Service | Terminal, Abonado |
 | **Línea**          | Телефонная линия | Medio físico o canal virtual que conecta un terminal de usuario (teléfono) con la central telefónica, permitiendo la transmisión de señales de voz y datos. | MP Service | Circuito, Par |
 | **Pizarra**        | Учрежденческая АТС (УАТС) / Мини-АТС | Equipamiento de conmutación/conexión (MDF/IDF). | MP Service | Marco de Distribución, MDF, IDF |
-| **Puerto**         | Порт | Punto de conexión físico en una pizarra. | MP Service | Punta, Conector |
 | **Queja**          | Заявка / Заявка абонента | Notificación formal realizada por el cliente (usualmente vía telefónica) sobre una avería en el servicio contratado. Punto de entrada del proceso de gestión de averías. | MP Service | Incidencia, Reporte, Ticket |
 | **Prueba**         | Станционная проверка | Verificación técnica de un elemento (teléfono/línea/pizarra). | MP Service | Test, Medición |
 | **Trabajo**        | Выездные работы | Orden de ejecución de tareas en campo (instalación, reparación, mantenimiento). | MP Service | Orden de Trabajo, OT |

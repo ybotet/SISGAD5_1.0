@@ -43,8 +43,6 @@
 | RF-MP-07 | Historial Línea | Quejas, recorridos, movimientos | 🔴 Crítica | UC-13 |
 | RF-MP-08 | Búsqueda Líneas | Filtros: búsqueda textual, estado | 🟡 Alta | UC-12 |
 | RF-MP-09 | CRUD Pizarras | Crear, leer, actualizar, eliminar | 🔴 Crítica | UC-11 |
-| RF-MP-10 | Mapeo Puertos | CRUD puertos por pizarra | 🟡 Alta | UC-11 |
-| RF-MP-11 | Conexiones | Entrantes/salientes por puerto | 🟡 Alta | UC-11 |
 | RF-MP-12 | Ubicación Física | Geolocalización (lat, lng, dirección) | 🟡 Alta | UC-11 |
 | RF-MP-13 | Búsqueda Pizarras | Filtros: búsqueda textual, ubicación | 🟡 Alta | UC-12 |
 
@@ -198,8 +196,7 @@ Ver [Reglas de Negocio](06_business_rules.es.md)
 | RF-MP-03 | UC-13 | Telefono | GET /api/mp/telefonos/:id/historial | telefonos.test.js |
 | RF-MP-04 | UC-12 | Telefono | GET /api/mp/telefonos?search= | telefonos.test.js |
 | RF-MP-05 | UC-10 | Linea | CRUD /api/mp/lineas/* | lineas.test.js |
-| RF-MP-10 | UC-11 | Pizarra, Puerto | CRUD /api/mp/pizarras/* | pizarras.test.js |
-| RF-MP-11 | UC-11 | Puerto, Conexion | CRUD /api/mp/puertos/* | puertos.test.js |
+| RF-MP-12 | UC-11 | Pizarra | CRUD /api/mp/pizarras/* | pizarras.test.js |
 | RF-MP-12 | UC-11 | Pizarra, Coordinates | PATCH /api/mp/pizarras/:id/ubicacion | pizarras.test.js |
 
 ### 4.3 Gestión de Quejas (MP Service)

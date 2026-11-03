@@ -34,7 +34,7 @@ Ver diagrama fuente en: [`docs/diagrams/use_cases/`](../diagrams/use_cases/)
 |----|-------------|-----------------|-------------|
     | UC-09 | **Gestionar Teléfonos** | Operador/Administrador | CRUD teléfonos, cambio estado, historial |
     | UC-10 | **Gestionar Líneas** | Operador/Administrador | CRUD líneas, cambio estado, historial |
-    | UC-11 | **Gestionar Pizarras** | Operador/Administrador | CRUD pizarras, puertos, conexiones, ubicación |
+    | UC-11 | **Gestionar Pizarras** | Operador/Administrador | CRUD pizarras (nombre, dirección, tipo), ubicación |
     | UC-12 | **Buscar y Filtrar** | Operador/Administrador | Búsqueda unificada teléfonos/líneas/pizarras |
 | UC-13 | **Ver Historial Completo** | Técnico/Jefe/Auditor | Quejas, recorridos, movimientos por elemento |
 
@@ -80,7 +80,7 @@ Ver diagrama fuente en: [`docs/diagrams/use_cases/`](../diagrams/use_cases/)
 | Caso de Uso | Requisitos | Clases de Dominio | Endpoints API |
 |-------------|------------|-------------------|---------------|
 | UC-01 a UC-08 | RF-AUTH-01 a RF-AUTH-08 | User, Rol, Permiso, Sesión | `/api/auth/*`, `/api/users/*` |
-| UC-09 a UC-13 | RF-MP-01 a RF-MP-13 | Telefono, Linea, Pizarra, Puerto | `/api/mp/telefonos/*`, `/api/mp/lineas/*`, `/api/mp/pizarras/*` |
+| UC-09 a UC-13 | RF-MP-01 a RF-MP-13 | Telefono, Linea, Pizarra | `/api/mp/telefonos/*`, `/api/mp/lineas/*`, `/api/mp/pizarras/*` |
 | UC-14 a UC-20 | RF-MP-14 a RF-MP-28 | Queja, Prueba, Trabajo, FlujoEstado | `/api/mp/quejas/*`, `/api/mp/pruebas/*`, `/api/mp/trabajos/*` |
 | UC-21 a UC-24 | RF-MAT-01 a RF-MAT-11 | Material, Categoria, Unidad, Asignacion, Consumo | `/api/materials/*` |
 

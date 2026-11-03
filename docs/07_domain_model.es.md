@@ -15,7 +15,7 @@
 | # | Contexto Delimitado | Tipo | Responsabilidad | Agregados / Entidades principales | Servicio técnico | Estado |
 |---|---------------------|------|-----------------|-----------------------------------|------------------|--------|
 | 1 | Usuarios y Autenticación | Dominio | Login, JWT, sesiones, datos maestros de usuarios, RBAC | Usuario, Sesión, Rol, Permiso | `backend-users` (Node.js) | ✅ Implementado |
-| 2 | Gestión de Quejas y Trabajos *(alias operativo: Mesa de Prueba)* | Dominio | Ciclo completo de la queja: registro → prueba → trabajo → cierre | Queja, Prueba, Trabajo, Teléfono, Línea, Pizarra, Puerto | `backend-mp` (Node.js) — *backend Mesa de Prueba* | ✅ Implementado |
+| 2 | Gestión de Quejas y Trabajos *(alias operativo: Mesa de Prueba)* | Dominio | Ciclo completo de la queja: registro → prueba → trabajo → cierre | Queja, Prueba, Trabajo, Teléfono, Línea, Pizarra | `backend-mp` (Node.js) — *backend Mesa de Prueba* | ✅ Implementado |
 | 3 | Gestión de materiales | Dominio | Control transaccional de stock, asignaciones y consumos | Material, Asignación(+Items), Consumo(+Items), Categoría, UnidadMedida | `backend-materiales-go` (Go) | ✅ Implementado |
 | 4 | Predicción y analítica (IA) | Dominio | Modelado predictivo MLOps: demanda, tiempos, anomalías, prioridad, fallos | Modelos ML (5), Predicción, Métricas de modelo | `prediction-service` (Python + FastAPI + scikit-learn) | ✅ Implementado (read-only, sin BD propia aún) |
 | 5 | Infraestructura y Observabilidad | Técnico | Gateway, rate limiting, logging centralizado, métricas, dashboards | Sistema de monitoreo | `api-gateway` + Loki/Grafana/Prometheus + scripts | 🟡 Parcial (backups sin gestión como dominio) |
@@ -41,8 +41,8 @@
 │  Rol, Permiso        ├──────────────────────┤  UnidadMedida,                │
 │                      │ Queja, Prueba,       │  Asignacion(+Items),          │
 │                      │ Trabajo, Telefono,   │  Consumo(+Items)              │
-│                      │ Linea, Pizarra,      │                               │
-│                      │ Puerto               │                               │
+│                      │ Linea, Pizarra       │                               │
+│                      │                      │                               │
 ├──────────────────────┴──────────────────────┴───────────────────────────────┤
 │  Prediccion y Analitica (IA) ✅: prediction-service (Python/FastAPI)        │
 │  Modelos ML (Demanda, Tiempo, Anomalias, Prioridad, Fallos)                 │
@@ -175,17 +175,6 @@
 | fecha_baja | DateTime | Nullable |
 | created_at | DateTime | Auto |
 | updated_at | DateTime | Auto |
-
-### Puerto (Entidad - Perteneciente a Pizarra)
-| Atributo | Tipo | Reglas |
-|----------|------|--------|
-| id | Integer | PK, Autoinc |
-| pizarra_id | Integer | FK → Pizarra, not null |
-| numero_puerto | Integer | Not null, único por pizarra |
-| tipo_conexion | Enum | entrada | salida |
-| elemento_conectado_id | Integer | Nullable (polimórfico: telefono/linea/pizarra) |
-| elemento_conectado_tipo | String | Nullable |
-| created_at | DateTime | Auto |
 
 ### Queja (Agregado Raíz)
 | Atributo | Tipo | Reglas |
@@ -372,7 +361,7 @@
 | Tiempo de resolución | `GET /api/v1/tiempo-resolucion/{queja_id}` | Features de la queja (MP) | Horas estimadas de resolución |
 | Anomalías de consumo | `GET /api/v1/anomalias-consumo` | Serie de consumos (Materials) | Ítems anómalos + score |
 | Prioridad de queja | `GET /api/v1/prioridad-queja/{queja_id}` | Features de la queja | Prioridad sugerida (1-4) + confianza |
-| Fallos de infraestructura | `GET /api/v1/fallos-infraestructura` | Pizarra/puerto, historial | Probabilidad de fallo + riesgo |
+| Fallos de infraestructura | `GET /api/v1/fallos-infraestructura` | Pizarra, historial | Probabilidad de fallo + riesgo |
 
 ### Value Objects / Schemas (Pydantic)
 
@@ -387,7 +376,7 @@
 Queja (MP) ──(lee vía API)──> TiempoResolucion, PrioridadQueja
 Consumo (Materials) ──(lee vía API)──> AnomaliasConsumo
 Material/Categoria ──> DemandaMateriales
-Pizarra/Puerto (MP) ──> FallosInfraestructura
+Pizarra (MP) ──> FallosInfraestructura
 ModeloML 1 ── * Prediccion ; ModeloML ── 1 ModelMetrics
 ```
 
@@ -432,9 +421,6 @@ Rol * ── * Permiso (Roles_Permisos)
 
 Telefono * ── 1 Cliente
 Linea * ── 1 Cliente
-Pizarra 1 ── * Puerto
-Puerto * ── 1 (Telefono | Linea | Pizarra) [Polimórfico]
-
 Queja * ── 1 Telefono
 Queja * ── 1 Linea
 Queja * ── 1 Pizarra
@@ -500,12 +486,10 @@ classDiagram
     class Telefono { +numero String +estado String }
     class Linea { +numero String +tipo String }
     class Pizarra { +nombre String +ubicacion Coordinates }
-    class Puerto { +numero Integer +estado String }
     class Queja { +folio String +prioridad Priority +estado String }
     class FlujoEstadoQueja { +estadoAnterior String +estadoNuevo String }
     class Prueba { +resultado String }
     class Trabajo { +descripcion String +estado String }
-    Pizarra "1" --> "*" Puerto
     Queja --> "0..1" Telefono
     Queja --> "0..1" Linea
     Queja --> "0..1" Pizarra

@@ -105,10 +105,6 @@
 | PUT | `/:id` | Обновление панели | Access Token |
 | DELETE | `/:id` | Удаление (soft) | Access Token |
 | GET | `/:id/historial` | Полный история | Access Token |
-| GET | `/:id/puertos` | Список портов | Access Token |
-| POST | `/:id/puertos` | Создание порта | Access Token |
-| PUT | `/:id/puertos/:puertoId` | Обновление порта | Access Token |
-| DELETE | `/:id/puertos/:puertoId` | Удаление порта | Access Token |
 
 ### Жалобы (`/api/mp/quejas`)
 

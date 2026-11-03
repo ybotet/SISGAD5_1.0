@@ -203,11 +203,11 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | Estado | ID de Tarea | Prioridad | Esfuerzo | Descripción | Responsable | Dependencias | Criterios de Aceptación | Evidencia Actual | Archivos Afectados |
 | ------ | ----------- | --------- | -------- | ----------- | ----------- | ------------ | ----------------------- | ---------------- | ------------------ |
 | ✅ Completada | TASK-420-01 | 🔴 | 🔨 | CRUD de pizarras | Humano | — | Endpoints `/api/pizarra` funcionales | Rutas + controller presentes | `backend-mp/src/routes/pizarra.js` |
-| ⏳ Pendiente | TASK-420-02 | Alta | 🔨 | Mapeo de puertos por pizarra | Agente | TASK-420-01 | CRUD de puertos vinculado a pizarra/tipo de pizarra | No encontrado en routes/models | `backend-mp/src/` |
-| ⏳ Pendiente | TASK-420-03 | Alta | 🔨 | Conexiones entrantes/salientes | Agente | TASK-420-02 | Registro y consulta de conexiones entre pizarras/cables | Sin modelo de conexiones (existe `Cable` como nomenclador parcial) | `backend-mp/src/` |
+| ❌ Fuera de alcance | TASK-420-02 | — | — | ~~Mapeo de puertos por pizarra~~ — eliminado del alcance: la entidad Pizarra gestiona nombre, dirección y tipo de pizarra; no se controlan puertos | — | — | — | Decisión de alcance (2026-11-03): no existe modelo/router de puertos y no se implementará | `backend-mp/src/` |
+| ❌ Fuera de alcance | TASK-420-03 | — | — | ~~Conexiones entrantes/salientes~~ — eliminado del alcance: dependía del mapeo de puertos (TASK-420-02), también excluido | — | — | — | Decisión de alcance (2026-11-03) | `backend-mp/src/` |
 | ⏳ Pendiente | TASK-420-04 | Alta | 🔨 | Ubicación física de la pizarra | Agente | TASK-420-01 | Campos de ubicación (planta/zona/coordenadas) capturables y consultables | `Planta` existe como nomenclador; falta vinculación explícita por pizarra | `backend-mp/src/` |
 | ✅ Completada | TASK-420-05 | Alta | 🔨 | Búsqueda y filtrado de pizarras | Agente | — | `GET /api/pizarra?search=...` paginado | Patrón `parseListParams` disponible en controllers | `backend-mp/src/controllers/PizarraController.js` |
-| ⏳ Pendiente | TASK-420-06 | Alta | 🔨 | Historial completo de la pizarra | Agente | TASK-420-02 | Agregado de líneas conectadas, quejas y movimientos | No implementado | `backend-mp/src/` |
+| ⏳ Pendiente | TASK-420-06 | Alta | 🔨 | Historial completo de la pizarra | Agente | TASK-420-01 | Agregado de quejas y movimientos asociados a la pizarra | No implementado | `backend-mp/src/` |
 
 ### 6.4. Gestión de Quejas
 

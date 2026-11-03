@@ -25,7 +25,7 @@
 | -------- | ------------------------ | ---------------------------------------------------------------- |
 | RN-MP-01 | **Unicidad Teléfono**    | Número de teléfono único en BD                                   |
 | RN-MP-02 | **Unicidad Línea**       | Número de línea único en BD                                      |
-| RN-MP-03 | **Pizarra-Puerto**       | Puerto único por pizarra (compuesto: pizarra_id + numero_puerto) |
+| RN-MP-03 | **Unicidad de Pizarra**  | Nombre de pizarra único por dirección/tipo (fuera de alcance el control de puertos) |
 | RN-MP-04 | **Cliente Requerido**    | Teléfono/Línea/Pizarra deben tener cliente asociado              |
 | RN-MP-05 | **Baja Lógica**          | Cambio a "baja" no elimina, solo marca estado + fecha_baja       |
 | RN-MP-06 | **Integridad Historial** | Nunca eliminar registros de historial (solo append)              |

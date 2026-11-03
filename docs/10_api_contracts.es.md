@@ -105,10 +105,6 @@
 | PUT | `/:id` | Actualizar pizarra | Access Token |
 | DELETE | `/:id` | Eliminar (soft) | Access Token |
 | GET | `/:id/historial` | Historial completo | Access Token |
-| GET | `/:id/puertos` | Listar puertos | Access Token |
-| POST | `/:id/puertos` | Crear puerto | Access Token |
-| PUT | `/:id/puertos/:puertoId` | Actualizar puerto | Access Token |
-| DELETE | `/:id/puertos/:puertoId` | Eliminar puerto | Access Token |
 
 ### Quejas (`/api/mp/quejas`)
 

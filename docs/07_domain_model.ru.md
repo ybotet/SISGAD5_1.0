@@ -15,7 +15,7 @@
 |---|----------------------|-----------------|------------------------------|--------------------|--------|
 | 1 | Аутентификация | Login, JWT, сессии | Пользователь, Сессия, Роль, Разрешение | `backend-users` (Node.js) | ✅ Реализовано |
 | 2 | Управление пользователями и ролями | Мастер-данные пользователей, RBAC | Пользователь, Роль, Разрешение | `backend-users` (Node.js) | ✅ Реализовано |
-| 3 | Жалобы и работы (Mesa de Parte) | Полный цикл жалобы: регистрация → тест → работа → закрытие | Жалоба, Тест, Работа, Телефон, Линия, Доска, Порт | `backend-mp` (Node.js) | ✅ Реализовано |
+| 3 | Жалобы и работы (Mesa de Parte) | Полный цикл жалобы: регистрация → тест → работа → закрытие | Жалоба, Тест, Работа, Телефон, Линия, Доска | `backend-mp` (Node.js) | ✅ Реализовано |
 | 4 | Управление материалами | Транзакционный контроль запасов, назначений и списаний | Материал, Назначение(+Позиции), Списание(+Позиции), Категория, ЕдИзмерения | `backend-materiales-go` (Go) | ✅ Реализовано |
 | 5 | Предиктивная аналитика (ИИ) | MLOps-моделирование: спрос, сроки, аномалии, приоритет, отказы | Модели ML (5), Прогноз, Метрики модели | `prediction-service` (Python + FastAPI + scikit-learn) | ✅ Реализовано (read-only, без собственной БД пока) |
 | 6 | Безопасность и инфраструктура | Gateway, наблюдаемость, резервные копии, обслуживание | Система мониторинга, Журнал аудита | `api-gateway` + Loki/Grafana/Prometheus + скрипты | 🟡 Частично (бэкапы не выделены как домен) |
@@ -38,7 +38,7 @@
 │ User         │ User         │ Telefono     │ Material     │ ModeloML    │
 │ Sesion       │ Rol          │ Linea        │ Categoria    │ Prediccion  │
 │ Rol          │ Permiso      │ Pizarra      │ UnidadMedida │ Metricas    │
-│ Permiso      │              │ Puerto       │ Asignacion   │ (Demanda,   │
+│ Permiso      │              │              │ Asignacion   │ (Demanda,   │
 │              │              │ Queja        │ AsignacionIt │  Tiempo,    │
 │              │              │ Prueba       │ Consumo      │  Anomalias, │
 │              │              │ Trabajo      │ ConsumoItem  │  Prioridad, │
@@ -170,17 +170,6 @@
 | fecha_baja | DateTime | NULL |
 | created_at | DateTime | Авто |
 | updated_at | DateTime | Авто |
-
-### Puerto (Сущность - принадлежит Pizarra)
-| Атрибут | Тип | Правила |
-|--------|-----|--------|
-| id | Integer | PK, автоинк |
-| pizarra_id | Integer | FK → Pizarra, NOT NULL |
-| numero_puerto | Integer | NOT NULL, уникальный для панели |
-| tipo_conexion | Enum | entrada \| salida |
-| elemento_conectado_id | Integer | NULL (полиморфный: telefono/linea/pizarra) |
-| elemento_conectado_tipo | String | NULL |
-| created_at | DateTime | Авто |
 
 ### Queja (Корень агрегата)
 | Атрибут | Тип | Правила |
@@ -367,7 +356,7 @@
 | Tiempo de resolución | `GET /api/v1/tiempo-resolucion/{queja_id}` | Фичи жалобы (MP) | Оценка часов решения |
 | Anomalías de consumo | `GET /api/v1/anomalias-consumo` | Серия списаний (Materials) | Аномальные позиции + score |
 | Prioridad de queja | `GET /api/v1/prioridad-queja/{queja_id}` | Features de la queja | Предложенный приоритет (1-4) + уверенность |
-| Fallos de infraestructura | `GET /api/v1/fallos-infraestructura` | Доска/порт, история | Вероятность отказа + риск |
+| Fallos de infraestructura | `GET /api/v1/fallos-infraestructura` | Доска, история | Вероятность отказа + риск |
 
 ### Value Objects / Схемы (Pydantic)
 
@@ -382,7 +371,7 @@
 Queja (MP) ──(читает через API)──> TiempoResolucion, PrioridadQueja
 Consumo (Materials) ──(читает через API)──> AnomaliasConsumo
 Material/Categoria ──> DemandaMateriales
-Pizarra/Puerto (MP) ──> FallosInfraestructura
+Pizarra (MP) ──> FallosInfraestructura
 ModeloML 1 ── * Prediccion ; ModeloML ── 1 ModelMetrics
 ```
 
@@ -413,9 +402,6 @@ Rol * ── * Permiso (Roles_Permisos)
 
 Telefono * ── 1 Cliente
 Linea * ── 1 Cliente
-Pizarra 1 ── * Puerto
-Puerto * ── 1 (Telefono | Linea | Pizarra) [Полиморфная]
-
 Queja * ── 1 Telefono
 Queja * ── 1 Linea
 Queja * ── 1 Pizarra

@@ -35,8 +35,7 @@
 |--------|--------|------|--------|--------|---------------------|
 | **telefonos** | ✅ | ✅ | ✅ | ✅ (soft) | `cambiar_estado`, `historial` |
 | **lineas** | ✅ | ✅ | ✅ | ✅ (soft) | `cambiar_estado`, `historial` |
-| **pizarras** | ✅ | ✅ | ✅ | ✅ (soft) | `puertos`, `historial`, `ubicacion` |
-| **puertos** | ✅ | ✅ | ✅ | ✅ | - |
+| **pizarras** | ✅ | ✅ | ✅ | ✅ (soft) | `historial`, `ubicacion` |
 | **quejas** | ✅ | ✅ | ✅ | ❌ | `asignar`, `cambiar_estado`, `historial`, `auditoria` |
 | **pruebas** | ✅ | ✅ | ✅ (own) | ❌ | - |
 | **trabajos** | ✅ | ✅ | ✅ | ❌ | `asignar`, `cerrar` |
@@ -97,7 +96,6 @@
 | pizarras:read | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ | 👁️ |
 | pizarras:update | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | pizarras:delete | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| pizarras:puertos | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ | 👁️ |
 | pizarras:historial | ✅ | ✅ | ✅ | ✅ | 👁️ | 👁️ | 👁️ |
 | pizarras:ubicacion | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | quejas:create | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
@@ -188,7 +186,6 @@
 | PATCH /api/mp/lineas/:id/estado | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | GET /api/mp/pizarras | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ | 👁️ |
 | POST /api/mp/pizarras | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| GET /api/mp/pizarras/:id/puertos | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ | 👁️ |
 | GET /api/mp/quejas | ✅ | ✅ (назначенные) | ✅ | ✅ | 👁️ | 👁️ | 👁️ |
 | POST /api/mp/quejas | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | PATCH /api/mp/quejas/:id/asignar | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |

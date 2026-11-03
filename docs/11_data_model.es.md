@@ -11,7 +11,7 @@
 | BD | Servicio | Esquema | Tablas Principales |
 |----|----------|---------|-------------------|
 | **bd_users** | Users Service | `public` | users, roles, permisos, sesiones, user_roles, roles_permisos |
-| **bd_mp** | MP Service | `public` | telefonos, lineas, pizarras, puertos, quejas, flujo_estado_queja, pruebas, trabajos, catálogos MP |
+| **bd_mp** | MP Service | `public` | telefonos, lineas, pizarras, quejas, flujo_estado_queja, pruebas, trabajos, catálogos MP |
 | **bd_materiales** | Materials Service | `public` | materiales, categorias, unidades_medida, asignaciones, asignacion_items, consumos, consumo_items |
 
 ---
@@ -152,10 +152,6 @@ erDiagram
     TELEFONOS ||--o{ QUEJAS : "tiene"
     LINEAS ||--o{ QUEJAS : "tiene"
     PIZARRAS ||--o{ QUEJAS : "tiene"
-    PIZARRAS ||--o{ PUERTOS : "tiene"
-    PUERTOS }o--o{ TELEFONOS : "conecta"
-    PUERTOS }o--o{ LINEAS : "conecta"
-    PUERTOS }o--o{ PIZARRAS : "conecta"
     QUEJAS ||--o{ FLUJOESTADOQUEJA : "genera"
     QUEJAS ||--o{ PRUEBAS : "tiene"
     QUEJAS ||--o{ TRABAJOS : "genera"
@@ -204,16 +200,6 @@ erDiagram
         datetime fecha_baja
         datetime created_at
         datetime updated_at
-    }
-    
-    PUERTOS {
-        int id PK
-        int pizarra_id FK
-        int numero_puerto
-        enum tipo_conexion
-        int elemento_conectado_id
-        string elemento_conectado_tipo
-        datetime created_at
     }
     
     QUEJAS {

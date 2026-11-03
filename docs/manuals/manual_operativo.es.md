@@ -112,7 +112,7 @@ Estado actual: Reportada → Priorizada → Abierta
 - Similar a teléfonos
 
 #### Pizarras
-- Listar → Ver puertos → Ver conectores
+- Listar → Ver detalle (nombre, dirección, tipo de pizarra)
 - Al crear pizarra: ingresar ubicación física y coordenadas GPS
 
 ## 4. Para Técnicos
