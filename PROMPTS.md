@@ -290,7 +290,7 @@ Proyecto: SISGAD5. Tarea: TASK-800-05 — Vitest + Testing Library en frontend/.
 5. Cerrar TASK-800-05 en TASKLIST.md con evidencia (nº de suites/cobertura).
 ```
 
-### Prompt 5.3 — TASK-820-01 · Auditoría de seguridad y remediación 🔄
+### Prompt 5.4 — TASK-820-01 · Auditoría de seguridad y remediación 🔄
 Hallazgo conocido: security.yml roto (falta .gitleaks.toml) + dependencias vulnerables.
 ```
 Proyecto: SISGAD5. Tarea: TASK-820-01 — Dejar el pipeline de seguridad ACTIVO y con críticos resueltos.
@@ -300,7 +300,7 @@ Proyecto: SISGAD5. Tarea: TASK-820-01 — Dejar el pipeline de seguridad ACTIVO 
 4. Producir docs/security-report-2026-11.md (hallazgo→acción→estado). Workflow en verde en un push de prueba.
 ```
 
-### Prompt 5.4 — TASK-820-02 + TASK-820-03 · Rendimiento y carga 🔗⏳
+### Prompt 5.5 — TASK-820-02 + TASK-820-03 · Rendimiento y carga 🔗⏳
 ```
 Proyecto: SISGAD5. Tarea: TASK-820-02 (benchmark ≥1000 RPS gateway documentado) y TASK-820-03 (k6 500 usuarios estables).
 1. performance-tests/: vegeta o autocannon contra gateway docker-compose (modo standalone mock upstreams para medir overhead del gateway puro).
@@ -309,7 +309,7 @@ Proyecto: SISGAD5. Tarea: TASK-820-02 (benchmark ≥1000 RPS gateway documentado
 4. Si no se alcanza 1000 RPS: perfilar (keep-alive, conexión pool http-proxy) y reportar cuello de botella real — el criterio admite hallazgo negativo documentado.
 ```
 
-### Prompt 5.5 — TASK-810-01 · E2E ciclo completo 🔄
+### Prompt 5.6 — TASK-810-01 · E2E ciclo completo 🔄
 CI ya auto-skippea si no hay suites. Objetivo: primera suite real.
 ```
 Proyecto: SISGAD5. Tarea: TASK-810-01 — Playwright E2E login→queja→trabajo→materiales.
@@ -357,9 +357,10 @@ gh api repos/ybotet/SISGAD5_1.0/branches/main/protection -X PUT ... (requiere to
 Al aplicar, cerrar TASK-210-04 en TASKLIST.md con link al settings.
 ```
 
-### Prompt 6.5 — TASK-900-01 + TASK-900-02 · CD deploy automático 🔗🔴
+### Prompt 6.5 — TASK-210-02 + TASK-900-01 + TASK-900-02 · CD deploy automático 🔗🔴
 ```
-Proyecto: SISGAD5. Tareas: TASK-900-01 (descomentar/terminar deploy) y TASK-900-02 (SSH automation).
+Proyecto: SISGAD5. Tareas: TASK-210-02 (CD build+push+deploy operativo), TASK-900-01 (descomentar/terminar deploy) y TASK-900-02 (SSH automation).
+Contexto TASK-210-02: cd.yml ya construye y publica imágenes a GHCR, pero el paso de despliegue remoto está comentado/placeholder — este prompt lo completa; cerrar las tres tareas en el mismo PR con evidencia run-link.
 Precondición humana: secrets SSH_DEPLOY_HOST/USER/KEY (strict key) + GHCR pull creds en servidor.
 1. cd.yml job deploy: despues de build&push, runner SSH (appleboy/ssh-action o ssh manual con known_hosts): docker login GHCR, compose -f docker-compose.prod.yml pull con tags SHA, docker compose up -d, healthcheck loop curl /health 60s, rollback automático a tag anterior si health falla (guardar CURRENT_TAG file en servidor).
 2. Parametrizar deploy.sh para aceptar IMAGE_TAG=<sha> (reutilizar lógica, no duplicar).
@@ -437,7 +438,7 @@ Verificar Dependabot: frecuencia PRs, edad de PRs abiertos, regresiones. Propone
 
 ### Prompt 7.9 — TASK-1200-04 · Optimización rendimiento 👤⏳
 ```
-Depende de baseline de 5.4 (820-02/03). Sin benchmark no hay "≥20%" medible. Bloqueada hasta tener RESULTS de rendimiento. No generar trabajo prematuro.
+Depende de baseline de 5.5 (820-02/03). Sin benchmark no hay "≥20%" medible. Bloqueada hasta tener RESULTS de rendimiento. No generar trabajo prematuro.
 ```
 
 ---
@@ -482,12 +483,12 @@ Quedan detalles tras 8.1/8.2: pasar checklist KPI comprometidos vs visibles; evi
 |---|--------|-------|
 | 1 | 6.1 (Prometheus /metrics) | Desbloquea 6.2, 8.4, 1200-03 |
 | 2 | 4.1 (stub stock Go) | Bug funcional real, riesgo de datos |
-| 3 | 2.1 (cambio contraseña) → 1.3 | Feature prometida en API docs |
-| 4 | 5.3 (security pipeline) | Verde en CI previo a defensa |
+| 3 | 2.1 (recuperación contraseña) → 2.2 | Feature prometida en API docs |
+| 4 | 5.4 (security pipeline) | Verde en CI previo a defensa |
 | 5 | 3.4 + 3.5 (asignar/cerrar + auditoría) | Núcleo de negocio MP |
 | 6 | 1.1 (UI Trabajos) | Consume endpoints de 3.4 |
-| 7 | 2.4 + 3.10 + 5.2 + 4.8 (tests cobertura) | Fase 8 completa, requisito de tesis |
-| 8 | 5.5 (E2E) | Depende de 3.4/1.1 |
+| 7 | 2.3 + 3.10 + 5.2 + 5.3 + 4.8 (tests cobertura) | Fase 8 completa, requisito de tesis |
+| 8 | 5.6 (E2E) | Depende de 3.4/1.1 |
 | 9 | 6.5/6.6 (CD deploy+rollback) | Requiere secretos humanos |
 | 10 | Resto | Mejoras continuas |
 
