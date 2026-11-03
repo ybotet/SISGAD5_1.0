@@ -48,6 +48,14 @@ export default function Sidebar() {
           name: t("menu.quejas"),
           icon: "ri-error-warning-line",
           permission: "quejas.ver",
+          children: [
+            {
+              id: "trabajos",
+              name: "Trabajos",
+              icon: "ri-file-text-line",
+              permission: "trabajos.ver",
+            },
+          ],
         },
       ],
     },

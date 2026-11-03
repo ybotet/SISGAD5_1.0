@@ -48,7 +48,7 @@ export interface TableProps<T = any> {
  *     cardTitle={(item) => `Queja #${item.num_reporte}`}
  *   />
  */
-export default function Table<T = any>({
+export function Table<T = any>({
   items,
   columns,
   renderRowActions,
@@ -195,3 +195,5 @@ export default function Table<T = any>({
     </div>
   );
 }
+
+export default Table;

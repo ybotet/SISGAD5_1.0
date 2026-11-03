@@ -39,6 +39,7 @@ import AdminPage from "./pages/auth/admin/AdminPage";
 //Stats
 import StatsPage from "./pages/StatsPage";
 import TrabajoFichaPage from "./pages/trabajos/TrabajoFichaPage";
+import TrabajosPage from "./pages/trabajo/TrabajosPage";
 
 // Predictions
 import PredictionsPage from "./pages/PredictionsPage";
@@ -117,6 +118,14 @@ export default function App() {
           element={
             <ProtectedRoute permission="quejas.ver">
               <DashboardQuejaPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="main/trabajos"
+          element={
+            <ProtectedRoute permission="trabajos.ver">
+              <TrabajosPage />
             </ProtectedRoute>
           }
         />

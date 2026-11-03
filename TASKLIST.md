@@ -367,7 +367,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-710-05 | 🔴 | 🔨 | Módulo de Pizarras | Agente | — | CRUD operativo | `PizarraPage.tsx` + `components/pizarra/` | `frontend/src/` |
 | ✅ Completada | TASK-710-06 | 🔴 | 🔨 | Módulo de Quejas | Agente | — | CRUD + flujo de estados + dashboard visual | `quejaPage.tsx`, `pages/queja/DashboardQuejaPage.tsx`, `components/queja/` | `frontend/src/` |
 | ✅ Completada | TASK-710-07 | 🔴 | 🔨 | Módulo de Pruebas | Agente | — | CRUD de pruebas y resultados | `components/prueba` vía `resultadopruebaService.ts` + páginas de nomencladores | `frontend/src/components/` |
-| 🔄 En progreso | TASK-710-08 | 🔴 | 🔨 | Módulo de Trabajos (B+E) | Agente | — | Variantes B+E: endpoints estadísticas (por trabajador / por queja / ficha individual), TrabajoModuleStats en StatsPage, TrabajoFichaPage + ruta protegida, mp.yaml v2.2.0. Pendiente: prueba manual BD real y materiales en ficha | `backend-mp/src/features/trabajo/trabajo.estadisticas.*`, `frontend/src/pages/trabajos/TrabajoFichaPage.tsx` | `backend-mp/src/features/trabajo/` |
+| ✅ Completada | TASK-710-08 | 🔴 | 🔨 | Módulo de Trabajos (B+E) | Agente | — | Backend estadísticas (por trabajador / por queja / ficha individual), TrabajoFichaPage + ruta protegida, mp.yaml v2.2.0, PLUS frontend CRUD listado (TrabajosPage + trabajoService + ruta /sistema/main/trabajos + sidebar) | `frontend/src/pages/trabajo/TrabajosPage.tsx`, `frontend/src/services/trabajoService.ts`, `frontend/src/App.tsx`, `frontend/src/components/Sidebar.tsx`, `backend-mp/src/features/trabajo/trabajo.estadisticas.*` | `backend-mp/src/features/trabajo/`, `frontend/src/pages/trabajo/` |
 | ✅ Completada | TASK-710-09 | 🔴 | 🔨 | Módulo de Materiales | Agente | — | CRUD + asignaciones + consumos + stock | `pages/materiales/{MaterialesPage,Asignacion,Consumo,StockTrabajadorPage}.tsx` + services dedicados | `frontend/src/pages/materiales/` |
 | ✅ Completada | TASK-710-10 | Alta | 🔨 | Módulo de Estadísticas | Agente | — | Gráficos Recharts alimentados por APIs de dashboard | `StatsPage.tsx` + recharts en package.json + dashboards sankey/funnel | `frontend/src/pages/StatsPage.tsx` |
 | ✅ Completada | TASK-710-11 | Alta | 🔨 | Gestión de Usuarios y Roles | Agente | — | UI admin de usuarios/roles alineada con RBAC | `AdminPage.tsx` con pestañas Usuarios/Roles/Permisos; CRUD completo en `UsuariosPage`/`RolesPage`/`PermisosPage`; `ProtectedRoute` con permisos `usuarios.ver`/`roles.ver`/`permisos.ver` | `frontend/src/pages/auth/admin/`, `frontend/src/components/roles/`, `frontend/src/services/usuariosService.ts` |
@@ -383,7 +383,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ⏳ Pendiente | TASK-720-04 | Alta | 🔨 | Loading states uniformes | Agente | — | Skeletons/spinners consistentes en todas las vistas de datos | Spinners aislados; sin patrón uniforme | `frontend/src/components/ui/` |
 | 🔄 En progreso | TASK-720-05 | Media | 🔨 | Notificaciones toast | Agente | — | Librería integrada y usada en operaciones CRUD | Parcial vía ErrorDisplay; librería de toasts no estandarizada | `frontend/src/` |
 
-**Subtotal FASE 7: 18✅ + 3🔄 de 22 — 88.6% ponderado** — *corrección mayor frente al 1.1% declarado en la v1.0*
+**Subtotal FASE 7: 19✅ + 2🔄 de 22 — 90.9% ponderado** — *corrección mayor frente al 1.1% declarado en la v1.0*
 
 ---
 
@@ -493,13 +493,13 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 4 — MP Service | 36 | 20 | 6 | 8 | 2 | **67.6%**⁴ | 25.6% |
 | FASE 5 — Materials Service | 34 | 25 | 4 | 5 | 0 | **79.4%** | 21.0%³ |
 | FASE 6 — API Gateway | 10 | 9 | 1 | 0 | 0 | **95.0%** | 30.0% |
-| FASE 7 — Frontend | 22 | 18 | 3 | 1 | 0 | **88.6%** | 1.1% |
+| FASE 7 — Frontend | 22 | 19 | 2 | 1 | 0 | **90.9%** | 1.1% |
 | FASE 8 — Testing y QA | 9 | 0 | 3 | 6 | 0 | **16.7%** | 8.3% |
 | FASE 9 — Despliegue | 6 | 0 | 2 | 4 | 0 | **16.7%** | 0.0% |
 | FASE 10 — Analítica | 8 | 1 | 3 | 4 | 0 | **31.3%** | 0.0% |
 | FASE 11 — Docs final/defensa | 3 | 0 | 2 | 1 | 0 | **33.3%** | 0.0% |
 | FASE 12 — Mantenimiento | 5 | 0 | 3 | 2 | 0 | **30.0%** | 0.0% |
-| **TOTAL** | **182** | **114** | **30** | **35** | **3** | **≈72.1%** | 25.3% |
+| **TOTAL** | **182** | **115** | **29** | **35** | **3** | **≈72.4%** | 25.3% |
 
 ¹ Excluye la tarea cancelada TASK-300-02 (base de cálculo: 11).
 ² La v1.0 declaraba totales inflados e imposibles (p. ej., 190 tareas, 89 en FASE 7, 62 en FASE 5); los conteos reales son 182 / 22 / 34.
@@ -586,7 +586,7 @@ La creación programática del tablero **GitHub Projects v2** requiere el scope 
    - `docs/api/users.yaml` v2.2.0: ambos endpoints documentados (verificado sintaxis JS y YAML).
 2. **TASK-100-03 ✅ confirmada:** el diagrama de paquetes formal existe con Mermaid + PlantUML renderizables en `docs/diagrams/component_diagrams/package_diagram.md` (v2.4 del propio diagrama). La evidencia de la tabla ("falta diagrama formal") estaba obsoleta.
 3. **TASK-100-04 ✅ confirmada:** `docs/diagrams/sequence_diagrams/sequence_diagrams.md` contiene diagramas Mermaid de 3+ escenarios críticos (autenticación JWT, registro de queja, asignación de materiales) con tablas de mensajes numerados.
-4. **Subtotales recalculados:** FASE 1 = 12✅ + 1🔄 de 14 → **89.3%**; FASE 3 = 10✅ de 11 efectivas → **90.9%**; TOTAL = 111✅ + 33🔄 + 37⏳ + 1❌ de 182 → **≈70.6% ponderado**.
+4. **Subtotales recalculados:** FASE 1 = 12✅ + 1🔄 de 14 → **89.3%**; FASE 3 = 10✅ de 11 efectivas → **90.9%**; TOTAL = 112✅ + 32🔄 + 37⏳ + 1❌ de 182 → **≈70.9% ponderado**.
 5. **Pendiente operativo (bloqueado):** cierre de los issues GitHub correspondientes a TASK-300-08/100-03/100-04 y actualización del tablero Projects v2 — el token PAT embebido en la URL remota está revocado/expirado (`Invalid username or token` al hacer push); se requiere rotación del token por el propietario.
 
 ### Regla recordada
