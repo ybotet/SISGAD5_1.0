@@ -251,7 +251,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-460-02 | Alta | 🔨 | Métricas agregadas (KPIs) | Agente | TASK-460-01 | KPIs calculados en SQL/Sequelize (MTTR, recurrentes, embudo) | Implementados en QuejaController/TelefonoController | `backend-mp/src/controllers/` |
 | ✅ Completada | TASK-460-03 | Media | 🔨 | Filtros por fecha/servicio en estadísticas | Agente | TASK-460-01 | Query params de rango/ámbito aceptados por los dashboards | Soportados por patrones de query en los endpoints dashboard | `backend-mp/src/` |
 
-**Subtotal FASE 4: 20✅ + 6🔄 de 36 — 63.9% ponderado** *(la v1.0 declaraba 43 tareas; la tabla contiene 36)*
+**Subtotal FASE 4: 20✅ + 6🔄 de 34 efectivas — 67.6% ponderado** *(2 fuera de alcance: TASK-420-02/03, puertos y conexiones excluidos del alcance — decisión 2026-11-03; la v1.0 declaraba 43 tareas; la tabla contiene 36)*
 
 ---
 
@@ -340,7 +340,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-600-09 | Alta | 🔨 | Manejo de errores unificado | Agente | — | 404/5xx con formato JSON consistente `{success,error,path}` | Fallback 404 y manejo de errores estandarizado | `api-gateway/src/server.js` |
 | ✅ Completada | TASK-600-10 | Media | 🔨 | Documentación OpenAPI del Gateway | Agente | — | `docs/api/gateway.yaml` publicado y actualizado con las rutas del proxy | `docs/api/gateway.yaml` presente; validar cobertura de rutas en la próxima revisión de docs | `docs/api/gateway.yaml` |
 
-**Subtotal FASE 6: 9/10 (90.0%)** *(TASK-600-10 reclasificada a ✅: `docs/api/gateway.yaml` ya existe)*
+**Subtotal FASE 6: 9✅ + 1🔄 de 10 — 95.0% ponderado** *(TASK-600-10 reclasificada a ✅: `docs/api/gateway.yaml` ya existe)*
 
 ---
 
@@ -482,7 +482,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 
 ## 15. Resumen de Progreso
 
-> Recalculado tras la auditoría v2.0 contra el código real del repositorio (conteos verificados automáticamente sobre las tablas de este documento). Las tareas 🔄 cuentan al 50% para el porcentaje ponderado.
+> Recalculado (v2.5, 2026-11-03) tras excluir del alcance TASK-420-02/03 (puertos/conexiones de pizarra) y verificar automáticamente los conteos sobre las tablas de este documento. Las tareas 🔄 cuentan al 50% para el porcentaje ponderado; las ❌ quedan fuera del denominador.
 
 | Fase | Total | ✅ | 🔄 | ⏳ | ❌ | % Real (ponderado) | % Anterior (v1.0) |
 | ---- | ----- | -- | -- | -- | -- | ------------------ | ----------------- |
@@ -490,20 +490,21 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 1 — Diseño y modelado | 14 | 12 | 1 | 1 | 0 | **89.3%** | 57.1% |
 | FASE 2 — Infraestructura | 15 | 11 | 2 | 2 | 0 | **80.0%** | 36.8% |
 | FASE 3 — Users Service | 12 | 10 | 0 | 1 | 1 | **90.9%**¹ | 16.7% |
-| FASE 4 — MP Service | 36 | 20 | 6 | 10 | 0 | **63.9%** | 25.6% |
+| FASE 4 — MP Service | 36 | 20 | 6 | 8 | 2 | **67.6%**⁴ | 25.6% |
 | FASE 5 — Materials Service | 34 | 25 | 4 | 5 | 0 | **79.4%** | 21.0%³ |
 | FASE 6 — API Gateway | 10 | 9 | 1 | 0 | 0 | **95.0%** | 30.0% |
-| FASE 7 — Frontend | 22 | 16 | 5 | 1 | 0 | **88.6%** | 1.1% |
+| FASE 7 — Frontend | 22 | 18 | 3 | 1 | 0 | **88.6%** | 1.1% |
 | FASE 8 — Testing y QA | 9 | 0 | 3 | 6 | 0 | **16.7%** | 8.3% |
 | FASE 9 — Despliegue | 6 | 0 | 2 | 4 | 0 | **16.7%** | 0.0% |
-| FASE 10 — Analítica | 8 | 0 | 4 | 4 | 0 | **25.0%** | 0.0% |
+| FASE 10 — Analítica | 8 | 1 | 3 | 4 | 0 | **31.3%** | 0.0% |
 | FASE 11 — Docs final/defensa | 3 | 0 | 2 | 1 | 0 | **33.3%** | 0.0% |
 | FASE 12 — Mantenimiento | 5 | 0 | 3 | 2 | 0 | **30.0%** | 0.0% |
-| **TOTAL** | **182** | **108** | **34** | **39** | **1** | **≈69.2%** | 25.3% |
+| **TOTAL** | **182** | **114** | **30** | **35** | **3** | **≈72.1%** | 25.3% |
 
 ¹ Excluye la tarea cancelada TASK-300-02 (base de cálculo: 11).
 ² La v1.0 declaraba totales inflados e imposibles (p. ej., 190 tareas, 89 en FASE 7, 62 en FASE 5); los conteos reales son 182 / 22 / 34.
 ³ El % anterior usaba como denominador el conteo inflado de 62 tareas.
+⁴ Base de cálculo: 34 efectivas (36 totales − 2 fuera de alcance: TASK-420-02 mapeo de puertos y TASK-420-03 conexiones, excluidos por decisión de alcance 2026-11-03; la entidad Pizarra gestiona nombre, dirección y tipo de pizarra, no puertos). El total ponderado global usa como denominador 179 (182 − 3 ❌).
 
 ---
 
@@ -590,3 +591,19 @@ La creación programática del tablero **GitHub Projects v2** requiere el scope 
 
 ### Regla recordada
 Fuente única de verdad: este documento; los issues/tablero son vistas operativas que deben sincronizarse cuando se restablezca el acceso API.
+
+---
+
+## 20. Registro de Cambios v2.5 — Exclusión de puertos/conexiones del alcance + recálculo del Resumen de Progreso
+
+**Fecha:** 2026-11-03 · **Responsable:** Humano (decisión de alcance) + Agente (ejecución documental) · **Método:** conteo automático sobre las tablas de este documento.
+
+### Qué se ejecutó
+1. **Decisión de alcance:** la entidad **Pizarra** gestiona nombre, dirección y tipo de pizarra; **no se controlan puertos**. Se excluyeron del alcance **TASK-420-02** (mapeo de puertos) y **TASK-420-03** (conexiones entrantes/salientes) → estado ❌. Se depuraron las referencias a puertos en `docs/` (ES/RU: 01, 03, 04, 05, 06, 07, 10, 11, 12 y manual operativo) y en `PROMPTS.md`.
+2. **TASK-420-06** re-enfocada: el historial de pizarra ya no depende de puertos/conexiones; depende de TASK-420-01 y agrega quejas y movimientos.
+3. **Subtotales recalculados:** FASE 4 = 20✅ + 6🔄 de 34 efectivas → **67.6%**; FASE 6 corregido a **95.0%** (la fila TASK-600-10 está ✅); FASE 7 alineado con las tablas (**18✅ + 3🔄**); FASE 10 alineado (**1✅ + 3🔄 → 31.3%**).
+4. **Resumen de Progreso (sección 15) recalculado automáticamente:** TOTAL = 182 tareas (114✅ + 30🔄 + 35⏳ + 3❌ fuera de alcance) → **≈72.1% ponderado** (denominador efectivo: 179).
+5. **PROMPTS.md regenerado:** solo contiene prompts de tareas no cerradas (🔄/⏳); eliminados los prompts de tareas completadas (TASK-710-11/1000-05, TASK-710-12, TASK-720-02, TASK-300-06/07); añadidos TASK-210-02 (CD deploy) y TASK-800-05 (tests de componentes frontend); actualizadas dependencias internas (perfil ← cambio de contraseña).
+
+### Regla recordada
+Los subtotales y el Resumen de Progreso deben recalcarse **por script sobre las tablas** (no a mano) cada vez que cambia el estado de una tarea.

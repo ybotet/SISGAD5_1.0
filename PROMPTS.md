@@ -1,9 +1,10 @@
 # 🎯 PROMPTS.md — Prompts para Tareas No Completadas (SISGAD5)
 
 > **Proyecto:** SISGAD5_1.0 — https://github.com/ybotet/SISGAD5_1.0
-> **Generado:** 2026-11-02 · Basado en TASKLIST.md v2.4 (73 tareas no cerradas: 🔄/⏳)
+> **Generado:** 2026-11-03 · Basado en TASKLIST.md v2.5 (**65 tareas no cerradas: 30 🔄 + 35 ⏳**)
 > **Uso:** copiar el bloque de código del prompt y ejecutarlo en Kilo Code con el agente indicado.
 > **Nota:** los prompts marcados 🔗 están agrupados porque comparten archivos/función (ejecutar en orden). Los marcados 👤 requieren acción humana (no hay prompt automatizable completo).
+> **Alcance (2026-11-03):** TASK-420-02 (puertos) y TASK-420-03 (conexiones) quedaron fuera de alcance ❌ — la entidad Pizarra gestiona nombre, dirección y tipo; no se controlan puertos. Este documento muestra **solo tareas no completadas**; los prompts de tareas ya cerradas (TASK-710-11/1000-05, TASK-710-12, TASK-720-02, TASK-300-06/07, entre otras) fueron retirados.
 
 ---
 
@@ -24,54 +25,19 @@ Pasos:
 Criterio de aceptación: pantalla de Trabajos completa (lista+CRUD+asignación). Al terminar actualizar TASKLIST.md (🔄→✅) y docs/memory/.
 ```
 
-### Prompt 1.2 — TASK-710-11 + TASK-1000-05 · Gestión Usuarios/Roles + Panel admin RBAC 🔗🔴🔄
-Agente: frontend-dev. Contexto: `components/roles/` y `usuariosService.ts` ya existen; falta la pantalla integral de usuarios y un panel unificado. Dependen del backend-users (CRUD usuario + RBAC implementados).
-```
-Proyecto: SISGAD5. Tareas: TASK-710-11 (UI gestión usuarios/roles) y TASK-1000-05 (Panel administración con control RBAC) — ejecutar juntas.
-Objetivo: página admin /admin que integre en pestañas: Usuarios (CRUD completo), Roles (existente, verificar cobertura de permisos) y Permisos.
-Pasos:
-1. Auditar qué existe ya en frontend/src/components/roles/ y usuariosService.ts vs endpoints reales de backend-users (auth.routes.js, user routes): listar en tabla gap antes de codificar.
-2. Completar UsuariosPage: tabla paginada, alta/edición con selector de rol, activar/desactivar usuario, reset de contraseña (solo si el endpoint existe; si no, dejar botón deshabilitado con tooltip).
-3. Gatear toda la sección con el permiso RBAC correspondiente (patrón ProtectedRoute existente); nunca ocultar solo en UI: documentar que el backend revalida.
-4. Unificar en AdminPage.tsx con <Tabs>; registrar ruta /admin protegida.
-5. npm run lint && npm run build en verde.
-Criterio: administrador gestiona usuarios/roles sin tocar BD. Actualizar TASKLIST.md ambas tareas y memoria al cerrar.
-```
-
-### Prompt 1.3 — TASK-710-12 · Perfil de Usuario 🔄
-Agente: frontend-dev. Contexto: `/profile` existe pero es de solo lectura. El cambio de contraseña NO tiene endpoint aún (TASK-300-06 pendiente en backend-users) — coordinar dependencia.
-```
-Proyecto: SISGAD5. Tarea: TASK-710-12 — Perfil de Usuario (ver/editar + cambiar contraseña).
-Pasos:
-1. Revisar qué permite editar realmente backend-users (PUT en user routes) y AuthContext (refresh de datos tras edición).
-2. Hacer editable nombre/email/telefono con validación Zod igual que backend; recargar estado global tras guardar.
-3. Sección "Cambiar contraseña": si backend aún no expone PATCH /api/auth/password (TASK-300-06), implementar el formulario con el contrato definido en docs/api/users.yaml (PLANIFICADO) y mostrar aviso de indisponibilidad hasta que exista; NO inventar endpoint.
-4. lint+build en verde; actualizar TASKLIST.md/memoria.
-```
-
-### Prompt 1.4 — TASK-700-04 · Estado global 🔄
+### Prompt 1.2 — TASK-700-04 · Estado global 🔄
 Agente: frontend-dev. Contexto: AuthContext + ErrorContext (Context API) funcionan; no hay store de datos de dominio. Decisión previa del proyecto: mantener Context API salvo dolor real.
 ```
 Proyecto: SISGAD5. Tarea: TASK-700-04 — Manejo de estado global predecible.
 Antes de codificar, decidir y documentar (ADR corto en docs/adr/): ¿Zustand o ampliar Context? Evaluar: solo se necesita cache de listas (paginación) + notificaciones.
 Si la respuesta es Zustand (recomendado mínimo):
-1. npm i zustand; crear src/store/useNotificationStore.ts (toasts, véase prompt 1.6) y src/store/useAuthStore.ts migrando AuthContext SIN romper consumidores (export hook-compatible wrapper).
+1. npm i zustand; crear src/store/useNotificationStore.ts (toasts, véase prompt 1.3) y src/store/useAuthStore.ts migrando AuthContext SIN romper consumidores (export hook-compatible wrapper).
 2. Migrar gradualmente: primero notificaciones, luego auth. Prohibido big-bang.
 3. Verificar tests/e2e de login siguen pasando (o auto-skip si no hay navegador).
 Criterio: un único patrón de estado global documentado; cero regresiones visibles. Cerrar TASKLIST+memoria.
 ```
 
-### Prompt 1.5 — TASK-720-02 · Responsive design 🔄
-Agente: frontend-dev + QA. Contexto: Tailwind activo pero uso irregular de breakpoints.
-```
-Proyecto: SISGAD5. Tarea: TASK-720-02 — Responsive design sistemático.
-1. Auditoría: recorrer las 12 páginas principales con viewport 375/768/1280px (Playwright screenshot o manual) y producir docs/audit-responsive.md con tabla página×problema.
-2. Corregir por lotes priorizando: Login, Dashboard, Quejas, Tablas de nomencladores. Patrones: contenedor max-w, tablas → card-view en móvil (hidden md:table + cards md:hidden), grids grid-cols-1 sm:grid-cols-2 lg:grid-cols-3.
-3. Estandarizar en components/ui/Table.tsx el colapso responsive una sola vez (no repetir por página).
-Criterio: las 3 vistas objetivo usables en móvil sin scroll horizontal. Cierre con evidencia de screenshots en memoria.
-```
-
-### Prompt 1.6 — TASK-720-04 + TASK-720-05 · Loading states + Toasts 🔗🔄⏳
+### Prompt 1.3 — TASK-720-04 + TASK-720-05 · Loading states + Toasts 🔗🔄⏳
 Mismo agente, mismos archivos (components/ui/). Ejecutar juntos.
 ```
 Proyecto: SISGAD5. Tareas: TASK-720-04 (loading uniformes) y TASK-720-05 (notificaciones toast).
@@ -87,21 +53,8 @@ Stack elegido: react-hot-toast (liviano) + skeletons propios.
 
 ## Bloque 2 — Backend Users (Fases 3, 6, 8) — `backend-users/`
 
-### Prompt 2.1 — TASK-300-06 · Cambio de contraseña ⏳ Alta
-Agente: backend-dev. Prerequisito natural antes de 1.3. Convención: features/auth/, Zod validations en shared/validation/, respuesta vía envoltorio estándar.
-```
-Proyecto: SISGAD5. Tarea: TASK-300-06 — Endpoint self-service de cambio de contraseña.
-Implementar PATCH /api/auth/password (autenticado):
-1. body { password_actual, password_nueva } validado con Zod (crear password.validation.js; política complejidad = misma que USER_PASSWORD del registro: min 8, mayús, minús, dígito).
-2. Controller: bcrypt.compare del actual (si falla → 401 genérico + contador de intentos si existe TASK-300-07); rechazar nueva==actual; hashear bcrypt(rounds actuales) y UPDATE tb_user.
-3. Revocar TODOS los refresh tokens del usuario tras el cambio (modelo RefreshToken, campo revoked) — sesiones restantes invalidadas.
-4. Rutas: registrar en auth.routes.js; auditar en logs estructurados (sin contenido sensible).
-5. Tests Jest (supertest, patrón mock de sequelize ya usado en session.validation tests): éxito, password actual incorrecto, política insuficiente, revocación de tokens.
-6. Actualizar docs/api/users.yaml (dejar de marcar PLANIFICADO) y TASKLIST.md.
-```
-
-### Prompt 2.2 — TASK-300-05 · Recuperación de contraseña ⏳ Alta
-Depende de decidir canal de correo (pendiente humano). Diseñar para proveedor plugable.
+### Prompt 2.1 — TASK-300-05 · Recuperación de contraseña ⏳ Alta
+Depende de decidir canal de correo (pendiente humano). Diseñar para proveedor plugable. *Nota (2026-11-03): la validación de política de complejidad ya existe — TASK-300-06 (cambio de contraseña) fue cerrada; reutilizar `password.validation.js` en lugar de recrearla.*
 ```
 Proyecto: SISGAD5. Tarea: TASK-300-05 — Recuperación de contraseña.
 Diseño (seguir patrón de refresh tokens: hash en BD, expiración):
@@ -113,7 +66,7 @@ Diseño (seguir patrón de refresh tokens: hash en BD, expiración):
 6. users.yaml + TASKLIST.md actualizados. Pendiente humano: aprobar proveedor SMTP real y DSN.
 ```
 
-### Prompt 2.3 — TASK-300-07 · Bloqueo por intentos fallidos ⏳ Media
+### Prompt 2.2 — TASK-300-07 · Bloqueo por intentos fallidos ⏳ Media
 ```
 Proyecto: SISGAD5. Tarea: TASK-300-07 — Bloqueo temporal de cuenta por intentos fallidos.
 1. Columnas via migración en tb_user: failed_attempts int default 0, locked_until timestamptz null.
@@ -123,13 +76,13 @@ Proyecto: SISGAD5. Tarea: TASK-300-07 — Bloqueo temporal de cuenta por intento
 5. Tests Jest: 5 fallos→bloqueo, login durante bloqueo→423, éxito resetea, expiración libera.
 ```
 
-### Prompt 2.4 — TASK-800-01 · Tests unitarios Users Service ⏳🔴
+### Prompt 2.3 — TASK-800-01 · Tests unitarios Users Service ⏳🔴
 Contexto real: backend-users SÍ tiene algunos tests parciales (auth/sesión) creados en v2.4; la fila del TASKLIST está obsoleta. Faltan controllers de usuario, middlewares, RBAC.
 ```
 Proyecto: SISGAD5. Tarea: TASK-800-01 — Suite Jest ≥70% cobertura en backend-users.
 1. Configurar jest.config.js (collectCoverageFrom src/**, excluyendo node_modules/migrations) y script npm test real (revisar package.json; hay patrones ya usados en tests existentes — inspeccionar primero tests/ actuales y NO duplicar setups).
 2. Mockear sequelize con jest-mock-sequelize o mocks manuales de modelos (patrón de los tests de sesión existentes).
-3. Cubrir por prioridad: user.controller CRUD+RBAC, auth (login/refresh/logout/password si ya mergeado 2.1), middlewares auth/errores, validations Zod.
+3. Cubrir por prioridad: user.controller CRUD+RBAC, auth (login/refresh/logout/password — TASK-300-06 ya cerrada, el endpoint existe), middlewares auth/errores, validations Zod.
 4. npm test -- --coverage ≥70% statements en src/features y src/shared. Integrar en ci.yml job test-users (ya existe workflow lint/test JS — verificar nombre del job).
 5. Corregir la fila TASK-800-01 de TASKLIST.md (evidencia obsoleta) y marcar avance real.
 ```
@@ -211,10 +164,10 @@ Proyecto: SISGAD5. Tarea: TASK-450-05 — GET /api/trabajos con ?estado=&trabaja
 ```
 
 ### Prompt 3.9 — TASK-430-10 · Notificaciones email ⏳
-Depende del MailerPort del prompt 2.2 — reutilizarlo, no crear segundo mecanismo.
+Depende del MailerPort del prompt 2.1 (TASK-300-05) — reutilizarlo, no crear segundo mecanismo.
 ```
 Proyecto: SISGAD5. Tarea: TASK-430-10 — Email al asignar/cambiar estado de queja.
-1. Extraer MailerPort a shared/ (si 2.2 ya lo creó en backend-users, evaluar mover a lib común o duplicar puerto con impl propia en MP — decidir y anotar ADR corto).
+1. Extraer MailerPort a shared/ (si 2.1 ya lo creó en backend-users, evaluar mover a lib común o duplicar puerto con impl propia en MP — decidir y anotar ADR corto).
 2. Cola simple sin infra nueva: tabla tb_notificaciones(pendiente) + worker setInterval o setImmediate fire-and-forget con reintento x3; NUNCA bloquear la respuesta HTTP.
 3. Disparadores: eventos de 3.4/3.5 (asignar, cerrar). Plantilla handlebars simple.
 4. Config SMTP por env; en dev console mailer. Test: evento encola notificación; fallo SMTP no rompe request.
@@ -325,6 +278,16 @@ Proyecto: SISGAD5. Tarea: TASK-800-04 — Suites Jest para middlewares del gatew
 1. jest.config.js + script test real (verificar package.json gateway; patrón de otros servicios JS ya resuelto en nov-2026).
 2. Cubrir: rate-limit (falso timer), proxy routing (mock http-proxy-middleware target resolution), health, CORS lista blanca, y auth de 5.1 si ya mergeado.
 3. Sin red externa: every upstream mocked. CI job test-gateway activo.
+```
+
+### Prompt 5.3 — TASK-800-05 · Tests de componentes Frontend ⏳ Media
+```
+Proyecto: SISGAD5. Tarea: TASK-800-05 — Vitest + Testing Library en frontend/.
+1. npm i -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom; añadir script "test" y vitest.config.ts (environment jsdom, setup file con jest-dom). Verificar compatibilidad con la versión de Vite/React instalada antes de fijar versiones.
+2. Priorizar cobertura: ProtectedRoute (permitir/bloquear según permiso RBAC), flujo de login (form + interceptor de error), formularios CRUD clave (Queja, Pizarra — validación Zod espejo del backend) y utilidades de services/api.ts (mapeo de errores).
+3. Mockear axios con mocks manuales o msw (no depender de backend corriendo).
+4. Meta inicial: suites verdes en `npm run test` + integración al job test-js de ci.yml (o job nuevo test-frontend); ≥50% cobertura de src/components+services como primer hito (meta final ≥70% alineada con Fase 8).
+5. Cerrar TASK-800-05 en TASKLIST.md con evidencia (nº de suites/cobertura).
 ```
 
 ### Prompt 5.3 — TASK-820-01 · Auditoría de seguridad y remediación 🔄
