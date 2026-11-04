@@ -29,10 +29,10 @@ const TrabajoController = {
             "observaciones",
             "id_queja",
             "id_trabajo",
-            "createdAt",
-            "updatedAt",
+            "created_at",
+            "updated_at",
           ],
-          defaultSort: "createdAt",
+          defaultSort: "created_at",
           defaultOrder: "DESC",
           maxLimit: 100,
         });

@@ -67,7 +67,7 @@ export const trabajoService = {
     page: number = 1,
     limit: number = 10,
     search: string = "",
-    sortBy: string = "createdAt",
+    sortBy: string = "created_at",
     sortOrder: string = "DESC",
   ): Promise<PaginatedResponse<TrabajoItem>> {
     const params = new URLSearchParams({

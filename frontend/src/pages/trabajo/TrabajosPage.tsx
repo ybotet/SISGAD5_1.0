@@ -175,13 +175,13 @@ export default function TrabajosPage() {
   const handleFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
-    const { name, value, type, checked } = e.target as
+    const { name, value, type } = e.target as
       | HTMLInputElement
       | HTMLSelectElement
       | HTMLTextAreaElement;
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
   };
 
@@ -430,7 +430,10 @@ export default function TrabajosPage() {
       )}
 
       {/* Modal crear/editar */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+        style={{ display: showModal ? "flex" : "none" }}
+      >
         <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl sm:w-full max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-start mb-4">
             <h2 className="text-lg font-bold text-gray-900">
@@ -450,7 +453,7 @@ export default function TrabajosPage() {
             </div>
           )}
 
-          <form onSubmit={handleSave} className="space-y-4">
+          <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col">
                 <label className="text-sm font-medium text-gray-700 mb-1">Fecha *</label>
@@ -568,6 +571,7 @@ export default function TrabajosPage() {
             <button
               type="submit"
               disabled={saving}
+              onClick={() => handleSave({ preventDefault: () => {} } as any)}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-50"
             >
               {saving ? "Guardando…" : editingItem ? "Actualizar" : "Crear trabajo"}
@@ -577,7 +581,10 @@ export default function TrabajosPage() {
       </div>
 
       {/* Modal confirmar eliminar */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+        style={{ display: showConfirm ? "flex" : "none" }}
+      >
         <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
           <h2 className="text-lg font-bold text-gray-900 mb-2">Eliminar trabajo</h2>
           <p className="text-gray-600 mb-4">

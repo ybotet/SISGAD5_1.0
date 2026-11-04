@@ -124,7 +124,7 @@ export default function App() {
         <Route
           path="main/trabajos"
           element={
-            <ProtectedRoute permission="trabajos.ver">
+            <ProtectedRoute permission="quejas.ver">
               <TrabajosPage />
             </ProtectedRoute>
           }

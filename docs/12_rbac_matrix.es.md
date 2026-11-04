@@ -8,14 +8,14 @@
 
 ## 1. Roles del Sistema
 
-| Rol | Código | Descripción | Nivel |
-|-----|--------|-------------|-------|
-| **Administrador** | `admin` | Acceso total al sistema, gestión de usuarios y configuración | 1 (Máximo) |
-| **Probador** | `probador` | Primer contacto con quejas: registro, clasificación, derivación y pruebas | 2 |
-| **Editor** | `editor` | Trabajo con nomencladores: crear, modificar y eliminar datos maestros | 2 |
-| **Supervisor** | `supervisor` | Supervisión operativa: asignación de técnicos, seguimiento de KPIs | 2 |
-| **Analista de Materiales** | `analista_materiales` | Gestión de catálogo de materiales, asignaciones, consumos, dashboard | 2 |
-| **Director** | `director` | Visión estratégica: dashboards ejecutivos, solo lectura | 3 (Solo lectura) |
+| Rol                        | Código                | Descripción                                                               | Nivel            |
+| -------------------------- | --------------------- | ------------------------------------------------------------------------- | ---------------- |
+| **Administrador**          | `admin`               | Acceso total al sistema, gestión de usuarios y configuración              | 1 (Máximo)       |
+| **Probador**               | `probador`            | Primer contacto con quejas: registro, clasificación, derivación y pruebas | 2                |
+| **Editor**                 | `editor`              | Trabajo con nomencladores: crear, modificar y eliminar datos maestros     | 2                |
+| **Supervisor**             | `supervisor`          | Supervisión operativa: asignación de técnicos, seguimiento de KPIs        | 2                |
+| **Analista de Materiales** | `analista_materiales` | Gestión de catálogo de materiales, asignaciones, consumos, dashboard      | 2                |
+| **Director**               | `director`            | Visión estratégica: dashboards ejecutivos, solo lectura                   | 3 (Solo lectura) |
 
 ---
 
@@ -23,127 +23,125 @@
 
 ### Formato: `recurso:accion`
 
-| Recurso | create | read | update | delete | Acciones Especiales |
-|---------|--------|------|--------|--------|---------------------|
-| **users** | ✅ | ✅ | ✅ | ✅ (soft) | `assign_roles` |
-| **roles** | ✅ | ✅ | ✅ | ✅ | `assign_permisos` |
-| **permisos** | ✅ | ✅ | ❌ | ❌ | - |
-| **sesiones** | ❌ | ✅ (own) | ❌ | ✅ (revoke own) | - |
-| **auth** | register, login, refresh, logout, forgot, reset | - | - | - | - |
+| Recurso      | create                                          | read     | update | delete          | Acciones Especiales |
+| ------------ | ----------------------------------------------- | -------- | ------ | --------------- | ------------------- |
+| **users**    | ✅                                              | ✅       | ✅     | ✅ (soft)       | `assign_roles`      |
+| **roles**    | ✅                                              | ✅       | ✅     | ✅              | `assign_permisos`   |
+| **permisos** | ✅                                              | ✅       | ❌     | ❌              | -                   |
+| **sesiones** | ❌                                              | ✅ (own) | ❌     | ✅ (revoke own) | -                   |
+| **auth**     | register, login, refresh, logout, forgot, reset | -        | -      | -               | -                   |
 
-| Recurso | create | read | update | delete | Acciones Especiales |
-|---------|--------|------|--------|--------|---------------------|
-| **telefonos** | ✅ | ✅ | ✅ | ✅ (soft) | `cambiar_estado`, `historial` |
-| **lineas** | ✅ | ✅ | ✅ | ✅ (soft) | `cambiar_estado`, `historial` |
-| **pizarras** | ✅ | ✅ | ✅ | ✅ (soft) | `historial`, `ubicacion` |
-| **quejas** | ✅ | ✅ | ✅ | ❌ | `asignar`, `cambiar_estado`, `historial`, `auditoria` |
-| **pruebas** | ✅ | ✅ | ✅ (own) | ❌ | - |
-| **trabajos** | ✅ | ✅ | ✅ | ❌ | `asignar`, `cerrar` |
-| **estadisticas_mp** | ❌ | ✅ | ❌ | ❌ | - |
-| **catalogos_mp** | ❌ (admin) | ✅ | ❌ (admin) | ❌ (admin) | - |
+| Recurso             | create     | read | update     | delete     | Acciones Especiales                                   |
+| ------------------- | ---------- | ---- | ---------- | ---------- | ----------------------------------------------------- |
+| **telefonos**       | ✅         | ✅   | ✅         | ✅ (soft)  | `cambiar_estado`, `historial`                         |
+| **lineas**          | ✅         | ✅   | ✅         | ✅ (soft)  | `cambiar_estado`, `historial`                         |
+| **pizarras**        | ✅         | ✅   | ✅         | ✅ (soft)  | `historial`, `ubicacion`                              |
+| **quejas**          | ✅         | ✅   | ✅         | ❌         | `asignar`, `cambiar_estado`, `historial`, `auditoria` |
+| **pruebas**         | ✅         | ✅   | ✅ (own)   | ❌         | -                                                     |
+| **trabajos**        | ✅         | ✅   | ✅         | ❌         | `asignar`, `cerrar`                                   |
+| **estadisticas_mp** | ❌         | ✅   | ❌         | ❌         | -                                                     |
+| **catalogos_mp**    | ❌ (admin) | ✅   | ❌ (admin) | ❌ (admin) | -                                                     |
 
-| Recurso | create | read | update | delete | Acciones Especiales |
-|---------|--------|------|--------|--------|---------------------|
-| **materiales** | ✅ | ✅ | ✅ | ✅ (soft) | `buscar`, `paginar` |
-| **categorias** | ✅ | ✅ | ✅ | ✅ (soft, RESTRICT) | - |
-| **unidades** | ✅ | ✅ | ✅ | ✅ (soft, RESTRICT) | - |
-| **asignaciones** | ✅ | ✅ | ✅ (estado/obs) | ❌ | `items`, `validar_stock` |
-| **consumos** | ✅ | ✅ | ❌ | ❌ | `validar_vs_asignacion` |
-| **dashboard_mat** | ❌ | ✅ | ❌ | ❌ | `exportar`, `alertas` |
+| Recurso           | create | read | update          | delete              | Acciones Especiales      |
+| ----------------- | ------ | ---- | --------------- | ------------------- | ------------------------ |
+| **materiales**    | ✅     | ✅   | ✅              | ✅ (soft)           | `buscar`, `paginar`      |
+| **categorias**    | ✅     | ✅   | ✅              | ✅ (soft, RESTRICT) | -                        |
+| **unidades**      | ✅     | ✅   | ✅              | ✅ (soft, RESTRICT) | -                        |
+| **asignaciones**  | ✅     | ✅   | ✅ (estado/obs) | ❌                  | `items`, `validar_stock` |
+| **consumos**      | ✅     | ✅   | ❌              | ❌                  | `validar_vs_asignacion`  |
+| **dashboard_mat** | ❌     | ✅   | ❌              | ❌                  | `exportar`, `alertas`    |
 
 ---
 
 ## 3. Matriz Completa: Rol × Permiso
 
-| Permiso | Administrador | Probador | Editor | Supervisor | Analista de Materiales | Director |
-|---|---|---|---|---|---|---|
-| **— **Users Service** —** |  |  |  |  |  |  |
-| users:create | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| users:read | ✅ | 👁️ (own) | 👁️ (own) | 👁️ | 👁️ (own) | 👁️ |
-| users:update | ✅ | 👁️ (own profile) | 👁️ (own profile) | ❌ | 👁️ (own profile) | ❌ |
-| users:delete | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| users:assign_roles | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| roles:create | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| roles:read | ✅ | ❌ | ❌ | 👁️ | ❌ | 👁️ |
-| roles:update | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| roles:delete | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| roles:assign_permisos | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| permisos:create | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| permisos:read | ✅ | ❌ | ❌ | 👁️ | ❌ | 👁️ |
-| sesiones:read_own | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| sesiones:revoke_own | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| sesiones:read_all | ✅ | ❌ | ❌ | 👁️ | ❌ | 👁️ |
-| auth:register | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| auth:login | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| auth:refresh | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| auth:logout | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| auth:forgot_password | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| auth:reset_password | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **— **MP Service** —** |  |  |  |  |  |  |
-| telefonos:create | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| telefonos:read | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ |
-| telefonos:update | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| telefonos:delete | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| telefonos:cambiar_estado | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| telefonos:historial | ✅ | ✅ | ✅ | ✅ | 👁️ | 👁️ |
-| lineas:create | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| lineas:read | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ |
-| lineas:update | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| lineas:delete | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| lineas:cambiar_estado | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| lineas:historial | ✅ | ✅ | ✅ | ✅ | 👁️ | 👁️ |
-| pizarras:create | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| pizarras:read | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ |
-| pizarras:update | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| pizarras:delete | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| pizarras:historial | ✅ | ✅ | ✅ | ✅ | 👁️ | 👁️ |
-| pizarras:ubicacion | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| quejas:create | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| quejas:read | ✅ | ✅ (asignadas) | ✅ | ✅ | 👁️ | 👁️ |
-| quejas:update | ✅ | ✅ (asignadas, estado) | ✅ (clasificación) | ✅ | ❌ | ❌ |
-| quejas:asignar | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| quejas:cambiar_estado | ✅ | ✅ (siguiente válido) | ✅ (Probada) | ✅ | ❌ | ❌ |
-| quejas:historial | ✅ | ✅ | ✅ | ✅ | 👁️ | 👁️ |
-| quejas:auditoria | ✅ | 👁️ | 👁️ | 👁️ | 👁️ | 👁️ |
-| pruebas:create | ✅ | ✅ (asignadas) | ❌ | ✅ | ❌ | ❌ |
-| pruebas:read | ✅ | ✅ (propias) | 👁️ | ✅ | ❌ | 👁️ |
-| pruebas:update | ✅ | ✅ (propias) | ❌ | ❌ | ❌ | ❌ |
-| trabajos:create | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| trabajos:read | ✅ | ✅ (asignados) | 👁️ | ✅ | ❌ | 👁️ |
-| trabajos:update | ✅ | ✅ (asignados) | ❌ | ✅ | ❌ | ❌ |
-| trabajos:asignar | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| trabajos:cerrar | ✅ | ✅ (asignados) | ❌ | ✅ | ❌ | ❌ |
-| estadisticas_mp:read | ✅ | 👁️ | 👁️ | ✅ | 👁️ | ✅ |
-| catalogos_mp:read | ✅ | 👁️ | 👁️ | 👁️ | 👁️ | 👁️ |
-| catalogos_mp:write | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **— **Materials Service** —** |  |  |  |  |  |  |
-| materiales:create | ✅ | ❌ | ❌ | 👁️ | ✅ | ❌ |
-| materiales:read | ✅ | 👁️ | ❌ | 👁️ | ✅ | 👁️ |
-| materiales:update | ✅ | ❌ | ❌ | 👁️ | ✅ | ❌ |
-| materiales:delete | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| materiales:buscar | ✅ | 👁️ | ❌ | 👁️ | ✅ | 👁️ |
-| materiales:paginar | ✅ | 👁️ | ❌ | 👁️ | ✅ | 👁️ |
-| categorias:create | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| categorias:read | ✅ | 👁️ | ❌ | 👁️ | ✅ | 👁️ |
-| categorias:update | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| categorias:delete | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| unidades:create | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| unidades:read | ✅ | 👁️ | ❌ | 👁️ | ✅ | 👁️ |
-| unidades:update | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| unidades:delete | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| asignaciones:create | ✅ | ✅ | ❌ | 👁️ | ✅ | ❌ |
-| asignaciones:read | ✅ | ✅ (propias) | ❌ | 👁️ | ✅ | 👁️ |
-| asignaciones:update_estado | ✅ | ✅ (propias) | ❌ | 👁️ | ✅ | ❌ |
-| asignaciones:items | ✅ | ✅ (propias) | ❌ | 👁️ | ✅ | 👁️ |
-| asignaciones:validar_stock | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| consumos:create | ✅ | ✅ | ❌ | 👁️ | ✅ | ❌ |
-| consumos:read | ✅ | ✅ (propias) | ❌ | 👁️ | ✅ | 👁️ |
-| consumos:validar_vs_asignacion | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
-| dashboard_mat:read | ✅ | 👁️ | ❌ | 👁️ | ✅ | ✅ |
-| dashboard_mat:exportar | ✅ | ❌ | ❌ | 👁️ | ✅ | ✅ |
-| dashboard_mat:alertas | ✅ | ❌ | ❌ | 👁️ | ✅ | 👁️ |
+| Permiso                        | Administrador | Probador              | Editor           | Supervisor | Analista de Materiales | Director |
+| ------------------------------ | ------------- | --------------------- | ---------------- | ---------- | ---------------------- | -------- |
+| **— **Users Service** —**      |               |                       |                  |            |                        |          |
+| users:create                   | ✅            | ❌                    | ❌               | ❌         | ❌                     | ❌       |
+| users:read                     | ✅            | ✅ (own)              | ✅ (own)         | ✅         | ✅ (own)               | ✅       |
+| users:update                   | ✅            | ✅ (own profile)      | ✅ (own profile) | ❌         | ✅ (own profile)       | ❌       |
+| users:delete                   | ✅            | ❌                    | ❌               | ❌         | ❌                     | ❌       |
+| users:assign_roles             | ✅            | ❌                    | ❌               | ❌         | ❌                     | ❌       |
+| roles:create                   | ✅            | ❌                    | ❌               | ❌         | ❌                     | ❌       |
+| roles:read                     | ✅            | ❌                    | ❌               | ✅         | ❌                     | ✅       |
+| roles:update                   | ✅            | ❌                    | ❌               | ❌         | ❌                     | ❌       |
+| roles:delete                   | ✅            | ❌                    | ❌               | ❌         | ❌                     | ❌       |
+| roles:assign_permisos          | ✅            | ❌                    | ❌               | ❌         | ❌                     | ❌       |
+| permisos:create                | ✅            | ❌                    | ❌               | ❌         | ❌                     | ❌       |
+| permisos:read                  | ✅            | ❌                    | ❌               | ✅         | ❌                     | ✅       |
+| sesiones:read_own              | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| sesiones:revoke_own            | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| sesiones:read_all              | ✅            | ❌                    | ❌               | ✅         | ❌                     | ✅       |
+| auth:register                  | ✅            | ❌                    | ❌               | ❌         | ❌                     | ❌       |
+| auth:login                     | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| auth:refresh                   | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| auth:logout                    | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| auth:forgot_password           | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| auth:reset_password            | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| **— **MP Service** —**         |               |                       |                  |            |                        |          |
+| telefonos:create               | ✅            | ✅                    | ✅               | ❌         | ❌                     | ❌       |
+| telefonos:read                 | ✅            | ✅                    | ✅               | ❌         | ✅                     | ✅       |
+| telefonos:update               | ✅            | ✅                    | ✅               | ❌         | ❌                     | ❌       |
+| telefonos:delete               | ✅            | ❌                    | ✅               | ❌         | ❌                     | ❌       |
+| telefonos:cambiar_estado       | ✅            | ✅                    | ✅               | ❌         | ❌                     | ❌       |
+| telefonos:historial            | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| lineas:create                  | ✅            | ✅                    | ✅               | ❌         | ❌                     | ❌       |
+| lineas:read                    | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| lineas:update                  | ✅            | ✅                    | ✅               | ❌         | ❌                     | ❌       |
+| lineas:delete                  | ✅            | ❌                    | ✅               | ✅         | ❌                     | ❌       |
+| lineas:cambiar_estado          | ✅            | ✅                    | ✅               | ❌         | ❌                     | ❌       |
+| lineas:historial               | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| pizarras:create                | ✅            | ✅                    | ✅               | ❌         | ❌                     | ❌       |
+| pizarras:read                  | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| pizarras:update                | ✅            | ✅                    | ✅               | ❌         | ❌                     | ❌       |
+| pizarras:delete                | ✅            | ❌                    | ✅               | ❌         | ❌                     | ❌       |
+| pizarras:historial             | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| pizarras:ubicacion             | ✅            | ✅                    | ✅               | ❌         | ❌                     | ❌       |
+| quejas:create                  | ✅            | ✅                    | ✅               | ❌         | ❌                     | ❌       |
+| quejas:read                    | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| quejas:update                  | ✅            | ✅ (estado)           | ✅               | ❌         | ❌                     | ❌       |
+| quejas:asignar                 | ✅            | ❌                    | ❌               | ✅         | ❌                     | ❌       |
+| quejas:cambiar_estado          | ✅            | ✅ (siguiente válido) | ✅ (Probada)     | ✅         | ❌                     | ❌       |
+| quejas:historial               | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| quejas:auditoria               | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| pruebas:create                 | ✅            | ✅ (asignadas)        | ✅               | ❌         | ❌                     | ❌       |
+| pruebas:read                   | ✅            | ✅ (propias)          | ✅               | ✅         | ❌                     | ✅       |
+| pruebas:update                 | ✅            | ❌                    | ✅               | ❌         | ❌                     | ❌       |
+| trabajos:create                | ✅            | ❌                    | ✅               | ✅         | ❌                     | ❌       |
+| trabajos:read                  | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| trabajos:update                | ✅            | ✅ (asignados)        | ✅               | ✅         | ❌                     | ❌       |
+| estadisticas_mp:read           | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| catalogos_mp:read              | ✅            | ✅                    | ✅               | ✅         | ✅                     | ✅       |
+| catalogos_mp:write             | ✅            | ❌                    | ❌               | ❌         | ❌                     | ❌       |
+| **— **Materials Service** —**  |               |                       |                  |            |                        |          |
+| materiales:create              | ✅            | ❌                    | ❌               | ❌         | ✅                     | ❌       |
+| materiales:read                | ✅            | ❌                    | ❌               | ✅         | ✅                     | ✅       |
+| materiales:update              | ✅            | ❌                    | ❌               | ❌         | ✅                     | ❌       |
+| materiales:delete              | ✅            | ❌                    | ❌               | ❌         | ✅                     | ❌       |
+| materiales:buscar              | ✅            | ❌                    | ❌               | ✅         | ✅                     | ✅       |
+| materiales:paginar             | ✅            | ❌                    | ❌               | ✅         | ✅                     | ✅       |
+| categorias:create              | ✅            | ❌                    | ❌               | ❌         | ✅                     | ❌       |
+| categorias:read                | ✅            | ❌                    | ❌               | ✅         | ✅                     | ✅       |
+| categorias:update              | ✅            | ❌                    | ❌               | ❌         | ✅                     | ❌       |
+| categorias:delete              | ✅            | ❌                    | ❌               | ❌         | ✅                     | ❌       |
+| unidades:create                | ✅            | ❌                    | ❌               | ❌         | ✅                     | ❌       |
+| unidades:read                  | ✅            | ❌                    | ❌               | ✅         | ✅                     | ✅       |
+| unidades:update                | ✅            | ❌                    | ❌               | ❌         | ✅                     | ❌       |
+| unidades:delete                | ✅            | ❌                    | ❌               | ❌         | ✅                     | ❌       |
+| asignaciones:create            | ✅            | ❌                    | ❌               | ❌         | ✅                     | ❌       |
+| asignaciones:read              | ✅            | ❌                    | ❌               | ✅         | ✅                     | ✅       |
+| asignaciones:update_estado     | ✅            | ❌                    | ❌               | ✅         | ✅                     | ❌       |
+| asignaciones:items             | ✅            | ❌                    | ❌               | ✅         | ✅                     | ✅       |
+| asignaciones:validar_stock     | ✅            | ❌                    | ❌               | ❌         | ✅                     | ❌       |
+| consumos:create                | ✅            | ❌                    | ❌               | ✅         | ✅                     | ❌       |
+| consumos:read                  | ✅            | ❌                    | ❌               | ✅         | ✅                     | ✅       |
+| consumos:validar_vs_asignacion | ✅            | ❌                    | ❌               | ❌         | ✅                     | ❌       |
+| dashboard_mat:read             | ✅            | ❌                    | ❌               | ✅         | ✅                     | ✅       |
+| dashboard_mat:exportar         | ✅            | ❌                    | ❌               | ✅         | ✅                     | ✅       |
+| dashboard_mat:alertas          | ✅            | ❌                    | ❌               | ✅         | ✅                     | ✅       |
 
-**Leyenda:** ✅ = Permitido | 👁️ = Solo lectura | ❌ = Denegado | (own) = Solo propios recursos | (asignadas) = Solo recursos asignados al usuario
+**Leyenda:** ✅ = Permitido | ✅ = Solo lectura | ❌ = Denegado | (own) = Solo propios recursos | (asignadas) = Solo recursos asignados al usuario
 
 ---
 
@@ -151,70 +149,68 @@
 
 ### Users Service
 
-| Endpoint | Administrador | Probador | Editor | Supervisor | Analista de Materiales | Director |
-|---|---|---|---|---|---|---|
-| POST /api/auth/register | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| POST /api/auth/login | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| POST /api/auth/refresh | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| POST /api/auth/logout | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| POST /api/auth/forgot-password | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| POST /api/auth/reset-password | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PUT /api/auth/me/password | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| GET /api/users | ✅ | ❌ | ❌ | 👁️ | ❌ | 👁️ |
-| POST /api/users | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| GET /api/users/:id | ✅ | 👁️ (own) | 👁️ (own) | 👁️ | 👁️ (own) | 👁️ |
-| PUT /api/users/:id | ✅ | 👁️ (own) | 👁️ (own) | ❌ | 👁️ (own) | ❌ |
-| DELETE /api/users/:id | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| GET /api/users/:id/sessions | ✅ | 👁️ (own) | 👁️ (own) | 👁️ | 👁️ (own) | 👁️ |
-| PUT /api/users/:id/roles | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| GET /api/roles | ✅ | ❌ | ❌ | 👁️ | ❌ | 👁️ |
-| POST /api/roles | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| PUT /api/roles/:id/permisos | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| GET /api/permisos | ✅ | ❌ | ❌ | 👁️ | ❌ | 👁️ |
-| GET /health | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Endpoint                       | Administrador | Probador | Editor   | Supervisor | Analista de Materiales | Director |
+| ------------------------------ | ------------- | -------- | -------- | ---------- | ---------------------- | -------- |
+| POST /api/auth/register        | ✅            | ❌       | ❌       | ❌         | ❌                     | ❌       |
+| POST /api/auth/login           | ✅            | ✅       | ✅       | ✅         | ✅                     | ✅       |
+| POST /api/auth/refresh         | ✅            | ✅       | ✅       | ✅         | ✅                     | ✅       |
+| POST /api/auth/logout          | ✅            | ✅       | ✅       | ✅         | ✅                     | ✅       |
+| POST /api/auth/forgot-password | ✅            | ✅       | ✅       | ✅         | ✅                     | ✅       |
+| POST /api/auth/reset-password  | ✅            | ✅       | ✅       | ✅         | ✅                     | ✅       |
+| PUT /api/auth/me/password      | ✅            | ✅       | ✅       | ✅         | ✅                     | ✅       |
+| GET /api/users                 | ✅            | ❌       | ❌       | ❌         | ❌                     | ❌       |
+| POST /api/users                | ✅            | ❌       | ❌       | ❌         | ❌                     | ❌       |
+| GET /api/users/:id             | ✅            | ✅ (own) | ✅ (own) | ✅ (own)   | ✅ (own)               | ✅ (own) |
+| PUT /api/users/:id             | ✅            | ✅ (own) | ✅ (own) | ✅ (own)   | ✅ (own)               | ✅ (own) |
+| DELETE /api/users/:id          | ✅            | ❌       | ❌       | ❌         | ❌                     | ❌       |
+| GET /api/users/:id/sessions    | ✅            | ✅ (own) | ✅ (own) | ✅ (own)   | ✅ (own)               | ✅ (own) |
+| PUT /api/users/:id/roles       | ✅            | ❌       | ❌       | ❌         | ❌                     | ❌       |
+| GET /api/roles                 | ✅            | ❌       | ❌       | ❌         | ❌                     | ❌       |
+| POST /api/roles                | ✅            | ❌       | ❌       | ❌         | ❌                     | ❌       |
+| PUT /api/roles/:id/permisos    | ✅            | ❌       | ❌       | ❌         | ❌                     | ❌       |
+| GET /api/permisos              | ✅            | ❌       | ❌       | ❌         | ❌                     | ❌       |
+| GET /health                    | ✅            | ✅       | ✅       | ✅         | ✅                     | ✅       |
 
 ### MP Service
 
-| Endpoint | Administrador | Probador | Editor | Supervisor | Analista de Materiales | Director |
-|---|---|---|---|---|---|---|
-| GET /api/mp/telefonos | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ |
-| POST /api/mp/telefonos | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| PATCH /api/mp/telefonos/:id/estado | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| GET /api/mp/telefonos/:id/historial | ✅ | ✅ | ✅ | ✅ | 👁️ | 👁️ |
-| GET /api/mp/lineas | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ |
-| POST /api/mp/lineas | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| PATCH /api/mp/lineas/:id/estado | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| GET /api/mp/pizarras | ✅ | 👁️ | ✅ | ✅ | 👁️ | 👁️ |
-| POST /api/mp/pizarras | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| GET /api/mp/quejas | ✅ | ✅ (asignadas) | ✅ | ✅ | 👁️ | 👁️ |
-| POST /api/mp/quejas | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| PATCH /api/mp/quejas/:id/asignar | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| PATCH /api/mp/quejas/:id/estado | ✅ | ✅ (sig.) | ✅ (Prob.) | ✅ | ❌ | ❌ |
-| GET /api/mp/quejas/:id/historial | ✅ | ✅ | ✅ | ✅ | 👁️ | 👁️ |
-| GET /api/mp/quejas/:id/auditoria | ✅ | 👁️ | 👁️ | 👁️ | 👁️ | 👁️ |
-| POST /api/mp/pruebas | ✅ | ✅ (asig.) | ❌ | ✅ | ❌ | ❌ |
-| POST /api/mp/trabajos | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| PATCH /api/mp/trabajos/:id/asignar | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| PATCH /api/mp/trabajos/:id/cerrar | ✅ | ✅ (asig.) | ❌ | ✅ | ❌ | ❌ |
-| GET /api/mp/estadisticas/resumen | ✅ | 👁️ | 👁️ | ✅ | 👁️ | ✅ |
+| Endpoint                            | Administrador | Probador       | Editor     | Supervisor | Analista de Materiales | Director |
+| ----------------------------------- | ------------- | -------------- | ---------- | ---------- | ---------------------- | -------- |
+| GET /api/mp/telefonos               | ✅            | ✅             | ✅         | ✅         | ✅                     | ✅       |
+| POST /api/mp/telefonos              | ✅            | ✅             | ✅         | ❌         | ❌                     | ❌       |
+| PATCH /api/mp/telefonos/:id/estado  | ✅            | ✅             | ✅         | ❌         | ❌                     | ❌       |
+| GET /api/mp/telefonos/:id/historial | ✅            | ✅             | ✅         | ✅         | ✅                     | ✅       |
+| GET /api/mp/lineas                  | ✅            | ✅             | ✅         | ✅         | ✅                     | ✅       |
+| POST /api/mp/lineas                 | ✅            | ✅             | ✅         | ❌         | ❌                     | ❌       |
+| PATCH /api/mp/lineas/:id/estado     | ✅            | ✅             | ✅         | ❌         | ❌                     | ❌       |
+| GET /api/mp/pizarras                | ✅            | ✅             | ✅         | ✅         | ✅                     | ✅       |
+| POST /api/mp/pizarras               | ✅            | ✅             | ✅         | ❌         | ❌                     | ❌       |
+| GET /api/mp/quejas                  | ✅            | ✅ (asignadas) | ✅         | ✅         | ✅                     | ✅       |
+| POST /api/mp/quejas                 | ✅            | ✅             | ✅         | ❌         | ❌                     | ❌       |
+| PATCH /api/mp/quejas/:id/asignar    | ✅            | ❌             | ❌         | ✅         | ❌                     | ❌       |
+| PATCH /api/mp/quejas/:id/estado     | ✅            | ✅ (sig.)      | ✅ (Prob.) | ❌         | ❌                     | ❌       |
+| GET /api/mp/quejas/:id/historial    | ✅            | ✅             | ✅         | ✅         | ✅                     | ✅       |
+| GET /api/mp/quejas/:id/auditoria    | ✅            | ✅             | ✅         | ✅         | ✅                     | ✅       |
+| POST /api/mp/pruebas                | ✅            | ✅ (asig.)     | ✅         | ❌         | ❌                     | ❌       |
+| POST /api/mp/trabajos               | ✅            | ✅             | ❌         | ❌         | ❌                     | ❌       |
+| GET /api/mp/estadisticas/resumen    | ✅            | ✅             | ✅         | ✅         | ✅                     | ✅       |
 
 ### Materials Service
 
-| Endpoint | Administrador | Probador | Editor | Supervisor | Analista de Materiales | Director |
-|---|---|---|---|---|---|---|
-| GET /api/materials/materiales | ✅ | 👁️ | ❌ | 👁️ | ✅ | 👁️ |
-| POST /api/materials/materiales | ✅ | ❌ | ❌ | 👁️ | ✅ | ❌ |
-| PUT /api/materials/materiales/:id | ✅ | ❌ | ❌ | 👁️ | ✅ | ❌ |
-| GET /api/materials/categorias | ✅ | 👁️ | ❌ | 👁️ | ✅ | 👁️ |
-| POST /api/materials/categorias | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| GET /api/materials/unidades | ✅ | 👁️ | ❌ | 👁️ | ✅ | 👁️ |
-| POST /api/materials/unidades | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| POST /api/materials/asignaciones | ✅ | ✅ | ❌ | 👁️ | ✅ | ❌ |
-| GET /api/materials/asignaciones | ✅ | ✅ (propias) | ❌ | 👁️ | ✅ | 👁️ |
-| POST /api/materials/consumos | ✅ | ✅ | ❌ | 👁️ | ✅ | ❌ |
-| GET /api/materials/consumos | ✅ | ✅ (propias) | ❌ | 👁️ | ✅ | 👁️ |
-| GET /api/materials/dashboard/resumen | ✅ | 👁️ | ❌ | 👁️ | ✅ | ✅ |
-| GET /api/materials/dashboard/exportar | ✅ | ❌ | ❌ | 👁️ | ✅ | ✅ |
+| Endpoint                              | Administrador | Probador | Editor | Supervisor | Analista de Materiales | Director |
+| ------------------------------------- | ------------- | -------- | ------ | ---------- | ---------------------- | -------- |
+| GET /api/materials/materiales         | ✅            | ❌       | ❌     | ✅         | ✅                     | ✅       |
+| POST /api/materials/materiales        | ✅            | ❌       | ❌     | ❌         | ✅                     | ❌       |
+| PUT /api/materials/materiales/:id     | ✅            | ❌       | ❌     | ❌         | ✅                     | ❌       |
+| GET /api/materials/categorias         | ✅            | ❌       | ❌     | ✅         | ✅                     | ✅       |
+| POST /api/materials/categorias        | ✅            | ❌       | ❌     | ❌         | ✅                     | ❌       |
+| GET /api/materials/unidades           | ✅            | ❌       | ❌     | ❌         | ✅                     | ✅       |
+| POST /api/materials/unidades          | ✅            | ❌       | ❌     | ❌         | ✅                     | ❌       |
+| POST /api/materials/asignaciones      | ✅            | ❌       | ❌     | ❌         | ✅                     | ❌       |
+| GET /api/materials/asignaciones       | ✅            | ❌       | ❌     | ✅         | ✅                     | ✅       |
+| POST /api/materials/consumos          | ✅            | ❌       | ❌     | ✅         | ✅                     | ❌       |
+| GET /api/materials/consumos           | ✅            | ❌       | ❌     | ✅         | ✅                     | ✅       |
+| GET /api/materials/dashboard/resumen  | ✅            | ✅       | ❌     | ✅         | ✅                     | ✅       |
+| GET /api/materials/dashboard/exportar | ✅            | ❌       | ❌     | ✅         | ✅                     | ✅       |
 
 ---
 
