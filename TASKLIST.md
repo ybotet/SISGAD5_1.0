@@ -353,7 +353,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-700-01 | 🔴 | 🔨 | Inicializar proyecto React + Vite + TS | Humano | — | Build/dev server funcionales, TS estricto | `frontend/` con vite.config.ts y tsconfigs | `frontend/` |
 | ✅ Completada | TASK-700-02 | 🔴 | 🔨 | Configurar Tailwind CSS | Agente | — | Classes utilitarias disponibles en componentes | `tailwind.config.js` + postcss activos | `frontend/` |
 | ✅ Completada | TASK-700-03 | 🔴 | 🔨 | Cliente HTTP con interceptores | Agente | — | Axios instance con interceptor que inyecta token y maneja errores | `src/services/api.ts` + services por módulo (33 archivos) | `frontend/src/services/` |
-| 🔄 En progreso | TASK-700-04 | 🔴 | 🔨 | Manejo de estado global | Agente | — | Store predecible (Context/Zustand) para auth y notificaciones | `contexts/AuthContext.tsx` + `ErrorContext.tsx` (Context API); no hay store de datos de dominio | `frontend/src/contexts/` |
+| ✅ Completada | TASK-700-04 | 🔴 | 🔨 | Manejo de estado global | Agente | — | Store predecible (Zustand) para auth y notificaciones | ADR 0001 (`docs/adr/0001-global-state-zustand.md`); `src/store/useNotificationStore.ts` + `useAuthStore.ts` (Zustand); `AuthContext.tsx` reduce a shim compatible; `components/ui/Toaster.tsx` montado en `App.tsx`; `utils/notify.ts` con mapeo de códigos HTTP | `frontend/src/store/`, `frontend/src/contexts/AuthContext.tsx`, `frontend/src/App.tsx`, `frontend/src/utils/notify.ts` |
 | ✅ Completada | TASK-700-05 | 🔴 | 🔨 | Enrutamiento con rutas protegidas | Agente | — | React Router con guardas por autenticación y permiso | `App.tsx` con `<Routes>` + `ProtectedRoute permission="..."` | `frontend/src/App.tsx`, `components/ProtectedRoute.tsx` |
 
 ### 9.2. Módulos de UI
@@ -381,9 +381,9 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-720-02 | Alta | 🔨 | Responsive design | Agente | — | Layouts usable en móvil/tablet/desktop | Auditoría en docs/audit-responsive.md; Table.tsx compartido con colapso a tarjetas en móvil; Login/Dashboard/Quejas corregidos; ClasificacionTable y CableTable migrados; TypeScript 0 errores | `frontend/src/components/ui/Table.tsx`, `docs/audit-responsive.md` |
 | ✅ Completada | TASK-720-03 | Alta | 🔨 | Manejo de errores | Agente | — | Error boundary/contexto + display amigable de errores de API | `ErrorContext.tsx`, `useApiError.ts`, `ErrorDisplay.tsx` | `frontend/src/errors/` |
 | ⏳ Pendiente | TASK-720-04 | Alta | 🔨 | Loading states uniformes | Agente | — | Skeletons/spinners consistentes en todas las vistas de datos | Spinners aislados; sin patrón uniforme | `frontend/src/components/ui/` |
-| 🔄 En progreso | TASK-720-05 | Media | 🔨 | Notificaciones toast | Agente | — | Librería integrada y usada en operaciones CRUD | Parcial vía ErrorDisplay; librería de toasts no estandarizada | `frontend/src/` |
+| ✅ Completada | TASK-720-05 | Media | 🔨 | Notificaciones toast | Agente | — | Librería integrada y usada en operaciones CRUD | `react-hot-toast` + Zustand store (`src/store/useNotificationStore.ts`); `components/ui/Toaster.tsx` montado en `App.tsx`; `utils/notify.ts` con `notifySuccess/Error/Warning/Info` y mapeo de códigos HTTP (FORBIDDEN, UNAUTHORIZED, NOT_FOUND, CONFLICT, VALIDATION_ERROR, RATE_LIMITED) | `frontend/src/store/`, `frontend/src/components/ui/Toaster.tsx`, `frontend/src/utils/notify.ts` |
 
-**Subtotal FASE 7: 19✅ + 2🔄 de 22 — 90.9% ponderado** — *corrección mayor frente al 1.1% declarado en la v1.0*
+**Subtotal FASE 7: 20✅ + 1🔄 de 22 — 95.2% ponderado** — *TASK-700-04 y TASK-720-05 cerradas (Zustand + toasts); TASK-720-04 (loading states uniformes) pendiente*
 
 ---
 

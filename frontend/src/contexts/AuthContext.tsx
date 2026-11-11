@@ -1,7 +1,16 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+// context/AuthContext.tsx
+// TASK-700-04 — Shim compatible sobre Zustand (ADR 0001).
+//
+// Los consumidores de `useAuth` NO cambian: mismo nombre, misma interfaz,
+// mismo proveedor `AuthProvider`. Internamente delega en
+// `src/store/useAuthStore.ts`.
+//
+// ⚠️ No tocar `hooks/useAuth.ts` (hook muerto, QA-03) — TASK separado.
+
+import React, { createContext, useContext, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { User } from '../types/auth';
-import { authService } from '../services/authService';
+import { useAuthStore } from '../store/useAuthStore';
 
 interface AuthContextType {
   usuario: User | null;
@@ -23,85 +32,23 @@ export const useAuth = () => {
   return context;
 };
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const store = useAuthStore();
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [usuario, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
+  // Inicializar una vez al montar la app (bootstrap de sesión).
   useEffect(() => {
-    // Verificar si hay un usuario autenticado al cargar la app
-    const token = authService.getToken();
-    const storedUser = authService.getUser();
+    store.initialize();
+  }, [store.initialize]);
 
-    if (token && storedUser) {
-      setUser(storedUser);
-
-      // Verificar si el token sigue siendo válido
-      authService.getPerfil()
-        .then(usuarioActualizado => {
-          setUser(usuarioActualizado);
-          authService.setAuthData(token, usuarioActualizado);
-        })
-        .catch(() => {
-          // Token inválido, hacer logout
-          authService.logout();
-          setUser(null);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const login = async (email: string, password: string) => {
-    try {
-      const response = await authService.login({ email, password });
-      // backend responde { success, data: { usuario, accessToken, refreshToken } }
-      const { usuario: usuarioData, accessToken } = response.data.data;
-
-      authService.setAuthData(accessToken, usuarioData);
-      setUser(usuarioData);
-    } catch (error) {
-      throw error;
-    }
+  const value: AuthContextType = {
+    usuario: store.tabla,
+    loading: store.loading,
+    login: store.login,
+    logout: store.logout,
+    isAuthenticated: store.isAuthenticated,
+    hasPermission: store.hasPermission,
+    setUser: store.setUser,
   };
 
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-  };
-
-  const hasPermission = (permission: string): boolean => {
-    if (!usuario) return false;
-
-    // El backend devuelve `tb_rol` y `tb_permiso`, pero algunas partes
-    // del frontend usan `Rols`/`Permisos`. Soportamos ambas estructuras.
-    const rolesAny: any = (usuario as any).Rols ?? (usuario as any).tb_rol;
-
-    return rolesAny?.some((rol: any) => {
-      const permisos = rol.Permisos ?? rol.tb_permiso;
-      return permisos?.some((perm: any) => perm.nombre === permission);
-    }) ?? false;
-  };
-
-const value: AuthContextType = {
-  usuario,
-  loading,
-  login,
-  logout,
-  isAuthenticated: !!usuario,
-  hasPermission,
-  setUser,
-};
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
