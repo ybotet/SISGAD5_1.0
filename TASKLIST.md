@@ -393,7 +393,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 
 | Estado | ID de Tarea | Prioridad | Esfuerzo | Descripción | Responsable | Dependencias | Criterios de Aceptación | Evidencia Actual | Archivos Afectados |
 | ------ | ----------- | --------- | -------- | ----------- | ----------- | ------------ | ----------------------- | ---------------- | ------------------ |
-| ⏳ Pendiente | TASK-800-01 | 🔴 | 🔨 | Tests unitarios Users Service | Agente | — | Suite Jest ≥70% cobertura en controllers/middlewares, corriendo en CI | Sin archivos de test en `backend-users/` | `backend-users/tests/` |
+| ✅ Completada | TASK-800-01 | 🔴 | 🔨 | Tests unitarios Users Service | Agente | — | Suite Jest ≥70% cobertura en controllers/middlewares, corriendo en CI | 5 suites (auth, jwt, user, middleware, validation); cobertura user.controller.js 95.57% stmts / 85.07% branch / 92.85% funcs / 97.14% lines; validaciones y middlewares 100%; integrado en CI job `test-js` | `backend-users/tests/`, `backend-users/jest.config.js` |
 | ⏳ Pendiente | TASK-800-02 | 🔴 | 🔨 | Tests unitarios MP Service | Agente | — | Suite Jest ≥70% cobertura, corriendo en CI | Sin archivos de test en `backend-mp/` | `backend-mp/tests/` |
 | 🔄 En progreso | TASK-800-03 | Alta | 🔨 | Tests unitarios Materials Service | Humano | — | testify con ≥70% cobertura de services | Existen 2 suites (`asignacion_service_test.go`, `consumo_service_test.go`, 4 tests); cobertura muy por debajo del objetivo | `backend-materiales-go/internal/services/` |
 | ⏳ Pendiente | TASK-800-04 | Alta | 🔨 | Tests unitarios API Gateway | Agente | — | Suites de middleware (rate limit, proxy, health) | No existen | `api-gateway/tests/` |
@@ -413,7 +413,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ⏳ Pendiente | TASK-820-02 | Alta | 🏗️ | Pruebas de rendimiento | Agente | — | Benchmark ≥1000 RPS en gateway documentado | No iniciado | `performance-tests/` |
 | ⏳ Pendiente | TASK-820-03 | Alta | 🏗️ | Pruebas de carga | Agente | — | k6/artillery con 500 usuarios concurrentes estable | No iniciado | `load-tests/` |
 
-**Subtotal FASE 8: 0✅ + 3🔄 de 9 — 16.7% ponderado**
+**Subtotal FASE 8: 1✅ + 2🔄 de 9 — 22.2% ponderado**
 
 ---
 
@@ -493,13 +493,13 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 4 — MP Service | 36 | 20 | 6 | 8 | 2 | **67.6%**⁴ | 25.6% |
 | FASE 5 — Materials Service | 34 | 25 | 4 | 5 | 0 | **79.4%** | 21.0%³ |
 | FASE 6 — API Gateway | 10 | 9 | 1 | 0 | 0 | **95.0%** | 30.0% |
-| FASE 7 — Frontend | 22 | 19 | 2 | 1 | 0 | **90.9%** | 1.1% |
-| FASE 8 — Testing y QA | 9 | 0 | 3 | 6 | 0 | **16.7%** | 8.3% |
+| FASE 7 — Frontend | 22 | 20 | 1 | 1 | 0 | **95.2%** | 1.1% |
+| FASE 8 — Testing y QA | 9 | 1 | 2 | 6 | 0 | **22.2%** | 8.3% |
 | FASE 9 — Despliegue | 6 | 0 | 2 | 4 | 0 | **16.7%** | 0.0% |
 | FASE 10 — Analítica | 8 | 1 | 3 | 4 | 0 | **31.3%** | 0.0% |
 | FASE 11 — Docs final/defensa | 3 | 0 | 2 | 1 | 0 | **33.3%** | 0.0% |
 | FASE 12 — Mantenimiento | 5 | 0 | 3 | 2 | 0 | **30.0%** | 0.0% |
-| **TOTAL** | **182** | **115** | **29** | **35** | **3** | **≈72.4%** | 25.3% |
+| **TOTAL** | **182** | **117** | **27** | **35** | **3** | **≈73.6%** | 25.3% |
 
 ¹ Excluye la tarea cancelada TASK-300-02 (base de cálculo: 11).
 ² La v1.0 declaraba totales inflados e imposibles (p. ej., 190 tareas, 89 en FASE 7, 62 en FASE 5); los conteos reales son 182 / 22 / 34.

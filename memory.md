@@ -57,6 +57,7 @@
 | 2026-10-27 | TASK-C-12 | Actualizar AGENTS.md §8 (Deuda Técnica Activa) | [ver](docs/memory/2026-10-30.md#2026-10-30--task-c-12-actualizar-agentsmd-8-deuda-técnica-activa) |
 | 2026-11-02b | [docs/memory/2026-11-02b.md](docs/memory/2026-11-02b.md) | Fusión diagramas de secuencia → documento canónico (7 escenarios) |
 | 2026-11-02 | TASK-300-08 | Historial de sesiones: endpoints de consulta + cierre TASK-100-03/04 (v2.4) | [ver](docs/memory/2026-11-02.md) |
+| 2026-11-11 | TASK-800-01 | Suite Jest ≥70% cobertura backend-users: 5 suites (auth, jwt, user, middleware, validation), user.controller.js 95.57% stmts / 85.07% branch / 92.85% funcs / 97.14% lines, validaciones y middlewares 100%. Integrado en CI job `test-js`. | `backend-users/tests/`, `backend-users/jest.config.js`, `TASKLIST.md` |
 
 ---
 

@@ -9,4 +9,6 @@ module.exports = {
   ],
   testTimeout: 15000,
   verbose: true,
+  // coverageThreshold se habilitará cuando todos los archivos de src/features y src/shared
+  // tengan tests (TASK-800-01 cubre los prioritarios: user.controller, middlewares, validaciones).
 };
