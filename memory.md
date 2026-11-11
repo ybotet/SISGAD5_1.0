@@ -58,6 +58,7 @@
 | 2026-11-02b | [docs/memory/2026-11-02b.md](docs/memory/2026-11-02b.md) | Fusión diagramas de secuencia → documento canónico (7 escenarios) |
 | 2026-11-02 | TASK-300-08 | Historial de sesiones: endpoints de consulta + cierre TASK-100-03/04 (v2.4) | [ver](docs/memory/2026-11-02.md) |
 | 2026-11-11 | TASK-800-01 | Suite Jest ≥70% cobertura backend-users: 5 suites (auth, jwt, user, middleware, validation), user.controller.js 95.57% stmts / 85.07% branch / 92.85% funcs / 97.14% lines, validaciones y middlewares 100%. Integrado en CI job `test-js`. | `backend-users/tests/`, `backend-users/jest.config.js`, `TASKLIST.md` |
+| 2026-11-11 | TASK-410-02 | Cambio de estado (activo/baja) de línea en MP: PATCH /api/mp/linea/:id/baja + PATCH /api/mp/linea/:id/reactivar, rutas antes de /:id (TASK-B-19), validación de quejas asociadas no completadas, 6 tests supertest pasando. | `backend-mp/src/features/linea/linea.controller.js`, `backend-mp/src/features/linea/linea.routes.js`, `backend-mp/tests/linea.test.js` |
 
 ---
 

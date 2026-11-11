@@ -271,6 +271,123 @@ const LineaController = {
       return next(error);
     }
   },
+
+  /**
+   * @desc    Dar de baja una línea (esbaja = true)
+   * @route   PATCH /api/mp/linea/:id/baja
+   * @access  Private
+   */
+  async darBaja(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      // Validar que no haya quejas asociadas no completadas
+      const estadosCompletados = ["Resuelta", "Cerrada"];
+      const quejasActivas = await Queja.count({
+        where: {
+          id_linea: id,
+          estado: { [Op.notIn]: estadosCompletados },
+        },
+      });
+
+      if (quejasActivas > 0) {
+        return next(
+          apiErrors.badRequest(
+            "No se puede dar de baja la línea: tiene quejas asociadas no completadas",
+          ),
+        );
+      }
+
+      const [affectedRows] = await Linea.update(
+        { esbaja: true },
+        { where: { id_linea: id } },
+      );
+
+      if (affectedRows === 0) {
+        return next(apiErrors.notFound("Linea"));
+      }
+
+      const updatedData = await Linea.findByPk(id, {
+        include: [
+          {
+            association: "tb_tipolinea",
+            attributes: ["id_tipolinea", "tipo"],
+          },
+          {
+            association: "tb_propietario",
+            attributes: ["id_propietario", "nombre"],
+          },
+          {
+            association: "tb_senalizacion",
+            attributes: ["id_senalizacion", "senalizacion"],
+          },
+        ],
+      });
+
+      res.json({
+        success: true,
+        data: normalizeTimestamps(updatedData.toJSON()),
+        message: "Línea dada de baja exitosamente",
+      });
+    } catch (error) {
+      console.error(" Error dando de baja línea:", error);
+      if (error.name === "SequelizeValidationError") {
+        const mensajes = error.errors.map((err) => err.message).join(". ");
+        return next(apiErrors.badRequest(mensajes));
+      }
+      return next(error);
+    }
+  },
+
+  /**
+   * @desc    Reactivar una línea (esbaja = false)
+   * @route   PATCH /api/mp/linea/:id/reactivar
+   * @access  Private
+   */
+  async reactivar(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const [affectedRows] = await Linea.update(
+        { esbaja: false },
+        { where: { id_linea: id } },
+      );
+
+      if (affectedRows === 0) {
+        return next(apiErrors.notFound("Linea"));
+      }
+
+      const updatedData = await Linea.findByPk(id, {
+        include: [
+          {
+            association: "tb_tipolinea",
+            attributes: ["id_tipolinea", "tipo"],
+          },
+          {
+            association: "tb_propietario",
+            attributes: ["id_propietario", "nombre"],
+          },
+          {
+            association: "tb_senalizacion",
+            attributes: ["id_senalizacion", "senalizacion"],
+          },
+        ],
+      });
+
+      res.json({
+        success: true,
+        data: normalizeTimestamps(updatedData.toJSON()),
+        message: "Línea reactivada exitosamente",
+      });
+    } catch (error) {
+      console.error(" Error reactivando línea:", error);
+      if (error.name === "SequelizeValidationError") {
+        const mensajes = error.errors.map((err) => err.message).join(". ");
+        return next(apiErrors.badRequest(mensajes));
+      }
+      return next(error);
+    }
+  },
 };
 
 // Dashboard stats for frontend

@@ -16,6 +16,20 @@ router.get("/", LineaController.getAll);
 router.get("/dashboard", LineaController.dashboard);
 
 /**
+ * @route   PATCH /api/tbLinea/:id/baja
+ * @desc    Dar de baja una línea (esbaja = true)
+ * @access  Private
+ */
+router.patch("/:id/baja", LineaController.darBaja);
+
+/**
+ * @route   PATCH /api/tbLinea/:id/reactivar
+ * @desc    Reactivar una línea (esbaja = false)
+ * @access  Private
+ */
+router.patch("/:id/reactivar", LineaController.reactivar);
+
+/**
  * @route   GET /api/tbLinea/:id
  * @desc    Obtener un Linea por ID
  * @access  Public

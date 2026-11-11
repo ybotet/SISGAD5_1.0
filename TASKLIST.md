@@ -194,7 +194,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | Estado | ID de Tarea | Prioridad | Esfuerzo | Descripción | Responsable | Dependencias | Criterios de Aceptación | Evidencia Actual | Archivos Afectados |
 | ------ | ----------- | --------- | -------- | ----------- | ----------- | ------------ | ----------------------- | ---------------- | ------------------ |
 | ✅ Completada | TASK-410-01 | 🔴 | 🔨 | CRUD de líneas | Humano | — | Endpoints `/api/linea` funcionales con validaciones | Rutas + controller presentes | `backend-mp/src/routes/linea.js` |
-| ⏳ Pendiente | TASK-410-02 | 🔴 | 🔨 | Cambio de estado (`activo` / `baja`) de línea | Agente | TASK-410-01 | Endpoint dedicado equivalente a `darbaja` de teléfonos | No existe ruta de estado en `linea.js` | `backend-mp/src/` |
+| ✅ Completada | TASK-410-02 | 🔴 | 🔨 | Cambio de estado (`activo` / `baja`) de línea | Agente | TASK-410-01 | Endpoint dedicado equivalente a `darbaja` de teléfonos | PATCH /api/mp/linea/:id/baja + PATCH /api/mp/linea/:id/reactivar, rutas antes de /:id, validación de quejas activas, 6 tests supertest pasando | `backend-mp/src/features/linea/linea.controller.js`, `backend-mp/src/features/linea/linea.routes.js`, `backend-mp/tests/linea.test.js` |
 | 🔄 En progreso | TASK-410-03 | 🔴 | 🔨 | Historial completo de la línea | Agente | — | Agrupa quejas/recorridos/movimientos por línea | Relacional en BD y query `dashboard`; sin endpoint de historial | `backend-mp/src/` |
 | ✅ Completada | TASK-410-04 | Alta | 🔨 | Búsqueda y filtrado de líneas | Agente | — | Parámetros `search/page/limit` funcionales | Patrón `parseListParams` aplicado en controllers MP | `backend-mp/src/controllers/LineaController.js` |
 
@@ -251,7 +251,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-460-02 | Alta | 🔨 | Métricas agregadas (KPIs) | Agente | TASK-460-01 | KPIs calculados en SQL/Sequelize (MTTR, recurrentes, embudo) | Implementados en QuejaController/TelefonoController | `backend-mp/src/controllers/` |
 | ✅ Completada | TASK-460-03 | Media | 🔨 | Filtros por fecha/servicio en estadísticas | Agente | TASK-460-01 | Query params de rango/ámbito aceptados por los dashboards | Soportados por patrones de query en los endpoints dashboard | `backend-mp/src/` |
 
-**Subtotal FASE 4: 20✅ + 6🔄 de 34 efectivas — 67.6% ponderado** *(2 fuera de alcance: TASK-420-02/03, puertos y conexiones excluidos del alcance — decisión 2026-11-03; la v1.0 declaraba 43 tareas; la tabla contiene 36)*
+**Subtotal FASE 4: 21✅ + 5🔄 de 34 efectivas — ~69% ponderado** *(2 fuera de alcance: TASK-420-02/03, puertos y conexiones excluidos del alcance — decisión 2026-11-03; la v1.0 declaraba 43 tareas; la tabla contiene 36)*
 
 ---
 
@@ -490,7 +490,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 1 — Diseño y modelado | 14 | 12 | 1 | 1 | 0 | **89.3%** | 57.1% |
 | FASE 2 — Infraestructura | 15 | 11 | 2 | 2 | 0 | **80.0%** | 36.8% |
 | FASE 3 — Users Service | 12 | 10 | 0 | 1 | 1 | **90.9%**¹ | 16.7% |
-| FASE 4 — MP Service | 36 | 20 | 6 | 8 | 2 | **67.6%**⁴ | 25.6% |
+| FASE 4 — MP Service | 36 | 21 | 5 | 8 | 2 | **~69%**⁴ | 25.6% |
 | FASE 5 — Materials Service | 34 | 25 | 4 | 5 | 0 | **79.4%** | 21.0%³ |
 | FASE 6 — API Gateway | 10 | 9 | 1 | 0 | 0 | **95.0%** | 30.0% |
 | FASE 7 — Frontend | 22 | 20 | 1 | 1 | 0 | **95.2%** | 1.1% |
@@ -499,7 +499,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 10 — Analítica | 8 | 1 | 3 | 4 | 0 | **31.3%** | 0.0% |
 | FASE 11 — Docs final/defensa | 3 | 0 | 2 | 1 | 0 | **33.3%** | 0.0% |
 | FASE 12 — Mantenimiento | 5 | 0 | 3 | 2 | 0 | **30.0%** | 0.0% |
-| **TOTAL** | **182** | **117** | **27** | **35** | **3** | **≈73.6%** | 25.3% |
+| **TOTAL** | **182** | **118** | **26** | **35** | **3** | **≈74.2%** | 25.3% |
 
 ¹ Excluye la tarea cancelada TASK-300-02 (base de cálculo: 11).
 ² La v1.0 declaraba totales inflados e imposibles (p. ej., 190 tareas, 89 en FASE 7, 62 en FASE 5); los conteos reales son 182 / 22 / 34.
