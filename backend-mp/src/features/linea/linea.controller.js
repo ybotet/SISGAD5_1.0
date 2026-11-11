@@ -10,6 +10,7 @@ const {
 } = require("./linea.validation");
 const validate = require("../../shared/middleware/validate");
 const { normalizeDateRange } = require("../../shared/utils/dateUtils");
+const { getHistorial } = require("../historial/HistorialService");
 
 // Helper para normalizar timestamps en respuesta
 const normalizeTimestamps = (data) => {
@@ -536,6 +537,34 @@ LineaController.dashboard = async function (req, res, next) {
     return next(error);
   }
 };
+
+module.exports = LineaController;
+
+const historialLinea = {
+  /**
+   * @desc    Obtener historial de la línea (quejas, movimientos, recorridos)
+   * @route   GET /api/tbLinea/:id/historial
+   * @access  Public
+   */
+  async historial(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { limit } = req.query;
+      const result = await getHistorial("linea", id, {
+        limit: limit ? parseInt(limit, 10) : 50,
+      });
+      res.json({
+        success: true,
+        data: result,
+        message: `Historial de línea ${id}`,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  },
+};
+
+LineaController.historial = historialLinea.historial;
 
 module.exports = LineaController;
 

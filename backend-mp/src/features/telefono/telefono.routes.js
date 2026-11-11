@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const TelefonoController = require("./telefono.controller");
+const HistorialController = require("../historial/historial.controller");
 const auth = require("../../shared/middleware/auth");
 // const { tienePermiso } = require('../shared/middleware/permissions');
 
@@ -21,6 +22,13 @@ router.get("/dashboard", TelefonoController.dashboard);
  * @access  Public
  */
 router.get("/darbaja/:id", TelefonoController.darBaja);
+
+/**
+ * @route   GET /api/tbTelefono/:id/historial
+ * @desc    Obtener historial del teléfono (quejas, movimientos, recorridos)
+ * @access  Public
+ */
+router.get("/:id/historial", HistorialController.telefono);
 
 router.get("/:id", TelefonoController.getById);
 

@@ -59,6 +59,9 @@
 | 2026-11-02 | TASK-300-08 | Historial de sesiones: endpoints de consulta + cierre TASK-100-03/04 (v2.4) | [ver](docs/memory/2026-11-02.md) |
 | 2026-11-11 | TASK-800-01 | Suite Jest ≥70% cobertura backend-users: 5 suites (auth, jwt, user, middleware, validation), user.controller.js 95.57% stmts / 85.07% branch / 92.85% funcs / 97.14% lines, validaciones y middlewares 100%. Integrado en CI job `test-js`. | `backend-users/tests/`, `backend-users/jest.config.js`, `TASKLIST.md` |
 | 2026-11-11 | TASK-410-02 | Cambio de estado (activo/baja) de línea en MP: PATCH /api/mp/linea/:id/baja + PATCH /api/mp/linea/:id/reactivar, rutas antes de /:id (TASK-B-19), validación de quejas asociadas no completadas, 6 tests supertest pasando. | `backend-mp/src/features/linea/linea.controller.js`, `backend-mp/src/features/linea/linea.routes.js`, `backend-mp/tests/linea.test.js` |
+| 2026-11-11 | TASK-400-03 | Historial completo del teléfono en MP: GET /api/telefono/:id/historial une quejas, movimientos y recorridos ordenados por fecha desc. HistorialService reutilizable + 8 tests pasando. | `backend-mp/src/features/historial/HistorialService.js`, `backend-mp/src/features/historial/historial.controller.js`, `backend-mp/src/features/telefono/telefono.routes.js`, `backend-mp/tests/historial.test.js` |
+| 2026-11-11 | TASK-410-03 | Historial completo de la línea en MP: GET /api/linea/:id/historial reusa HistorialService. Endpoint y tests integrados. | `backend-mp/src/features/historial/`, `backend-mp/src/features/linea/linea.routes.js`, `backend-mp/tests/historial.test.js` |
+| 2026-11-11 | TASK-420-06 | Historial completo de la pizarra en MP: GET /api/pizarra/:id/historial reusa HistorialService (solo quejas). Endpoint y tests integrados. | `backend-mp/src/features/historial/`, `backend-mp/src/features/pizarra/pizarra.routes.js`, `backend-mp/tests/historial.test.js` |
 
 ---
 

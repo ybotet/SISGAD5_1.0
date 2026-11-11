@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const LineaController = require("./linea.controller");
+const HistorialController = require("../historial/historial.controller");
 const auth = require("../../shared/middleware/auth");
 // const { tienePermiso } = require('../../shared/middleware/permissions');
 
@@ -28,6 +29,13 @@ router.patch("/:id/baja", LineaController.darBaja);
  * @access  Private
  */
 router.patch("/:id/reactivar", LineaController.reactivar);
+
+/**
+ * @route   GET /api/tbLinea/:id/historial
+ * @desc    Obtener historial de la línea (quejas, movimientos, recorridos)
+ * @access  Public
+ */
+router.get("/:id/historial", HistorialController.linea);
 
 /**
  * @route   GET /api/tbLinea/:id

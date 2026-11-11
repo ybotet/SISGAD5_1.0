@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const PizarraController = require("./pizarra.controller");
+const HistorialController = require("../historial/historial.controller");
 const auth = require("../../shared/middleware/auth");
 //const { tienePermiso } = require('../../shared/middleware/permissions');
 
@@ -12,6 +13,13 @@ router.use(auth);
  * @access  Public
  */
 router.get("/", PizarraController.getAll);
+
+/**
+ * @route   GET /api/tbPizarra/:id/historial
+ * @desc    Obtener historial de la pizarra (quejas asociadas)
+ * @access  Public
+ */
+router.get("/:id/historial", HistorialController.pizarra);
 
 /**
  * @route   GET /api/tbPizarra/:id
