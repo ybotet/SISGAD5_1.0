@@ -291,6 +291,25 @@ export const lineaService = {
     return response.data;
   },
 
+  // Obtener historial de la línea (quejas, movimientos, recorridos)
+  async getHistorial(
+    id: number | string,
+    page: number = 1,
+    limit: number = 50,
+  ): Promise<{ entidad: string; id: number | string; total: number; eventos: any[] }> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    const response = await api.get<{
+      entidad: string;
+      id: number | string;
+      total: number;
+      eventos: any[];
+    }>(`/linea/${id}/historial?${params.toString()}`);
+    return response.data;
+  },
+
   // Crear nuevo recorrido
   async createRecorrido(data: CreateRecorridoRequest): Promise<RecorridoItem> {
     const response = await api.post<ApiResponse<RecorridoItem>>("/recorrido", data);

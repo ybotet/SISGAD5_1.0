@@ -33,6 +33,9 @@ import LineaPage from "./pages/LineaPage";
 import QuejaPage from "./pages/quejaPage";
 import DashboardQuejaPage from "./pages/queja/DashboardQuejaPage";
 import PizarraPage from "./pages/PizarraPage";
+import HistorialTelefonoPage from "./pages/telefono/HistorialTelefonoPage";
+import HistorialLineaPage from "./pages/linea/HistorialLineaPage";
+import HistorialPizarraPage from "./pages/pizarra/HistorialPizarraPage";
 
 //Users y Roles
 import AdminPage from "./pages/auth/admin/AdminPage";
@@ -82,6 +85,14 @@ export default function App() {
           }
         />
         <Route
+          path="main/telefonos/:id/historial"
+          element={
+            <ProtectedRoute permission="telefonos.ver">
+              <HistorialTelefonoPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="main/lineas"
           element={
             <ProtectedRoute permission="lineas.ver">
@@ -89,7 +100,23 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="main/lineas/:id/historial"
+          element={
+            <ProtectedRoute permission="lineas.ver">
+              <HistorialLineaPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="main/pizarras" element={<PizarraPage />} />
+        <Route
+          path="main/pizarras/:id/historial"
+          element={
+            <ProtectedRoute permission="pizarras.ver">
+              <HistorialPizarraPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="stats"
           element={

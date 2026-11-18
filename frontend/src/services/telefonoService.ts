@@ -327,6 +327,25 @@ export const telefonoService = {
     return response.data.data;
   },
 
+  // Obtener historial del teléfono (quejas, movimientos, recorridos)
+  async getHistorial(
+    id: number | string,
+    page: number = 1,
+    limit: number = 50,
+  ): Promise<{ entidad: string; id: number | string; total: number; eventos: any[] }> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    const response = await api.get<{
+      entidad: string;
+      id: number | string;
+      total: number;
+      eventos: any[];
+    }>(`/telefono/${id}/historial?${params.toString()}`);
+    return response.data;
+  },
+
   // Eliminar recorrido
   async deleteRecorrido(id: number): Promise<void> {
     await api.delete(`/recorrido/${id}`);

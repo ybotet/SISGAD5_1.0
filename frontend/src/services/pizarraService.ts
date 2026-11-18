@@ -99,6 +99,25 @@ export const pizarraService = {
         } catch (err) {
             throw err;
         }
+    },
+
+    // Obtener historial de la pizarra (quejas asociadas)
+    async getHistorial(
+        id: number | string,
+        page: number = 1,
+        limit: number = 50,
+    ): Promise<{ entidad: string; id: number | string; total: number; eventos: any[] }> {
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: limit.toString(),
+        });
+        const response = await api.get<{
+            entidad: string;
+            id: number | string;
+            total: number;
+            eventos: any[];
+        }>(`/pizarra/${id}/historial?${params.toString()}`);
+        return response.data;
     }
 };
 

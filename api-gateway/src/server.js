@@ -6,7 +6,7 @@ const morgan = require("morgan");
 const path = require("path");
 const dotenv = require("dotenv");
 const requestLogger = require("./middleware/requestLogger");
-const { globalLimiter, authLimiter } = require("./middleware/rateLimit.js");
+const { authLimiter } = require("./middleware/rateLimit.js");
 const verifyJwt = require("./middleware/verifyJwt");
 const logger = require("./config/logger");
 
@@ -113,8 +113,6 @@ app.use(
   authLimiter, // Auth con límite estricto
   createServiceProxy(process.env.USERS_SERVICE_URL || "http://backend-users:5001", "USERS"),
 );
-
-app.use(globalLimiter); // Límite global para todas las demás rutas
 
 // 🔐 JWT verification — excludes public routes (login, register, /health)
 app.use(verifyJwt);
