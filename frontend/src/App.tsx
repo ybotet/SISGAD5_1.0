@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SistemaLayout from "./layouts/SistemaLayout";
 import LoginPage from "./pages/auth/LoginPage";
-import Toaster from "./components/ui/Toaster";
+import { Toaster } from "react-hot-toast";
 
 import DebugLogin from "./pages/auth/DebugLogin";
 import ProfilePage from "./pages/auth/ProfilePage";
@@ -371,7 +371,7 @@ export default function App() {
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
-    <Toaster />
+    <Toaster position="top-right" />
     </>
   );
 }

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { ApiError, ForbiddenError, NotFoundError, UnauthorizedError } from '../errors/ApiError';
+import { notifyApiError } from '../utils/notify';
 
 // La URL de tu backend - puedes usar variables de entorno
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -56,6 +57,7 @@ function getBackendMessage(data: { message?: string; error?: string; details?: s
 api.interceptors.response.use(
     (response) => response,
     (error) => {
+        notifyApiError(error);
         if (error.response) {
             const { status, data } = error.response;
             const message = getBackendMessage(data);
