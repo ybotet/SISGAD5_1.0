@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/metrics"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/models"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/services"
 )
@@ -43,6 +44,8 @@ func (h *ConsumoHandler) CrearConsumo(w http.ResponseWriter, r *http.Request) {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
     }
+
+    metrics.IncConsumos()
 
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)

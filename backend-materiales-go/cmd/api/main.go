@@ -6,22 +6,43 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 
 	// Importar nuestros paquetes internos
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/config"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/handlers"
 	slog "github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/logger"
+	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/metrics"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/middleware"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/repositories/postgres"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/services"
 )
+
+const SERVICE_NAME = metrics.SERVICE_NAME
+
+var (
+	httpRequestsTotal = metrics.HttpRequestsTotal
+	httpRequestDurationSeconds = metrics.HttpRequestDurationSeconds
+)
+
+// responseWriter captura el status code para métricas
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
+}
 
 func main() {
     // ========================================
@@ -108,18 +129,25 @@ func main() {
         })
     })
 
-    // Middleware de recuperación (evita que el servidor caiga por pánicos)
+    // Middleware de métricas Prometheus
     r.Use(func(next http.Handler) http.Handler {
         return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-            defer func() {
-                if err := recover(); err != nil {
-                    slog.Errorf("🔥 PANIC: %v", err)
-                    http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-                }
-            }()
-            next.ServeHTTP(w, r)
+            start := time.Now()
+            route := r.URL.Path
+            method := r.Method
+
+            // Wrapper para capturar status code
+            rr := &responseWriter{ResponseWriter: w, statusCode: 200}
+            next.ServeHTTP(rr, r)
+
+            duration := time.Since(start).Seconds()
+            httpRequestDurationSeconds.WithLabelValues(SERVICE_NAME, route, method).Observe(duration)
+            httpRequestsTotal.WithLabelValues(SERVICE_NAME, route, method, strconv.Itoa(rr.statusCode)).Inc()
         })
     })
+
+    // Métricas Prometheus (sin autenticación, bloqueadas en red)
+    r.HandleFunc("/metrics", promhttp.Handler().ServeHTTP).Methods("GET")
 
     // Health check (sin autenticación)
     r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

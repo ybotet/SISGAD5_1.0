@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/metrics"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/models"
 	"github.com/ybotet/SISGAD5_1.0/backend-materiales-go/internal/services"
 )
@@ -50,6 +51,8 @@ func (h *AsignacionHandler) CrearAsignacion(w http.ResponseWriter, r *http.Reque
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
     }
+
+    metrics.IncAsignaciones()
 
     // Responder
     w.Header().Set("Content-Type", "application/json")

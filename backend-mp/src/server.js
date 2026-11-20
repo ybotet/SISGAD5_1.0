@@ -8,6 +8,7 @@ const swaggerSpec = require("./shared/config/swagger");
 
 // Middlewares personalizados
 const requestLogger = require("./shared/middleware/requestLogger");
+const { metricsMiddleware, metricsHandler } = require("./shared/middleware/metrics");
 const securityMiddleware = require("./shared/config/security");
 const mpLimiter = require("./shared/config/rateLimit");
 const authMiddleware = require("./shared/middleware/auth"); // ⚠️ Asegúrate de importar tu auth
@@ -88,7 +89,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// 7️⃣ Test DB
+// 7️⃣ Métricas Prometheus (sin auth, bloqueadas en red)
+app.use(metricsMiddleware);
+app.get("/metrics", metricsHandler);
+
+// 8️⃣ Test DB
 testConnection();
 
 // 8️⃣ Rutas (AHORA SÍ, después de todos los middlewares)

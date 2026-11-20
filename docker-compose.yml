@@ -251,21 +251,45 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards
     networks:
       - sisgad5-network
     restart: unless-stopped
     depends_on:
       - loki
+      - prometheus
     deploy:
       resources:
         limits:
           memory: 256M
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: sisgad5-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    networks:
+      - sisgad5-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
 volumes:
   postgres_data:
   mlflow_data:
   loki-data:
   grafana-data:
+  prometheus-data:
 
 networks:
   sisgad5-network:

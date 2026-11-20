@@ -9,6 +9,7 @@ const requestLogger = require("./middleware/requestLogger");
 const { authLimiter } = require("./middleware/rateLimit.js");
 const verifyJwt = require("./middleware/verifyJwt");
 const logger = require("./config/logger");
+const { metricsMiddleware, metricsHandler } = require("./middleware/metrics");
 
 dotenv.config({ path: path.join(__dirname, "../../.env.local") });
 
@@ -177,6 +178,15 @@ app.use(
     },
   }),
 );
+
+// ========================================
+// 📊 MÉTRICAS PROMETHEUS
+// ========================================
+
+app.use(metricsMiddleware);
+
+// Métricas expuestas sin autenticación (bloqueadas en gateway/compose por red)
+app.get("/metrics", metricsHandler);
 
 // ========================================
 // 🏥 HEALTH CHECKS
