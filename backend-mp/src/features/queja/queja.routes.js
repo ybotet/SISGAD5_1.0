@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const QuejaController = require("./queja.controller");
+const AuditoriaController = require("../auditoria/auditoria.controller");
 const auth = require("../../shared/middleware/auth");
 const { tienePermiso } = require("../../shared/middleware/permissions");
 
@@ -63,5 +64,12 @@ router.delete("/:id", tienePermiso("quejas.eliminar"), QuejaController.delete);
 router.patch("/:id/cerrar", tienePermiso("quejas.cerrar"), QuejaController.cerrar);
 
 // NOTE: quejas.asignar route documented pending (TASK-B-22 saga) — controller.asignar not yet implemented
+
+/**
+ * @route   GET /api/mp/queja/:id/historial
+ * @desc    Historial de cambios de una queja (auditoría)
+ * @access  Permiso: quejas.ver
+ */
+router.get("/:id/historial", tienePermiso("quejas.ver"), AuditoriaController.getHistorialQueja);
 
 module.exports = router;

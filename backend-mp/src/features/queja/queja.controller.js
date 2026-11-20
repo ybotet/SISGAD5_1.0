@@ -24,6 +24,7 @@ const {
   getCurrentDateTime,
 } = require("../../shared/utils/dateUtils");
 const { CierreQuejaSaga } = require("../../shared/services/cierreQuejaSaga");
+const { logAuditoria, getClientIp } = require("../../shared/services/auditService");
 const logger = require("../../shared/config/logger");
 
 // Función auxiliar para normalizar fechas de quejas (texto a timestamp)
@@ -433,33 +434,45 @@ const QuejaController = {
   create: [
     validate(createQuejaSchema, "body"),
     async (req, res, next) => {
+      const t = await Queja.sequelize.transaction();
       try {
         const bodyData = { ...req.body };
         console.log("🔍 CREATE DEBUG - Body recibido:", bodyData);
 
         bodyData.estado = "Abierta";
-        bodyData.created_by = req.userId; // ← Del middleware auth
+        bodyData.created_by = req.userId;
         bodyData.fecha = normalizeToDbDateTime(bodyData.fecha) || getCurrentDateTime();
         if (bodyData.fechaok) {
           bodyData.fechaok = normalizeToDbDateTime(bodyData.fechaok);
         }
 
-        // num_reporte se genera automáticamente en el hook beforeCreate
+        const data = await Queja.create(bodyData, { transaction: t });
 
-        const data = await Queja.create(bodyData);
+        // Audit log
+        await logAuditoria({
+          entidad: "Queja",
+          id_entidad: data.id_queja,
+          accion: "CREATE",
+          hacia_estado: "Abierta",
+          usuario_id: req.userId,
+          detalle: { num_reporte: data.num_reporte, id_tipoqueja: data.id_tipoqueja },
+          ip: getClientIp(req),
+          transaction: t,
+        });
+
+        await t.commit();
 
         res.status(201).json({
           success: true,
-          message: "ERROR.QUEJA.CREATED", // ← Clave i18n
+          message: "ERROR.QUEJA.CREATED",
           data,
         });
       } catch (error) {
-        // 🔹 Manejo de errores específicos de BD
+        await t.rollback();
         if (error.name === "SequelizeUniqueConstraintError") {
           return next(apiErrors.conflict("ERROR.REPORTE.DUPLICATED"));
         }
         if (error.name === "SequelizeValidationError") {
-          // Segunda capa: validación de modelo falló (ej: alMenosUnIdentificador)
           const mensajes = error.errors.map((err) => err.message).join(". ");
           return next(apiErrors.badRequest(mensajes));
         }
@@ -554,8 +567,18 @@ const QuejaController = {
   update: [
     validate(updateQuejaSchema, "body"),
     async (req, res, next) => {
+      const t = await Queja.sequelize.transaction();
       try {
         const { id } = req.params;
+
+        // Obtener estado actual antes de actualizar
+        const current = await Queja.findByPk(id, { attributes: ["estado"], transaction: t });
+        if (!current) {
+          await t.rollback();
+          return next(apiErrors.notFound("Queja"));
+        }
+        const estadoAnterior = current.estado;
+
         const updateData = { ...req.body, updated_by: req.userId };
         if (updateData.fecha) {
           updateData.fecha = normalizeToDbDateTime(updateData.fecha);
@@ -572,62 +595,81 @@ const QuejaController = {
             Pendiente: ["Resuelta", "Probada", "Asignada"],
             Asignada: ["Resuelta", "Pendiente"],
             Resuelta: ["Cerrada"],
-            Cerrada: [], // Terminal - una vez cerrada no puede cambiar
+            Cerrada: [],
           };
 
-          const current = await Queja.findByPk(id, { attributes: ["estado"] });
-          if (current && !validTransitions[current.estado]?.includes(updateData.estado)) {
+          if (!validTransitions[estadoAnterior]?.includes(updateData.estado)) {
+            await t.rollback();
             return next(apiErrors.badRequest("ERROR.ESTADO.TRANSICION.INVALIDA"));
           }
 
-          // Si se está cerrando la queja, validar que tenga clave de cierre
           if (updateData.estado === "Cerrada") {
             if (!updateData.id_clavecierre && !req.body.id_clavecierre) {
+              await t.rollback();
               return next(apiErrors.badRequest("Debe seleccionar una clave de cierre"));
             }
             if (!updateData.fechaok && !req.body.fechaok) {
+              await t.rollback();
               return next(apiErrors.badRequest("Debe seleccionar una fecha de cierre"));
             }
           }
         }
 
-        // Si se envía id_clavecierre, validar que la clave exista y no sea pendiente
         if (updateData.id_clavecierre) {
-          const claveCierre = await Clave.findByPk(updateData.id_clavecierre);
+          const claveCierre = await Clave.findByPk(updateData.id_clavecierre, { transaction: t });
           if (!claveCierre) {
+            await t.rollback();
             return next(apiErrors.badRequest("La clave de cierre no existe"));
           }
           if (claveCierre.es_pendiente === true) {
+            await t.rollback();
             return next(apiErrors.badRequest("No se puede cerrar con una clave pendiente"));
           }
         }
 
-        const [affectedRows] = await Queja.update(updateData, {
+        const [affectedRows, updatedRows] = await Queja.update(updateData, {
           where: { id_queja: parseInt(id) },
           returning: true,
+          transaction: t,
         });
 
         if (affectedRows === 0) {
+          await t.rollback();
           return next(apiErrors.notFound("Queja"));
         }
 
-        const updatedData = await Queja.findByPk(id, {
+        const updatedData = updatedRows[0];
+
+        // Audit log
+        const accion = updateData.estado && updateData.estado !== estadoAnterior ? "ESTADO" : "UPDATE";
+        await logAuditoria({
+          entidad: "Queja",
+          id_entidad: parseInt(id),
+          accion,
+          desde_estado: estadoAnterior,
+          hacia_estado: updateData.estado || estadoAnterior,
+          usuario_id: req.userId,
+          detalle: { cambios: Object.keys(updateData).filter((k) => k !== "updated_by") },
+          ip: getClientIp(req),
+          transaction: t,
+        });
+
+        await t.commit();
+
+        const result = await Queja.findByPk(id, {
           include: [
             { association: "tb_clave", attributes: ["id_clave", "clave"] },
-            {
-              association: "tb_clave_cierre",
-              attributes: ["id_clave", "clave", "es_pendiente"],
-              required: false,
-            },
+            { association: "tb_clave_cierre", attributes: ["id_clave", "clave", "es_pendiente"], required: false },
           ],
         });
 
         res.json({
           success: true,
           message: "Queja actualizada exitosamente",
-          data: updatedData,
+          data: result,
         });
       } catch (error) {
+        await t.rollback();
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors.map((err) => err.message).join(". ");
           return next(apiErrors.badRequest(mensajes));
@@ -643,22 +685,41 @@ const QuejaController = {
    * @access  Private (admin only)
    */
   async delete(req, res, next) {
+    const t = await Queja.sequelize.transaction();
     try {
       const { id } = req.params;
 
-      const queja = await Queja.findByPk(id);
+      const queja = await Queja.findByPk(id, { transaction: t });
       if (!queja) {
+        await t.rollback();
         return next(apiErrors.notFound("Queja"));
       }
 
-      //eliminar queja (soft delete recomendado, aquí se muestra hard delete por simplicidad)
-      await queja.destroy();
+      const estadoEliminado = queja.estado;
+
+      await queja.destroy({ transaction: t });
+
+      // Audit log
+      await logAuditoria({
+        entidad: "Queja",
+        id_entidad: parseInt(id),
+        accion: "DELETE",
+        desde_estado: estadoEliminado,
+        hacia_estado: null,
+        usuario_id: req.userId,
+        detalle: { num_reporte: queja.num_reporte },
+        ip: getClientIp(req),
+        transaction: t,
+      });
+
+      await t.commit();
 
       res.json({
         success: true,
         message: "ERROR.QUEJA.DELETED",
       });
     } catch (error) {
+      await t.rollback();
       next(error);
     }
   },
@@ -730,6 +791,22 @@ const QuejaController = {
             consumo_registrado: result.consumo !== null,
           },
         });
+
+        // Audit log (fuera de la saga, ya que esta maneja su propia transacción)
+        try {
+          await logAuditoria({
+            entidad: "Queja",
+            id_entidad: parseInt(id),
+            accion: "CERRAR",
+            desde_estado: result.compensacion?.estado || "Resuelta",
+            hacia_estado: "Cerrada",
+            usuario_id: req.userId,
+            detalle: { id_clavecierre, fechaok, consumo: result.consumo },
+            ip: getClientIp(req),
+          });
+        } catch (auditError) {
+          logger.error("Error registrando auditoría de cierre:", auditError);
+        }
       } catch (error) {
         logger.error(" Error cerrando queja:", error);
         next(error);

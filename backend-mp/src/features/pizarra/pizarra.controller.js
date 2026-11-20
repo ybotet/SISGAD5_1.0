@@ -8,6 +8,7 @@ const {
   listPizarraSchema,
 } = require("./pizarra.validation");
 const validate = require("../../shared/middleware/validate");
+const { logAuditoria, getClientIp } = require("../../shared/services/auditService");
 
 const PizarraController = {
   /**
@@ -146,8 +147,22 @@ const PizarraController = {
   create: [
     validate(createPizarraSchema, "body"),
     async (req, res, next) => {
+      const t = await Pizarra.sequelize.transaction();
       try {
-        const pizarra = await Pizarra.create(req.body);
+        const pizarra = await Pizarra.create(req.body, { transaction: t });
+
+        // Audit log
+        await logAuditoria({
+          entidad: "Pizarra",
+          id_entidad: pizarra.id_pizarra,
+          accion: "CREATE",
+          usuario_id: req.userId,
+          detalle: { nombre: pizarra.nombre, id_tipopizarra: pizarra.id_tipopizarra },
+          ip: getClientIp(req),
+          transaction: t,
+        });
+
+        await t.commit();
 
         res.status(201).json({
           success: true,
@@ -155,6 +170,7 @@ const PizarraController = {
           message: "Pizarra creado exitosamente",
         });
       } catch (error) {
+        await t.rollback();
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors.map((err) => err.message).join(". ");
           return next(apiErrors.badRequest(mensajes));
@@ -173,18 +189,35 @@ const PizarraController = {
   update: [
     validate(updatePizarraSchema, "body"),
     async (req, res, next) => {
+      const t = await Pizarra.sequelize.transaction();
       try {
         const { id } = req.params;
 
-        const [affectedRows] = await Pizarra.update(req.body, {
+        const [affectedRows, updatedRows] = await Pizarra.update(req.body, {
           where: { id_pizarra: id },
+          returning: true,
+          transaction: t,
         });
 
         if (affectedRows === 0) {
+          await t.rollback();
           return next(apiErrors.notFound("Pizarra"));
         }
 
-        const updatedData = await Pizarra.findByPk(id);
+        const updatedData = updatedRows[0];
+
+        // Audit log
+        await logAuditoria({
+          entidad: "Pizarra",
+          id_entidad: parseInt(id),
+          accion: "UPDATE",
+          usuario_id: req.userId,
+          detalle: { cambios: Object.keys(req.body) },
+          ip: getClientIp(req),
+          transaction: t,
+        });
+
+        await t.commit();
 
         res.json({
           success: true,
@@ -192,6 +225,7 @@ const PizarraController = {
           message: "Pizarra actualizado exitosamente",
         });
       } catch (error) {
+        await t.rollback();
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors.map((err) => err.message).join(". ");
           return next(apiErrors.badRequest(mensajes));
@@ -208,22 +242,42 @@ const PizarraController = {
    * @access  Public
    */
   async delete(req, res, next) {
+    const t = await Pizarra.sequelize.transaction();
     try {
       const { id } = req.params;
 
-      const affectedRows = await Pizarra.destroy({
-        where: { id_pizarra: id },
-      });
-
-      if (affectedRows === 0) {
+      const existing = await Pizarra.findByPk(id, { transaction: t });
+      if (!existing) {
+        await t.rollback();
         return next(apiErrors.notFound("Pizarra"));
       }
+
+      const nombre = existing.nombre;
+
+      await Pizarra.destroy({
+        where: { id_pizarra: id },
+        transaction: t,
+      });
+
+      // Audit log
+      await logAuditoria({
+        entidad: "Pizarra",
+        id_entidad: parseInt(id),
+        accion: "DELETE",
+        usuario_id: req.userId,
+        detalle: { nombre },
+        ip: getClientIp(req),
+        transaction: t,
+      });
+
+      await t.commit();
 
       res.json({
         success: true,
         message: "Pizarra eliminado exitosamente",
       });
     } catch (error) {
+      await t.rollback();
       return next(error);
     }
   },

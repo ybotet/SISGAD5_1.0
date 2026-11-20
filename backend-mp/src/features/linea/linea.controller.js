@@ -11,6 +11,7 @@ const {
 const validate = require("../../shared/middleware/validate");
 const { normalizeDateRange } = require("../../shared/utils/dateUtils");
 const { getHistorial } = require("../historial/HistorialService");
+const { logAuditoria, getClientIp } = require("../../shared/services/auditService");
 
 // Helper para normalizar timestamps en respuesta
 const normalizeTimestamps = (data) => {
@@ -183,13 +184,27 @@ const LineaController = {
   create: [
     validate(createLineaSchema, "body"),
     async (req, res, next) => {
+      const t = await Linea.sequelize.transaction();
       try {
         // Filtrar campos de timestamps
         const { createdAt, updatedAt, ...cleanData } = req.body;
 
         console.log("📝 Creando línea con datos:", cleanData);
 
-        const data = await Linea.create(cleanData);
+        const data = await Linea.create(cleanData, { transaction: t });
+
+        // Audit log
+        await logAuditoria({
+          entidad: "Linea",
+          id_entidad: data.id_linea,
+          accion: "CREATE",
+          usuario_id: req.userId,
+          detalle: { clavelinea: data.clavelinea, id_tipolinea: data.id_tipolinea },
+          ip: getClientIp(req),
+          transaction: t,
+        });
+
+        await t.commit();
 
         // Normalizar respuesta
         const dataNormalizada = normalizeTimestamps(data.toJSON());
@@ -200,6 +215,7 @@ const LineaController = {
           message: "Línea creada exitosamente",
         });
       } catch (error) {
+        await t.rollback();
         console.error(" Error creando línea:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors.map((err) => err.message).join(". ");
@@ -216,21 +232,45 @@ const LineaController = {
   update: [
     validate(updateLineaSchema, "body"),
     async (req, res, next) => {
+      const t = await Linea.sequelize.transaction();
       try {
         const { id } = req.params;
+
+        // Obtener estado actual
+        const existing = await Linea.findByPk(id, { transaction: t });
+        if (!existing) {
+          await t.rollback();
+          return next(apiErrors.notFound("Linea"));
+        }
 
         // Filtrar campos de timestamps
         const { createdAt, updatedAt, ...cleanData } = req.body;
 
-        const [affectedRows] = await Linea.update(cleanData, {
+        const [affectedRows, updatedRows] = await Linea.update(cleanData, {
           where: { id_linea: id },
+          returning: true,
+          transaction: t,
         });
 
         if (affectedRows === 0) {
+          await t.rollback();
           return next(apiErrors.notFound("Linea"));
         }
 
-        const updatedData = await Linea.findByPk(id);
+        const updatedData = updatedRows[0];
+
+        // Audit log
+        await logAuditoria({
+          entidad: "Linea",
+          id_entidad: parseInt(id),
+          accion: "UPDATE",
+          usuario_id: req.userId,
+          detalle: { cambios: Object.keys(cleanData) },
+          ip: getClientIp(req),
+          transaction: t,
+        });
+
+        await t.commit();
 
         // Normalizar respuesta
         const dataNormalizada = normalizeTimestamps(updatedData.toJSON());
@@ -241,6 +281,7 @@ const LineaController = {
           message: "Línea actualizada exitosamente",
         });
       } catch (error) {
+        await t.rollback();
         console.error(" Error actualizando línea:", error);
         if (error.name === "SequelizeValidationError") {
           const mensajes = error.errors.map((err) => err.message).join(". ");
@@ -252,22 +293,42 @@ const LineaController = {
   ],
 
   async delete(req, res, next) {
+    const t = await Linea.sequelize.transaction();
     try {
       const { id } = req.params;
 
-      const affectedRows = await Linea.destroy({
-        where: { id_linea: id },
-      });
-
-      if (affectedRows === 0) {
+      const existing = await Linea.findByPk(id, { transaction: t });
+      if (!existing) {
+        await t.rollback();
         return next(apiErrors.notFound("Linea"));
       }
+
+      const clavelinea = existing.clavelinea;
+
+      await Linea.destroy({
+        where: { id_linea: id },
+        transaction: t,
+      });
+
+      // Audit log
+      await logAuditoria({
+        entidad: "Linea",
+        id_entidad: parseInt(id),
+        accion: "DELETE",
+        usuario_id: req.userId,
+        detalle: { clavelinea },
+        ip: getClientIp(req),
+        transaction: t,
+      });
+
+      await t.commit();
 
       res.json({
         success: true,
         message: "Línea eliminada exitosamente",
       });
     } catch (error) {
+      await t.rollback();
       console.error(" Error eliminando línea:", error);
       return next(error);
     }

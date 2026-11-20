@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 // Importar y usar todas las rutas automáticamente
+router.use("/auditoria", require("../features/auditoria/auditoria.routes"));
 router.use("/asignacion", require("../features/asignacion/asignacion.routes"));
 router.use("/cable", require("../features/cable/cable.routes"));
 router.use("/clasificacion", require("../features/clasificacion/clasificacion.routes"));

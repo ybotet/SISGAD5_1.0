@@ -10,6 +10,7 @@ const {
 } = require("./trabajo.validation");
 const validate = require("../../shared/middleware/validate");
 const { normalizeToDbDateTime } = require("../../shared/utils/dateUtils");
+const { logAuditoria, getClientIp } = require("../../shared/services/auditService");
 
 const TrabajoController = {
   /**
@@ -136,14 +137,17 @@ const TrabajoController = {
   create: [
     validate(createTrabajoSchema, "body"),
     async (req, res, next) => {
+      const t = await Trabajo.sequelize.transaction();
       try {
         const { trabajadores, ...trabajoData } = req.body;
         //Comprobar que la queja esta en estado "Asignada"
         const queja = await Queja.findOne({
           where: { id_queja: trabajoData.id_queja },
+          transaction: t,
         });
         //la queja solo pouede estar en estado "Asignada" o "Pendiente" para crear un trabajo
         if (queja.estado !== "Asignada" && queja.estado !== "Pendiente") {
+          await t.rollback();
           return next(
             apiError.badRequest(
               "La queja debe estar en estado 'Asignada' o 'Pendiente' para crear un trabajo",
@@ -158,7 +162,7 @@ const TrabajoController = {
         console.log("📝 Datos recibidos:", { trabajoData, trabajadores });
 
         // Crear el trabajo
-        const data = await Trabajo.create(trabajoData);
+        const data = await Trabajo.create(trabajoData, { transaction: t });
         console.log("✅ Trabajo creado:", data.id_trabajo);
 
         // Si hay trabajadores asociados, crearlos en la tabla intermedia
@@ -168,11 +172,11 @@ const TrabajoController = {
             id_trabajador: trabajador.id_trabajador,
           }));
           console.log("📝 Insertando trabajadores:", trabajadoresData);
-          await TrabajoTrabajadores.bulkCreate(trabajadoresData);
+          await TrabajoTrabajadores.bulkCreate(trabajadoresData, { transaction: t });
           console.log("✅ Trabajadores asociados creados");
         }
 
-        let clave = await Clave.findByPk(trabajoData.estado);
+        let clave = await Clave.findByPk(trabajoData.estado, { transaction: t });
         console.log("🔍 Clave encontrada:", clave ? clave.clave : "No encontrada");
 
         await Queja.update(
@@ -181,6 +185,7 @@ const TrabajoController = {
             where: { id_queja: data.id_queja },
             validate: false,
             individualHooks: false,
+            transaction: t,
           },
         );
 
@@ -195,11 +200,26 @@ const TrabajoController = {
             { association: "tb_clave", attributes: ["id_clave", "clave"] },
             { association: "tb_trabajador", attributes: ["id_trabajador", "clave_trabajador"] },
           ],
+          transaction: t,
         });
 
         const trabajoObj = trabajoCompleto.toJSON();
         const trabajadoresAsignados =
           trabajoObj.tb_trabajo_trabajadores?.map((tt) => tt.tb_trabajador) || [];
+
+        // Audit log
+        await logAuditoria({
+          entidad: "Trabajo",
+          id_entidad: data.id_trabajo,
+          accion: "CREATE",
+          hacia_estado: trabajoData.estado,
+          usuario_id: req.userId,
+          detalle: { id_queja: data.id_queja, trabajadores: trabajadores?.map((w) => w.id_trabajador) },
+          ip: getClientIp(req),
+          transaction: t,
+        });
+
+        await t.commit();
 
         res.status(201).json({
           success: true,
@@ -210,6 +230,7 @@ const TrabajoController = {
           message: "Trabajo creado exitosamente",
         });
       } catch (error) {
+        await t.rollback();
         console.error(" Error en create:", error);
         if (error.name === "SequelizeValidationError") {
           const mensaje = error.errors?.map((err) => err.message).join(". ") || error.message;
@@ -228,6 +249,7 @@ const TrabajoController = {
   update: [
     validate(updateTrabajoSchema, "body"),
     async (req, res, next) => {
+      const t = await Trabajo.sequelize.transaction();
       try {
         const { id } = req.params;
         const { trabajadores, ...updateData } = req.body;
@@ -235,21 +257,27 @@ const TrabajoController = {
           updateData.fecha = normalizeToDbDateTime(updateData.fecha);
         }
 
-        const existing = await Trabajo.findByPk(id);
+        const existing = await Trabajo.findByPk(id, { transaction: t });
         if (!existing) {
+          await t.rollback();
           return next(apiError.notFound("Trabajo"));
         }
+
+        const estadoAnterior = existing.estado;
 
         // valores antiguos para mantener sincronía del flujo
         const oldQueja = existing.id_queja;
         const oldClave = existing.estado;
         const oldFecha = existing.fecha;
 
-        const [affectedRows] = await Trabajo.update(updateData, {
+        const [affectedRows, updatedRows] = await Trabajo.update(updateData, {
           where: { id_trabajo: id },
+          returning: true,
+          transaction: t,
         });
 
         if (affectedRows === 0 && !trabajadores) {
+          await t.rollback();
           return next(apiError.notFound("Trabajo"));
         }
 
@@ -258,6 +286,7 @@ const TrabajoController = {
           // Eliminar los existentes
           await TrabajoTrabajadores.destroy({
             where: { id_trabajo: id },
+            transaction: t,
           });
 
           // Crear los nuevos
@@ -266,7 +295,7 @@ const TrabajoController = {
               id_trabajo: id,
               id_trabajador: trabajador.id_trabajador,
             }));
-            await TrabajoTrabajadores.bulkCreate(trabajadoresData);
+            await TrabajoTrabajadores.bulkCreate(trabajadoresData, { transaction: t });
           }
         }
 
@@ -280,6 +309,7 @@ const TrabajoController = {
             { association: "tb_clave", attributes: ["id_clave", "clave"] },
             { association: "tb_trabajador", attributes: ["id_trabajador", "clave_trabajador"] },
           ],
+          transaction: t,
         });
 
         // si cambió la queja/clave/fecha, ajustar arrays en la queja
@@ -300,6 +330,22 @@ const TrabajoController = {
         const trabajadoresAsignados =
           trabajoObj.tb_trabajo_trabajadores?.map((tt) => tt.tb_trabajador) || [];
 
+        // Audit log
+        const accion = updateData.estado && updateData.estado !== estadoAnterior ? "ESTADO" : "UPDATE";
+        await logAuditoria({
+          entidad: "Trabajo",
+          id_entidad: parseInt(id),
+          accion,
+          desde_estado: estadoAnterior,
+          hacia_estado: updateData.estado || estadoAnterior,
+          usuario_id: req.userId,
+          detalle: { cambios: Object.keys(updateData).filter((k) => k !== "updated_by") },
+          ip: getClientIp(req),
+          transaction: t,
+        });
+
+        await t.commit();
+
         res.json({
           success: true,
           data: {
@@ -309,6 +355,7 @@ const TrabajoController = {
           message: "Trabajo actualizado exitosamente",
         });
       } catch (error) {
+        await t.rollback();
         if (error.name === "SequelizeValidationError") {
           const mensaje = error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiError.badRequest(mensaje));
@@ -324,13 +371,18 @@ const TrabajoController = {
    * @access  Public
    */
   async delete(req, res, next) {
+    const t = await Trabajo.sequelize.transaction();
     try {
       const { id } = req.params;
 
-      const existing = await Trabajo.findByPk(id);
+      const existing = await Trabajo.findByPk(id, { transaction: t });
       if (!existing) {
+        await t.rollback();
         return next(apiError.notFound("Trabajo"));
       }
+
+      const estadoEliminado = existing.estado;
+      const idQueja = existing.id_queja;
 
       // limpiar flujo asociado antes de eliminar
       if (existing.id_queja && existing.estado) {
@@ -338,15 +390,32 @@ const TrabajoController = {
       }
 
       // Los registros en TrabajoTrabajadores se eliminarán automáticamente por CASCADE
-      const affectedRows = await Trabajo.destroy({
+      await Trabajo.destroy({
         where: { id_trabajo: id },
+        transaction: t,
       });
+
+      // Audit log
+      await logAuditoria({
+        entidad: "Trabajo",
+        id_entidad: parseInt(id),
+        accion: "DELETE",
+        desde_estado: estadoEliminado,
+        hacia_estado: null,
+        usuario_id: req.userId,
+        detalle: { id_queja: idQueja },
+        ip: getClientIp(req),
+        transaction: t,
+      });
+
+      await t.commit();
 
       res.json({
         success: true,
         message: "Trabajo eliminado exitosamente",
       });
     } catch (error) {
+      await t.rollback();
       return next(error);
     }
   },

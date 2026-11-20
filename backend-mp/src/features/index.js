@@ -38,6 +38,7 @@ const Tipoqueja = require("../features/tipoqueja/tipoqueja.model")(sequelize);
 const Trabajador = require("../features/trabajador/trabajador.model")(sequelize);
 const Trabajo = require("./trabajo/trabajo.model")(sequelize);
 const TrabajoTrabajadores = require("./trabajo_trabajadores/trabajo_trabajadores.model")(sequelize);
+const Auditoria = require("./auditoria/auditoria.model")(sequelize);
 
 // Configurar relaciones aquí
 //#region Primeras relaciones
@@ -395,4 +396,5 @@ module.exports = {
   Trabajador,
   Trabajo,
   TrabajoTrabajadores,
+  Auditoria,
 };
