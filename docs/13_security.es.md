@@ -123,7 +123,7 @@ const requirePermission = (resource, action) => (req, res, next) => {
 
 ### 3.3 Permisos Especiales (Ownership)
 - `users:read` → puede leer **todos** (admin) o **solo propio** (otros roles)
-- `quejas:read` → admin: todos, técnico: asignadas, operador: todas, jefe: todas
+- `quejas:read` → admin: todos, operador: todas, supervisor: todas
 - Implementado en **Service Layer** (no solo middleware)
 
 ---
@@ -165,12 +165,12 @@ rate_limit:
 ```
 
 ### 5.2 Por Endpoint (Críticos)
-| Endpoint | Límite | Ventana |
-|----------|--------|---------|
-| POST /auth/login | 5 | 15 min |
-| POST /auth/register | 3 | 1 hora |
-| POST /auth/refresh | 10 | 15 min |
-| POST /auth/forgot-password | 2 | 1 hora |
+| Endpoint                   | Límite | Ventana |
+| -------------------------- | ------ | ------- |
+| POST /auth/login           | 5      | 15 min  |
+| POST /auth/register        | 3      | 1 hora  |
+| POST /auth/refresh         | 10     | 15 min  |
+| POST /auth/forgot-password | 2      | 1 hora  |
 
 ### 5.3 Headers de Respuesta
 ```
@@ -207,15 +207,15 @@ cors: {
 ## 7. Auditoría y Trazabilidad
 
 ### 7.1 Eventos Auditados (Inmutables)
-| Evento | Datos Registrados |
-|--------|-------------------|
-| Login exitoso/fallido | user_id, email, ip, user_agent, success, timestamp |
-| Refresh token usado | session_id, user_id, ip, timestamp, rotación |
-| Logout | session_id, user_id, timestamp |
-| Cambio estado queja | queja_id, estado_anterior, estado_nuevo, user_id, ip, timestamp |
-| Asignación técnico | queja_id/trabajo_id, tecnico_id, user_id (quien asigna), timestamp |
-| CRUD usuarios | target_user_id, admin_user_id, action, timestamp |
-| Asignación/consumo materiales | asignacion_id/consumo_id, trabajador_id, items, timestamp |
+| Evento                        | Datos Registrados                                                  |
+| ----------------------------- | ------------------------------------------------------------------ |
+| Login exitoso/fallido         | user_id, email, ip, user_agent, success, timestamp                 |
+| Refresh token usado           | session_id, user_id, ip, timestamp, rotación                       |
+| Logout                        | session_id, user_id, timestamp                                     |
+| Cambio estado queja           | queja_id, estado_anterior, estado_nuevo, user_id, ip, timestamp    |
+| Asignación técnico            | queja_id/trabajo_id, tecnico_id, user_id (quien asigna), timestamp |
+| CRUD usuarios                 | target_user_id, admin_user_id, action, timestamp                   |
+| Asignación/consumo materiales | asignacion_id/consumo_id, trabajador_id, items, timestamp          |
 
 ### 7.2 Almacenamiento
 - **Tabla:** `audit_logs` (solo append, nunca update/delete)

@@ -8,29 +8,29 @@
 ## 1. Requisitos Previos
 
 ### 1.1 Infraestructura Mínima (Desarrollo)
-| Componente | Versión | Notas |
-|------------|---------|-------|
-| Docker | 24+ | Docker Engine |
-| Docker Compose | 2.20+ | Plugin `docker compose` |
-| Node.js | 20 LTS | Para build frontend |
-| Go | 1.21+ | Para build materials service |
-| PostgreSQL | 15+ | En contenedor o externo |
-| Git | 2.40+ | Control de versiones |
+| Componente     | Versión | Notas                        |
+| -------------- | ------- | ---------------------------- |
+| Docker         | 24+     | Docker Engine                |
+| Docker Compose | 2.20+   | Plugin `docker compose`      |
+| Node.js        | 20 LTS  | Para build frontend          |
+| Go             | 1.21+   | Para build materials service |
+| PostgreSQL     | 15+     | En contenedor o externo      |
+| Git            | 2.40+   | Control de versiones         |
 
 ### 1.2 Puertos Requeridos
-| Servicio | Puerto Interno | Puerto Externo (Dev) |
-|----------|----------------|----------------------|
-| API Gateway | 3000 | 3000 |
-| Users Service | 3001 | 3001 |
-| MP Service | 3002 | 3002 |
-| Materials Service | 8080 | 8080 |
-| Frontend (Vite) | 5173 | 5173 |
-| PostgreSQL (Users) | 5432 | 5433 |
-| PostgreSQL (MP) | 5432 | 5434 |
-| PostgreSQL (Materials) | 5432 | 5435 |
-| Prometheus | 9090 | 9090 |
-| Grafana | 3000 | 3001 |
-| Loki | 3100 | 3100 |
+| Servicio               | Puerto Interno | Puerto Externo (Dev) |
+| ---------------------- | -------------- | -------------------- |
+| API Gateway            | 5000           | 5000                 |
+| Users Service          | 5001           | 5001                 |
+| MP Service             | 5002           | 5002                 |
+| Materials Service      | 5003           | 5003                 |
+| Frontend (Vite)        | 504            | 5004                 |
+| PostgreSQL (Users)     | 5432           | 5433                 |
+| PostgreSQL (MP)        | 5432           | 5434                 |
+| PostgreSQL (Materials) | 5432           | 5435                 |
+| Prometheus             | 9090           | 9090                 |
+| Grafana                | 3000           | 3001                 |
+| Loki                   | 3100           | 3100                 |
 
 ---
 
