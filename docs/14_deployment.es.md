@@ -399,62 +399,70 @@ migrate -path ./migrations \
 ## 7. CI/CD Pipeline
 
 ### 7.1 GitHub Actions (`.github/workflows/cd.yml`)
-```yaml
-name: CD - Deploy to Production
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      
-      - name: Login to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Build and push API Gateway
-        uses: docker/build-push-action@v5
-        with:
-          context: ./api-gateway
-          push: true
-          tags: ghcr.io/ybotet/sisgad5-api-gateway:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      
-      # ... (repeat for each service)
-      
-      - name: Deploy to Kubernetes
-        uses: azure/k8s-set-context@v1
-        with:
-          kubeconfig: ${{ secrets.KUBECONFIG }}
-      - run: kubectl apply -k k8s/prod/
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+El pipeline `CD` se dispara en `push` a `main` (cuando cambian los servicios, el
+compose de producción o `deploy.sh`) y también por `workflow_dispatch` (dry-run /
+redeploy con un tag existente).
+
+**Jobs:**
+
+1. **`build-and-push`** — matriz de 5 servicios (`backend-users`, `backend-mp`,
+   `api-gateway`, `backend-materiales`, `frontend`). Cada imagen se publica en GHCR
+   con dos tags:
+   - `sha-<commit>` (inmutable, usado por el deploy y el rollback).
+   - `latest` (solo en `main`).
+2. **`deploy`** — corre tras `build-and-push`, protegido por el entorno
+   `production` (aprobación manual). Por SSH ejecuta `deploy.sh` en el servidor:
+   `docker login` GHCR → `compose pull` → `compose up -d` → healthcheck 60 s →
+   rollback automático al tag anterior si el healthcheck falla.
+3. **`security-scan`** — Trivy sobre la imagen `api-gateway:sha-<commit>`.
+
+**Configuración humana (una sola vez, ~2 min):**
+
+- GitHub → Settings → Environments → **production** → *Required reviewers*
+  (aprobación manual antes de desplegar).
+- Secrets de repositorio:
+  - `SSH_DEPLOY_HOST`, `SSH_DEPLOY_USER`, `SSH_DEPLOY_KEY` (clave privada estricta).
+  - `GHCR_PULL_USER`, `GHCR_PULL_TOKEN` (opcional; PAT con `read:packages`).
+- En el servidor: `docker login ghcr.io` persistente (si no se usan los secrets
+  `GHCR_PULL_*`) y `/opt/sisgad5/CURRENT_TAG` (lo crea el propio script).
+
+**Dry-run:**
+
+```bash
+# GitHub → Actions → CD → Run workflow → input `tag` = sha-abc123 (tag ya publicado)
+# o dejar vacío para usar el SHA del commit.
 ```
+
+### 7.2 Variables de imagen
+
+`docker-compose.prod.yml` referencia las imágenes como:
+
+```yaml
+image: ${IMAGE_PREFIX:-ghcr.io/ybotet/sisgad5_1.0}/<service>:${IMAGE_TAG:-latest}
+```
+
+`IMAGE_PREFIX` e `IMAGE_TAG` se inyectan en el servidor (los exporta el job
+`deploy` antes de invocar `deploy.sh`). `build:` se mantiene como fallback para
+despliegue local con `--build`.
 
 ---
 
 ## 8. Rollback
 
-### 8.1 Docker Compose
-```bash
-# Etiquetar versión anterior antes de deploy
-docker tag ghcr.io/ybotet/sisgad5-api-gateway:latest ghcr.io/ybotet/sisgad5-api-gateway:prev
+### 8.1 Docker Compose (automatizado)
 
-# Rollback rápido
-docker compose -f docker-compose.prod.yml down
-# Editar docker-compose.prod.yml para usar tag :prev
-docker compose -f docker-compose.prod.yml up -d
+El rollback es **automático** dentro de `deploy.sh`: si el healthcheck de
+`http://localhost:5000/health` no responde en 60 s, el script vuelve al tag
+guardado en `/opt/sisgad5/CURRENT_TAG` (`compose pull` + `up -d`) y reintenta el
+healthcheck. El tag solo se persiste en `CURRENT_TAG` tras un despliegue OK.
+
+Rollback manual (mismo mecanismo):
+
+```bash
+# En el servidor, con el tag anterior conocido:
+cd /opt/sisgad5
+IMAGE_TAG=sha-<tag-anterior> ./deploy.sh
 ```
 
 ### 8.2 Kubernetes

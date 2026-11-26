@@ -1,5 +1,10 @@
 version: "3.8"
 
+# Producción: imágenes publicadas en GHCR por el pipeline CD (cd.yml).
+# El tag se inyecta con IMAGE_TAG (p. ej. sha-<commit>) y el prefijo con
+# IMAGE_PREFIX (por defecto ghcr.io/ybotet/sisgad5_1.0, en minúsculas).
+# `build:` se mantiene como fallback para despliegue local con --build.
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -20,6 +25,7 @@ services:
       retries: 5
 
   backend-users:
+    image: ${IMAGE_PREFIX:-ghcr.io/ybotet/sisgad5_1.0}/backend-users:${IMAGE_TAG:-latest}
     build: ./backend-users
     container_name: sisgad5-users
     restart: unless-stopped
@@ -40,6 +46,7 @@ services:
       - sisgad5-network
 
   backend-mp:
+    image: ${IMAGE_PREFIX:-ghcr.io/ybotet/sisgad5_1.0}/backend-mp:${IMAGE_TAG:-latest}
     build: ./backend-mp
     container_name: sisgad5-mp
     restart: unless-stopped
@@ -61,6 +68,7 @@ services:
       - sisgad5-network
 
   api-gateway:
+    image: ${IMAGE_PREFIX:-ghcr.io/ybotet/sisgad5_1.0}/api-gateway:${IMAGE_TAG:-latest}
     build: ./api-gateway
     container_name: sisgad5-gateway
     restart: unless-stopped
@@ -81,6 +89,7 @@ services:
       - sisgad5-network
 
   backend-materiales:
+    image: ${IMAGE_PREFIX:-ghcr.io/ybotet/sisgad5_1.0}/backend-materiales:${IMAGE_TAG:-latest}
     build: ./backend-materiales-go
     container_name: sisgad5-materiales
     restart: unless-stopped
@@ -101,6 +110,7 @@ services:
       - sisgad5-network
 
   frontend:
+    image: ${IMAGE_PREFIX:-ghcr.io/ybotet/sisgad5_1.0}/frontend:${IMAGE_TAG:-latest}
     build: ./frontend
     container_name: sisgad5-frontend
     restart: unless-stopped

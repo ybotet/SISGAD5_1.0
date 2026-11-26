@@ -10,15 +10,37 @@ on:
       - 'api-gateway/**'
       - 'frontend/**'
       - 'docker-compose.prod.yml'
+      - 'deploy.sh'
+  # Dry-run / redeploy: dispara manualmente con un tag ya publicado.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag de imagen a desplegar (p. ej. sha-abc123 o latest). Si se omite, usa el SHA del commit.'
+        required: false
+        default: ''
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_PREFIX: ghcr.io/ybotet/sisgad5_1.0
 
 jobs:
   build-and-push:
-    name: Build & Push
+    name: Build & Push (${{ matrix.service }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: backend-users
+            context: ./backend-users
+          - service: backend-mp
+            context: ./backend-mp
+          - service: api-gateway
+            context: ./api-gateway
+          - service: backend-materiales
+            context: ./backend-materiales-go
+          - service: frontend
+            context: ./frontend
     steps:
       - uses: actions/checkout@v4
 
@@ -34,29 +56,64 @@ jobs:
 
       - name: Extract metadata
         id: meta
-        uses: actions/metadata-action@v5
+        uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.IMAGE_PREFIX }}/${{ matrix.service }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix=sha-
+            type=raw,value=sha-${{ github.sha }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ${{ matrix.context }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - name: Deploy to Production
-        if: github.ref == 'refs/heads/main'
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    # Despliega en push a main y en workflow_dispatch (dry-run con tag existente).
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    # El entorno "production" exige aprobación manual (Settings > Environments >
+    # production > Required reviewers). Configuración humana de ~2 min.
+    environment:
+      name: production
+      url: https://yaiselbotet.fvds.ru/sisgad5
+    steps:
+      - name: Compute image tag
+        id: tag
         run: |
-          echo "Deploying to production..."
-          # Add deployment steps here (SSH, Kubernetes, etc.)
-          # ./deploy.sh
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.tag }}" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=sha-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy via SSH (ejecuta deploy.sh en el servidor)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_DEPLOY_HOST }}
+          username: ${{ secrets.SSH_DEPLOY_USER }}
+          key: ${{ secrets.SSH_DEPLOY_KEY }}
+          script: |
+            set -e
+            export IMAGE_TAG="${{ steps.tag.outputs.tag }}"
+            export IMAGE_PREFIX="${{ env.IMAGE_PREFIX }}"
+            export COMPOSE_DIR="/opt/sisgad5"
+            export COMPOSE_FILE="docker-compose.prod.yml"
+            export HEALTH_URL="http://localhost:5000/health"
+            export HEALTH_TIMEOUT="60"
+            # Credenciales de pull GHCR (opcionales; si no se definen, se usa
+            # el docker login persistente del servidor).
+            export GHCR_USER="${{ secrets.GHCR_PULL_USER }}"
+            export GHCR_TOKEN="${{ secrets.GHCR_PULL_TOKEN }}"
+            cd /opt/sisgad5
+            ./deploy.sh
 
   security-scan:
     name: Security Scan
@@ -65,10 +122,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          image-ref: ${{ env.IMAGE_PREFIX }}/api-gateway:sha-${{ github.sha }}
           format: 'sarif'
           output: 'trivy-results.sarif'
 

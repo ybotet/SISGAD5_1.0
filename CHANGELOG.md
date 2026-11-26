@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **TASK-100-06:** Matriz de trazabilidad Requisito->Caso de Uso->Endpoint->Test generada con script semi-automatizado (scripts/gen-traceability.py); 72 requisitos, 12 huérfanos sin test, 2 endpoints sin requisito; depende de revisión humana para cerrar GAPs
+- **TASK-210-02 / TASK-900-01 / TASK-900-02 / TASK-900-03:** CD operativo — `cd.yml` construye y publica 5 imágenes por servicio (matriz, tags `sha-<commit>` + `latest`); job `deploy` con entorno `production` (aprobación manual) ejecuta `deploy.sh` por SSH (login GHCR, `compose pull`, `up -d`, healthcheck 60 s, rollback automático al tag anterior vía `CURRENT_TAG`); `deploy.sh` parametrizado con `IMAGE_TAG`; `workflow_dispatch` para dry-run; `docker-compose.prod.yml` referencia imágenes GHCR por `IMAGE_PREFIX`/`IMAGE_TAG`
 
 ### 📚 Documentación
 - **TASK-C-01:** Renombrado 18 archivos `docs/*.md` a `docs/*.es.md` y corregidos enlaces internos

@@ -59,6 +59,8 @@
 | 2026-11-02 | TASK-300-08 | Historial de sesiones: endpoints de consulta + cierre TASK-100-03/04 (v2.4) | [ver](docs/memory/2026-11-02.md) |
 | 2026-11-11 | TASK-430-06 | Bitácora de transiciones de queja en MP: tabla `tb_auditoria` + `logAuditoria()` helper + `GET /api/mp/queja/:id/historial` ordenado | `backend-mp/src/features/auditoria/`, `backend-mp/src/shared/services/auditService.js`, `backend-mp/tests/auditoria.test.js` |
 | 2026-11-11 | TASK-430-07 | Auditoría de acciones en MP: `GET /api/mp/auditoria` (permiso `auditoria.ver`) con filtros entidad/usuario/accion/fecha, paginado, 403 sin permiso | `backend-mp/src/features/auditoria/auditoria.controller.js`, `backend-mp/src/features/auditoria/auditoria.routes.js`, `backend-mp/tests/auditoria.test.js` |
+| 2026-11-26 | TASK-900-04 | PENDIENTE HUMANO: configurar secrets CD (SSH_DEPLOY_HOST/USER/KEY + GHCR_PULL_USER/TOKEN) y aprobación manual entorno production; sin esto el job deploy no ejecuta SSH (bloquea primer deploy real) | .github/workflows/cd.yml, deploy.sh |
+| 2026-11-26 | TASK-210-02/900-01/900-02/900-03 | CD operativo: cd.yml matriz 5 servicios (build+push GHCR tags sha+latest) + job deploy con environment production (aprobación manual) + SSH appleboy/ssh-action ejecuta deploy.sh (pull+up+healthcheck 60s+rollback automático a CURRENT_TAG); deploy.sh parametrizado IMAGE_TAG; workflow_dispatch dry-run | .github/workflows/cd.yml, deploy.sh, docker-compose.prod.yml, docs/14_deployment.es.md |
 | 2026-11-26 | TASK-100-06 | Matriz de trazabilidad Requisito->Caso de Uso->Endpoint->Test generada con script semi-automatizado; 72 requisitos, 12 huérfanos, 2 endpoints sin requisito; depende de revisión humana para cerrar GAPs | docs/traceability_matrix.md, scripts/gen-traceability.py |
 | 2026-11-20 | TASK-220-01 | Exponer /metrics en los 4 servicios: prom-client en gateway/users/mp (http_requests_total{service,route,method,status} + histograma duración, endpoint /metrics sin auth interna); client_golang en materiales (gin middleware + consumos_registrados_total, asignaciones_total); prometheus.yml con 4 scrape jobs en red compose; dashboard Grafana servicios.json (RPS, p95, errores por servicio) | `monitoring/prometheus/prometheus.yml`, `monitoring/grafana/dashboards/servicios.json`, `docker-compose.yml` (prometheus service), `api-gateway/src/middleware/metrics.js`, `backend-users/src/shared/middleware/metrics.js`, `backend-mp/src/shared/middleware/metrics.js`, `backend-materiales-go/cmd/api/main.go`, `backend-materiales-go/internal/metrics/metrics.go` |
 | 2026-11-11 | TASK-800-01 | Suite Jest ≥70% cobertura backend-users: 5 suites (auth, jwt, user, middleware, validation), user.controller.js 95.57% stmts / 85.07% branch / 92.85% funcs / 97.14% lines, validaciones y middlewares 100%. Integrado en CI job `test-js`. | `backend-users/tests/`, `backend-users/jest.config.js`, `TASKLIST.md` |
@@ -194,4 +196,6 @@
 
 > **Mantenido por:** Agentes de IA + Ing. Botet S.Y.
 > **Licencia:** Uso académico — Tesis de Maestría RTU MIREA
+
+
 
