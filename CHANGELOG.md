@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [Unreleased]
+
+### Added
+- **TASK-100-06:** Matriz de trazabilidad Requisito->Caso de Uso->Endpoint->Test generada con script semi-automatizado (scripts/gen-traceability.py); 72 requisitos, 12 huérfanos sin test, 2 endpoints sin requisito; depende de revisión humana para cerrar GAPs
 
 ### 📚 Documentación
 - **TASK-C-01:** Renombrado 18 archivos `docs/*.md` a `docs/*.es.md` y corregidos enlaces internos
@@ -164,3 +167,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [TASKLIST.md](./TASKLIST.md)
 - [SPEC.md](./SPEC.md)
 - [Tesis - Testing](../docs/thesis/05_results.md)
+
+
