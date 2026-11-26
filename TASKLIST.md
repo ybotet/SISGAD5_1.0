@@ -110,7 +110,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-110-05 | Alta      | 🔨      | Diseñar estrategia de autenticación (JWT + Refresh) | Agente      | —            | Documento con flujo access+refresh, expiraciones, rotación y revocación                                   | `docs/13_security.md` describe access(15m)+refresh(7d) con rotación/revocación Y está implementado en código (`jwt.js`, modelos `RefreshToken`/`Sesion`, login/refresh/logout en auth.controller). Corregido: la v2.0 afirmaba "refresh no implementado" basándose en una versión obsoleta del backend-users | `docs/13_security.md`    |
 | ✅ Completada | TASK-110-06 | Alta      | 🔨      | Mapear permisos RBAC por endpoint                   | Agente      | —            | Matriz rol × permiso × endpoint alineada con el middleware real                                           | `docs/12_rbac_matrix.md` + middleware `permissions.js` (`tienePermiso('x.y')`) en uso                                                                                                                                                                                                                        | `docs/12_rbac_matrix.md` |
 
-**Subtotal FASE 1: 12✅ + 1🔄 de 14 — 89.3% ponderado** *(v2.4: TASK-100-03/04 cerradas tras verificarse los diagramas Mermaid/PlantUML en `docs/diagrams/`)*
+**Subtotal FASE 1: 14✅ de 14 — 100% ponderado** *(v2.6: TASK-100-06 cerrada — matriz de trazabilidad generada; TASK-100-03/04 cerradas en v2.4)*
 
 ---
 
@@ -146,7 +146,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-220-03 | Media     | 🔨      | Centralizar logs (stack propio) | Agente      | —            | Logs JSON estructurados de todos los servicios visibles en Grafana Explore        | **Decisión adoptada: Loki + Promtail** (no ELK); logging Winston/logger ya integrado por servicio                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | `monitoring/` (Loki/Promtail)                                                                                                                                                                                                                                                                                                          |
 | ⏳ Pendiente   | TASK-220-04 | Media     | 🔨      | Configurar Sentry para errores  | Agente      | —            | SDK instalado por servicio, DSN en secrets, alertas de excepción en producción    | No hay rastro de Sentry en el código                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Config. por servicio                                                                                                                                                                                                                                                                                                                   |
 
-**Subtotal FASE 2: 11✅ + 2🔄 de 15 — 80.0% ponderado** *(la v1.0 declaraba 19 tareas; la tabla contiene 15)*
+**Subtotal FASE 2: 13✅ + 2⏳ de 15 — 86.7% ponderado** *(v2.6: TASK-210-02 y TASK-220-01 cerradas — CD build+push+deploy y métricas Prometheus/Grafana; la v1.0 declaraba 19 tareas, la tabla contiene 15)*
 
 ---
 
@@ -251,7 +251,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-460-02 | Alta      | 🔨      | Métricas agregadas (KPIs)                  | Agente      | TASK-460-01  | KPIs calculados en SQL/Sequelize (MTTR, recurrentes, embudo) | Implementados en QuejaController/TelefonoController                                                                                       | `backend-mp/src/controllers/`    |
 | ✅ Completada | TASK-460-03 | Media     | 🔨      | Filtros por fecha/servicio en estadísticas | Agente      | TASK-460-01  | Query params de rango/ámbito aceptados por los dashboards    | Soportados por patrones de query en los endpoints dashboard                                                                               | `backend-mp/src/`                |
 
-**Subtotal FASE 4: 24✅ + 2🔄 de 34 efectivas — ~73.5% ponderado** *(2 fuera de alcance: TASK-420-02/03, puertos y conexiones excluidos del alcance — decisión 2026-11-03; la v1.0 declaraba 43 tareas; la tabla contiene 36)*
+**Subtotal FASE 4: 26✅ + 3🔄 + 5⏳ de 34 efectivas — 80.9% ponderado** *(2 fuera de alcance: TASK-420-02/03, puertos y conexiones excluidos del alcance — decisión 2026-11-03; la v1.0 declaraba 43 tareas; la tabla contiene 36)*
 
 ---
 
@@ -380,10 +380,10 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-720-01 | Alta      | 🔨      | Internacionalización (ES/RU/EN) | Agente      | —            | i18next con recursos cargados y selector visible             | `src/i18n/` + `locales/es|ru` + `LanguageSwitcher.tsx` (fallback `en`)                                                                                                                                                                                                                     | `frontend/src/i18n/`                                                                            |
 | ✅ Completada | TASK-720-02 | Alta      | 🔨      | Responsive design               | Agente      | —            | Layouts usable en móvil/tablet/desktop                       | Auditoría en docs/audit-responsive.md; Table.tsx compartido con colapso a tarjetas en móvil; Login/Dashboard/Quejas corregidos; ClasificacionTable y CableTable migrados; TypeScript 0 errores                                                                                             | `frontend/src/components/ui/Table.tsx`, `docs/audit-responsive.md`                              |
 | ✅ Completada | TASK-720-03 | Alta      | 🔨      | Manejo de errores               | Agente      | —            | Error boundary/contexto + display amigable de errores de API | `ErrorContext.tsx`, `useApiError.ts`, `ErrorDisplay.tsx`                                                                                                                                                                                                                                   | `frontend/src/errors/`                                                                          |
-| ⏳ Completada  | TASK-720-04 | Alta      | 🔨      | Loading states uniformes        | Agente      | —            | Skeletons/spinners consistentes en todas las vistas de datos | Spinners aislados; sin patrón uniforme                                                                                                                                                                                                                                                     | `frontend/src/components/ui/`                                                                   |
+| ⏳ Pendiente   | TASK-720-04 | Alta      | 🔨      | Loading states uniformes        | Agente      | —            | Skeletons/spinners consistentes en todas las vistas de datos | Spinners aislados; sin patrón uniforme                                                                                                                                                                                                                                                     | `frontend/src/components/ui/`                                                                   |
 | ✅ Completada | TASK-720-05 | Media     | 🔨      | Notificaciones toast            | Agente      | —            | Librería integrada y usada en operaciones CRUD               | `react-hot-toast` + Zustand store (`src/store/useNotificationStore.ts`); `components/ui/Toaster.tsx` montado en `App.tsx`; `utils/notify.ts` con `notifySuccess/Error/Warning/Info` y mapeo de códigos HTTP (FORBIDDEN, UNAUTHORIZED, NOT_FOUND, CONFLICT, VALIDATION_ERROR, RATE_LIMITED) | `frontend/src/store/`, `frontend/src/components/ui/Toaster.tsx`, `frontend/src/utils/notify.ts` |
 
-**Subtotal FASE 7: 20✅ + 1🔄 de 22 — 95.2% ponderado** — *TASK-700-04 y TASK-720-05 cerradas (Zustand + toasts); TASK-720-04 (loading states uniformes) pendiente*
+**Subtotal FASE 7: 21✅ + 1⏳ de 22 — 95.5% ponderado** — *TASK-700-04 y TASK-720-05 cerradas (Zustand + toasts); TASK-720-04 (loading states uniformes) pendiente*
 
 ---
 
@@ -413,7 +413,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ⏳ Pendiente     | TASK-820-02 | Alta      | 🏗️    | Pruebas de rendimiento              | Agente      | —            | Benchmark ≥1000 RPS en gateway documentado                                         | No iniciado                                                           | `performance-tests/`             |
 | ⏳ Pendiente     | TASK-820-03 | Alta      | 🏗️    | Pruebas de carga                    | Agente      | —            | k6/artillery con 500 usuarios concurrentes estable                                 | No iniciado                                                           | `load-tests/`                    |
 
-**Subtotal FASE 8: 1✅ + 2🔄 de 9 — 22.2% ponderado**
+**Subtotal FASE 8: 1✅ + 3🔄 + 5⏳ de 9 — 27.8% ponderado**
 
 ---
 
@@ -433,7 +433,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ⏳ Pendiente     | TASK-910-01 | Alta      | 🏗️    | Orquestación avanzada (K8s o alternativa documentada) | Agente      | TASK-900-02  | Manifiestos o decisión ADR de permanecer en Compose | No existe carpeta `k8s/`; Compose es la plataforma actual | `k8s/prod/`        |
 | 🔄 En progreso | TASK-910-02 | Alta      | 🔨      | Monitoreo productivo con alertas                      | Agente      | TASK-220-01  | Dashboards + reglas de alerta activas en Grafana    | Stack de observabilidad montado; alertas sin configurar   | `monitoring/`      |
 
-**Subtotal FASE 9: 0✅ + 2🔄 de 6 — 16.7% ponderado**
+**Subtotal FASE 9: 3✅ + 1🔄 + 2⏳ de 6 — 58.3% ponderado** *(v2.6: TASK-900-01/02/03 cerradas — CD build+push+deploy SSH con rollback; TASK-900-04 pendiente humano: secrets + entorno production)*
 
 ---
 
@@ -482,24 +482,24 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 
 ## 15. Resumen de Progreso
 
-> Recalculado (v2.5, 2026-11-03) tras excluir del alcance TASK-420-02/03 (puertos/conexiones de pizarra) y verificar automáticamente los conteos sobre las tablas de este documento. Las tareas 🔄 cuentan al 50% para el porcentaje ponderado; las ❌ quedan fuera del denominador.
+> Recalculado (v2.6, 2026-11-26) por script (`scripts/count-tasks.py`) sobre las filas de tabla de este documento, tras cerrar TASK-430-06/07 (auditoría MP), TASK-100-06 (matriz de trazabilidad), TASK-220-01 (métricas) y TASK-210-02/900-01/900-02/900-03 (CD build+push+deploy). Las tareas 🔄 cuentan al 50% para el porcentaje ponderado; las ❌ quedan fuera del denominador.
 
 | Fase                         | Total   | ✅      | 🔄    | ⏳      | ❌    | % Real (ponderado) | % Anterior (v1.0) |
 | ---------------------------- | ------- | ------- | ------ | ------ | ----- | ------------------ | ----------------- |
 | FASE 0 — Documentación base  | 8       | 8       | 0      | 0      | 0     | **100%**           | 37.5%             |
-| FASE 1 — Diseño y modelado   | 14      | 12      | 1      | 1      | 0     | **89.3%**          | 57.1%             |
-| FASE 2 — Infraestructura     | 15      | 11      | 2      | 2      | 0     | **80.0%**          | 36.8%             |
+| FASE 1 — Diseño y modelado   | 14      | 14      | 0      | 0      | 0     | **100%**           | 57.1%             |
+| FASE 2 — Infraestructura     | 15      | 13      | 0      | 2      | 0     | **86.7%**          | 36.8%             |
 | FASE 3 — Users Service       | 12      | 10      | 0      | 1      | 1     | **90.9%**¹         | 16.7%             |
-| FASE 4 — MP Service          | 36      | 24      | 2      | 8      | 2     | **~73.5%**⁴        | 25.6%             |
+| FASE 4 — MP Service          | 36      | 26      | 3      | 5      | 2     | **80.9%**⁴         | 25.6%             |
 | FASE 5 — Materials Service   | 34      | 25      | 4      | 5      | 0     | **79.4%**          | 21.0%³            |
 | FASE 6 — API Gateway         | 10      | 9       | 1      | 0      | 0     | **95.0%**          | 30.0%             |
-| FASE 7 — Frontend            | 22      | 20      | 1      | 1      | 0     | **95.2%**          | 1.1%              |
-| FASE 8 — Testing y QA        | 9       | 1       | 2      | 6      | 0     | **22.2%**          | 8.3%              |
-| FASE 9 — Despliegue          | 6       | 0       | 2      | 4      | 0     | **16.7%**          | 0.0%              |
+| FASE 7 — Frontend            | 22      | 21      | 0      | 1      | 0     | **95.5%**          | 1.1%              |
+| FASE 8 — Testing y QA        | 9       | 1       | 3      | 5      | 0     | **27.8%**          | 8.3%              |
+| FASE 9 — Despliegue          | 6       | 3       | 1      | 2      | 0     | **58.3%**          | 0.0%              |
 | FASE 10 — Analítica          | 8       | 1       | 3      | 4      | 0     | **31.3%**          | 0.0%              |
 | FASE 11 — Docs final/defensa | 3       | 0       | 2      | 1      | 0     | **33.3%**          | 0.0%              |
 | FASE 12 — Mantenimiento      | 5       | 0       | 3      | 2      | 0     | **30.0%**          | 0.0%              |
-| **TOTAL**                    | **182** | **121** | **23** | **35** | **3** | **≈76.4%**         | 25.3%             |
+| **TOTAL**                    | **182** | **131** | **20** | **28** | **3** | **≈78.8%**         | 25.3%             |
 
 ¹ Excluye la tarea cancelada TASK-300-02 (base de cálculo: 11).
 ² La v1.0 declaraba totales inflados e imposibles (p. ej., 190 tareas, 89 en FASE 7, 62 en FASE 5); los conteos reales son 182 / 22 / 34.
@@ -608,5 +608,27 @@ Fuente única de verdad: este documento; los issues/tablero son vistas operativa
 ### Regla recordada
 Los subtotales y el Resumen de Progreso deben recalcarse **por script sobre las tablas** (no a mano) cada vez que cambia el estado de una tarea.
 
+## 21. Registro de Cambios v2.6 — Recalculo del Resumen de Progreso (tareas ejecutadas)
 
+**Fecha:** 2026-11-26 · **Responsable:** Agente (docs-writer) · **Método:** script `scripts/count-tasks.py` sobre las filas de tabla de este documento.
 
+### Qué se ejecutó
+1. **Recalculo exacto por fase** (script sobre las tablas, no a mano):
+   - FASE 1 → **100%** (14✅/14; TASK-100-06 cerrada).
+   - FASE 2 → **86.7%** (13✅ + 2⏳; TASK-210-02 y TASK-220-01 cerradas).
+   - FASE 4 → **80.9%** (26✅ + 3🔄 + 5⏳; TASK-430-06/07 cerradas).
+   - FASE 7 → **95.5%** (21✅ + 1⏳; corregido conteo anterior 20✅+1🔄).
+   - FASE 8 → **27.8%** (1✅ + 3🔄 + 5⏳; corregido 2🔄→3🔄).
+   - FASE 9 → **58.3%** (3✅ + 1🔄 + 2⏳; TASK-900-01/02/03 cerradas).
+2. **Resumen de Progreso (sección 15) actualizado:** TOTAL = 182 tareas (131✅ + 20🔄 + 28⏳ + 3❌) → **≈78.8% ponderado** (denominador efectivo: 179).
+3. **Corrección menor:** TASK-720-04 mostraba "⏳ Completada" (contradictorio); corregido a "⏳ Pendiente" según su evidencia ("sin patrón uniforme").
+
+### Tareas cerradas desde v2.5 (2026-11-03)
+- **TASK-430-06 / TASK-430-07** (2026-11-11): auditoría MP — `tb_auditoria` + `logAuditoria()` + `GET /api/mp/queja/:id/historial` + `GET /api/mp/auditoria` (permiso `auditoria.ver`).
+- **TASK-220-01** (2026-11-20): métricas `/metrics` en los 4 servicios (prom-client / client_golang) + Prometheus + dashboard Grafana.
+- **TASK-100-06** (2026-11-26): matriz de trazabilidad `docs/traceability_matrix.md` + `scripts/gen-traceability.py`.
+- **TASK-210-02 / TASK-900-01 / TASK-900-02 / TASK-900-03** (2026-11-26): CD operativo — `cd.yml` matriz 5 servicios (build+push GHCR) + job `deploy` SSH con `deploy.sh` (pull+up+healthcheck 60s+rollback automático); `workflow_dispatch` dry-run.
+- **Pendiente humano (TASK-900-04):** configurar secrets `SSH_DEPLOY_HOST/USER/KEY` + `GHCR_PULL_USER/TOKEN` y aprobación manual del entorno `production` (bloquea el primer deploy real).
+
+### Regla recordada
+Los subtotales y el Resumen de Progreso se recalculan **por script sobre las tablas** (`scripts/count-tasks.py`) cada vez que cambia el estado de una tarea.
