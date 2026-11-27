@@ -2,7 +2,7 @@ const { sequelize } = require("../../shared/config/database");
 
 /**
  * Registra una entrada en el trail de auditoría (tb_auditoria).
- * Debe llamarse DENTRO de la misma transacción que la operación auditada
+ * Debe llamarse DENTRO DE la misma transacción que la operación auditada
  * para garantizar atomicidad (si la operación falla, no queda rastro).
  *
  * @param {Object} params
@@ -28,9 +28,12 @@ async function logAuditoria({
   ip = null,
   transaction = null,
 }) {
+  // NB: se usan placeholders `?` (enlazado posicional con array de replacements).
+  // Los placeholders `$1` con un array de replacements NO son enlazados por Sequelize
+  // y provocan "no hay parámetro $1" en PostgreSQL.
   const query = `
     INSERT INTO tb_auditoria (entidad, id_entidad, accion, desde_estado, hacia_estado, usuario_id, detalle, ip, created_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
     RETURNING id_auditoria, entidad, id_entidad, accion, desde_estado, hacia_estado, usuario_id, detalle, ip, created_at;
   `;
 

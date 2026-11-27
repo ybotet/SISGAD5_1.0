@@ -56,8 +56,16 @@ const listTrabajoSchema = z.object({
   search: z.string().optional(),
 });
 
+const resolverTrabajoSchema = z.object({
+  resultado: z.enum(["completado", "pendiente"]),
+  fechaFin: z.string().refine((val) => !isNaN(Date.parse(val))).optional().nullable(),
+  observaciones: z.string().optional().nullable(),
+  duracionReal: z.union([z.number(), z.string()]).optional().nullable(),
+});
+
 module.exports = {
   createTrabajoSchema,
   updateTrabajoSchema,
   listTrabajoSchema,
+  resolverTrabajoSchema,
 };

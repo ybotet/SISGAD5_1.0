@@ -35,7 +35,9 @@
     "stock_trabajador": "Stock por trabajador"
   },
   "actions": {
-    "close_session": "Cerrar sesión"
+    "close_session": "Cerrar sesión",
+    "cancel": "Cancelar",
+    "saving": "Guardando..."
   },
   "trabajador": {
     "errorLoad": "Error al cargar los trabajadores",
@@ -48,5 +50,19 @@
     "loading": "Cargando datos...",
     "summary": "Resumen",
     "description": "Gestión eficiente de los reportes y servicios de telecomunicaciones"
+  },
+  "trabajo": {
+    "enCurso": "Trabajo en curso",
+    "operarios": "Operarios",
+    "fechaInicio": "Fecha de inicio",
+    "sucursal": "Sucursal / Servicio",
+    "resolver": "Resolver trabajo",
+    "resultado": "Resultado",
+    "completado": "Completado",
+    "pendiente": "Pendiente",
+    "fechaFin": "Fecha de fin",
+    "duracionReal": "Duración real (h)",
+    "observaciones": "Observaciones",
+    "duracionAuto": "Se calcula automáticamente"
   }
 }

@@ -34,6 +34,13 @@ export interface UpdateTrabajoRequest {
   trabajadores?: { id_trabajador: number }[];
 }
 
+export interface ResolverTrabajoRequest {
+  resultado: "completado" | "pendiente";
+  fechaFin?: string | null;
+  observaciones?: string | null;
+  duracionReal?: number | string | null;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -113,6 +120,18 @@ export const trabajoService = {
   ): Promise<TrabajoItem> {
     const response = await api.put<ApiResponse<TrabajoItem>>(
       `/trabajo/${id}`,
+      data,
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Resolver un trabajo abierto (flujo Asignada → Resuelta | Pendiente).
+   * Endpoint: PATCH /api/mp/trabajo/:id/resolver
+   */
+  async resolver(id: number, data: ResolverTrabajoRequest): Promise<TrabajoItem> {
+    const response = await api.patch<ApiResponse<TrabajoItem>>(
+      `/trabajo/${id}/resolver`,
       data,
     );
     return response.data.data;

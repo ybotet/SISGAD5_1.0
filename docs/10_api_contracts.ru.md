@@ -128,16 +128,25 @@
 | GET | `/:id` | Получить тест | Access Token |
 | PUT | `/:id` | Обновление теста | Access Token |
 
-### Работы (`/api/mp/trabajos`)
+### Назначения (`/api/mp/asignacion`)
+
+| Метод | Эндпоинт | Описание | Auth |
+|-------|----------|----------|------|
+| GET | `/` | Список назначений (с работниками) | Access Token |
+| POST | `/` | Создать назначение: в той же транзакции генерирует **открытую Работу** и переводит жалобу Probada/Pendiente → **Asignada**. Возвращает `trabajoId`. 409, если жалоба уже Asignada. | Access Token |
+| GET | `/:id` | Получить назначение | Access Token |
+| DELETE | `/:id` | Удалить назначение | Access Token |
+
+### Работы (`/api/mp/trabajo`)
 
 | Метод | Эндпоинт | Описание | Auth |
 |-------|----------|----------|------|
 | GET | `/` | Список (пагинация, фильтры) | Access Token |
-| POST | `/` | Создание заказа работы | Access Token |
+| POST | `/` | Создание работы **только для работ без жалобы** (внутреннее). Обычный поток — назначение жалобы, которое автоматически создаёт работу. | Access Token |
 | GET | `/:id` | Получить работу | Access Token |
-| PUT | `/:id` | Обновление работы | Access Token |
-| PATCH | `/:id/asignar` | Назначить техника | Access Token |
-| PATCH | `/:id/cerrar` | Закрытие работы (требует реальное время) | Access Token |
+| PUT | `/:id` | Обновить работу | Access Token |
+| PATCH | `/:id/resolver` | Разрешить открытую работу: `completado` → жалоба **Resuelta**; `pendiente` → жалоба **Pendiente**. Тело: `{ resultado, fechaFin?, observaciones?, duracionReal? }`. 409, если работа не открыта или жалоба не Asignada. | Access Token |
+| DELETE | `/:id` | Удалить работу | Access Token |
 
 ### Статистика (`/api/mp/estadisticas`)
 

@@ -7,10 +7,12 @@ const {
   createTrabajoSchema,
   updateTrabajoSchema,
   listTrabajoSchema,
+  resolverTrabajoSchema,
 } = require("./trabajo.validation");
 const validate = require("../../shared/middleware/validate");
 const { normalizeToDbDateTime } = require("../../shared/utils/dateUtils");
 const { logAuditoria, getClientIp } = require("../../shared/services/auditService");
+const { getEstadoClave } = require("./trabajoEstados");
 
 const TrabajoController = {
   /**
@@ -358,6 +360,141 @@ const TrabajoController = {
         await t.rollback();
         if (error.name === "SequelizeValidationError") {
           const mensaje = error.errors?.map((err) => err.message).join(". ") || error.message;
+          return next(apiError.badRequest(mensaje));
+        }
+        return next(error);
+      }
+    },
+  ],
+
+  /**
+   * @desc    Resolver un trabajo abierto (flujo Asignada → Resuelta|Pendiente).
+   *          Reemplaza el paso manual "crear trabajo desde la queja".
+   * @route   PATCH /api/mp/trabajo/:id/resolver
+   * @access  Permiso: trabajos.actualizar
+   */
+  resolver: [
+    validate(resolverTrabajoSchema, "body"),
+    async (req, res, next) => {
+      const t = await Trabajo.sequelize.transaction();
+      try {
+        const { id } = req.params;
+        const { resultado, fechaFin, observaciones } = req.body;
+
+        const trabajo = await Trabajo.findByPk(id, { transaction: t });
+        if (!trabajo) {
+          await t.rollback();
+          return next(apiError.notFound("Trabajo"));
+        }
+
+        // El trabajo debe estar abierto (estado "Abierto").
+        const idAbierto = await getEstadoClave("ABIERTO", t);
+        if (trabajo.estado !== idAbierto) {
+          await t.rollback();
+          return next(
+            apiError.conflict("El trabajo no está abierto; ya fue resuelto o no existe."),
+          );
+        }
+
+        // La queja asociada debe estar Asignada.
+        const queja = await Queja.findByPk(trabajo.id_queja, { transaction: t });
+        if (!queja) {
+          await t.rollback();
+          return next(apiError.notFound("Queja"));
+        }
+        if (queja.estado !== "Asignada") {
+          await t.rollback();
+          return next(
+            apiError.conflict(
+              `La queja no está Asignada (estado actual: ${queja.estado}).`,
+            ),
+          );
+        }
+
+        const esCompletado = resultado === "completado";
+        const idEstadoObjetivo = await getEstadoClave(esCompletado ? "RESUELTO" : "PEND", t);
+        const estadoQuejaObjetivo = esCompletado ? "Resuelta" : "Pendiente";
+        const fechaFinNormalizada = fechaFin
+          ? normalizeToDbDateTime(fechaFin)
+          : normalizeToDbDateTime(new Date());
+
+        // Duración real (h) calculada a partir de la fecha de inicio del trabajo
+        // (`trabajo.fecha`, que mientras está abierto = fechaInicio) y la fechaFin.
+        // No se admite como entrada del cliente: se deriva siempre aquí.
+        let duracionRealCalculada = null;
+        if (trabajo.fecha) {
+          const inicioMs = new Date(trabajo.fecha).getTime();
+          const finMs = new Date(fechaFinNormalizada).getTime();
+          if (!isNaN(inicioMs) && !isNaN(finMs) && finMs >= inicioMs) {
+            duracionRealCalculada = Math.round(((finMs - inicioMs) / 3600000) * 10) / 10;
+          }
+        }
+
+        // Actualizar el trabajo: `fecha` pasa a ser la fechaFin.
+        await trabajo.update(
+          {
+            estado: idEstadoObjetivo,
+            fecha: fechaFinNormalizada,
+            observaciones: observaciones != null ? observaciones : trabajo.observaciones,
+          },
+          { transaction: t },
+        );
+
+        // Transicionar la queja (Asignada → Resuelta|Pendiente).
+        await queja.update({ estado: estadoQuejaObjetivo }, { transaction: t });
+
+        // Auditoría (misma transacción).
+        await logAuditoria({
+          entidad: "Trabajo",
+          id_entidad: trabajo.id_trabajo,
+          accion: "ESTADO",
+          desde_estado: "Abierto",
+          hacia_estado: esCompletado ? "Resuelto" : "Pendiente",
+          usuario_id: req.userId,
+          detalle: { id_queja: trabajo.id_queja, resultado, duracionReal: duracionRealCalculada },
+          ip: getClientIp(req),
+          transaction: t,
+        });
+        await logAuditoria({
+          entidad: "Queja",
+          id_entidad: queja.id_queja,
+          accion: "ESTADO",
+          desde_estado: "Asignada",
+          hacia_estado: estadoQuejaObjetivo,
+          usuario_id: req.userId,
+          detalle: { id_trabajo: trabajo.id_trabajo, resultado },
+          ip: getClientIp(req),
+          transaction: t,
+        });
+
+        await t.commit();
+
+        const actualizado = await Trabajo.findByPk(id, {
+          include: [
+            {
+              association: "tb_trabajo_trabajadores",
+              include: ["tb_trabajador"],
+              required: false,
+            },
+            { association: "tb_clave", attributes: ["id_clave", "clave"] },
+          ],
+        });
+        const trabajoObj = actualizado.toJSON();
+        const trabajadoresAsignados =
+          trabajoObj.tb_trabajo_trabajadores?.map((tt) => tt.tb_trabajador) || [];
+
+        res.json({
+          success: true,
+          data: { ...trabajoObj, trabajadores: trabajadoresAsignados },
+          message: esCompletado
+            ? "Trabajo completado; queja Resuelta"
+            : "Trabajo pendiente; queja Pendiente",
+        });
+      } catch (error) {
+        await t.rollback();
+        if (error.name === "SequelizeValidationError") {
+          const mensaje =
+            error.errors?.map((err) => err.message).join(". ") || error.message;
           return next(apiError.badRequest(mensaje));
         }
         return next(error);

@@ -35,7 +35,9 @@
     "stock_trabajador": "Запас по работнику"
   },
   "actions": {
-    "close_session": "Выйти"
+    "close_session": "Выйти",
+    "cancel": "Отмена",
+    "saving": "Сохранение..."
   },
   "trabajador": {
     "errorLoad": "Ошибка при загрузке работников",
@@ -48,5 +50,19 @@
     "loading": "Загрузка данных...",
     "summary": "Резюме",
     "description": "Эффективное управление отчетами и услугами телекоммуникаций"
+  },
+  "trabajo": {
+    "enCurso": "Работа в процессе",
+    "operarios": "Работники",
+    "fechaInicio": "Дата начала",
+    "sucursal": "Филиал / Служба",
+    "resolver": "Решить работу",
+    "resultado": "Результат",
+    "completado": "Завершено",
+    "pendiente": "В ожидании",
+    "fechaFin": "Дата окончания",
+    "duracionReal": "Фактическая длительность (ч)",
+    "observaciones": "Примечания",
+    "duracionAuto": "Вычисляется автоматически"
   }
 }

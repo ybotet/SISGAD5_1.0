@@ -173,6 +173,34 @@ sequenceDiagram
     GW-->>FE: 200 OK (predicción visualizada)
 ```
 
+### Flujo: Asignación → Trabajo → Resolución (máquina de estados de la Queja)
+
+Desde TASK-220-04, al pasar la queja a **Asignada** el trabajo se genera
+automáticamente (misma transacción que la asignación). El único camino de salida
+de `Asignada` es resolver el trabajo: `Resuelta` (completado) o `Pendiente`
+(pospuesto). No hay acciones directas desde `Asignada` salvo vía Trabajo.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Abierta
+    Abierta --> Probada: crear prueba
+    Probada --> Asignada: crear asignación (genera Trabajo Abierto)
+    Probada --> Pendiente: posponer
+    Pendiente --> Probada: reprobar
+    Pendiente --> Asignada: reasignar (genera nuevo Trabajo Abierto)
+    Asignada --> Resuelta: resolver trabajo (completado)
+    Asignada --> Pendiente: resolver trabajo (pendiente)
+    Resuelta --> Cerrada: cerrar queja
+    Cerrada --> [*]
+```
+
+Notas:
+- `tb_trabajo.estado` es FK a `tb_clave`. Se usan claves estables `ABIERTO`,
+  `RESUELTO` (es_pendiente=false) y `PEND` (es_pendiente=true).
+- Mientras el trabajo está abierto, `tb_trabajo.fecha` = fecha de inicio; al
+  resolver pasa a ser la fecha de fin.
+- `POST /api/mp/trabajo` queda solo para trabajos sin queja (uso interno).
+
 ---
 
 ## 5. Diagrama de Despliegue

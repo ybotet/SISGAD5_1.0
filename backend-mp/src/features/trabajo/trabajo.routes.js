@@ -84,6 +84,13 @@ router.post("/", tienePermiso("trabajos.crear"), TrabajoController.create);
 router.put("/:id", tienePermiso("trabajos.actualizar"), TrabajoController.update);
 
 /**
+ * @route   PATCH /api/mp/trabajo/:id/resolver
+ * @desc    Resolver un trabajo abierto (completado → queja Resuelta; pendiente → queja Pendiente)
+ * @access  Permiso: trabajos.actualizar
+ */
+router.patch("/:id/resolver", tienePermiso("trabajos.actualizar"), TrabajoController.resolver);
+
+/**
  * @route   DELETE /api/tbTrabajo/:id
  * @desc    Eliminar Trabajo
  * @access  Permiso: trabajos.eliminar

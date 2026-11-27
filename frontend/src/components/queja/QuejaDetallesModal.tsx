@@ -10,6 +10,8 @@ import type {
   CreateTrabajoRequest,
 } from "../../services/quejaService";
 import { quejaService } from "../../services/quejaService";
+import { trabajoService } from "../../services/trabajoService";
+import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { formatDateTimeLocal, formatToDisplay, formatDateToDisplay } from "../../utils/dateFormats";
 
@@ -36,11 +38,18 @@ export default function QuejaDetallesModal({
   onClose,
   onDataUpdated,
 }: QuejaDetallesModalProps) {
+  const { t } = useTranslation();
   //#region Estados para UI (visibilidad de formularios)
   const [showNuevaPrueba, setShowNuevaPrueba] = useState(false);
   const [showNuevoTrabajo, setShowNuevoTrabajo] = useState(false);
   const [showNuevaAsignacion, setShowNuevaAsignacion] = useState(false);
   const [showCerrarQueja, setShowCerrarQueja] = useState(false);
+  const [showResolver, setShowResolver] = useState(false);
+  const [resolverForm, setResolverForm] = useState<{
+    resultado: "completado" | "pendiente";
+    fechaFin: string;
+    observaciones: string;
+  }>({ resultado: "completado", fechaFin: "", observaciones: "" });
   //#endregion
 
   //#region Estados para eliminación
@@ -499,6 +508,48 @@ export default function QuejaDetallesModal({
   };
   //#endregion
 
+  //#region Trabajo en curso (flujo Asignada -> resolver)
+  const trabajoAbierto =
+    queja?.estado === "Asignada"
+      ? trabajos.find((tr) => tr.tb_clave?.clave === "ABIERTO") ||
+        trabajos[trabajos.length - 1] ||
+        null
+      : null;
+
+  // Duración real (h) calculada a partir de la fecha de inicio del trabajo
+  // (trabajoAbierto.fecha) y la fecha de fin seleccionada. No es editable.
+  const duracionRealHoras = (() => {
+    if (!trabajoAbierto?.fecha || !resolverForm.fechaFin) return null;
+    const inicio = new Date(trabajoAbierto.fecha).getTime();
+    const fin = new Date(resolverForm.fechaFin).getTime();
+    if (isNaN(inicio) || isNaN(fin) || fin < inicio) return null;
+    return Math.round(((fin - inicio) / 3600000) * 10) / 10;
+  })();
+
+  const handleResolverTrabajo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!trabajoAbierto) return;
+    try {
+      setGuardando(true);
+      setError("");
+      await trabajoService.resolver(trabajoAbierto.id_trabajo, {
+        resultado: resolverForm.resultado,
+        fechaFin: resolverForm.fechaFin || new Date().toISOString(),
+        observaciones: resolverForm.observaciones || null,
+      });
+      setShowResolver(false);
+      setResolverForm({ resultado: "completado", fechaFin: "", observaciones: "" });
+      await cargarHistorial();
+      if (onDataUpdated) onDataUpdated();
+    } catch (err: any) {
+      setError(err?.response?.data?.error || "Error al resolver el trabajo");
+      console.error("Error resolviendo trabajo:", err);
+    } finally {
+      setGuardando(false);
+    }
+  };
+  //#endregion
+
   //#region Funciones auxiliares UI
   const getEventoIcono = (tipo: HistorialEvento["tipo"]) => {
     switch (tipo) {
@@ -721,7 +772,49 @@ export default function QuejaDetallesModal({
                   </div>
                 </div>
 
-                {/* BOTONES DE ACCIÓN */}
+                {/* TRABAJO EN CURSO (queja Asignada) */}
+                {trabajoAbierto && (
+                  <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <h5 className="font-semibold text-emerald-800 mb-3 flex items-center gap-2">
+                      <i className="ri-tools-line"></i>
+                      {t("trabajo.enCurso", "Trabajo en curso")}
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-3">
+                      <div>
+                        <span className="text-gray-500">{t("trabajo.operarios", "Operarios")}:</span>
+                        <p className="text-gray-900">
+                          {trabajoAbierto.trabajadores?.map((w) => w.clave_trabajador || w.id_trabajador).join(", ") || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">{t("trabajo.fechaInicio", "Fecha de inicio")}:</span>
+                        <p className="text-gray-900">{formatToDisplay(trabajoAbierto.fecha)}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">{t("trabajo.sucursal", "Sucursal / Servicio")}:</span>
+                        <p className="text-gray-900">
+                          {queja?.tb_telefono
+                            ? queja.tb_telefono.telefono
+                            : queja?.tb_linea
+                              ? queja.tb_linea.clavelinea
+                              : queja?.tb_pizarra
+                                ? queja.tb_pizarra.nombre
+                                : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowResolver(!showResolver)}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-2"
+                    >
+                      <i className={showResolver ? "ri-close-line" : "ri-check-double-line"}></i>
+                      <span>{showResolver ? t("actions.cancel", "Cancelar") : t("trabajo.resolver", "Resolver trabajo")}</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* BOTONES DE ACCIÓN (ocultos si la queja está Asignada) */}
+                {queja?.estado !== "Asignada" && (
                 <div className="flex flex-wrap gap-4 mb-8">
                   <button
                     onClick={() => setShowNuevaPrueba(!showNuevaPrueba)}
@@ -759,6 +852,7 @@ export default function QuejaDetallesModal({
                     </button>
                   )}
                 </div>
+                )}
 
                 {/* FORMULARIO: Insertar Datos Prueba */}
                 {showNuevaPrueba && (
@@ -1109,6 +1203,65 @@ export default function QuejaDetallesModal({
                               Confirmar Cierre
                             </>
                           )}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* FORMULARIO: Resolver Trabajo */}
+                {showResolver && trabajoAbierto && (
+                  <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <h5 className="font-semibold text-emerald-800 mb-3">{t("trabajo.resolver", "Resolver trabajo")}</h5>
+                    <form onSubmit={handleResolverTrabajo} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">{t("trabajo.resultado", "Resultado")}</label>
+                          <select
+                            value={resolverForm.resultado}
+                            onChange={(e) => setResolverForm((prev) => ({ ...prev, resultado: e.target.value as "completado" | "pendiente" }))}
+                            className="w-full px-3 py-2 border rounded-lg"
+                          >
+                            <option value="completado">{t("trabajo.completado", "Completado")}</option>
+                            <option value="pendiente">{t("trabajo.pendiente", "Pendiente")}</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">{t("trabajo.fechaFin", "Fecha de fin")}</label>
+                          <input
+                            type="datetime-local"
+                            value={resolverForm.fechaFin}
+                            onChange={(e) => setResolverForm((prev) => ({ ...prev, fechaFin: e.target.value }))}
+                            className="w-full px-3 py-2 border rounded-lg"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">{t("trabajo.duracionReal", "Duración real (h)")}</label>
+                          <input
+                            type="text"
+                            readOnly
+                            disabled
+                            value={duracionRealHoras != null ? String(duracionRealHoras) : ""}
+                            placeholder={t("trabajo.duracionAuto", "Se calcula automáticamente")}
+                            className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-600"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">{t("trabajo.observaciones", "Observaciones")}</label>
+                        <textarea
+                          value={resolverForm.observaciones}
+                          onChange={(e) => setResolverForm((prev) => ({ ...prev, observaciones: e.target.value }))}
+                          rows={3}
+                          className="w-full px-3 py-2 border rounded-lg"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <button type="button" onClick={() => setShowResolver(false)} className="px-4 py-2 bg-gray-300 rounded-lg">
+                          {t("actions.cancel", "Cancelar")}
+                        </button>
+                        <button type="submit" disabled={guardando} className="px-4 py-2 bg-emerald-600 text-white rounded-lg disabled:opacity-50">
+                          {guardando ? t("actions.saving", "Guardando...") : t("trabajo.resolver", "Resolver trabajo")}
                         </button>
                       </div>
                     </form>

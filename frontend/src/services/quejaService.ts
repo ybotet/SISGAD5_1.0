@@ -206,6 +206,7 @@ export interface AsignacionItem {
   id_asignacion: number;
   id_queja: number;
   fechaAsignacion: string;
+  trabajoId?: number;
   createdAt: string;
   updatedAt: string;
   trabajadores: AsignacionTrabajadores[];

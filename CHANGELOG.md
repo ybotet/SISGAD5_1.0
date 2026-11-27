@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-11-27
+
+### Added
+- **TASK-220-04 (flujo Asignada→Trabajo):** al crear una asignación (`POST /api/mp/asignacion`) se genera automáticamente un Trabajo en estado Abierto con los operarios asignados y fecha de inicio, en la misma transacción, y la queja pasa a Asignada; la respuesta incluye `trabajoId`. Nuevo `PATCH /api/mp/trabajo/:id/resolver` (`completado` → queja Resuelta, `pendiente` → queja Pendiente) con validación de estado (409 si el trabajo no está Abierto o la queja no está Asignada) y auditoría. `POST /api/mp/trabajo` queda solo para trabajos sin queja (uso interno). Backfill `scripts/backfill-trabajos-desde-asignaciones.js` para quejas Asignadas sin trabajo.
+
+### Changed
+- **Frontend (QuejaDetallesModal):** con la queja en Asignada se ocultan los botones de acciones anteriores y se muestra el bloque "Trabajo en curso" con un único botón "Resolver trabajo" (modal Completado/Pendiente + fechaFin + observaciones + duración real). i18n es/ru ampliado.
+- **Docs:** `ARCHITECTURE.md` (diagrama de estados Asignada→Resuelta|Pendiente vía Trabajo) y `docs/10_api_contracts.es.md` / `.ru.md` actualizados.
+
 ## [Unreleased]
 
 ### Added
@@ -14,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **TASK-100-06:** Matriz de trazabilidad Requisito->Caso de Uso->Endpoint->Test generada con script semi-automatizado (scripts/gen-traceability.py); 72 requisitos, 12 huérfanos sin test, 2 endpoints sin requisito; depende de revisión humana para cerrar GAPs
 - **TASK-210-02 / TASK-900-01 / TASK-900-02 / TASK-900-03:** CD operativo — `cd.yml` construye y publica 5 imágenes por servicio (matriz, tags `sha-<commit>` + `latest`); job `deploy` con entorno `production` (aprobación manual) ejecuta `deploy.sh` por SSH (login GHCR, `compose pull`, `up -d`, healthcheck 60 s, rollback automático al tag anterior vía `CURRENT_TAG`); `deploy.sh` parametrizado con `IMAGE_TAG`; `workflow_dispatch` para dry-run; `docker-compose.prod.yml` referencia imágenes GHCR por `IMAGE_PREFIX`/`IMAGE_TAG`
 - **TASK-210-04:** Branch protection en `main` mediante ruleset (require PR + 1 review, status checks lint/test obligatorios, block force pushes). Evidencia: GitHub Settings → Rules → Rulesets.
+
+### Fixed
+- **Bug al crear queja (500):** `logAuditoria` usaba placeholders posicionales `$1..$8` con `replacements` en array, que Sequelize no enlazaba (`no hay parámetro $1`) y revertía la transacción. Se cambiaron a placeholders `?` (enlazado posicional seguro). Afecta a toda operación auditada (Queja/Trabajo/Línea/Pizarra).
+- **Bug al crear asignación (500):** `getEstadoClave` usaba `Clave.findOrCreate` dentro de la transacción; con la secuencia de `tb_clave` desincronizada (tabla poblada manualmente) el INSERT con `DEFAULT` en la PK lanzaba `SequelizeUniqueConstraintError` y el re-SELECT por `clave` no lo recuperaba. Reescrito para reutilizar la fila existente (`findOne`) o crearla con `id_clave` explícito (`max+1`), sin depender de la secuencia.
 
 ### 📚 Documentación
 - **TASK-C-01:** Renombrado 18 archivos `docs/*.md` a `docs/*.es.md` y corregidos enlaces internos

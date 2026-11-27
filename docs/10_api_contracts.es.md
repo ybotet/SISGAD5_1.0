@@ -128,16 +128,25 @@
 | GET | `/:id` | Obtener prueba | Access Token |
 | PUT | `/:id` | Actualizar prueba | Access Token |
 
-### Trabajos (`/api/mp/trabajos`)
+### Asignaciones (`/api/mp/asignacion`)
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| GET | `/` | Listar asignaciones (con trabajadores) | Access Token |
+| POST | `/` | Crear asignación: en la misma transacción genera el **Trabajo Abierto** y pasa la queja Probada/Pendiente → **Asignada**. Devuelve `trabajoId`. 409 si la queja ya está Asignada. | Access Token |
+| GET | `/:id` | Obtener asignación | Access Token |
+| DELETE | `/:id` | Eliminar asignación | Access Token |
+
+### Trabajos (`/api/mp/trabajo`)
 
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
 | GET | `/` | Listar (paginado, filtros) | Access Token |
-| POST | `/` | Crear orden de trabajo | Access Token |
+| POST | `/` | Crear trabajo **solo para trabajos sin queja** (uso interno). El flujo normal es asignar la queja, que genera el trabajo automáticamente. | Access Token |
 | GET | `/:id` | Obtener trabajo | Access Token |
 | PUT | `/:id` | Actualizar trabajo | Access Token |
-| PATCH | `/:id/asignar` | Asignar técnico | Access Token |
-| PATCH | `/:id/cerrar` | Cerrar trabajo (requiere tiempo real) | Access Token |
+| PATCH | `/:id/resolver` | Resolver trabajo abierto: `completado` → queja **Resuelta**; `pendiente` → queja **Pendiente**. Cuerpo: `{ resultado, fechaFin?, observaciones?, duracionReal? }`. 409 si el trabajo no está Abierto o la queja no está Asignada. | Access Token |
+| DELETE | `/:id` | Eliminar trabajo | Access Token |
 
 ### Estadísticas (`/api/mp/estadisticas`)
 

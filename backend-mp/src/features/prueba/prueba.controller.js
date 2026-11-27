@@ -122,6 +122,18 @@ const PruebaController = {
     async (req, res, next) => {
       try {
         const payload = { ...req.body };
+        // Bloqueo de acciones obsoletas: si la queja ya está Asignada (o más avanzada),
+        // no se pueden insertar pruebas (el flujo pasa por el Trabajo).
+        if (payload.id_queja) {
+          const queja = await Queja.findByPk(payload.id_queja);
+          if (queja && (queja.estado === "Asignada" || queja.estado === "Resuelta" || queja.estado === "Cerrada")) {
+            return next(
+              apiErrors.conflict(
+                `La queja está en estado "${queja.estado}"; no se pueden añadir pruebas.`,
+              ),
+            );
+          }
+        }
         if (payload.fecha) {
           payload.fecha = normalizeToDbDateTime(payload.fecha);
         }

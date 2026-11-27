@@ -217,7 +217,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada   | TASK-430-02 | 🔴       | 🔨      | Clasificación (tipo/servicio/ubicación) | Agente      | TASK-430-01  | FKs a `Tipoqueja`, `Clasificacion`, teléfono/línea/pizarra validadas                                     | Modelos y relaciones presentes; filtros por `estado`/clasificación en getAll                                                                                                                                                            | `backend-mp/src/models/`                                                                                                                                   |
 | ✅ Completada   | TASK-430-03 | 🔴       | 🔨      | Priorización                            | Agente      | TASK-430-01  | Campo `prioridad` (0–5) editable y usable en ordenamiento/filtros                                        | Implementado en update y sortBy                                                                                                                                                                                                         | `backend-mp/src/controllers/QuejaController.js`                                                                                                            |
 | ✅ Completada   | TASK-430-04 | 🔴       | 🔨      | Flujo de estados completo               | Humano      | —            | Transiciones validadas: `Abierta→Probada→Asignada→Pendiente→Resuelta→Cerrada`; transición inválida → 400 | `validTransitions` enforced en update; cierre especial                                                                                                                                                                                  | `backend-mp/src/controllers/QuejaController.js`                                                                                                            |
-| 🔄 En progreso | TASK-430-05 | 🔴       | 🔨      | Asignación de técnico                   | Humano      | TASK-430-04  | `PATCH /api/mp/quejas/:id/asignar` vincula trabajador y mueve estado a `Asignada`                        | La asignación ocurre vía `PUT /:id` y el modelo `Asignacion`/`Trabajo`; no existe el endpoint `asignar` dedicado                                                                                                                        | `backend-mp/src/routes/queja.js`                                                                                                                           |
+| 🔄 En progreso | TASK-430-05 | 🔴       | 🔨      | Asignación de técnico                   | Humano      | TASK-430-04  | `PATCH /api/mp/quejas/:id/asignar` vincula trabajador y mueve estado a `Asignada`                        | La asignación ocurre vía `POST /api/mp/asignacion`, que ahora genera el Trabajo Abierto y pasa la queja a Asignada (TASK-450-06); no existe endpoint `PATCH /quejas/:id/asignar` dedicado                                                                                                                        | `backend-mp/src/routes/queja.js`                                                                                                                           |
 | ✅ Completada   | TASK-430-06 | 🔴       | 🔨      | Historial de cambios de la queja        | Agente      | TASK-430-04  | Detalle de la queja incluye transiciones previas (quién/cuándo/desde-hacia)                              | Tabla `tb_auditoria` creada (migración `20261119000000-create-tb-auditoria.js`); `logAuditoria()` en Queja/Trabajo/Línea/Pizarra; `GET /api/mp/queja/:id/historial` ordenado por `created_at ASC`; pruebas en `tests/auditoria.test.js` | `backend-mp/src/features/auditoria/`, `backend-mp/src/shared/services/auditService.js`, `backend-mp/tests/auditoria.test.js`                               |
 | ✅ Completada   | TASK-430-07 | 🔴       | 🔨      | Auditoría de acciones                   | Agente      | —            | Log persistente de quién, qué y cuándo en operaciones sensibles                                          | `GET /api/mp/auditoria` (permiso `auditoria.ver`) con filtros entidad/usuario/accion/fecha y paginación; 403 sin permiso; pruebas en `tests/auditoria.test.js`                                                                          | `backend-mp/src/features/auditoria/auditoria.controller.js`, `backend-mp/src/features/auditoria/auditoria.routes.js`, `backend-mp/tests/auditoria.test.js` |
 | ✅ Completada   | TASK-430-08 | Alta      | 🔨      | Búsqueda y filtrado de quejas           | Agente      | —            | Filtros por estado, prioridad, fechas y ordenamiento                                                     | Implementado en `getAll` (estado, prioridad, sortBy, search)                                                                                                                                                                            | `backend-mp/src/controllers/QuejaController.js`                                                                                                            |
@@ -238,10 +238,11 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | Estado          | ID de Tarea | Prioridad | Esfuerzo | Descripción                      | Responsable | Dependencias | Criterios de Aceptación                                 | Evidencia Actual                                                                                     | Archivos Afectados                              |
 | --------------- | ----------- | --------- | -------- | -------------------------------- | ----------- | ------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
 | ✅ Completada   | TASK-450-01 | 🔴       | 🔨      | Creación de orden de trabajo     | Humano      | —            | `POST /api/trabajo` funcional                           | Rutas CRUD presentes                                                                                 | `backend-mp/src/routes/trabajo.js`              |
-| 🔄 En progreso | TASK-450-02 | 🔴       | 🔨      | Asignación de técnico al trabajo | Humano      | TASK-450-01  | `PATCH /api/trabajos/:id/asignar` vincula trabajadores  | Existe modelo `Trabajo_trabajadores` y controller; asignación vía PUT genérico, no endpoint dedicado | `backend-mp/src/models/Trabajo_trabajadores.js` |
+| 🔄 En progreso | TASK-450-02 | 🔴       | 🔨      | Asignación de técnico al trabajo | Humano      | TASK-450-01  | `PATCH /api/trabajos/:id/asignar` vincula trabajadores  | Existe modelo `Trabajo_trabajadores` y controller; los operarios se asignan automáticamente al generar el trabajo desde la asignación (TASK-450-06); no hay endpoint PATCH asignar dedicado | `backend-mp/src/models/Trabajo_trabajadores.js` |
 | ⏳ Pendiente     | TASK-450-03 | Alta      | 🔨      | Tiempo estimado vs. real         | Agente      | TASK-450-01  | Campos de tiempo y comparación reportable               | No verificado en modelo                                                                              | `backend-mp/src/`                               |
-| 🔄 En progreso | TASK-450-04 | 🔴       | 🔨      | Cierre de trabajo                | Humano      | TASK-450-01  | `PATCH /api/trabajos/:id/cerrar` marca cierre con fecha | El cierre se gestiona por `PUT /:id` (update de estado); falta endpoint/ruta `cerrar` explícita      | `backend-mp/src/routes/trabajo.js`              |
+| ✅ Completada   | TASK-450-04 | 🔴       | 🔨      | Cierre de trabajo                | Agente      | TASK-450-01  | `PATCH /api/trabajo/:id/resolver` marca cierre con fecha | `PATCH /api/mp/trabajo/:id/resolver` (completado→queja Resuelta, pendiente→Pendiente) con fechaFin y auditoría; 409 si el trabajo no está Abierto o la queja no está Asignada; tests en `tests/asignacion-trabajo.test.js` | `backend-mp/src/features/trabajo/trabajo.controller.js`, `trabajo.routes.js` |
 | ⏳ Pendiente     | TASK-450-05 | Alta      | 🔨      | Historial de trabajos            | Agente      | TASK-450-01  | Listado con filtros por estado/técnico/fecha            | Solo listado genérico                                                                                | `backend-mp/src/`                               |
+| ✅ Completada   | TASK-450-06 | 🔴       | 🔨      | Generación automática de trabajo al asignar | Agente | TASK-450-01  | Crear asignación genera Trabajo Abierto con operarios y mueve la queja a Asignada (1 transacción) | `POST /api/mp/asignacion` crea Asignacion + Trabajo Abierto + TrabajoTrabajadores + queja Asignada y devuelve `trabajoId`; backfill `scripts/backfill-trabajos-desde-asignaciones.js`; tests (a)-(e) en `tests/asignacion-trabajo.test.js` | `backend-mp/src/features/asignacion/asignacion.controller.js`, `backend-mp/src/features/trabajo/trabajoEstados.js` |
 
 ### 6.7. Estadísticas (MP)
 
@@ -251,7 +252,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-460-02 | Alta      | 🔨      | Métricas agregadas (KPIs)                  | Agente      | TASK-460-01  | KPIs calculados en SQL/Sequelize (MTTR, recurrentes, embudo) | Implementados en QuejaController/TelefonoController                                                                                       | `backend-mp/src/controllers/`    |
 | ✅ Completada | TASK-460-03 | Media     | 🔨      | Filtros por fecha/servicio en estadísticas | Agente      | TASK-460-01  | Query params de rango/ámbito aceptados por los dashboards    | Soportados por patrones de query en los endpoints dashboard                                                                               | `backend-mp/src/`                |
 
-**Subtotal FASE 4: 26✅ + 3🔄 + 5⏳ de 34 efectivas — 80.9% ponderado** *(2 fuera de alcance: TASK-420-02/03, puertos y conexiones excluidos del alcance — decisión 2026-11-03; la v1.0 declaraba 43 tareas; la tabla contiene 36)*
+**Subtotal FASE 4: 28✅ + 2🔄 + 5⏳ de 35 efectivas — 82.9% ponderado** *(v2.8: TASK-450-04 y TASK-450-06 cerradas — flujo Asignada→Trabajo; 2 fuera de alcance: TASK-420-02/03; la tabla contiene 37)*
 
 ---
 
@@ -490,7 +491,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 1 — Diseño y modelado   | 14      | 14      | 0      | 0      | 0     | **100%**           | 57.1%             |
 | FASE 2 — Infraestructura     | 15      | 14      | 0      | 1      | 0     | **93.3%**          | 36.8%             |
 | FASE 3 — Users Service       | 12      | 10      | 0      | 1      | 1     | **90.9%**¹         | 16.7%             |
-| FASE 4 — MP Service          | 36      | 26      | 3      | 5      | 2     | **80.9%**⁴         | 25.6%             |
+| FASE 4 — MP Service          | 37      | 28      | 2      | 5      | 2     | **82.9%**⁴         | 25.6%             |
 | FASE 5 — Materials Service   | 34      | 25      | 4      | 5      | 0     | **79.4%**          | 21.0%³            |
 | FASE 6 — API Gateway         | 10      | 9       | 1      | 0      | 0     | **95.0%**          | 30.0%             |
 | FASE 7 — Frontend            | 22      | 21      | 0      | 1      | 0     | **95.5%**          | 1.1%              |
@@ -499,7 +500,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 10 — Analítica          | 8       | 1       | 3      | 4      | 0     | **31.3%**          | 0.0%              |
 | FASE 11 — Docs final/defensa | 3       | 0       | 2      | 1      | 0     | **33.3%**          | 0.0%              |
 | FASE 12 — Mantenimiento      | 5       | 0       | 3      | 2      | 0     | **30.0%**          | 0.0%              |
-| **TOTAL**                    | **182** | **132** | **20** | **27** | **3** | **≈79.3%**         | 25.3%             |
+| **TOTAL**                    | **183** | **134** | **19** | **27** | **3** | **≈79.7%**         | 25.3%             |
 
 ¹ Excluye la tarea cancelada TASK-300-02 (base de cálculo: 11).
 ² La v1.0 declaraba totales inflados e imposibles (p. ej., 190 tareas, 89 en FASE 7, 62 en FASE 5); los conteos reales son 182 / 22 / 34.
@@ -651,4 +652,20 @@ Los subtotales y el Resumen de Progreso se recalculan **por script sobre las tab
 
 ### Estado recalculado
 - FASE 2 → **93.3%** (14✅ + 1⏳ de 15).
-- **TOTAL: 182 tareas → 132✅ + 20🔄 + 27⏳ + 3❌ ≈ 79.3% ponderado** (denominador efectivo: 179).
+- **TOTAL: 182 tareas → 132✅ + 20🔄 + 27⏳ + 3❌ ≈ 79.3% ponderado** (denominador efectivo: 179).
+## 23. Registro de Cambios v2.8 — Generación automática de Trabajo al Asignar (TASK-450-06 / TASK-450-04)
+
+**Fecha:** 2026-11-27 · **Responsable:** Agente (Code)
+
+### Qué se hizo
+- `POST /api/mp/asignacion` ahora, en una sola transacción: crea la asignación + Trabajo Abierto (con operarios y fechaInicio) + pasa la queja a Asignada; devuelve `trabajoId`.
+- `PATCH /api/mp/trabajo/:id/resolver`: `completado` → queja Resuelta, `pendiente` → queja Pendiente; 409 si el trabajo no está Abierto o la queja no está Asignada; auditoría en la misma transacción.
+- 409 en prueba/asignación cuando la queja ya está Asignada (acciones obsoletas).
+- Backfill `scripts/backfill-trabajos-desde-asignaciones.js` (dry-run / `--apply`) para quejas Asignadas sin trabajo.
+- Frontend `QuejaDetallesModal`: al estar Asignada ocultan botones previos y muestran "Trabajo en curso" + modal "Resolver trabajo"; i18n es/ru ampliado.
+- Docs: `ARCHITECTURE.md` (diagrama de estados), `docs/10_api_contracts.es.md` y `.ru.md`, `CHANGELOG.md` 1.1.0.
+- Tests: `tests/asignacion-trabajo.test.js` (7 casos a-e + 409); suite completa 55 passed, lint sin errores.
+
+### Estado
+- TASK-450-04 ✅ (cierre/resolución de trabajo), TASK-450-06 ✅ (nueva: generación automática).
+- TOTAL: 183 tareas (134✅ + 19🔄 + 27⏳ + 3❌) ≈ 79.7% ponderado (denominador efectivo: 180).
