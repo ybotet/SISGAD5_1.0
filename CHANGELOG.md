@@ -10,8 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **TASK-220-04:** SDK Sentry por servicio (no-op sin DSN) — `@sentry/node@9` en gateway/users/mp (`config/sentry.js`: init condicional, scrub PII en `beforeSend`, `errorHandler` tras el logger, endpoint `/test-error` en dev o con `SENTRY_TEST_ERROR=true`); `getsentry/sentry-go@v0.50.0` en materiales (`internal/middleware/sentry.go`: captura panic/5xx + `FlushSentry` en shutdown, cableado en `cmd/api/main.go`); `@sentry/react@9` en frontend (`config/sentry.ts`: `release`=git sha, scrub PII, `initSentry()` en `main.tsx`); `frontend/Dockerfile` ARG→ENV `VITE_SENTRY_*` y `cd.yml` build-args con `secrets.VITE_SENTRY_DSN_FRONTEND`; `.env.example` con DSNs y sample rates; `scripts/setup-sentry-secrets.md`. **Pendiente humano (bloqueante):** crear 5 proyectos Sentry y cargar `SENTRY_DSN_*`/`VITE_SENTRY_DSN_FRONTEND` en GH Secrets + `/opt/sisgad5/.env`.
 - **TASK-100-06:** Matriz de trazabilidad Requisito->Caso de Uso->Endpoint->Test generada con script semi-automatizado (scripts/gen-traceability.py); 72 requisitos, 12 huérfanos sin test, 2 endpoints sin requisito; depende de revisión humana para cerrar GAPs
 - **TASK-210-02 / TASK-900-01 / TASK-900-02 / TASK-900-03:** CD operativo — `cd.yml` construye y publica 5 imágenes por servicio (matriz, tags `sha-<commit>` + `latest`); job `deploy` con entorno `production` (aprobación manual) ejecuta `deploy.sh` por SSH (login GHCR, `compose pull`, `up -d`, healthcheck 60 s, rollback automático al tag anterior vía `CURRENT_TAG`); `deploy.sh` parametrizado con `IMAGE_TAG`; `workflow_dispatch` para dry-run; `docker-compose.prod.yml` referencia imágenes GHCR por `IMAGE_PREFIX`/`IMAGE_TAG`
+- **TASK-210-04:** Branch protection en `main` mediante ruleset (require PR + 1 review, status checks lint/test obligatorios, block force pushes). Evidencia: GitHub Settings → Rules → Rulesets.
 
 ### 📚 Documentación
 - **TASK-C-01:** Renombrado 18 archivos `docs/*.md` a `docs/*.es.md` y corregidos enlaces internos

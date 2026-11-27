@@ -10,11 +10,15 @@ const { authLimiter } = require("./middleware/rateLimit.js");
 const verifyJwt = require("./middleware/verifyJwt");
 const logger = require("./config/logger");
 const { metricsMiddleware, metricsHandler } = require("./middleware/metrics");
+const sentry = require("./config/sentry");
 
 dotenv.config({ path: path.join(__dirname, "../../.env.local") });
 
 const { requireJwtSecret } = require("./config/jwt");
 requireJwtSecret();
+
+// Sentry (TASK-220-04) — init condicional (no-op si falta SENTRY_DSN_GATEWAY)
+sentry.init("GATEWAY");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -286,6 +290,13 @@ app.get("/", (req, res) => {
   });
 });
 
+// Smoke test Sentry (TASK-220-04) — solo dev o con SENTRY_TEST_ERROR=true
+if (process.env.NODE_ENV !== "production" || process.env.SENTRY_TEST_ERROR === "true") {
+  app.get("/test-error", (req, res, next) => {
+    next(new Error("Sentry smoke test (TASK-220-04)"));
+  });
+}
+
 // 404 Handler para rutas no encontradas
 app.use((req, res) => {
   res.status(404).json({
@@ -295,6 +306,9 @@ app.use((req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Sentry errorHandler — captura excepciones (DESPUÉS del logger, antes de errores no capturados)
+app.use(sentry.errorHandler);
 
 // ========================================
 // 🚀 INICIAR SERVIDOR
@@ -337,11 +351,13 @@ process.on("SIGINT", () => {
 
 // Manejo de errores no capturados
 process.on("uncaughtException", (err) => {
+  if (sentry.isEnabled()) sentry.captureException(err);
   logger.error("💥 Uncaught Exception:", err);
   server.close(() => process.exit(1));
 });
 
 process.on("unhandledRejection", (reason, promise) => {
+  if (sentry.isEnabled()) sentry.captureException(reason);
   logger.error("💥 Unhandled Rejection at:", promise, "reason:", reason);
   // No cerramos el servidor para promesas rechazadas, pero se loguea
 });

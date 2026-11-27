@@ -9,6 +9,10 @@ import 'remixicon/fonts/remixicon.css';
 import { AuthProvider } from './contexts/AuthContext';
 
 import { ErrorProvider } from './contexts/ErrorContext';
+import { initSentry } from './config/sentry';
+
+// Sentry (TASK-220-04) — init condicional (no-op si falta VITE_SENTRY_DSN_FRONTEND)
+initSentry();
 // import ErrorDisplay from './components/ErrorDisplay';
 // import { useError } from './contexts/ErrorContext';
 

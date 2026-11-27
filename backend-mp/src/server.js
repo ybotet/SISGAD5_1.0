@@ -117,6 +117,13 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Smoke test Sentry (TASK-220-04) — solo dev o con SENTRY_TEST_ERROR=true
+if (process.env.NODE_ENV !== "production" || process.env.SENTRY_TEST_ERROR === "true") {
+  app.get("/test-error", (req, res, next) => {
+    next(new Error("Sentry smoke test (TASK-220-04)"));
+  });
+}
+
 // 🔟 Manejo de errores 404
 app.use((req, res) => {
   res.status(404).json({
@@ -126,7 +133,12 @@ app.use((req, res) => {
   });
 });
 
-// 1️⃣1️⃣ Manejo de errores global (SIEMPRE al final)
+// 1️⃣1️⃣ Sentry (captura de excepciones) — DESPUÉS del logger, ANTES del errorHandler final
+const sentry = require("./shared/config/sentry");
+sentry.init("MP");
+app.use(sentry.errorHandler);
+
+// 1️⃣2️⃣ Manejo de errores global (SIEMPRE al final)
 const errorHandler = require("./shared/middleware/errorHandler");
 app.use(errorHandler);
 

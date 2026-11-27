@@ -144,9 +144,9 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ✅ Completada | TASK-220-01 | Alta      | 🔨      | Configurar Prometheus           | Agente      | —            | Scrape de métricas `/metrics` de **todos** los servicios con dashboards asociados | 4 servicios exponen `/metrics`: gateway (prom-client), users (prom-client), mp (prom-client), materiales (client_golang + gin middleware); métricas http_requests_total{service,route,method,status} + http_request_duration_seconds histograma; business metrics consumos_registrados_total y asignaciones_total en Go; `monitoring/prometheus/prometheus.yml` con 4 scrape jobs; `docker-compose.yml` con servicio prometheus + scrape targets de red compose; dashboard Grafana `monitoring/grafana/dashboards/servicios.json` (RPS, p95 latencia, errores por servicio) | `monitoring/prometheus/`, `monitoring/grafana/dashboards/servicios.json`, `docker-compose.yml`, `api-gateway/src/middleware/metrics.js`, `backend-users/src/shared/middleware/metrics.js`, `backend-mp/src/shared/middleware/metrics.js`, `backend-materiales-go/cmd/api/main.go`, `backend-materiales-go/internal/metrics/metrics.go` |
 | ✅ Completada | TASK-220-02 | Alta      | 🔨      | Configurar Grafana              | Agente      | —            | Instancia corriendo con datasource Loki/Prometheus y dashboard mínimo             | `monitoring/grafana/` + servicios en `docker-compose.yml`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | `monitoring/grafana/`                                                                                                                                                                                                                                                                                                                  |
 | ✅ Completada | TASK-220-03 | Media     | 🔨      | Centralizar logs (stack propio) | Agente      | —            | Logs JSON estructurados de todos los servicios visibles en Grafana Explore        | **Decisión adoptada: Loki + Promtail** (no ELK); logging Winston/logger ya integrado por servicio                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | `monitoring/` (Loki/Promtail)                                                                                                                                                                                                                                                                                                          |
-| ⏳ Pendiente   | TASK-220-04 | Media     | 🔨      | Configurar Sentry para errores  | Agente      | —            | SDK instalado por servicio, DSN en secrets, alertas de excepción en producción    | No hay rastro de Sentry en el código                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Config. por servicio                                                                                                                                                                                                                                                                                                                   |
+| ⏳ Pendiente   | TASK-220-04 | Media     | 🔨      | Configurar Sentry para errores  | Agente      | —            | SDK instalado por servicio, DSN en secrets, alertas de excepción en producción    | Código integrado (no-op sin DSN): @sentry/node en gateway/users/mp (init condicional + errorHandler tras logger + scrub PII + /test-error), getsentry/sentry-go en materiales (middleware panic/5xx + Flush), @sentry/react en frontend (release=git sha + scrub). Pendiente humano: crear 5 proyectos Sentry y cargar DSN en GH Secrets + /opt/sisgad5/.env (ver scripts/setup-sentry-secrets.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Config. por servicio (SDK listo; falta DSN humano — guía: docs/pending/TASK-220-04_sentry_setup.es.md)                                                                                                                                                                                                                                                                                                                  |
 
-**Subtotal FASE 2: 13✅ + 2⏳ de 15 — 86.7% ponderado** *(v2.6: TASK-210-02 y TASK-220-01 cerradas — CD build+push+deploy y métricas Prometheus/Grafana; la v1.0 declaraba 19 tareas, la tabla contiene 15)*
+**Subtotal FASE 2: 14✅ + 1⏳ de 15 — 93.3% ponderado** *(v2.7: TASK-210-04 cerrada — ruleset de branch protection; TASK-220-04 con SDK Sentry integrado, pendiente humano DSN; v2.6: TASK-210-02 y TASK-220-01 cerradas; la v1.0 declaraba 19 tareas, la tabla contiene 15)*
 
 ---
 
@@ -488,7 +488,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | ---------------------------- | ------- | ------- | ------ | ------ | ----- | ------------------ | ----------------- |
 | FASE 0 — Documentación base  | 8       | 8       | 0      | 0      | 0     | **100%**           | 37.5%             |
 | FASE 1 — Diseño y modelado   | 14      | 14      | 0      | 0      | 0     | **100%**           | 57.1%             |
-| FASE 2 — Infraestructura     | 15      | 13      | 0      | 2      | 0     | **86.7%**          | 36.8%             |
+| FASE 2 — Infraestructura     | 15      | 14      | 0      | 1      | 0     | **93.3%**          | 36.8%             |
 | FASE 3 — Users Service       | 12      | 10      | 0      | 1      | 1     | **90.9%**¹         | 16.7%             |
 | FASE 4 — MP Service          | 36      | 26      | 3      | 5      | 2     | **80.9%**⁴         | 25.6%             |
 | FASE 5 — Materials Service   | 34      | 25      | 4      | 5      | 0     | **79.4%**          | 21.0%³            |
@@ -499,7 +499,7 @@ Las tareas se gestionan en tablas Markdown con las columnas: **Estado | ID | Pri
 | FASE 10 — Analítica          | 8       | 1       | 3      | 4      | 0     | **31.3%**          | 0.0%              |
 | FASE 11 — Docs final/defensa | 3       | 0       | 2      | 1      | 0     | **33.3%**          | 0.0%              |
 | FASE 12 — Mantenimiento      | 5       | 0       | 3      | 2      | 0     | **30.0%**          | 0.0%              |
-| **TOTAL**                    | **182** | **131** | **20** | **28** | **3** | **≈78.8%**         | 25.3%             |
+| **TOTAL**                    | **182** | **132** | **20** | **27** | **3** | **≈79.3%**         | 25.3%             |
 
 ¹ Excluye la tarea cancelada TASK-300-02 (base de cálculo: 11).
 ² La v1.0 declaraba totales inflados e imposibles (p. ej., 190 tareas, 89 en FASE 7, 62 en FASE 5); los conteos reales son 182 / 22 / 34.
@@ -632,3 +632,23 @@ Los subtotales y el Resumen de Progreso deben recalcarse **por script sobre las 
 
 ### Regla recordada
 Los subtotales y el Resumen de Progreso se recalculan **por script sobre las tablas** (`scripts/count-tasks.py`) cada vez que cambia el estado de una tarea.
+
+---
+
+## 22. Registro de Cambios v2.7 — Sentry (TASK-220-04) y branch protection (TASK-210-04)
+
+**Fecha:** 2026-11-26 · **Responsable:** Agente (Code) · **Método:** `scripts/count-tasks.py` sobre las tablas.
+
+### Tareas actualizadas
+- **TASK-210-04 ✅ Completada:** ruleset de branch protection activo en `main` (require PR + 1 review, status checks lint/test, block force pushes). Evidencia: `https://github.com/ybotet/SISGAD5_1.0/settings/rules`. (Opcional "Restrict deletions" no disponible en el ruleset; no bloqueante.)
+- **TASK-220-04 ⏳ (código listo, pendiente humano):** SDK Sentry integrado por servicio:
+  - Node (`@sentry/node@9`): `src/shared/config/sentry.js` (init condicional, scrub PII, `errorHandler` tras logger) en gateway/users/mp + endpoint `/test-error` (dev o `SENTRY_TEST_ERROR=true`).
+  - Go (`getsentry/sentry-go@v0.50.0`): `internal/middleware/sentry.go` (Init + middleware captura panic/5xx + `FlushSentry` en shutdown) cableado en `cmd/api/main.go`.
+  - Frontend (`@sentry/react@9`): `src/config/sentry.ts` (release=git sha, scrub PII) + `initSentry()` en `main.tsx`.
+  - Build: `frontend/Dockerfile` ARG→ENV `VITE_SENTRY_*`; `cd.yml` build-args con `secrets.VITE_SENTRY_DSN_FRONTEND`.
+  - Docs: `.env.example` (DSNs + sample rates) y `scripts/setup-sentry-secrets.md`.
+  - **Bloqueante humano:** crear 5 proyectos Sentry y cargar `SENTRY_DSN_*` / `VITE_SENTRY_DSN_FRONTEND` en GH Secrets + `/opt/sisgad5/.env`. **Guía paso a paso:** `docs/pending/TASK-220-04_sentry_setup.es.md`.
+
+### Estado recalculado
+- FASE 2 → **93.3%** (14✅ + 1⏳ de 15).
+- **TOTAL: 182 tareas → 132✅ + 20🔄 + 27⏳ + 3❌ ≈ 79.3% ponderado** (denominador efectivo: 179).

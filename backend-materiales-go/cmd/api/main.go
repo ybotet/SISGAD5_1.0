@@ -66,6 +66,9 @@ func main() {
         os.Exit(1)
     }
 
+    // 🔍 Sentry (TASK-220-04) — init condicional (no-op si falta SENTRY_DSN_MATERIALS)
+    middleware.InitSentry()
+
     // ========================================
     // 3. CONEXIÓN A LA BASE DE DATOS
     // ========================================
@@ -128,6 +131,9 @@ func main() {
             slog.Informacionf("← %s %s (%v)", r.Method, r.URL.Path, time.Since(start))
         })
     })
+
+    // Middleware de Sentry (TASK-220-04) — captura panics y errores 5xx (DESPUÉS del logger)
+    r.Use(middleware.SentryMiddleware)
 
     // Middleware de métricas Prometheus
     r.Use(func(next http.Handler) http.Handler {
@@ -303,6 +309,9 @@ func main() {
     if err := server.Shutdown(ctx); err != nil {
         slog.Errorf("❌ Error en shutdown: %v", err)
     }
+
+    // Flush de eventos Sentry pendientes (TASK-220-04)
+    middleware.FlushSentry()
 
     slog.Informacion("✅ Servidor detenido correctamente")
 }
